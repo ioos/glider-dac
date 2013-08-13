@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Glider Missions</title>
+    {% block javascript %}
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
+    {% endblock %}
+    {% block css %}
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}"></link>
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}"></link>
+    {% endblock %}
+  </head>
+  <body>
+    <div class="container">
+      {%- with messages = get_flashed_messages(with_categories=true) %}
+        {%- if messages %}
+          {%- for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              {{ message }}
+            </div>
+          {%- endfor %}
+        {%- endif %}
+      {%- endwith %}
+
+      {% block page %}{% endblock %}
+    </div>
+  </body>
+</html>

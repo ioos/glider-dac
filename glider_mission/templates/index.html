@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block page %}
+
+<span class="pull-right"><a href="{{ url_for('logout') }}">logout</a></span>
+<h1>Glider Missions <small>for {{ current_user.id }}</small></h1>
+
+<div class="well well-small" style="text-align:right;">
+  <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_mission') }}">
+    {{ new_mission_form.hidden_tag() }}
+    {{ new_mission_form.name(placeholder="Mission Name") }}
+    {{ new_mission_form.wmo_id(placeholder="WMO ID (optional)") }}
+    <button type="submit" class="btn btn-inverse"><i class="icon-plus icon-white"></i> New Mission</button>
+  </form>
+</div>
+
+{% for mission in missions %}
+<h4>{{ mission[0] }} <small>WMO ID: {{ mission[1] }}</small></h4>
+{% endfor %}
+
+{% endblock %}
+

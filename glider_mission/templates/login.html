@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block page %}
+
+<h3>Login</h3>
+
+<form class="form-horizontal" method="POST" action="{{ url_for('login') }}">
+  {{ form.hidden_tag() }}
+
+  {% for field in form %}
+  {% if field.name != "csrf_token" %}
+  <div class="control-group">
+    <label class="control-label" for="{{ field.name }}">{{ field.label }}</label>
+    <div class="controls">
+      {{ field() }}
+      {% if field.description %}
+      <span class="help-block">{{ field.description }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Login</button>
+  </div>
+</form>
+
+{% endblock %}
+

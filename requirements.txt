@@ -1,0 +1,5 @@
+Flask==0.9
+Flask-Login==0.2.6
+pam==0.1.4
+gunicorn==0.16.1
+Flask-WTF==0.8.2
