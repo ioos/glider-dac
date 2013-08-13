@@ -1,2 +1,2 @@
 DEBUG = False
-LOG_FILE = False
+LOG_FILE = True
