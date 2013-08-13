@@ -16,6 +16,16 @@
 
 {% for mission in missions %}
 <h4>{{ mission[0] }} <small>WMO ID: {{ mission[1] }}</small></h4>
+{% if mission[2] %}
+<dl>
+  <dt>Files</dt>
+  <dd>{{ mission[2] }}</dd>
+  <dt>Last Updated</dt>
+  <dd>{{ mission[3] | datetimeformat }}</dd> 
+</dl>
+{% else %}
+<p>No data</p>
+{% endif %}
 {% endfor %}
 
 {% endblock %}
