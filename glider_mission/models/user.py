@@ -32,6 +32,9 @@ class User(UserMixin):
         return os.path.join(data_root, self.id)
 
     def get_missions(self):
+        if not os.path.exists(self.data_root):
+            return []
+
         missions = os.listdir(self.data_root)
         retval = []
 
