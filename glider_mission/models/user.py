@@ -43,11 +43,15 @@ class User(UserMixin):
         if not os.path.exists(self.data_root):
             return []
 
-        missions = os.listdir(self.data_root)
+        upload_root = os.path.join(self.data_root, 'upload')
+        if not os.path.exists(upload_root):
+            return []
+
+        missions = os.listdir(upload_root)
         retval = []
 
         for mission in missions:
-            data_files = glob.glob(os.path.join(self.data_root, mission, "*.nc"))
+            data_files = glob.glob(os.path.join(upload_root, mission, "*.nc"))
             datacount = len(data_files)
 
             last_updated = None
@@ -55,7 +59,7 @@ class User(UserMixin):
             if len(stamps):
                 last_updated = datetime.fromtimestamp(stamps[-1])
 
-            wmo_id_file = os.path.join(self.data_root, mission, "wmoid.txt")
+            wmo_id_file = os.path.join(upload_root, mission, "wmoid.txt")
             if os.path.exists(wmo_id_file):
                 with open(wmo_id_file) as f:
                     retval.append((mission, f.read().strip(), datacount, last_updated))
@@ -65,7 +69,7 @@ class User(UserMixin):
         return retval
 
     def new_mission(self, form):
-        new_mission_dir = os.path.join(self.data_root, form.name.data)
+        new_mission_dir = os.path.join(upload_root, form.name.data)
         if not os.path.exists(new_mission_dir):
             os.mkdir(new_mission_dir)
 
