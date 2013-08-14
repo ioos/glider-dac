@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 EMAIL_TEXT = """
-A new Glider Mission has been created. Please assign it a WMO ID and place it
+A new Glider Mission (%s) has been created. Please assign it a WMO ID and place it
 in the directory inside of a file named "wmoid.txt".
 """
 EMAIL_HOST     = os.environ.get('MAIL_SERVER')
@@ -47,10 +47,10 @@ class HandleMission(FileSystemEventHandler):
             rel_path = os.path.relpath(event.src_path, self.base)
 
             # we only care about this path if it's under a user dir
-            # user/mission-name
+            # user/upload/mission-name
             path_parts = rel_path.split(os.sep)
 
-            if len(path_parts) != 2:
+            if len(path_parts) != 3:
                 return
 
             logger.info("New mission directory: %s", rel_path)
@@ -66,9 +66,9 @@ class HandleMission(FileSystemEventHandler):
             rel_path = os.path.relpath(event.src_path, self.base)
             dirname = os.path.dirname(rel_path)
 
-            # should resemble user/mission-name/wmo-file
+            # should resemble user/upload/mission-name/wmo-file
             path_parts = rel_path.split(os.sep)
-            if len(path_parts) != 3:
+            if len(path_parts) != 4:
                 return
 
             # only looking for wmoid.txt named files
@@ -87,8 +87,8 @@ class HandleMission(FileSystemEventHandler):
     def no_wmoid(self, path_parts):
         logger.info("Send email for %s", path_parts)
 
-        msg            = MIMEText(EMAIL_TEXT)
-        msg['Subject'] = "New Glider Mission"
+        msg            = MIMEText(EMAIL_TEXT % path_parts[-1])
+        msg['Subject'] = "New Glider Mission - %s" % path_parts[-1]
         msg['From']    = EMAIL_FROM
         msg['To']      = ",".join(EMAIL_TO)
 
