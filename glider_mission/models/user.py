@@ -3,9 +3,9 @@ import os.path
 import glob
 import sys
 from datetime import datetime
-from pam import authenticate
 from glider_mission import app
 from flask_login import UserMixin
+from paramiko import Transport, AuthenticationException
 
 class User(UserMixin):
     def __init__(self, id):
@@ -13,7 +13,15 @@ class User(UserMixin):
 
     @classmethod
     def _check_login(cls, username, password):
-        return authenticate(username, password)
+        transport = Transport((app.config.get('AUTH_HOST'), app.config.get('AUTH_PORT')))
+        try:
+            transport.connect(username=username, password=password)
+        except AuthenticationException:
+            return False
+        finally:
+            transport.close()
+
+        return True
 
     @classmethod
     def validate(cls, username, password):
