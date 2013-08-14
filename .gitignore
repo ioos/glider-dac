@@ -3,3 +3,5 @@
 .*.swo
 logs/*.txt
 
+
+/.fab
