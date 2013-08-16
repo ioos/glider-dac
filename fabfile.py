@@ -18,11 +18,14 @@ import time
         webpass = x
         secret_key = x
         data_root = x
+        rsync_ssh_user = x
+        rsync_to_host = x
+        rsync_to_path = x
 """
 
 env.user = "gliderweb"
 code_dir = "/home/gliderweb/glider-mission"
-env.hosts = ['54.221.199.93']
+env.hosts = ['ftp.gliders.ioos.us']
 
 def admin():
     env.user = "dfoster"
