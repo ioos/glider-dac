@@ -7,9 +7,10 @@ import os
 import argparse
 import logging
 import smtplib
+import subprocess
 from email.mime.text import MIMEText
 
-from watchdog.events import FileSystemEventHandler, DirCreatedEvent
+from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
 from watchdog.observers import Observer
 
 
@@ -28,6 +29,10 @@ EMAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 EMAIL_FROM     = os.environ.get('MAIL_DEFAULT_SENDER')
 EMAIL_TO       = [os.environ.get('MAIL_DEFAULT_TO')]
 EMAIL_CC       = os.environ.get('MAIL_DEFAULT_LIST', None)
+
+RSYNC_SSH_USER = os.environ.get('RSYNC_SSH_USER', 'gliderweb')
+RSYNC_TO_HOST  = os.environ.get('RSYNC_TO_HOST', None)
+RSYNC_TO_PATH  = os.environ.get('RSYNC_TO_PATH', '/data')
 
 class HandleMission(FileSystemEventHandler):
     def __init__(self, base, timeout):
@@ -83,6 +88,52 @@ class HandleMission(FileSystemEventHandler):
                     del self.waiting[dirname]
             finally:
                 self.waitlock.release()
+
+    def on_modified(self, event):
+        if isinstance(event, FileModifiedEvent):
+            rel_path = os.path.relpath(event.src_path, self.base)
+            path_parts = rel_path.split(os.sep)
+
+            # expecting user/upload/mission-name/file
+            if len(path_parts) != 4:
+                return
+
+            logger.info("File modified in watched dir (%s), rsyncing", rel_path)
+
+            # rsync the containing directory
+            src = os.path.split(event.src_path)[0]
+            dest = os.path.join(RSYNC_TO_PATH, path_parts[0])    # username only from this path
+            self._perform_rsync(src)
+
+        elif isinstance(event, DirModifiedEvent):
+            rel_path = os.path.relpath(event.src_path, self.base)
+            path_parts = rel_path.split(os.sep)
+
+            # expecting user/upload/mission-name
+            if len(path_parts) != 3:
+                return
+
+            logger.info("Directory modified (%s), rsyncing", rel_path)
+
+            # rsync this directory
+            src = event.src_path
+            dest = os.path.join(RSYNC_TO_PATH, path_parts[0])    # username only from this path
+            self._perform_rsync(src, dest)
+
+    def _perform_rsync(self, src, dest):
+        if RSYNC_TO_HOST is not None:
+            dest = "%s:%s" % (RSYNC_TO_HOST, dest)
+
+        args = ['rsync', '-r', '-a', '-v', '-e', 'ssh ' + RSYNC_SSH_USER, src, dest]
+        logger.info("Spawning %s", " ".join(args))
+
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        if len(stdout):
+            logger.info(stdout)
+        if len(stderr):
+            logger.warn(stderr)
 
     def no_wmoid(self, path_parts):
         logger.info("Send email for %s", path_parts)
