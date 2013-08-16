@@ -124,7 +124,7 @@ class HandleMission(FileSystemEventHandler):
         if RSYNC_TO_HOST is not None:
             dest = "%s:%s" % (RSYNC_TO_HOST, dest)
 
-        args = ['rsync', '-r', '-a', '-v', '-e', 'ssh ' + RSYNC_SSH_USER, src, dest]
+        args = ['rsync', '-r', '-a', '-v', '-e', 'ssh -l ' + RSYNC_SSH_USER, src, dest]
         logger.info("Spawning %s", " ".join(args))
 
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
