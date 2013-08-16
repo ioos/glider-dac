@@ -69,6 +69,8 @@ class User(UserMixin):
         return retval
 
     def new_mission(self, form):
+        upload_root = os.path.join(self.data_root, 'upload')
+
         new_mission_dir = os.path.join(upload_root, form.name.data)
         if not os.path.exists(new_mission_dir):
             os.mkdir(new_mission_dir)
