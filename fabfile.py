@@ -43,16 +43,41 @@ def deploy():
         start_supervisord()
         run("supervisorctl -c ~/supervisord.conf start all")
 
+        update_supervisord_perms_monitor()
+        update_libs_perms_monitor()
+        start_supervisord_perms_monitor()
+        with prefix("workon root-monitor"):
+            sudo("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
+
 def update_supervisord():
     gliderweb()
     run("pip install supervisor")
     upload_template('deploy/supervisord.conf', '/home/gliderweb/supervisord.conf', context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+
+def update_supervisord_perms_monitor():
+    admin()
+    with prefix("workon root-monitor"):
+        sudo("pip install supervisor")
+        upload_template("deploy/supervisord-perms-monitor.conf",
+                        "/root/supervisord-perms-monitor.conf",
+                        context=copy(env),
+                        use_jinja=True,
+                        use_sudo=True,
+                        backup=False,
+                        mirror_local_mode=True)
 
 def update_libs():
     gliderweb()
     with cd(code_dir):
         with settings(warn_only=True):
             run("pip install -r requirements.txt")
+
+def update_libs_perms_monitor():
+    admin()
+    with cd(code_dir):
+        with settings(warn_only=True):
+            with prefix("workon root-monitor"):
+                sudo("pip install -r requirements.txt")
 
 def restart_nginx():
     admin()
@@ -61,6 +86,10 @@ def restart_nginx():
 def supervisord_restart():
     stop_supervisord()
     start_supervisord()
+
+def supervisord_perms_monitor_restart():
+    stop_supervisord_perms_monitor()
+    start_supervisord_perms_monitor()
 
 def stop_supervisord():
     gliderweb()
@@ -76,8 +105,22 @@ def kill_pythons():
     with settings(warn_only=True):
         sudo("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
 
+def stop_supervisord_perms_monitor():
+    admin()
+    with settings(warn_only=True):
+        with prefix("workon root-monitor"):
+            sudo("supervisorctl -c /root/supervisord-perms-monitor.conf stop all")
+            sudo("kill -QUIT $(ps aux | grep supervisord | grep -v grep | awk '{print $2}')")
+
 def start_supervisord():
     gliderweb()
     with cd(code_dir):
         with settings(warn_only=True):
             run("supervisord -c ~/supervisord.conf")
+
+def start_supervisord_perms_monitor():
+    admin()
+    with settings(warn_only=True):
+        with prefix("workon root-monitor"):
+            sudo("supervisord -c /root/supervisord-perms-monitor.conf")
+
