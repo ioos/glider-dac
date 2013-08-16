@@ -103,7 +103,7 @@ class HandleMission(FileSystemEventHandler):
             # rsync the containing directory
             src = os.path.split(event.src_path)[0]
             dest = os.path.join(RSYNC_TO_PATH, path_parts[0])    # username only from this path
-            self._perform_rsync(src)
+            self._perform_rsync(src, dest)
 
         elif isinstance(event, DirModifiedEvent):
             rel_path = os.path.relpath(event.src_path, self.base)
