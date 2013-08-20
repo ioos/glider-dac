@@ -31,16 +31,9 @@ class HandleMissionDir(FileSystemEventHandler):
     def _fix_perms(self, path, rel_path, username):
         logger.info("New path: %s", rel_path)
 
-        # get current owner
-        curstat = os.stat(path)
-
         # lookup username's uid/gid
         uid = pwd.getpwnam(username).pw_uid
         gid = grp.getgrnam('sftponly').gr_gid
-
-        if curstat.st_uid == uid:
-            logger.info("Path is already owned by %s, ignoring", username)
-            return
 
         logger.info("Changing %s to owner %s (%s)/group sftponly (%s)", rel_path, username, uid, gid)
         os.chown(path, uid, gid)
