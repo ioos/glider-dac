@@ -34,6 +34,7 @@ def gliderweb():
 
 def deploy():
     stop_supervisord()
+    stop_supervisord_perms_monitor()
 
     gliderweb()
     with cd(code_dir):
