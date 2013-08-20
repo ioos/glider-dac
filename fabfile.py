@@ -49,6 +49,8 @@ def deploy():
         with prefix("workon root-monitor"):
             sudo("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
 
+    restart_nginx()
+
 def update_supervisord():
     gliderweb()
     run("pip install supervisor")
