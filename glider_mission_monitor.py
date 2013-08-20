@@ -67,6 +67,10 @@ class HandleMission(FileSystemEventHandler):
                 self.waiting[rel_path] = t
             finally:
                 self.waitlock.release()
+
+            # Touch src directory so on_modified will get called
+            os.utime(event.src_path, None)
+
         else:
             rel_path = os.path.relpath(event.src_path, self.base)
             dirname = os.path.dirname(rel_path)
