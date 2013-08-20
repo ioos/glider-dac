@@ -69,6 +69,9 @@ class HandleMissionDir(FileSystemEventHandler):
 
         self._fix_perms(event.src_path, rel_path, path_parts[0])
 
+        # Touch src directory so on_modified will get called
+        os.utime(event.src_path, None)
+
 def main(handler):
     observer = Observer()
     observer.schedule(handler, path=handler.base, recursive=True)
