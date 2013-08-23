@@ -35,28 +35,29 @@ def gliderweb():
 def deploy_tds():
     env.hosts = ['tds.gliders.ioos.us']
 
-    gliderweb()
-
     sup_conf_file = "~/supervisord-catalog-monitor.conf"
+    gliderweb()
     stop_supervisord(conf=sup_conf_file)
+    gliderweb()
     with cd(code_dir):
         run("git pull origin master")
         update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file)
         update_libs()
-    start_supervisord(conf=sup_conf_file)
-    run("supervisorctl -c %s start all" % sup_conf_file)
+        start_supervisord(conf=sup_conf_file)
+        run("supervisorctl -c %s start all" % sup_conf_file)
 
 def deploy_ftp():
     env.hosts = ['ftp.gliders.ioos.us']
 
     gliderweb()
     stop_supervisord(conf="~/supervisord.conf")
+    gliderweb()
     with cd(code_dir):
         run("git pull origin master")
         update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/gliderweb/supervisord.conf")
         update_libs()
-    start_supervisord(conf="~/supervisord.conf")
-    run("supervisorctl -c ~/supervisord.conf start all")
+        start_supervisord(conf="~/supervisord.conf")
+        run("supervisorctl -c ~/supervisord.conf start all")
 
     admin()
     stop_supervisord(conf="/root/supervisord-perms-monitor.conf")
