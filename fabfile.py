@@ -25,80 +25,70 @@ import time
 
 env.user = "gliderweb"
 code_dir = "/home/gliderweb/glider-mission"
-env.hosts = ['ftp.gliders.ioos.us']
+
 
 def admin():
     env.user = "root"
 def gliderweb():
     env.user = "gliderweb"
 
-def deploy():
-    stop_supervisord()
-    stop_supervisord_perms_monitor()
+def deploy_tds():
+    env.hosts = ['tds.gliders.ioos.us']
 
     gliderweb()
+
+    sup_conf_file = "~/supervisord-catalog-monitor.conf"
+    stop_supervisord(conf=sup_conf_file)
     with cd(code_dir):
         run("git pull origin master")
-        update_supervisord()
+        update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file)
         update_libs()
-        start_supervisord()
-        run("supervisorctl -c ~/supervisord.conf start all")
+    start_supervisord(conf=sup_conf_file)
+    run("supervisorctl -c %s start all" % sup_conf_file)
 
-        update_supervisord_perms_monitor()
-        update_libs_perms_monitor()
-        start_supervisord_perms_monitor()
-        with prefix("workon root-monitor"):
-            run("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
+def deploy_ftp():
+    env.hosts = ['ftp.gliders.ioos.us']
+
+    gliderweb()
+    stop_supervisord(conf="~/supervisord.conf")
+    with cd(code_dir):
+        run("git pull origin master")
+        update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/gliderweb/supervisord.conf")
+        update_libs()
+    start_supervisord(conf="~/supervisord.conf")
+    run("supervisorctl -c ~/supervisord.conf start all")
+
+    admin()
+    stop_supervisord(conf="/root/supervisord-perms-monitor.conf")
+    update_supervisord(src_file="deploy/supervisord-perms-monitor.conf", dst_file="/root/supervisord-perms-monitor.conf")
+    update_libs(virtual_env="root-monitor")
+    start_supervisord(conf="/root/supervisord-perms-monitor.conf")
+    with prefix("workon root-monitor"):
+        run("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
 
     restart_nginx()
 
-def update_supervisord():
-    gliderweb()
+def update_supervisord(src_file, dst_file):
     run("pip install supervisor")
-    upload_template('deploy/supervisord.conf', '/home/gliderweb/supervisord.conf', context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
 
-def update_supervisord_perms_monitor():
-    admin()
-    with prefix("workon root-monitor"):
-        run("pip install supervisor")
-        upload_template("deploy/supervisord-perms-monitor.conf",
-                        "/root/supervisord-perms-monitor.conf",
-                        context=copy(env),
-                        use_jinja=True,
-                        use_sudo=False,
-                        backup=False,
-                        mirror_local_mode=True)
-
-def update_libs():
-    gliderweb()
+def update_libs(virtual_env=None):
     with cd(code_dir):
         with settings(warn_only=True):
-            run("pip install -r requirements.txt")
-
-def update_libs_perms_monitor():
-    admin()
-    with cd(code_dir):
-        with settings(warn_only=True):
-            with prefix("workon root-monitor"):
+            if virtual_env is not None:
+                with prefix("workon %s" % virtual_env):
+                    run("pip install -r requirements.txt")
+            else:
                 run("pip install -r requirements.txt")
 
 def restart_nginx():
     admin()
     run("/etc/init.d/nginx restart")
 
-def supervisord_restart():
-    stop_supervisord()
-    start_supervisord()
-
-def supervisord_perms_monitor_restart():
-    stop_supervisord_perms_monitor()
-    start_supervisord_perms_monitor()
-
-def stop_supervisord():
-    gliderweb()
+def stop_supervisord(conf):
     with cd(code_dir):
         with settings(warn_only=True):
-            run("supervisorctl -c ~/supervisord.conf stop all")
+            run("supervisorctl -c %s stop all" % conf)
             run("kill -QUIT $(ps aux | grep supervisord | grep -v grep | awk '{print $2}')")
 
     kill_pythons()
@@ -108,22 +98,7 @@ def kill_pythons():
     with settings(warn_only=True):
         run("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
 
-def stop_supervisord_perms_monitor():
-    admin()
-    with settings(warn_only=True):
-        with prefix("workon root-monitor"):
-            run("supervisorctl -c /root/supervisord-perms-monitor.conf stop all")
-            run("kill -QUIT $(ps aux | grep supervisord | grep -v grep | awk '{print $2}')")
-
-def start_supervisord():
-    gliderweb()
+def start_supervisord(conf):
     with cd(code_dir):
         with settings(warn_only=True):
-            run("supervisord -c ~/supervisord.conf")
-
-def start_supervisord_perms_monitor():
-    admin()
-    with settings(warn_only=True):
-        with prefix("workon root-monitor"):
-            run("supervisord -c /root/supervisord-perms-monitor.conf")
-
+            run("supervisord -c %s" % conf)
