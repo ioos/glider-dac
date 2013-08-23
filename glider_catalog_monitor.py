@@ -48,7 +48,7 @@ class HandleMission(FileSystemEventHandler):
             if len(path_parts) != 2:
                 return
             logger.info("Directory modified: %s", rel_path)
-            logger.info("Rereating catalog and NcML Aggregations")
+            logger.info("Recreating catalog and NcML Aggregations")
             self._create_ncml(user=path_parts[0], mission=path_parts[1])
             self._create_catalog(user=path_parts[0], mission=path_parts[1])
         elif isinstance(event, FileModifiedEvent):
