@@ -71,7 +71,7 @@ def update_thredds_catalog(base, dev, prod):
     subprocess.call(["git", "pull", "origin", "master"])
     subprocess.call(["git", "push", "origin", "master"])
     subprocess.call(["git", "push", "origin", "master"])
-    subprocess.call(["rsync", "-r", dev, prod])
+    subprocess.call(["rsync", "-r", "%s/*" % dev, prod])
 
 
 if __name__ == "__main__":
