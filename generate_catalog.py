@@ -35,8 +35,7 @@ def update_thredds_catalog(base, dev, prod):
                     os.utime(mission_dir, None)
 
                     # Mission specific THREDDS catalog file
-                    mission_catalog_path = os.path.join(mission_dir, "catalog.xml")
-                    catalog_paths.append((user, mission, mission_catalog_path))
+                    catalog_paths.append((user, mission))
 
     # Create catalog file including all missions
     with open(os.path.join(dev, 'catalog.xml'), 'wb') as f:
@@ -47,7 +46,7 @@ def update_thredds_catalog(base, dev, prod):
         for cat in catalog_paths:
             # Create mission catalogRef
             catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
-            catalog_ref.set("{%s}href" % xlink_ns,  cat[2])
+            catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(dev, cat[0], cat[1], "catalog.xml"))
             catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (cat[0], cat[1]))
             catalog_ref.set("name", "")
             root.append(catalog_ref)
