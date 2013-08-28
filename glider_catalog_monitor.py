@@ -64,7 +64,12 @@ class HandleMission(FileSystemEventHandler):
 
     def _create_catalog(self, user, mission):
 
-        cat_path = os.path.join(self.catalog, user, mission)
+        dir_path    = os.path.join(self.base, user, mission)
+        cat_path    = os.path.join(self.catalog, user, mission)
+
+        time_path   =  os.path.join(cat_path, "timeagg.ncml")
+        timeuv_path =  os.path.join(cat_path, "timeuvagg.ncml")
+
         try:
             os.makedirs(cat_path)
         except OSError:
@@ -95,12 +100,12 @@ class HandleMission(FileSystemEventHandler):
 
           <dataset name="%(user)s - %(mission)s - Time Aggregation" ID="%(user)s_%(mission)s_Time" urlPath="%(user)s_%(mission)s_Time.ncml">
             <serviceName>agg</serviceName>
-            <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="timeagg.ncml" />
+            <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(time_path)s" />
           </dataset>
 
           <dataset name="%(user)s - %(mission)s - Depth Averaged Aggregation" ID="%(user)s_%(mission)s_TimeUV" urlPath="%(user)s_%(mission)s_TimeUV.ncml">
             <serviceName>agg</serviceName>
-            <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="timeuvagg.ncml" />
+            <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(timeuv_path)s" />
           </dataset>
 
           <datasetScan name="%(user)s - %(mission)s - Individual Files" ID="%(user)s_%(mission)s_Files" path="%(user)s_%(mission)s_Files" location="%(dir_path)s">
@@ -111,7 +116,8 @@ class HandleMission(FileSystemEventHandler):
               <include wildcard="*.nc"/>
             </filter>
           </datasetScan>
-        </catalog>""" % locals()
+        </catalog>
+        """ % locals()
 
         with open(os.path.join(cat_path, "catalog.xml"), 'w') as f:
             f.write(cat_xml)
