@@ -2,6 +2,6 @@
 .*.swp
 .*.swo
 logs/*.txt
-
+test/*
 
 /.fab
