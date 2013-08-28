@@ -50,7 +50,7 @@ def update_thredds_catalog(base, dev, prod):
         for cat in catalog_paths:
             # Create mission catalogRef
             catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
-            catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(dev, cat[0], cat[1], "catalog.xml"))
+            catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(cat[0], cat[1], "catalog.xml"))
             catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (cat[0], cat[1]))
             catalog_ref.set("name", "")
             root.append(catalog_ref)
@@ -71,7 +71,7 @@ def update_thredds_catalog(base, dev, prod):
     subprocess.call(["git", "pull", "origin", "master"])
     subprocess.call(["git", "push", "origin", "master"])
     subprocess.call(["git", "push", "origin", "master"])
-    shutil.copyfile(os.path.join(dev, 'catalog.xml'), os.path.join(prod, 'catalog.xml'))
+    subprocess.call(["rsync", "-r", dev, prod])
 
 
 if __name__ == "__main__":
