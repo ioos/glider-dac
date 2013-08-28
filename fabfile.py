@@ -73,7 +73,7 @@ def deploy_ftp():
 
 def update_crontab(src_file, dst_file):
     upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
-    run("crontab %s" dst_file)
+    run("crontab %s" % dst_file)
 
 def update_supervisord(src_file, dst_file):
     run("pip install supervisor")
