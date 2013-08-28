@@ -1,2 +1,3 @@
 # Run catalog update script everyday at 3am
 0 3 * * * python generate_catalog.py {{ data_root }} {{ dev_catalog_root }} {{ prod_catalog_root }}
+# END
