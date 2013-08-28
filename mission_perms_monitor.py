@@ -10,7 +10,6 @@ to the user. This is to repair the web New Mission button's creation.
 """
 
 import time
-import os.path
 import os
 import argparse
 import logging

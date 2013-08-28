@@ -36,12 +36,14 @@ def deploy_tds():
     env.hosts = ['tds.gliders.ioos.us']
 
     sup_conf_file = "~/supervisord-catalog-monitor.conf"
+    crontab_file = "~/crontab.txt"
     gliderweb()
     stop_supervisord(conf=sup_conf_file)
     gliderweb()
     with cd(code_dir):
         run("git pull origin master")
         update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file)
+        update_crontab(src_file="deploy/gliderweb_crontab.txt", dst_file=crontab_file)
         update_libs()
         start_supervisord(conf=sup_conf_file)
         run("supervisorctl -c %s start all" % sup_conf_file)
@@ -68,6 +70,10 @@ def deploy_ftp():
         run("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
 
     restart_nginx()
+
+def update_crontab(src_file, dst_file):
+    upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    run("crontab %s" dst_file)
 
 def update_supervisord(src_file, dst_file):
     run("pip install supervisor")

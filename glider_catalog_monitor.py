@@ -5,16 +5,19 @@ import argparse
 import logging
 from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
 from watchdog.observers import Observer
+from lxml import etree
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
 DATA_ROOT = os.environ.get("DATA_ROOT", "/home/dev/Development/glider-mission/test")
+DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
 
 class HandleMission(FileSystemEventHandler):
-    def __init__(self, base):
+    def __init__(self, base, catalog):
         self.base     = base
+        self.catalog  = catalog
 
     def on_created(self, event):
 
@@ -61,7 +64,12 @@ class HandleMission(FileSystemEventHandler):
 
     def _create_catalog(self, user, mission):
 
-        dir_path = os.path.join(self.base, user, mission)
+        cat_path = os.path.join(self.catalog, user, mission)
+        try:
+            os.makedirs(cat_path)
+        except OSError:
+            # Dir Already exists
+            pass
 
         cat_xml = """<?xml version="1.0" encoding="UTF-8"?>
         <catalog name="IOOS Glider DAC - %(user)s - %(mission)s Catalog"
@@ -105,12 +113,19 @@ class HandleMission(FileSystemEventHandler):
           </datasetScan>
         </catalog>""" % locals()
 
-        with open(os.path.join(dir_path, "catalog.xml"), 'w') as f:
+        with open(os.path.join(cat_path, "catalog.xml"), 'w') as f:
             f.write(cat_xml)
 
     def _create_ncml(self, user, mission):
 
         dir_path = os.path.join(self.base, user, mission)
+        cat_path = os.path.join(self.catalog, user, mission)
+
+        try:
+            os.makedirs(cat_path)
+        except OSError:
+            # Dir Already exists
+            pass
 
         # Add WMO ID if it exists
         try:      
@@ -140,7 +155,7 @@ class HandleMission(FileSystemEventHandler):
             </netcdf>
             """ % locals()
 
-        with open(os.path.join(dir_path, "timeagg.ncml"), 'w') as f:
+        with open(os.path.join(cat_path, "timeagg.ncml"), 'w') as f:
             f.write(time_agg)
 
 
@@ -177,7 +192,7 @@ class HandleMission(FileSystemEventHandler):
             </netcdf>
             """ % locals()
 
-        with open(os.path.join(dir_path, "timeuvagg.ncml"), 'w') as f:
+        with open(os.path.join(cat_path, "timeuvagg.ncml"), 'w') as f:
             f.write(time_uv_agg)
 
 def main(handler):
@@ -197,6 +212,10 @@ if __name__ == "__main__":
     parser.add_argument('basedir',
                         default=DATA_ROOT,
                         nargs='?')
+    parser.add_argument('catalogdir',
+                        default=DEV_CATALOG_ROOT,
+                        nargs='?')
     args = parser.parse_args()
     base = os.path.realpath(args.basedir)
-    main(HandleMission(base))
+    catalog = os.path.realpath(args.catalogdir)
+    main(HandleMission(base, catalog))
