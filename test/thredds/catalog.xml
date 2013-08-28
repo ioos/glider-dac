@@ -1,0 +1,6 @@
+<catalog xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0" name="IOOS Glider DAC - Catalog">
+  <catalogRef xlink:href="/home/dev/Development/glider-mission/test/super/newone/catalog.xml" xlink:title="super - newone"/>
+  <catalogRef xlink:href="/home/dev/Development/glider-mission/test/super/awesome/catalog.xml" xlink:title="super - awesome"/>
+  <catalogRef xlink:href="/home/dev/Development/glider-mission/test/newuser/renamedmission/catalog.xml" xlink:title="newuser - renamedmission"/>
+  <catalogRef xlink:href="/home/dev/Development/glider-mission/test/user/mission/catalog.xml" xlink:title="user - mission"/>
+</catalog>
