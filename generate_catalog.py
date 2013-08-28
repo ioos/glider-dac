@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import time
 import shutil
 import argparse
 import subprocess
@@ -36,6 +37,9 @@ def update_thredds_catalog(base, dev, prod):
 
                     # Mission specific THREDDS catalog file
                     catalog_paths.append((user, mission))
+
+    # Wait for any catalog to be generated that need to be
+    time.sleep(30)
 
     # Create catalog file including all missions
     with open(os.path.join(dev, 'catalog.xml'), 'wb') as f:
