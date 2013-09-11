@@ -12,6 +12,9 @@ app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
 
 import sys
 
+from flask.ext.mongokit import MongoKit
+db = MongoKit(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"

@@ -1,3 +1,17 @@
+import os
+import urlparse
+
 DEBUG = True
 TESTING = True
 LOG_FILE = True
+
+DATA_ROOT="/data/ftp"
+
+# database
+MONGO_URI = os.environ.get('MONGO_URI')
+url = urlparse.urlparse(MONGO_URI)
+MONGODB_HOST = url.hostname
+MONGODB_PORT = url.port
+MONGODB_USERNAME = url.username
+MONGODB_PASSWORD = url.password
+MONGODB_DATABASE = url.path[1:]

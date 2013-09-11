@@ -1,4 +1,5 @@
 import os
+import urlparse
 
 DEBUG = False
 TESTING = False
@@ -12,3 +13,12 @@ AUTH_HOST = os.environ.get("GLIDER_AUTH_HOST", "localhost")
 AUTH_PORT = os.environ.get("GLIDER_AUTH_PORT", 22)
 
 DATA_ROOT="/data/ftp"
+
+# database
+MONGO_URI = os.environ.get('MONGO_URI')
+url = urlparse.urlparse(MONGO_URI)
+MONGODB_HOST = url.hostname
+MONGODB_PORT = url.port
+MONGODB_USERNAME = url.username
+MONGODB_PASSWORD = url.password
+MONGODB_DATABASE = url.path[1:]
