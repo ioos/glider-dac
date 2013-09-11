@@ -15,12 +15,12 @@ class NewMissionForm(Form):
     name = TextField(u'Mission Name')
     wmo_id = TextField(u'WMO ID')
 
-@app.route('/', methods=['GET'])
+@app.route('/admin', methods=['GET'])
 @login_required
 def index():
     new_mission_form = NewMissionForm()
     missions = current_user.get_missions()
-    return render_template('index.html',
+    return render_template('admin.html',
                            missions=missions,
                            current_user=current_user,
                            new_mission_form=new_mission_form)
