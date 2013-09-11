@@ -8,9 +8,13 @@
 <div class="well well-small" style="text-align:right;">
   <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_mission') }}">
     {{ new_mission_form.hidden_tag() }}
-    {{ new_mission_form.name(placeholder="Mission Name") }}
-    {{ new_mission_form.wmo_id(placeholder="WMO ID (optional)") }}
-    <button type="submit" class="btn btn-inverse"><i class="icon-plus icon-white"></i> New Mission</button>
+    <div class="form-group">
+      {{ new_mission_form.name(placeholder="Mission Name", class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ new_mission_form.wmo_id(placeholder="WMO ID (optional)", class_="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> New Mission</button>
   </form>
 </div>
 
