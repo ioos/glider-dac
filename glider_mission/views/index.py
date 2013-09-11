@@ -1,4 +1,7 @@
 from datetime import datetime
+import os
+import os.path
+import sys
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from glider_mission import app, login_manager
@@ -15,9 +18,38 @@ class NewMissionForm(Form):
     name = TextField(u'Mission Name')
     wmo_id = TextField(u'WMO ID')
 
+@app.route('/', methods=['GET'])
+def index():
+    data_root = app.config.get('DATA_ROOT')
+    files = []
+    missions = []
+    for dirpath, dirnames, filenames in os.walk(data_root):
+        rel_path = os.path.relpath(dirpath, data_root)
+        path_parts = rel_path.split(os.sep)
+        if len(path_parts) == 3:
+            missions.append(dirpath)
+
+        for filename in filenames:
+            if filename == "wmoid.txt":
+                continue
+
+            entry = os.path.join(dirpath, filename)
+
+            rel_path = os.path.relpath(entry, data_root)
+            # user/upload/mission-name/file
+            path_parts = rel_path.split(os.sep)
+            if len(path_parts) != 4:
+                continue
+
+            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
+
+    files = sorted(files, lambda a,b: cmp(b[2], a[2]))
+
+    return render_template('index.html', files=files, missions=missions)
+
 @app.route('/admin', methods=['GET'])
 @login_required
-def index():
+def admin():
     new_mission_form = NewMissionForm()
     missions = current_user.get_missions()
     return render_template('admin.html',
