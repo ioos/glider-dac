@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block page %}
+
+<span class="pull-right"><a href="{{ url_for('login') }}">login</a></span>
+<h1><a href="/">Glider Missions</a></h1>
+<h3>{{ mission.name }}</h3>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Modified</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for f in files %}
+    <tr>
+      <td>{{ f[0] }}</td>
+      <td>{{ f[1] | datetimeformat }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

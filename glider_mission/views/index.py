@@ -4,7 +4,7 @@ import os.path
 import sys
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
-from glider_mission import app, login_manager
+from glider_mission import app, login_manager, db
 from glider_mission.models.user import User
 from flask_login import login_required, login_user, logout_user, current_user
 from flask.ext.wtf import Form
@@ -27,7 +27,9 @@ def index():
         rel_path = os.path.relpath(dirpath, data_root)
         path_parts = rel_path.split(os.sep)
         if len(path_parts) == 3:
-            missions.append(dirpath)
+            db_mission = db.Mission.find_one({'name':path_parts[-1]})
+            missions.append((dirpath, db_mission))
+            mission_idx = len(missions) - 1
 
         for filename in filenames:
             if filename == "wmoid.txt":
@@ -41,7 +43,7 @@ def index():
             if len(path_parts) != 4:
                 continue
 
-            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
+            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry)), mission_idx))
 
     files = sorted(files, lambda a,b: cmp(b[2], a[2]))
 

@@ -3,7 +3,7 @@
 {% block page %}
 
 <span class="pull-right"><a href="{{ url_for('login') }}">login</a></span>
-<h1>Glider Missions</h1>
+<h1><a href="/">Glider Missions</a></h1>
 
 <div class="row">
   <div class="col-lg-8">
@@ -12,7 +12,7 @@
     <table class="table table-bordered table-striped">
       {% for f in files[0:10] %}
       <tr>
-        <td>{{ f[0] }}</td>
+        <td><a href="{{ url_for('show_mission', mission_id=missions[f[3]][1]._id) }}">{{ f[0] }}</a></td>
         <td>{{ f[1] }}</td>
         <td>{{ f[2] | datetimeformat }}</td>
       </tr>
