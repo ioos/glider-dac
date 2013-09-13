@@ -1,6 +1,7 @@
 from glider_mission import db
 from datetime import datetime
 from flask.ext.mongokit import Document
+from bson.objectid import ObjectId
 
 @db.register
 class Mission(Document):
@@ -9,11 +10,14 @@ class Mission(Document):
     use_schemaless = True
 
     structure = {
-        'name'        : unicode,
-        'user'        : unicode,
-        'mission_dir' : unicode,
-        'created'     : datetime,
-        'updated'     : datetime,
+        'name'                      : unicode,
+        'user_id'                   : ObjectId,
+        'mission_dir'               : unicode,
+        'estimated_deploy_date'     : datetime,
+        'estimated_deploy_location' : unicode,  # WKT text
+        'wmo_id'                    : unicode,
+        'created'                   : datetime,
+        'updated'                   : datetime
     }
 
     default_values = {
