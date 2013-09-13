@@ -2,8 +2,7 @@
 
 {% block page %}
 
-<span class="pull-right"><a href="{{ url_for('logout') }}">logout</a></span>
-<h1>Glider Missions <small>for {{ current_user.id }}</small></h1>
+<h1>Glider Missions <small>for {{ current_user.username }}</small></h1>
 
 <div class="well well-small" style="text-align:right;">
   <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_mission') }}">

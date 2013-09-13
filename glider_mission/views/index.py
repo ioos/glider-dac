@@ -3,6 +3,8 @@ import os
 import os.path
 import sys
 
+from bson.objectid import ObjectId
+
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from glider_mission import app, login_manager, db
 from glider_mission.models.user import User
@@ -20,6 +22,7 @@ class NewMissionForm(Form):
 
 @app.route('/', methods=['GET'])
 def index():
+
     data_root = app.config.get('DATA_ROOT')
     files = []
     missions = []
@@ -61,13 +64,17 @@ def admin():
 
 @login_manager.user_loader
 def load_user(userid):
-    return User.get(userid)
+    return db.User.find_one({ "_id" : ObjectId(userid) })
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_active():
+        flash("Already logged in")
+        return redirect(request.args.get("next") or url_for("index"))
+
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.validate(form.username.data, form.password.data)
+        user = User.authenticate(form.username.data, form.password.data)
         if not user:
             flash("Failed")
             return redirect(url_for("login"))
