@@ -5,3 +5,6 @@ logs/*.txt
 test/*
 
 /.fab
+
+ftp_temp
+tds_temp

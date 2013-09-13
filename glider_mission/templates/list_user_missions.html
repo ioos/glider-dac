@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block page %}
+
+<h1>Glider Missions <small>for {{ username }}</small></h1>
+
+{%- for mission in missions %}
+<h4><a href="{{ url_for('show_mission', username=username, mission_id=mission._id) }}">{{ mission.name }}</a> <small>WMO ID: {{ mission.wmo_id }}</small></h4>
+<dl>
+  <dt>Last Updated</dt>
+  <dd>{{ mission.updated | datetimeformat }}</dd> 
+</dl>
+{%- endfor %}
+
+{% endblock %}

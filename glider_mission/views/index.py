@@ -3,6 +3,7 @@ import os
 import os.path
 import sys
 
+import pymongo
 from bson.objectid import ObjectId
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
@@ -16,14 +17,11 @@ class LoginForm(Form):
     username = TextField(u'Name')
     password = PasswordField(u'Password')
 
-class NewMissionForm(Form):
-    name = TextField(u'Mission Name')
-    wmo_id = TextField(u'WMO ID')
-
 @app.route('/', methods=['GET'])
 def index():
 
     data_root = app.config.get('DATA_ROOT')
+
     files = []
     missions = []
     for dirpath, dirnames, filenames in os.walk(data_root):
@@ -50,17 +48,9 @@ def index():
 
     files = sorted(files, lambda a,b: cmp(b[2], a[2]))
 
-    return render_template('index.html', files=files, missions=missions)
+    missions = list(db.Mission.find(sort=[("updated" , pymongo.DESCENDING)], limit=20))
 
-@app.route('/admin', methods=['GET'])
-@login_required
-def admin():
-    new_mission_form = NewMissionForm()
-    missions = current_user.get_missions()
-    return render_template('admin.html',
-                           missions=missions,
-                           current_user=current_user,
-                           new_mission_form=new_mission_form)
+    return render_template('index.html', files=files, missions=missions)
 
 @login_manager.user_loader
 def load_user(userid):
@@ -89,15 +79,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("index"))
-
-@app.route('/new_mission', methods=['POST'])
-@login_required
-def new_mission():
-    form = NewMissionForm()
-    if form.validate_on_submit():
-        current_user.new_mission(form)
-
-    return redirect(url_for('index'))
 
 def serialize_date(date):
     if date is not None:

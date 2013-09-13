@@ -1,3 +1,5 @@
+import os
+
 from glider_mission import db
 from datetime import datetime
 from flask.ext.mongokit import Document
@@ -24,4 +26,12 @@ class Mission(Document):
         'created': datetime.utcnow
     }
 
+    def sync(self):
+        if not os.path.exists(self.mission_dir):
+            os.mkdir(self.mission_dir)
 
+        # Keep the WMO file updated if it is edited via the web form
+        if self.wmo_id is not None and self.wmo_id != "":
+            wmo_id_file = os.path.join(self.mission_dir, "wmoid.txt")
+            with open(wmo_id_file, 'w') as f:
+                f.write(self.wmo_id)

@@ -7,13 +7,13 @@ from flask_login import login_required, current_user
 from glider_mission import app, db
 
 from flask.ext.wtf import Form
-from wtforms import TextField, PasswordField, SubmitField
+from wtforms import TextField, SubmitField
 
 class UserForm(Form):
-    name = TextField(u'Name')
-    organization = TextField(u'Organization')
-    email = TextField(u'Email')
-    submit = SubmitField("Edit")
+    name            = TextField(u'Name')
+    organization    = TextField(u'Organization')
+    email           = TextField(u'Email')
+    submit          = SubmitField("Submit")
 
 @login_required
 @app.route('/users/<string:username>', methods=['GET', 'POST'])
