@@ -15,9 +15,15 @@ import sys
 from flask.ext.mongokit import MongoKit
 db = MongoKit(app)
 
+# Login manager for frontend
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
+# User Auth DB file - create if not existing
+if not os.path.exists(app.config.get('USER_DB_FILE')):
+    from glider_util.bdb import UserDB
+    UserDB.init_db(app.config.get('USER_DB_FILE'))
 
 # Create logging
 if app.config.get('LOG_FILE') == True:

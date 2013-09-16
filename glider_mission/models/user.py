@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from glider_mission import app, db
 from flask_login import UserMixin
-from paramiko import Transport, AuthenticationException
+from glider_util.bdb import UserDB
 from flask.ext.mongokit import Document
 
 @db.register
@@ -29,15 +29,12 @@ class User(Document):
 
     @classmethod
     def _check_login(cls, username, password):
-        transport = Transport((app.config.get('AUTH_HOST'), app.config.get('AUTH_PORT')))
-        try:
-            transport.connect(username=username, password=password)
-        except AuthenticationException:
-            return False
-        finally:
-            transport.close()
+        # @TODO could be problem
+        username = str(username)
+        password = str(password)
 
-        return True
+        u = UserDB(app.config.get('USER_DB_FILE'))
+        return u.check(username, password)
 
     @classmethod
     def authenticate(cls, username, password):

@@ -20,7 +20,7 @@ import os.path
 import sys
 import argparse
 import getpass
-from glider_mission.bdb import UserDB
+from glider_util.bdb import UserDB
 
 class UserAction(argparse.Action):
     def __call__(self, parser, args, values, option = None):

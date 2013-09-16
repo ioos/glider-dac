@@ -30,7 +30,6 @@ def index():
         if len(path_parts) == 3:
             db_mission = db.Mission.find_one({'name':path_parts[-1]})
             missions.append((dirpath, db_mission))
-            mission_idx = len(missions) - 1
 
         for filename in filenames:
             if filename == "wmoid.txt":
@@ -44,7 +43,7 @@ def index():
             if len(path_parts) != 4:
                 continue
 
-            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry)), mission_idx))
+            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
 
     files = sorted(files, lambda a,b: cmp(b[2], a[2]))
 
