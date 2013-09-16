@@ -12,7 +12,9 @@ SERVER_NAME = os.environ.get("SERVER_NAME", None)
 AUTH_HOST = os.environ.get("GLIDER_AUTH_HOST", "localhost")
 AUTH_PORT = os.environ.get("GLIDER_AUTH_PORT", 22)
 
-DATA_ROOT="/data/ftp"
+ADMINS = os.environ.get("ADMINS", "").split(",")
+
+DATA_ROOT = os.environ.get("DATA_ROOT")
 
 # database
 MONGO_URI = os.environ.get('MONGO_URI')

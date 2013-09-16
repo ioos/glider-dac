@@ -1,0 +1,16 @@
+{% from "macros.html" import render_field %}
+{% extends "layout.html" %}
+
+{% block page %}
+
+<h1>{{ user.username }}</h1>
+
+<form name="user_edit" id="user_edit" method="POST" action="{{ request.path }}">
+  {{ form.hidden_tag() }}
+  {{ render_field(form.name) }}<br />
+  {{ render_field(form.email) }}<br />
+  {{ render_field(form.organization) }}<br />
+  {{ form.submit }}
+</form>
+
+{% endblock %}

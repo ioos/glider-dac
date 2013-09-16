@@ -42,10 +42,13 @@ class HandleMissionDB(FileSystemEventHandler):
                 mission = db.Mission.find_one({'mission_dir':event.src_path})
                 if mission is None:
                     mission             = db.Mission()
-                    mission.name        = unicode(path_parts[2])
-                    mission.user        = unicode(path_parts[0])
-                    mission.mission_dir = unicode(event.src_path)
-                    mission.save()
+
+                    usr = db.User.find_one( { 'username' : unicode(path_parts[0]) } )
+                    if hasattr(usr, '_id'):
+                        mission.user_id     = usr._id
+                        mission.name        = unicode(path_parts[2])
+                        mission.mission_dir = unicode(event.src_path)
+                        mission.save()                  
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):

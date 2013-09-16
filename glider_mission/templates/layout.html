@@ -2,14 +2,14 @@
 <html lang="en">
   <head>
     <title>Glider Missions</title>
-    {% block javascript %}
+    {%- block javascript %}
     <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
     <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
-    {% endblock %}
-    {% block css %}
+    {%- endblock %}
+    {%- block css %}
     <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}"></link>
     <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}"></link>
-    {% endblock %}
+    {%- endblock %}
   </head>
   <body>
     <div class="container">
@@ -23,7 +23,21 @@
         {%- endif %}
       {%- endwith %}
 
-      {% block page %}{% endblock %}
+      {%- if current_user.is_active() %}
+        <span class="pull-right">Welcome, {{ current_user.username }}</span>
+        {%- if current_user.is_admin() %}
+          <span class="label label-success pull-right">ADMIN</span>
+        {%- endif %}
+        <br />
+        <span class="pull-right"><a href="{{ url_for('logout') }}">logout</a></span>
+        <span class="pull-right"> | </span>
+        <span class="pull-right"><a href="{{ url_for('edit_user', username=current_user.username) }}">account</a></span>
+      {%- else %}
+        <span class="pull-right"><a href="{{ url_for('login') }}">login</a></span>
+      {%- endif %}
+
+      {%- block page %}{%- endblock %}
+
     </div>
   </body>
 </html>

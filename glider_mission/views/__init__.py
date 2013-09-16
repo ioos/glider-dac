@@ -1,1 +1,1 @@
-from glider_mission.views import index, mission
+from glider_mission.views import index, mission, user

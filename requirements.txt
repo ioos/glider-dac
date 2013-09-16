@@ -1,7 +1,7 @@
-Flask==0.9
-Flask-Login==0.2.6
+Flask==0.10.1
+Flask-Login==0.2.7
 gunicorn==0.16.1
-Flask-WTF==0.8.2
+Flask-WTF==0.9.1
 paramiko==1.11.0
 watchdog==0.6.0
 lxml==3.2.3
