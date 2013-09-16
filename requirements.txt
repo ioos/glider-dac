@@ -6,3 +6,4 @@ paramiko==1.11.0
 watchdog==0.6.0
 lxml==3.2.3
 Flask-MongoKit==0.6
+bsddb3==6.0.0
