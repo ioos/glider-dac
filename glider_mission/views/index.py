@@ -43,7 +43,7 @@ def index():
             if len(path_parts) != 4:
                 continue
 
-            files.append((path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
+            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
 
     files = sorted(files, lambda a,b: cmp(b[2], a[2]))
 

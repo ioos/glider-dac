@@ -52,12 +52,14 @@ def show_mission(username, mission_id):
     else:  # No permissions to edit
         return render_template('show_mission.html', username=username, mission=mission, files=files)
 
+
 @app.route('/mission/<ObjectId:mission_id>')
 def show_mission_no_username(mission_id):
     mission = db.Mission.find_one( { '_id' : mission_id } )
     username = db.User.find_one( { '_id' : mission.user_id } ).username
     return redirect(url_for('show_mission', username=username, mission_id=mission._id))
     
+
 @app.route('/users/<string:username>/mission/new', methods=['POST'])
 @login_required
 def new_mission(username):
