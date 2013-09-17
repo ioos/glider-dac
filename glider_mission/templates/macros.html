@@ -1,11 +1,9 @@
 {% macro render_field(field) %}
   <div class="form-group">
     {% if field.label is defined %}
-      <label for="" class="col-lg-2 control-label">{{ field.label }}</label>
+      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
     {% endif %}
-    <div class="col-lg-4">
-      {{ field(class_="form-control", **kwargs)|safe }}
-    </div>
+    {{ field(class_="form-control", **kwargs)|safe }}
     {% if field.errors %}
       <ul class=errors>
       {% for error in field.errors %}

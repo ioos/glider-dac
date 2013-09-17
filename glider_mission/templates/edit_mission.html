@@ -3,32 +3,40 @@
 
 {% block page %}
 
-<h1><a href="/">Glider Missions</a></h1>
-<h1>{{ mission.name }}</h1>
+<h1><a href="/">Glider Missions</a> <small>{{ mission.name }}</small></h1>
 
-<form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) }}">
-  {{ form.hidden_tag() }}
-  {{ render_field(form.estimated_deploy_date) }}<br />
-  {{ render_field(form.estimated_deploy_location) }}<br />
-  {{ render_field(form.wmo_id) }}<br />
-  {{ form.submit }}
-</form>
+<div class="col-lg-6">
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>File</th>
-      <th>Modified</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for f in files %}
-    <tr>
-      <td>{{ f[0] }}</td>
-      <td>{{ f[1] | datetimeformat }}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Modified</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in files %}
+      <tr>
+        <td>{{ f[0] }}</td>
+        <td>{{ f[1] | datetimeformat }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+<div class="col-lg-6">
+
+  <form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) }}">
+    {{ form.hidden_tag() }}
+    {{ render_field(form.estimated_deploy_date) }}
+    {{ render_field(form.estimated_deploy_location) }}
+    {{ render_field(form.wmo_id) }}
+    {{ form.submit(class_="btn btn-primary") }}
+  </form>
+
+</div>
+
 
 {% endblock %}
