@@ -28,7 +28,7 @@ class Mission(Document):
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
-            os.mkdir(self.mission_dir)
+            os.makedirs(self.mission_dir)
 
         # Keep the WMO file updated if it is edited via the web form
         if self.wmo_id is not None and self.wmo_id != "":
