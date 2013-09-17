@@ -50,8 +50,12 @@ class User(Document):
 
     @classmethod
     def update(cls, username, password):
-        # TODO: create or update user in BDB
-        pass
+        # @TODO could be problem
+        username = str(username)
+        password = str(password)
+
+        u = UserDB(app.config.get('USER_DB_FILE'))
+        return u.set(username, password)
 
     @property
     def data_root(self):

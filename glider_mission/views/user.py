@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, current_user
 from glider_mission import app, db
+from glider_mission.models.user import User
 
 from flask_wtf import Form
 from wtforms import validators, TextField, PasswordField, SubmitField
