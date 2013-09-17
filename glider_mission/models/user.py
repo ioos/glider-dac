@@ -48,6 +48,11 @@ class User(Document):
             return usr
         return None
 
+    @classmethod
+    def update(cls, username, password):
+        # TODO: create or update user in BDB
+        pass
+
     @property
     def data_root(self):
         data_root = app.config.get('DATA_ROOT')
