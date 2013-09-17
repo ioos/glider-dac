@@ -21,6 +21,11 @@ import time
         rsync_ssh_user = x
         rsync_to_host = x
         rsync_to_path = x
+        dev_catalog_root = x
+        prod_catalog_root = x
+        mongo_db = x
+        admins = x,y,z
+        user_db_file = x
 """
 
 env.user = "gliderweb"
@@ -33,10 +38,8 @@ def gliderweb():
     env.user = "gliderweb"
 
 def deploy_tds():
-    env.hosts = ['tds.gliders.ioos.us']
-
-    sup_conf_file = "~/supervisord-catalog-monitor.conf"
-    crontab_file = "~/crontab.txt"
+    sup_conf_file = "/home/gliderweb/supervisord-catalog-monitor.conf"
+    crontab_file = "/home/gliderweb/crontab.txt"
     gliderweb()
     stop_supervisord(conf=sup_conf_file)
     gliderweb()
@@ -49,23 +52,21 @@ def deploy_tds():
         run("supervisorctl -c %s start all" % sup_conf_file)
 
 def deploy_ftp():
-    env.hosts = ['ftp.gliders.ioos.us']
-
     gliderweb()
-    stop_supervisord(conf="~/supervisord.conf")
+    stop_supervisord(conf="/home/gliderweb/supervisord.conf")
     gliderweb()
     with cd(code_dir):
         run("git pull origin master")
         update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/gliderweb/supervisord.conf")
         update_libs()
-        start_supervisord(conf="~/supervisord.conf")
-        run("supervisorctl -c ~/supervisord.conf start all")
+        start_supervisord(conf="/home/gliderweb/supervisord.conf")
+        run("supervisorctl -c /home/gliderweb/supervisord.conf start all")
 
     admin()
-    stop_supervisord(conf="/root/supervisord-perms-monitor.conf")
-    update_supervisord(src_file="deploy/supervisord-perms-monitor.conf", dst_file="/root/supervisord-perms-monitor.conf")
+    stop_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
+    update_supervisord(src_file="deploy/supervisord-perms-monitor.conf", dst_file="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
     update_libs(virtual_env="root-monitor")
-    start_supervisord(conf="/root/supervisord-perms-monitor.conf")
+    start_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
     with prefix("workon root-monitor"):
         run("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
 
@@ -75,8 +76,13 @@ def update_crontab(src_file, dst_file):
     upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
     run("crontab %s" % dst_file)
 
-def update_supervisord(src_file, dst_file):
-    run("pip install supervisor")
+def update_supervisord(src_file, dst_file, virtual_env=None):
+    if virtual_env is not None:
+        with prefix("workon %s" % virtual_env):
+            run("pip install supervisor")
+    else:
+        run("pip install supervisor")
+
     upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
 
 def update_libs(virtual_env=None):
@@ -92,20 +98,30 @@ def restart_nginx():
     admin()
     run("/etc/init.d/nginx restart")
 
-def stop_supervisord(conf):
+def stop_supervisord(conf, virtual_env=None):
     with cd(code_dir):
         with settings(warn_only=True):
-            run("supervisorctl -c %s stop all" % conf)
-            run("kill -QUIT $(ps aux | grep supervisord | grep -v grep | awk '{print $2}')")
+            if virtual_env is not None:
+                with prefix("workon %s" % virtual_env):
+                    run("supervisorctl -c %s stop all" % conf)
+            else:
+                run("supervisorctl -c %s stop all" % conf)
+            run("kill -QUIT $(ps aux | grep supervisord | grep %s | grep -v grep | awk '{print $2}')" % conf)
 
-    kill_pythons()
+    #kill_pythons()
 
 def kill_pythons():
     admin()
     with settings(warn_only=True):
         run("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
 
-def start_supervisord(conf):
+def start_supervisord(conf, virtual_env=None):
     with cd(code_dir):
         with settings(warn_only=True):
-            run("supervisord -c %s" % conf)
+            if virtual_env is not None:
+                with prefix("workon %s" % virtual_env):
+                    run("supervisord -c %s" % conf)
+            else:
+                run("supervisord -c %s" % conf)
+
+            

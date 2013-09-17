@@ -9,8 +9,9 @@ from lxml import etree
 DATA_ROOT = os.environ.get("DATA_ROOT", "/home/dev/Development/glider-mission/test")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
 PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/prod")
+DEBUG = False
 
-def update_thredds_catalog(base, dev, prod):
+def update_thredds_catalog(base, dev, prod, debug):
     catalog_ns  = "http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
     xlink_ns    = "http://www.w3.org/1999/xlink"
 
@@ -65,11 +66,12 @@ def update_thredds_catalog(base, dev, prod):
         f.write(etree.tostring(root, pretty_print=True))
 
     os.chdir(dev)
-    subprocess.call(["git", "checkout", "master"])
-    subprocess.call(["git", "add", "."])
-    subprocess.call(["git", "commit", "-m", "Automated catalog update"])
-    subprocess.call(["git", "pull", "origin", "master"])
-    subprocess.call(["git", "push", "origin", "master"])
+    if not debug:
+        subprocess.call(["git", "checkout", "master"])
+        subprocess.call(["git", "add", "."])
+        subprocess.call(["git", "commit", "-m", "Automated catalog update"])
+        subprocess.call(["git", "pull", "origin", "master"])
+        subprocess.call(["git", "push", "origin", "master"])
     subprocess.call("rsync -r %s/* %s" % (dev, prod), shell=True)
 
 
@@ -84,10 +86,15 @@ if __name__ == "__main__":
     parser.add_argument('prodcatalogdir',
                         default=PROD_CATALOG_ROOT,
                         nargs='?')
+    parser.add_argument('debug',
+                        default=DEBUG,
+                        nargs='?')
+
     args = parser.parse_args()
     base = os.path.realpath(args.basedir)
     dev = os.path.realpath(args.devcatalogdir)
     prod = os.path.realpath(args.prodcatalogdir)
+    debug = args.debug in ['true', 'True', 'TRUE', True]
 
-    update_thredds_catalog(base, dev, prod)
+    update_thredds_catalog(base, dev, prod, debug)
     
