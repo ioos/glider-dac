@@ -5,14 +5,18 @@
 
 <h1>{{ user.username }}</h1>
 
-<form name="user_edit" id="user_edit" method="POST" action="{{ request.path }}">
+<form name="user_edit" class="form-horizontal" id="user_edit" method="POST" action="{{ request.path }}">
   {{ form.hidden_tag() }}
-  {{ render_field(form.password) }}<br />
-  {{ render_field(form.confirm) }}<br />
-  {{ render_field(form.name) }}<br />
-  {{ render_field(form.email) }}<br />
-  {{ render_field(form.organization) }}<br />
-  {{ form.submit }}
+  {{ render_field(form.password) }}
+  {{ render_field(form.confirm) }}
+  {{ render_field(form.name) }}
+  {{ render_field(form.email) }}
+  {{ render_field(form.organization) }}
+  <div class="form-group">
+    <div class="col-lg-offset-2 col-lg-4">
+      {{ form.submit(class_="btn btn-default") }}
+    </div>
+  </div>
 </form>
 
 {% endblock %}

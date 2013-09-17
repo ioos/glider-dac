@@ -1,13 +1,17 @@
 {% macro render_field(field) %}
-  {% if field.label is defined %}
-    {{ field.label }}
-  {% endif %}
-  {{ field(**kwargs)|safe }}
-  {% if field.errors %}
-    <ul class=errors>
-    {% for error in field.errors %}
-      <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
+  <div class="form-group">
+    {% if field.label is defined %}
+      <label for="" class="col-lg-2 control-label">{{ field.label }}</label>
+    {% endif %}
+    <div class="col-lg-4">
+      {{ field(class_="form-control", **kwargs)|safe }}
+    </div>
+    {% if field.errors %}
+      <ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
 {% endmacro %}
