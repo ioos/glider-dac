@@ -7,6 +7,7 @@ from glider_mission import app, db
 from flask_login import UserMixin
 from glider_util.bdb import UserDB
 from flask.ext.mongokit import Document
+from bson import ObjectId
 
 @db.register
 class User(Document):
@@ -76,3 +77,8 @@ class User(Document):
 
     def get_id(self):
         return unicode(self._id)
+
+    @classmethod
+    def get_mission_count_by_user(cls):
+        results = db.missions.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])
+        return map(lambda x: (x.get('count',0), db.User.find_one({ '_id' : ObjectId(x.get("_id")) }).username), results)
