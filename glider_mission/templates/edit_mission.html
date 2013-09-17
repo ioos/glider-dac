@@ -1,9 +1,11 @@
 {% from "macros.html" import render_field %}
 {% extends "layout.html" %}
 
+{% block title %}{{ mission.name }}{% endblock %}
+
 {% block page %}
 
-<h1><a href="/">Glider Missions</a> <small>{{ mission.name }}</small></h1>
+<h3>{{ mission.name }}</h3>
 
 <div class="col-lg-6">
 

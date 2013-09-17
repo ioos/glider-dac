@@ -1,9 +1,11 @@
 {% from "macros.html" import render_field %}
 {% extends "layout.html" %}
 
+{% block title %}Editing {{ user.username }}{% endblock %}
+
 {% block page %}
 
-<h1>{{ user.username }}</h1>
+<h3>Editing {{ user.username }}</h3>
 
   <div class="col-lg-6">
   <form name="user_edit" id="user_edit" method="POST" action="{{ request.path }}">
@@ -13,7 +15,7 @@
     {{ render_field(form.name) }}
     {{ render_field(form.email) }}
     {{ render_field(form.organization) }}
-    {{ form.submit(class_="btn btn-default") }}
+    {{ form.submit(class_="btn btn-primary") }}
   </form>
 </div>
 

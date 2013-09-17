@@ -1,0 +1,42 @@
+tr.hilite>td {
+  background-color: #c6d4e1 !important;
+  color: #565c61;
+}
+
+/* override some bootstrap colors/styles */
+
+.btn-success {
+  background-color: #ffa855;
+  border-color: #ef7825;
+}
+
+.btn-success:hover {
+  background-color: #ffcf8d;
+  border-color: #ffa855;
+}
+
+.navbar {
+  border-bottom: 5px solid #9fabb7;
+  background-color: #c6d4e1;
+}
+
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {
+  background-color: #9fabb7;
+}
+
+.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:hover, .navbar-default .navbar-nav>.active>a:focus {
+  background-color: #9fabb7;
+}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
+  background-color: #9fabb7;
+}
+
+.well {
+  background-color: #c6d4e1;
+  color: #565c61;
+}
+
+a {
+  color: #567ebb;
+}

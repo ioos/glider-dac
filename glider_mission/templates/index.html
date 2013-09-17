@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 
-{% block page %}
+{% block title %}Main{% endblock %}
 
-<h1><a href="/">Glider Missions</a></h1>
+{% block page %}
 
 <div class="row">
   <div class="col-lg-8">
@@ -36,7 +36,7 @@
     </ul>
   </div>
 
-  <div class="col-lg-6">
+  <div class="col-lg-8">
     <h3>Missions</h3>
       <table class="table table-bordered table-striped">
       {%- for m in missions %}

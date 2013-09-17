@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Glider Missions</title>
+    <title>Glider Missions - {% block title %}{% endblock %}</title>
     {%- block javascript %}
     <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
     <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
@@ -12,6 +12,33 @@
     {%- endblock %}
   </head>
   <body>
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="/">Glider DAC</a>
+        </div>
+        <ul class="navbar-nav nav">
+          <li><a href="/">Missions</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          {%- if current_user.is_active() %}
+            {%- if current_user.is_admin() %}
+            <li><p class="navbar-text"><span class="label label-success">ADMIN</span></p></li>
+            {%- endif %}
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ current_user.username }} <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="{{ url_for('edit_user', username=current_user.username) }}">Account</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+              </ul>
+            </li>
+          {%- else %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+          {%- endif %}
+        </ul>
+      </div>
+    </nav>
+
     <div class="container">
       {%- with messages = get_flashed_messages(with_categories=true) %}
         {%- if messages %}
@@ -23,18 +50,6 @@
         {%- endif %}
       {%- endwith %}
 
-      {%- if current_user.is_active() %}
-        <span class="pull-right">Welcome, {{ current_user.username }}</span>
-        {%- if current_user.is_admin() %}
-          <span class="label label-success pull-right">ADMIN</span>
-        {%- endif %}
-        <br />
-        <span class="pull-right"><a href="{{ url_for('logout') }}">logout</a></span>
-        <span class="pull-right"> | </span>
-        <span class="pull-right"><a href="{{ url_for('edit_user', username=current_user.username) }}">account</a></span>
-      {%- else %}
-        <span class="pull-right"><a href="{{ url_for('login') }}">login</a></span>
-      {%- endif %}
 
       {%- block page %}{%- endblock %}
 
