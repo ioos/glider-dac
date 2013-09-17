@@ -27,15 +27,16 @@ class HandleMissionDir(FileSystemEventHandler):
     def __init__(self, base):
         self.base = base
 
-    def _fix_perms(self, path, rel_path, username):
+    def _fix_perms(self, path, rel_path, username, mode):
         logger.info("New path: %s", rel_path)
 
         # lookup username's uid/gid
         uid = pwd.getpwnam(username).pw_uid
-        gid = grp.getgrnam('sftponly').gr_gid
+        gid = grp.getgrnam('gliderweb').gr_gid
 
-        logger.info("Changing %s to owner %s (%s)/group sftponly (%s)", rel_path, username, uid, gid)
+        logger.info("Changing %s to owner %s (%s)/group gliderweb (%s)", rel_path, username, uid, gid)
         os.chown(path, uid, gid)
+        os.chmod(path, mode)
 
     def on_created(self, event):
         if self.base not in event.src_path:
@@ -52,6 +53,9 @@ class HandleMissionDir(FileSystemEventHandler):
             if len(path_parts) != 3:
                 return
 
+            # Dir permissions
+            mode = 0775
+
         else:
 
             # should resemble user/upload/mission-name/wmo-file
@@ -63,10 +67,13 @@ class HandleMissionDir(FileSystemEventHandler):
             if path_parts[-1] != "wmoid.txt":
                 return
 
+            # File permissions
+            mode = 0664
+
         # allow a slight delay so if the web app wants to create wmoid.txt it still can
         time.sleep(5)
 
-        self._fix_perms(event.src_path, rel_path, path_parts[0])
+        self._fix_perms(event.src_path, rel_path, path_parts[0], mode)
 
         # Touch src directory so on_modified will get called
         os.utime(event.src_path, None)
