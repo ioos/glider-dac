@@ -9,6 +9,8 @@
 
 <div class="col-lg-6">
 
+  <h3>Files</h3>
+
   <table class="table table-striped">
     <thead>
       <tr>
@@ -28,9 +30,26 @@
 
 </div>
 
-<div class="col-lg-6">
+<div class="col-lg-4">
+
+  <h3>Services</h3>
+
+  <ul class="list-group">
+    <li class="list-group-item">
+      <a href='{{mission.dap}}'>DAP</a>
+    </li>
+    <li class="list-group-item">
+      <a href='{{mission.sos}}'>SOS</a>
+    </li>
+    <li class="list-group-item">
+      <a href='{{mission.iso}}'>ISO</a>
+    </li>      
+  </ul>
 
   {% if editable %}
+  <hr />
+  <h3>Edit</h3>
+
   <form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) }}">
     {{ form.hidden_tag() }}
     {{ render_field(form.estimated_deploy_date) }}
@@ -47,6 +66,7 @@
     {{ render_field_static(form.completed) }}
   </form>
   {% endif %}
+
 </div>
 
 
