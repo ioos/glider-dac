@@ -30,3 +30,25 @@
   </div>
 {% endmacro %}
 
+{% macro render_boolean(field) %}
+  <div class="form-group">
+    {% if field.data == True %}
+      {{ field(checked="checked", **kwargs)|safe }}
+    {% else %}
+      {{ field(**kwargs)|safe }}
+    {% endif %}
+    
+    {% if field.label is defined %}
+      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
+    {% endif %}
+    {% if field.errors %}
+      <ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+

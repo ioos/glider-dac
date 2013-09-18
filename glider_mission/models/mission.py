@@ -18,12 +18,14 @@ class Mission(Document):
         'estimated_deploy_date'     : datetime,
         'estimated_deploy_location' : unicode,  # WKT text
         'wmo_id'                    : unicode,
+        'completed'                 : bool,
         'created'                   : datetime,
         'updated'                   : datetime
     }
 
     default_values = {
-        'created': datetime.utcnow
+        'created': datetime.utcnow,
+        'completed': False
     }
 
     def sync(self):
@@ -35,3 +37,15 @@ class Mission(Document):
             wmo_id_file = os.path.join(self.mission_dir, "wmoid.txt")
             with open(wmo_id_file, 'w') as f:
                 f.write(self.wmo_id)
+   
+        # Save a file called "completed.txt" to tell TDS server it is completed
+        completed_file = os.path.join(self.mission_dir, "completed.txt")
+        if self.completed is True:
+            with open(completed_file, 'w') as f:
+                f.write(" ")
+        else:
+            try:
+                os.remove(completed_file)
+            except BaseException:
+                pass
+

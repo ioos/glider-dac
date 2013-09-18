@@ -1,4 +1,4 @@
-{% from "macros.html" import render_field, render_field_static %}
+{% from "macros.html" import render_field, render_field_static, render_boolean %}
 {% extends "layout.html" %}
 
 {% block title %}{{ mission.name }}{% endblock %}
@@ -82,6 +82,7 @@
     {{ render_field(form.estimated_deploy_date) }}
     {{ render_field(form.estimated_deploy_location) }}
     {{ render_field(form.wmo_id) }}
+    {{ render_boolean(form.completed) }}
     {{ form.submit(class_="btn btn-primary") }}
   </form>
   {% else %}
@@ -89,6 +90,7 @@
     {{ render_field_static(form.estimated_deploy_date) }}
     {{ render_field_static(form.estimated_deploy_location) }}
     {{ render_field_static(form.wmo_id) }}
+    {{ render_field(form.completed) }}
   </form>
   {% endif %}
 </div>
