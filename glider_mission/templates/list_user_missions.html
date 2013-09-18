@@ -2,14 +2,18 @@
 
 {% block page %}
 
-<h1>Glider Missions <small>for {{ username }}</small></h1>
+<h3>Glider Missions for {{ username }}</h3>
 
-{%- for mission in missions %}
-<h4><a href="{{ url_for('show_mission', username=username, mission_id=mission._id) }}">{{ mission.name }}</a> <small>WMO ID: {{ mission.wmo_id }}</small></h4>
-<dl>
-  <dt>Last Updated</dt>
-  <dd>{{ mission.updated | datetimeformat }}</dd> 
-</dl>
-{%- endfor %}
+<div class="col-lg-8">
+  <h3>Missions</h3>
+    <table class="table table-bordered table-striped">
+    {%- for m in missions %}
+    <tr>
+      <td><a href="{{ url_for('show_mission', username=username, mission_id=m._id) }}">{{ m.name }}</a></td>
+      <td>{{ m.wmo_id }}</td>
+      <td>{{ m.updated | datetimeformat }}</td>
+    </tr>
+    {%- endfor %}
+</div>
 
 {% endblock %}

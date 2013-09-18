@@ -13,3 +13,20 @@
     {% endif %}
   </div>
 {% endmacro %}
+
+{% macro render_field_static(field) %}
+  <div class="form-group">
+    {% if field.label is defined %}
+      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
+    {% endif %}
+    <p class="form-static-control">{{ field.object_data or "&nbsp;"|safe }}</p>
+    {% if field.errors %}
+      <ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+{% endmacro %}
+

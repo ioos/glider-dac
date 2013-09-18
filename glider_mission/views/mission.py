@@ -25,14 +25,14 @@ def list_user_missions(username):
     user = db.User.find_one( {'username' : username } )
     missions = db.Mission.find( { 'user_id' : user._id } )
 
+    kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
         # Permission to edit
         form = NewMissionForm()
-        return render_template('edit_user_missions.html', username=username, form=form, missions=missions)
-    else:  # No permission to edit
-        return render_template('list_user_missions.html', username=username, missions=missions)
+        kwargs['form'] = form
 
-    
+    return render_template('user_missions.html', username=username, missions=missions, **kwargs)
+
 @app.route('/users/<string:username>/mission/<ObjectId:mission_id>')
 def show_mission(username, mission_id):
     user = db.User.find_one( {'username' : username } )
@@ -45,20 +45,19 @@ def show_mission(username, mission_id):
 
     files = sorted(files, lambda a,b: cmp(b[1], a[1]))
 
-    if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
-        # Permissions to edit
-        form = MissionForm(obj=mission)
-        return render_template('edit_mission.html', username=username, form=form, mission=mission, files=files)
-    else:  # No permissions to edit
-        return render_template('show_mission.html', username=username, mission=mission, files=files)
+    kwargs = {}
+    form = MissionForm(obj=mission)
 
+    if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
+        kwargs['editable'] = True
+
+    return render_template('show_mission.html', username=username, form=form, mission=mission, files=files, **kwargs)
 
 @app.route('/mission/<ObjectId:mission_id>')
 def show_mission_no_username(mission_id):
     mission = db.Mission.find_one( { '_id' : mission_id } )
     username = db.User.find_one( { '_id' : mission.user_id } ).username
     return redirect(url_for('show_mission', username=username, mission_id=mission._id))
-    
 
 @app.route('/users/<string:username>/mission/new', methods=['POST'])
 @login_required

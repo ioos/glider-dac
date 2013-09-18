@@ -1,24 +1,51 @@
+{% from "macros.html" import render_field, render_field_static %}
 {% extends "layout.html" %}
+
+{% block title %}{{ mission.name }}{% endblock %}
 
 {% block page %}
 
 <h3>{{ mission.name }}</h3>
 
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>File</th>
-      <th>Modified</th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for f in files %}
-    <tr>
-      <td>{{ f[0] }}</td>
-      <td>{{ f[1] | datetimeformat }}</td>
-    </tr>
-  {% endfor %}
-  </tbody>
-</table>
+<div class="col-lg-6">
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Modified</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for f in files %}
+      <tr>
+        <td>{{ f[0] }}</td>
+        <td>{{ f[1] | datetimeformat }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+</div>
+
+<div class="col-lg-6">
+
+  {% if editable %}
+  <form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) }}">
+    {{ form.hidden_tag() }}
+    {{ render_field(form.estimated_deploy_date) }}
+    {{ render_field(form.estimated_deploy_location) }}
+    {{ render_field(form.wmo_id) }}
+    {{ form.submit(class_="btn btn-primary") }}
+  </form>
+  {% else %}
+  <form name="mission_edit" id="mission_edit" method="POST" action="">
+    {{ render_field_static(form.estimated_deploy_date) }}
+    {{ render_field_static(form.estimated_deploy_location) }}
+    {{ render_field_static(form.wmo_id) }}
+  </form>
+  {% endif %}
+</div>
+
 
 {% endblock %}

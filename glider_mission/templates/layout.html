@@ -18,7 +18,9 @@
           <a class="navbar-brand" href="/">Glider DAC</a>
         </div>
         <ul class="navbar-nav nav">
-          <li><a href="/">Missions</a></li>
+          {%- if current_user.is_active() %}
+          <li><a href="{{ url_for('list_user_missions', username=current_user.username) }}">Your Missions</a></li>
+          {%- endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
           {%- if current_user.is_active() %}
