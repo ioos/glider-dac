@@ -31,40 +31,42 @@
   <div id="dropbox">
     Drop files here to upload
   </div>
+  <ul id="files">
+
+  </ul>
 
   <script type="text/javascript">
     $(function() {
       var drop = $('#dropbox');
 
       drop.on('dragover', function(e) {
-        e.stopPropagation();
         e.preventDefault();
+        e.stopPropagation();
       });
 
       drop.on('dragenter', function(e) {
-        e.stopPropagation();
         e.preventDefault();
+        e.stopPropagation();
 
         $(this).addClass('hovered');
-
-        //e.originalEvent.dataTransfer.dropEffect = 'copy';
       });
 
       drop.on('dragleave', function(e) {
-        $(this).removeClass('hovered');
+        $(this).removeClass('hovered'); 
       });
 
       drop.on('drop', function(e) {
+        // prevent browser from just displaying file
         e.preventDefault();
-        //e.stopPropagation();
-        console.log(e.originalEvent.dataTransfer);
-        /*for (var f in event.dataTransfer.files) {
-          console.log(f);
-        }*/
+        e.stopPropagation();
 
-        $(this).removeClass('hovered');
+        $(this).removeClass('hovered');       
+
+        for (var i = 0; i < e.originalEvent.dataTransfer.files.length; i++) {
+          var f = e.originalEvent.dataTransfer.files[i];
+          console.log(f.name);
+        }
       });
-
     });
   </script>
 
