@@ -1,4 +1,5 @@
 import os
+import urllib
 
 from glider_mission import db
 from datetime import datetime
@@ -14,6 +15,7 @@ class Mission(Document):
     structure = {
         'name'                      : unicode,
         'user_id'                   : ObjectId,
+        'username'                  : unicode,  # The cached username to lightly DB load
         'mission_dir'               : unicode,
         'estimated_deploy_date'     : datetime,
         'estimated_deploy_location' : unicode,  # WKT text
@@ -27,6 +29,28 @@ class Mission(Document):
         'created': datetime.utcnow,
         'completed': False
     }
+
+    def save(self):
+        if self.username is None or self.username == u'':
+            user = db.User.find_one( { '_id' : self.user_id } )
+            self.username = user.username
+
+        super(Mission, self).save()
+
+    @property 
+    def dap(self):
+        return u"http://tds.gliders.ioos.us/thredds/dodsC/%s_%s_Time.ncml" % (self.username, self.name)
+
+    @property 
+    def sos(self):
+        return u"http://tds.gliders.ioos.us/thredds/sos/%s_%s_Time.ncml" % (self.username, self.name)
+
+    @property
+    def iso(self):
+        catalog_parameter = u'http://tds.gliders.ioos.us/thredds/%s/%s/catalog.html' % (self.username, self.name)
+        dataset_parameter = u'%s_%s_Time' % (self.username, self.name)
+        query = urllib.urlencode({ 'catalog' : catalog_parameter, 'dataset' : dataset_parameter })
+        return u"http://tds.gliders.ioos.us/thredds/iso/%s_%s_Time.ncml?%s" % (self.username, self.name, query)
 
     def sync(self):
         if not os.path.exists(self.mission_dir):

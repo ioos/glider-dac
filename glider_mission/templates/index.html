@@ -57,8 +57,12 @@
     <ul class="list-group">
       {%- for u in user_missions %}
       <li class="list-group-item">
-        <span class="badge">{{ u[0] }} missions</span>
-        {{ u[1] }}
+        <span class="badge">{{ u['count'] }} missions</span>
+        {% if u['_id'] == "" %}
+          unknown
+        {% else %}
+          {{ u['_id'] }}
+        {% endif %}
       </li>
       {%- endfor %}
     </ul>

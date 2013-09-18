@@ -12,6 +12,10 @@ class MissionMigration(DocumentMigration):
         self.target = {'completed':{'$exists': False}}
         self.update = {'$set':{'completed':False}}
 
+    def allmigration03__add_cached_username(self):
+        self.target = {'username':{'$exists': False}}
+        self.update = {'$set':{'username':u''}}
+
 # Users
 from glider_mission.models import user
 class UserMigration(DocumentMigration):
@@ -21,6 +25,9 @@ class UserMigration(DocumentMigration):
 with app.app_context():
     migration = MissionMigration(mission.Mission)
     migration.migrate_all(collection=db['missions'])
+    # Go through a save all to trigger the save() method
+    for m in db.Mission.find():
+        m.save()
 
     migration = UserMigration(user.User)
     migration.migrate_all(collection=db['users'])
