@@ -1,1 +1,1 @@
-from glider_mission.models import mission, user
+from glider_mission.models import mission, user, migrations

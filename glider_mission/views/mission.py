@@ -7,12 +7,13 @@ from flask_login import login_required, login_user, logout_user, current_user
 from glider_mission import app, db
 
 from flask.ext.wtf import Form
-from wtforms import TextField, SubmitField
+from wtforms import TextField, SubmitField, BooleanField
 
 class MissionForm(Form):
     estimated_deploy_date       = TextField(u'Estimated Deploy Date (yyyy-mm-dd)')
     estimated_deploy_location   = TextField(u'Estimated Deploy Location (WKT)')
     wmo_id                      = TextField(u'WMO ID')
+    completed                   = BooleanField(u'Completed')
     submit                      = SubmitField(u'Submit')
 
 class NewMissionForm(Form):
@@ -46,6 +47,7 @@ def show_mission(username, mission_id):
     files = sorted(files, lambda a,b: cmp(b[1], a[1]))
 
     kwargs = {}
+
     form = MissionForm(obj=mission)
 
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
