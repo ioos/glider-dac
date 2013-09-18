@@ -35,7 +35,9 @@
       </li>
     </ul>
   </div>
+</div>
 
+<div class="row">
   <div class="col-lg-8">
     <h3>Missions</h3>
       <table class="table table-bordered table-striped">
@@ -46,6 +48,20 @@
         <td>{{ m.updated | datetimeformat }}</td>
       </tr>
       {%- endfor %}
+    </table>
+  </div>
+
+  <div class="col-lg-4">
+    <h3>Contributors</h3>
+
+    <ul class="list-group">
+      {%- for u in user_missions %}
+      <li class="list-group-item">
+        <span class="badge">{{ u[0] }} missions</span>
+        {{ u[1] }}
+      </li>
+      {%- endfor %}
+    </ul>
   </div>
 
 </div>
