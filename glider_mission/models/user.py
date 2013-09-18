@@ -80,5 +80,4 @@ class User(Document):
 
     @classmethod
     def get_mission_count_by_user(cls):
-        results = db.missions.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])
-        return map(lambda x: (x.get('count',0), db.User.find_one({ '_id' : ObjectId(x.get("_id")) }).username), results)
+        return db.missions.aggregate({ '$group': { '_id': '$username', 'count': { '$sum' : 1 }}}).get('result',[])

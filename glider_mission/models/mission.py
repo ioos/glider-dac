@@ -14,6 +14,7 @@ class Mission(Document):
     structure = {
         'name'                      : unicode,
         'user_id'                   : ObjectId,
+        'username'                  : unicode,  # The cached username to lightly DB load
         'mission_dir'               : unicode,
         'estimated_deploy_date'     : datetime,
         'estimated_deploy_location' : unicode,  # WKT text
@@ -27,6 +28,13 @@ class Mission(Document):
         'created': datetime.utcnow,
         'completed': False
     }
+
+    def save(self):
+        if self.username is None or self.username == u'':
+            user = db.User.find_one( { '_id' : self.user_id } )
+            self.username = user.username
+
+        super(Mission, self).save()
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
