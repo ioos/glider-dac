@@ -29,11 +29,13 @@
   {% if editable %}
 
   <div id="dropbox">
-    Drop files here to upload
-  </div>
-  <ul id="files">
+    <span>Drop files here to upload</span>
 
-  </ul>
+    <div class="progress">
+      <div class="progress-bar" style="width:0%">
+      </div>
+    </div>
+  </div>
 
   <script type="text/javascript">
     $(function() {
@@ -60,12 +62,68 @@
         e.preventDefault();
         e.stopPropagation();
 
+        // do not allow more than one upload event going on at once or no need for empty file list
+        if ($(this).hasClass('uploading') || e.originalEvent.dataTransfer.files.length == 0) {
+          return;
+        }
+
         $(this).removeClass('hovered');       
+        $(this).addClass('uploading');
+
+        var formData = new FormData();
 
         for (var i = 0; i < e.originalEvent.dataTransfer.files.length; i++) {
           var f = e.originalEvent.dataTransfer.files[i];
-          console.log(f.name);
+          console.log(f);
+
+          formData.append('file-' + i, f);
         }
+
+        console.log(formData);
+
+        var url = "{{ url_for('post_mission_file', username=username, mission_id=mission._id) }}";
+
+        var req = $.ajax({
+          xhr: function() {
+            var x = jQuery.ajaxSettings.xhr();
+            x.upload.addEventListener('progress', function(evt) {
+
+              console.log("RPGORESS");
+
+              if (evt.lengthComputable) {
+                var pct = evt.loaded / evt.total * 100;
+                $('.progress-bar').attr('style', 'width:' + pct + '%;');
+              };
+            }, false);
+            return x;
+          },
+          type: 'POST',
+          cache: false,
+          contentType: false,
+          processData: false,
+          url: url,
+          data: formData,
+        });
+
+        req.always(function() {
+          drop.removeClass('uploading');
+        });
+
+        req.fail(function() {
+          console.error("FAIL");
+        });
+
+        req.done(function(data) {
+          console.log(data);
+
+          for (var i = 0; i < data.files.length; i++) {
+            var f = data.files[i];
+            var row = $('<tr><td>' + f[0] + '</td><td>' + f[1] + '</td></tr>');
+            $('tbody').prepend(row);
+          }
+        
+        });
+
       });
     });
   </script>

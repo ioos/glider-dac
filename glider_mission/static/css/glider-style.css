@@ -51,3 +51,20 @@ a {
   border-color: #000;
   color: #000;
 }
+
+#dropbox .progress {
+  display: none;
+  margin-bottom: 0px;
+}
+
+#dropbox.uploading {
+  border-color: white;
+}
+
+#dropbox.uploading .progress {
+  display: block;
+}
+
+#dropbox.uploading span {
+  display: none;
+}

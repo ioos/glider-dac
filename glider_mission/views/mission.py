@@ -1,10 +1,11 @@
 import os
 import os.path
 from datetime import datetime
+import json
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
-from glider_mission import app, db
+from glider_mission import app, db, datetimeformat
 
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField
@@ -116,3 +117,29 @@ def edit_mission(username, mission_id):
         return redirect(url_for('show_mission', username=username, mission_id=mission._id))
 
     return render_template('edit_mission.html', username=username, form=form, mission=mission)
+
+@app.route('/users/<string:username>/mission/<ObjectId:mission_id>/files', methods=['POST'])
+@login_required
+def post_mission_file(username, mission_id):
+
+    mission = db.Mission.find_one({'_id':mission_id})
+
+    retval = {'files':[]}
+    for name, f in request.files.iteritems():
+        if not name.startswith('file-'):
+            continue
+
+        safe_filename = f.filename # @TODO
+
+        out_name = os.path.join(mission.mission_dir, safe_filename)
+
+        with open(out_name, 'w') as of:
+            f.save(of)
+
+        retval['files'].append((safe_filename, datetimeformat(datetime.now())))
+
+    response = make_response(json.dumps(retval))
+    response.headers['Content-type'] = 'application/json'
+
+    return response
+
