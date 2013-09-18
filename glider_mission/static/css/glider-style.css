@@ -40,3 +40,14 @@ tr.hilite>td {
 a {
   color: #567ebb;
 }
+
+#dropbox {
+  color: #ccc;
+  border: 5px dotted #ccc;
+  padding: 20px;
+}
+
+#dropbox.hovered {
+  border-color: #000;
+  color: #000;
+}
