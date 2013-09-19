@@ -69,3 +69,11 @@ a {
 #dropbox.uploading span {
   display: none;
 }
+
+#mission-files.editable tbody tr {
+  cursor: pointer;
+}
+
+#mission-error {
+  display: none;
+}

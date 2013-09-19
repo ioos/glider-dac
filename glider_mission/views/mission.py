@@ -123,6 +123,7 @@ def edit_mission(username, mission_id):
 def post_mission_file(username, mission_id):
 
     mission = db.Mission.find_one({'_id':mission_id})
+    user = db.User.find_one( {'username' : username } )
 
     retval = []
     for name, f in request.files.iteritems():
@@ -138,5 +139,18 @@ def post_mission_file(username, mission_id):
 
         retval.append((safe_filename, datetimeformat(datetime.now())))
 
-    return render_template("_mission_files.html", files=retval)
+    editable = current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)
+
+    return render_template("_mission_files.html", files=retval, editable=editable)
+
+@app.route('/users/<string:username>/mission/<ObjectId:mission_id>/delete_files', methods=['POST'])
+def delete_mission_files(username, mission_id):
+
+    mission = db.Mission.find_one({'_id':mission_id})
+
+    for name in request.json['files']:
+        file_name = os.path.join(mission.mission_dir, name)
+        os.unlink(file_name)
+
+    return ""
 
