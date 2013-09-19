@@ -44,8 +44,15 @@ a {
 #dropbox {
   color: #ccc;
   border: 5px dotted #ccc;
-  padding: 20px;
   margin-bottom: 20px;
+}
+
+#dropbox p {
+  margin: 20px;
+}
+
+#dropbox #dropbox-error {
+  display: none;
 }
 
 #dropbox.hovered {
@@ -66,7 +73,7 @@ a {
   display: block;
 }
 
-#dropbox.uploading span {
+#dropbox.uploading p {
   display: none;
 }
 

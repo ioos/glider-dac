@@ -39,7 +39,11 @@
   {% if editable %}
 
   <div id="dropbox">
-    <span>Drop files here to upload</span>
+    <div id="dropbox-error" class="alert alert-danger">
+
+    </div>
+
+    <p>Drop files here to upload</p>
 
     <div class="progress">
       <div class="progress-bar" style="width:0%">
@@ -130,8 +134,8 @@
           drop.removeClass('uploading');
         });
 
-        req.fail(function() {
-          console.error("FAIL");
+        req.fail(function(jqxhr, textStatus, error) {
+          $('#dropbox-error').fadeIn(250).text("Could not upload file: " + error);
         });
 
         req.done(function(data) {
