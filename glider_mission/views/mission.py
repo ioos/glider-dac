@@ -124,7 +124,7 @@ def post_mission_file(username, mission_id):
 
     mission = db.Mission.find_one({'_id':mission_id})
 
-    retval = {'files':[]}
+    retval = []
     for name, f in request.files.iteritems():
         if not name.startswith('file-'):
             continue
@@ -136,10 +136,7 @@ def post_mission_file(username, mission_id):
         with open(out_name, 'w') as of:
             f.save(of)
 
-        retval['files'].append((safe_filename, datetimeformat(datetime.now())))
+        retval.append((safe_filename, datetimeformat(datetime.now())))
 
-    response = make_response(json.dumps(retval))
-    response.headers['Content-type'] = 'application/json'
-
-    return response
+    return render_template("_mission_files.html", files=retval)
 

@@ -1,0 +1,7 @@
+{% for f in files %}
+  <tr>
+    <td>{{ f[0] }}</td>
+    <td>{{ f[1] | datetimeformat }}</td>
+  </tr>
+{% endfor %}
+

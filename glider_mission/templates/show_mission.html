@@ -19,12 +19,7 @@
       </tr>
     </thead>
     <tbody>
-    {% for f in files %}
-      <tr>
-        <td>{{ f[0] }}</td>
-        <td>{{ f[1] | datetimeformat }}</td>
-      </tr>
-    {% endfor %}
+    {% include '_mission_files.html' %}
     </tbody>
   </table>
 
@@ -116,14 +111,7 @@
         });
 
         req.done(function(data) {
-          console.log(data);
-
-          for (var i = 0; i < data.files.length; i++) {
-            var f = data.files[i];
-            var row = $('<tr><td>' + f[0] + '</td><td>' + f[1] + '</td></tr>');
-            $('tbody').prepend(row);
-          }
-        
+          $('tbody').prepend(data);
         });
 
       });

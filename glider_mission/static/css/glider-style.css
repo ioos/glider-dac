@@ -45,6 +45,7 @@ a {
   color: #ccc;
   border: 5px dotted #ccc;
   padding: 20px;
+  margin-bottom: 20px;
 }
 
 #dropbox.hovered {
