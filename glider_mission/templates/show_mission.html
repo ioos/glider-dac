@@ -10,7 +10,10 @@
   <span></span>
 </div>
 
-<h3>{{ mission.name }}</h3>
+
+<h3>
+  {{ mission.name }}
+</h3>
 
 <div class="col-lg-6">
 
@@ -274,6 +277,17 @@
     {{ render_field_static(form.wmo_id) }}
     {{ render_field_static(form.completed) }}
   </form>
+  {% endif %}
+
+  {% if admin %}
+
+  <hr />
+
+  <h3>Admin</h3>
+  <form method="POST" action="{{ url_for('delete_mission', username=username, mission_id=mission._id) }}">
+    <button class="btn btn-danger">Delete Mission</button>
+  </form>
+
   {% endif %}
 
 </div>

@@ -2,6 +2,7 @@ import os
 import os.path
 from datetime import datetime
 import json
+import shutil
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
@@ -55,6 +56,8 @@ def show_mission(username, mission_id):
 
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
         kwargs['editable'] = True
+        if current_user.is_admin():
+            kwargs['admin'] = True
 
     return render_template('show_mission.html', username=username, form=form, mission=mission, files=files, **kwargs)
 
@@ -156,3 +159,18 @@ def delete_mission_files(username, mission_id):
 
     return ""
 
+@app.route('/users/<string:username>/mission/<ObjectId:mission_id>/delete', methods=['POST'])
+@login_required
+def delete_mission(username, mission_id):
+
+    mission = db.Mission.find_one({'_id':mission_id})
+    user = db.User.find_one( {'username' : username } )
+
+    if not (mission is not None and user is not None and current_user.is_admin()):
+        flash("Permission denied", 'danger')
+        return redirect(url_for("show_mission", username=username, mission_id=mission_id))
+
+    shutil.rmtree(mission.mission_dir)
+    mission.delete()
+
+    return redirect(url_for("list_user_missions", username=username))
