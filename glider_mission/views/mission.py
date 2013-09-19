@@ -43,6 +43,8 @@ def show_mission(username, mission_id):
     files = []
     for dirpath, dirnames, filenames in os.walk(mission.mission_dir):
         for f in filenames:
+            if f in ["wmoid.txt", "completed.txt"]:
+                continue
             files.append((f, datetime.fromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
 
     files = sorted(files, lambda a,b: cmp(b[1], a[1]))
