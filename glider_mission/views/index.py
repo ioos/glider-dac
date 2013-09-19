@@ -60,18 +60,18 @@ def load_user(userid):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_active():
-        flash("Already logged in")
+        flash("Already logged in", 'warning')
         return redirect(request.args.get("next") or url_for("index"))
 
     form = LoginForm()
     if form.validate_on_submit():
         user = User.authenticate(form.username.data, form.password.data)
         if not user:
-            flash("Failed")
+            flash("Failed", 'danger')
             return redirect(url_for("login"))
 
         login_user(user)
-        flash("Logged in successfully")
+        flash("Logged in successfully", 'success')
         return redirect(request.args.get("next") or url_for("index"))
 
     return render_template("login.html", form=form)

@@ -39,7 +39,7 @@ def edit_user(username):
     user = db.User.find_one( {'username' : username } )
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
-        flash("Permission denied")
+        flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
     form = UserForm(obj=user)
@@ -48,7 +48,7 @@ def edit_user(username):
         form.populate_obj(user)
         user.save()
         User.update(username=user.username, password=form.password.data)
-        flash("Account updated")
+        flash("Account updated", 'success')
         return redirect(url_for("index"))
 
     return render_template('edit_user.html', form=form, user=user)
@@ -58,7 +58,7 @@ def edit_user(username):
 def create_user():
     if not current_user.is_admin():
         # No permission
-        flash("Permission denied")
+        flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
     form = NewUserForm()
@@ -68,7 +68,7 @@ def create_user():
         form.populate_obj(user)
         user.save()
         User.update(username=user.username, password=form.password.data)
-        flash("Account for '%s' created" % user.username)
+        flash("Account for '%s' created" % user.username, 'success')
         return redirect(url_for("admin"))
 
     return render_template('admin.html', form=form)
@@ -78,7 +78,7 @@ def create_user():
 def admin():
     if not current_user.is_admin():
         # No permission
-        flash("Permission denied")
+        flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
     form = NewUserForm()

@@ -70,7 +70,7 @@ def new_mission(username):
     user = db.User.find_one( {'username' : username } )
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
-        flash("Permission denied")
+        flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
     form = NewMissionForm()
@@ -87,7 +87,7 @@ def new_mission(username):
         mission.updated = datetime.utcnow()
         mission.save()
         mission.sync()
-        flash("Mission created")
+        flash("Mission created", 'success')
 
     return redirect(url_for('list_user_missions', username=username))
 
@@ -99,7 +99,7 @@ def edit_mission(username, mission_id):
     user = db.User.find_one( {'username' : username } )
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
-        flash("Permission denied")
+        flash("Permission denied", 'danger')
         return redirect(url_for('list_user_missions', username=username))
 
     mission = db.Mission.find_one({'_id':mission_id})
@@ -115,7 +115,7 @@ def edit_mission(username, mission_id):
             mission.estimated_deploy_date = None
         mission.save()
         mission.sync()
-        flash("Mission updated")
+        flash("Mission updated", 'success')
         return redirect(url_for('show_mission', username=username, mission_id=mission._id))
 
     return render_template('edit_mission.html', username=username, form=form, mission=mission)
