@@ -78,15 +78,31 @@
         }
 
         $(this).removeClass('hovered');       
-        $(this).addClass('uploading');
 
         var formData = new FormData();
+        var filenames = [];
 
         for (var i = 0; i < e.originalEvent.dataTransfer.files.length; i++) {
           var f = e.originalEvent.dataTransfer.files[i];
+          filenames.push(f.name);
 
           formData.append('file-' + i, f);
         }
+
+        // check to see if there are any upcoming overwrites
+        var idx = {{ 1 if editable else 0 }};   // set by jinja
+        var replaces = filenames.filter(function(i, e) {
+          var exist = $('#mission-files tbody tr td:contains("' + i + '")');
+          return exist.length > 0;
+        });
+
+        if (replaces.length > 0) {
+          if (!confirm("The following file(s) would be replaced by this upload: \n\n" + replaces.join("\n"))) {
+            return;
+          }
+        }
+
+        $(this).addClass('uploading');
 
         var url = "{{ url_for('post_mission_file', username=username, mission_id=mission._id) }}";
 
@@ -119,6 +135,11 @@
         });
 
         req.done(function(data) {
+          // remove any rows that we replaced already
+          replaces.forEach(function(v) {
+            $('#mission-files tbody tr td:contains("' + v + '")').parents('tr').remove();
+          });
+
           $('tbody').prepend(data);
         });
 
