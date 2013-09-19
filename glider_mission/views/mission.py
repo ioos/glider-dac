@@ -130,6 +130,9 @@ def post_mission_file(username, mission_id):
     mission = db.Mission.find_one({'_id':mission_id})
     user = db.User.find_one( {'username' : username } )
 
+    if not (mission and user and mission.user_id == user._id and (current_user.is_admin() or current_user == user)):
+        raise StandardError("Unauthorized") # @TODO better response via ajax?
+
     retval = []
     for name, f in request.files.iteritems():
         if not name.startswith('file-'):
@@ -149,9 +152,14 @@ def post_mission_file(username, mission_id):
     return render_template("_mission_files.html", files=retval, editable=editable)
 
 @app.route('/users/<string:username>/mission/<ObjectId:mission_id>/delete_files', methods=['POST'])
+@login_required
 def delete_mission_files(username, mission_id):
 
     mission = db.Mission.find_one({'_id':mission_id})
+    user = db.User.find_one({'username':username})
+
+    if not (mission and user and (current_user.is_admin() or user._id == mission.user_id)):
+            raise StandardError("Unauthorized")     # @TODO better response via ajax?
 
     for name in request.json['files']:
         file_name = os.path.join(mission.mission_dir, name)
@@ -166,7 +174,7 @@ def delete_mission(username, mission_id):
     mission = db.Mission.find_one({'_id':mission_id})
     user = db.User.find_one( {'username' : username } )
 
-    if not (mission is not None and user is not None and current_user.is_admin()):
+    if not (mission is not None and user is not None and mission.user_id == user._id and current_user.is_admin()):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_mission", username=username, mission_id=mission_id))
 
