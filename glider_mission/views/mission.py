@@ -7,6 +7,7 @@ import shutil
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
 from glider_mission import app, db, datetimeformat
+from glider_mission.glider_emails import send_wmoid_email
 
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField
@@ -91,6 +92,9 @@ def new_mission(username):
         mission.save()
         mission.sync()
         flash("Mission created", 'success')
+
+        if not mission.wmo_id:
+            send_wmoid_email(username, mission)
 
     return redirect(url_for('list_user_missions', username=username))
 

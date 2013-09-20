@@ -15,6 +15,10 @@ import sys
 from flask.ext.mongokit import MongoKit
 db = MongoKit(app)
 
+# Mailer
+from flask.ext.mail import Mail
+mail = Mail(app)
+
 # Login manager for frontend
 login_manager = LoginManager()
 login_manager.init_app(app)
