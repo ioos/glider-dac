@@ -19,6 +19,17 @@
       {% endfor %}
 
     </table>
+
+    <h3>Missions</h3>
+      <table class="table table-bordered table-striped">
+      {%- for m in missions %}
+      <tr>
+        <td><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
+        <td>{{ m.wmo_id }}</td>
+        <td>{{ m.updated | datetimeformat }}</td>
+      </tr>
+      {%- endfor %}
+    </table>
   </div>
 
   <div class="col-lg-4">
@@ -34,24 +45,7 @@
         Dives
       </li>
     </ul>
-  </div>
-</div>
 
-<div class="row">
-  <div class="col-lg-8">
-    <h3>Missions</h3>
-      <table class="table table-bordered table-striped">
-      {%- for m in missions %}
-      <tr>
-        <td><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
-        <td>{{ m.wmo_id }}</td>
-        <td>{{ m.updated | datetimeformat }}</td>
-      </tr>
-      {%- endfor %}
-    </table>
-  </div>
-
-  <div class="col-lg-4">
     <h3>Contributors</h3>
 
     <ul class="list-group">
@@ -67,7 +61,6 @@
       {%- endfor %}
     </ul>
   </div>
-
 </div>
 
 {% endblock %}
