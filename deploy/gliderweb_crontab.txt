@@ -1,3 +1,4 @@
 # Run catalog update script everyday at 3am
 0 3 * * * workon gliderweb && python ~/glider-mission/generate_catalog.py {{ rsync_to_path }} {{ dev_catalog_root }} {{ prod_catalog_root }} {{ debug }} >> ~/nightly_update.log 2>&1
+@hourly ~/glider-mission/sync_cmd {{ rsync_ssh_user }} {{ data_root }} {{ rsync_to_path }}
 # END
