@@ -25,10 +25,10 @@
 
 {% macro render_boolean(field, static=False) %}
   <div class="form-group">
-    {% if field.data == True %}
-      {{ field(checked="checked", disabled=("disabled" if static else ""), **kwargs)|safe }}
+    {% if static %}
+    {{ field(disabled=True, **kwargs)|safe }}
     {% else %}
-      {{ field(**kwargs)|safe }}
+    {{ field(**kwargs)|safe }}
     {% endif %}
 
     {% if field.label is defined %}
