@@ -12,7 +12,7 @@
       {% for f in files[0:10] %}
       <tr>
         <td>{{ f[0] }}</td>
-        <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[1]) }}">{{ f[1] }}</a></td>
+        <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
         <td>{{ f[2] }}</td>
         <td>{{ f[3] | datetimeformat }}</td>
       </tr>
@@ -54,7 +54,7 @@
         <span class="badge">{{ u['count'] }} missions</span>
         {% if user_map.has_key(u['_id']) %}
         <a href="{{ url_for('list_user_missions', username=user_map[u['_id']].username) }}">
-          {{ user_map[u['_id']].name }}
+          {{ user_map[u['_id']].name or user_map[u['_id']].username }}
         </a>
         {% else %}
         unknown

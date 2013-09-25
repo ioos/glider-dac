@@ -23,13 +23,10 @@ def index():
     data_root = app.config.get('DATA_ROOT')
 
     files = []
-    missions = []
+    missions_by_dir = {}
     for dirpath, dirnames, filenames in os.walk(data_root):
         rel_path = os.path.relpath(dirpath, data_root)
         path_parts = rel_path.split(os.sep)
-        if len(path_parts) == 3:
-            db_mission = db.Mission.find_one({'name':path_parts[-1]})
-            missions.append((dirpath, db_mission))
 
         for filename in filenames:
             if filename == "wmoid.txt":
@@ -37,15 +34,19 @@ def index():
 
             entry = os.path.join(dirpath, filename)
 
+            if dirpath not in missions_by_dir:
+                missions_by_dir[dirpath] = db.Mission.find_one({'mission_dir':dirpath})
+
             rel_path = os.path.relpath(entry, data_root)
+
             # user/upload/mission-name/file
             path_parts = rel_path.split(os.sep)
             if len(path_parts) != 4:
                 continue
 
-            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry))))
+            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.fromtimestamp(os.path.getmtime(entry)), missions_by_dir[dirpath]))
 
-    files = sorted(files, lambda a,b: cmp(b[2], a[2]))
+    files = sorted(files, lambda a,b: cmp(b[3], a[3]))
 
     missions = list(db.Mission.find(sort=[("updated" , pymongo.DESCENDING)], limit=20))
 
