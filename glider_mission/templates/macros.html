@@ -1,52 +1,47 @@
-{% macro render_field(field) %}
-  <div class="form-group">
+{% macro render_field(field, static=False, help=None) %}
+  <div class="form-group {{ "has-error" if field.errors }}">
     {% if field.label is defined %}
-      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
+      <label for="{{ field.name }}" class="control-label">
+        {{ field.label }}
+        {% if field.errors %}
+          <ul class=errors>
+          {% for error in field.errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      </label>
     {% endif %}
-    {{ field(class_="form-control", **kwargs)|safe }}
-    {% if field.errors %}
-      <ul class=errors>
-      {% for error in field.errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-      </ul>
+    {% if static %}
+      <p class="form-static-control">{{ field.object_data or "&nbsp;"|safe }}</p>
+    {% else %}
+      {{ field(class_="form-control", **kwargs)|safe }}
+    {% endif %}
+    {% if help %}
+      <span class="help-block">{{ help }}</span> 
     {% endif %}
   </div>
 {% endmacro %}
 
-{% macro render_field_static(field) %}
-  <div class="form-group">
-    {% if field.label is defined %}
-      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
-    {% endif %}
-    <p class="form-static-control">{{ field.object_data or "&nbsp;"|safe }}</p>
-    {% if field.errors %}
-      <ul class=errors>
-      {% for error in field.errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-      </ul>
-    {% endif %}
-  </div>
-{% endmacro %}
-
-{% macro render_boolean(field) %}
+{% macro render_boolean(field, static=False) %}
   <div class="form-group">
     {% if field.data == True %}
-      {{ field(checked="checked", **kwargs)|safe }}
+      {{ field(checked="checked", disabled=("disabled" if static else ""), **kwargs)|safe }}
     {% else %}
       {{ field(**kwargs)|safe }}
     {% endif %}
-    
+
     {% if field.label is defined %}
-      <label for="{{ field.name }}" class="control-label">{{ field.label }}</label>
-    {% endif %}
-    {% if field.errors %}
-      <ul class=errors>
-      {% for error in field.errors %}
-        <li>{{ error }}</li>
-      {% endfor %}
-      </ul>
+      <label for="{{ field.name }}" class="control-label">
+        {{ field.label }}
+      {% if field.errors %}
+        <ul class=errors>
+        {% for error in field.errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+      </label>
     {% endif %}
   </div>
 {% endmacro %}

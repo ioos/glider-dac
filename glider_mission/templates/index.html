@@ -52,10 +52,12 @@
       {%- for u in user_missions %}
       <li class="list-group-item">
         <span class="badge">{{ u['count'] }} missions</span>
-        {% if u['_id'] == "" %}
-          unknown
+        {% if user_map.has_key(u['_id']) %}
+        <a href="{{ url_for('list_user_missions', username=user_map[u['_id']].username) }}">
+          {{ user_map[u['_id']].name }}
+        </a>
         {% else %}
-          {{ u['_id'] }}
+        unknown
         {% endif %}
       </li>
       {%- endfor %}

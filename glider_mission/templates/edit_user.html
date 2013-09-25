@@ -10,11 +10,12 @@
   <div class="col-lg-6">
   <form name="user_edit" id="user_edit" method="POST" action="{{ request.path }}">
     {{ form.hidden_tag() }}
-    {{ render_field(form.password) }}
-    {{ render_field(form.confirm) }}
+    {{ render_field(form.username) }}
     {{ render_field(form.name) }}
     {{ render_field(form.email) }}
     {{ render_field(form.organization) }}
+    {{ render_field(form.password, False, "If you do not want to change passwords, leave this blank.") }}
+    {{ render_field(form.confirm) }}
     {{ form.submit(class_="btn btn-primary") }}
   </form>
 </div>

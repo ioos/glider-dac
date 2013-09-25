@@ -63,6 +63,11 @@ class User(Document):
         data_root = app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
 
+    def ensure_dir(self, dir_name):
+        user_upload_dir = os.path.join(user.data_root, dir_name)
+        if not os.path.exists(user_upload_dir):
+            os.makedirs(user_upload_dir)
+
     def is_authenticated(self):
         return self.username is not None
 
@@ -80,4 +85,4 @@ class User(Document):
 
     @classmethod
     def get_mission_count_by_user(cls):
-        return db.missions.aggregate({ '$group': { '_id': '$username', 'count': { '$sum' : 1 }}}).get('result',[])
+        return db.missions.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])

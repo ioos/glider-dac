@@ -50,8 +50,9 @@ def index():
     missions = list(db.Mission.find(sort=[("updated" , pymongo.DESCENDING)], limit=20))
 
     user_missions = User.get_mission_count_by_user()
+    user_map = {u._id:u for u in db.User.find()}
 
-    return render_template('index.html', files=files, missions=missions, user_missions=user_missions)
+    return render_template('index.html', files=files, missions=missions, user_missions=user_missions, user_map=user_map)
 
 @login_manager.user_loader
 def load_user(userid):

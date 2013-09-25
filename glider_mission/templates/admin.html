@@ -1,29 +1,65 @@
 {% from "macros.html" import render_field %}
 {% extends "layout.html" %}
 
+{% block title %}Admin{% endblock %}
 {% block page %}
 
-<h1>Glider Missions</h1>
+<div class="row">
+  <div class="col-lg-12">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Organization</th>
+          <th>Missions</th>
+          <th>&nbsp;</th>
+        </tr>
+      </thead>
+      <tbody>
+      {%- for user in users %}
+      <tr>
+        <td>{{user.username}} {% if user.is_admin() %}<span class="label label-success">ADMIN</span>{% endif %}</td>
+        <td>{{user.name}}</td>
+        <td>{{user.email}}</td>
+        <td>{{user.organization}}</td>
+        <td>
+          {{ mission_counts }}
+          {% if mission_counts.has_key(user._id) %}
+          <a href="{{ url_for('list_user_missions', username=user.username) }}"><span class="label label-success">{{ mission_counts.get(user._id, '0') }}</span></a>
+          {% else %}
+            <span class="label label-default">0</span>
+          {% endif %}
+        </td>
 
-<form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('create_user') }}">
-  {{ form.hidden_tag() }}
-  {{ render_field(form.username) }}<br />
-  {{ render_field(form.password) }}<br />
-  {{ render_field(form.confirm) }}<br />
-  {{ render_field(form.name) }}<br />
-  {{ render_field(form.email) }}<br />
-  {{ render_field(form.organization) }}<br />
-  {{ form.submit }}
-</form>
+        <td>
+          <a href="{{ url_for('admin_edit_user', user_id=user._id) }}" class="btn btn-default btn-xs">Edit</a>
+          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}">
+            <button class="btn btn-danger btn-xs">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
+<div class="row">
 
-{%- for user in users %}
-<h4><a href="{{ url_for('show_mission', username=username, mission_id=mission._id) }}">{{ mission.name }}</a> <small>WMO ID: {{ mission.wmo_id }}</small></h4>
-<dl>
-  <dt>Last Updated</dt>
-  <dd>{{ mission.updated | datetimeformat }}</dd> 
-</dl>
-{%- endfor %}
-
+<div class="col-lg-6">
+  <h3>Add New User</h3>
+  <form class="form" style="margin:0px;" method="POST" action="{{ url_for('admin') }}">
+    {{ form.hidden_tag() }}
+    {{ render_field(form.username) }}
+    {{ render_field(form.password) }}
+    {{ render_field(form.confirm) }}
+    {{ render_field(form.name) }}
+    {{ render_field(form.email) }}
+    {{ render_field(form.organization) }}
+    {{ form.submit(class_="btn btn-primary") }}
+  </form>
+</div>
+</div>
 {% endblock %}
-
