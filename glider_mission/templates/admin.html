@@ -25,7 +25,6 @@
         <td>{{user.email}}</td>
         <td>{{user.organization}}</td>
         <td>
-          {{ mission_counts }}
           {% if mission_counts.has_key(user._id) %}
           <a href="{{ url_for('list_user_missions', username=user.username) }}"><span class="label label-success">{{ mission_counts.get(user._id, '0') }}</span></a>
           {% else %}
@@ -45,6 +44,16 @@
     </table>
   </div>
 </div>
+
+<script type="text/javascript">
+  $(function() {
+    $('form button').on('click', function(e) {
+      if (!confirm("Are you sure you want to delete this user?")) {
+        event.preventDefault();
+      }
+    });
+  });
+</script>
 
 <div class="row">
 
