@@ -27,13 +27,21 @@ class NewMissionForm(Form):
 @app.route('/users/<string:username>/missions')
 def list_user_missions(username):
     user = db.User.find_one( {'username' : username } )
-    missions = db.Mission.find( { 'user_id' : user._id } )
+    missions = list(db.Mission.find( { 'user_id' : user._id } ))
 
     kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
         # Permission to edit
         form = NewMissionForm()
         kwargs['form'] = form
+
+    for m in missions:
+        if not os.path.exists(m.mission_dir):   # wat
+            continue
+
+        m.updated = datetime.fromtimestamp(os.path.getmtime(m.mission_dir))
+
+    missions = sorted(missions, lambda a, b: cmp(b.updated, a.updated))
 
     return render_template('user_missions.html', username=username, missions=missions, **kwargs)
 
