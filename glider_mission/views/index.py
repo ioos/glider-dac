@@ -55,6 +55,8 @@ def index():
         if len(f):
             m.updated = f[0][3]
 
+    missions = sorted(missions, lambda a,b: cmp(b.updated, a.updated))
+
     user_missions = User.get_mission_count_by_user()
     user_map = {u._id:u for u in db.User.find()}
 
