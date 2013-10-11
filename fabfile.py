@@ -54,6 +54,8 @@ def deploy_tds():
 def deploy_ftp():
     gliderweb()
     stop_supervisord(conf="/home/gliderweb/supervisord.conf")
+    admin()
+    install_packages()
     gliderweb()
     with cd(code_dir):
         run("git pull origin master")
@@ -84,6 +86,9 @@ def update_supervisord(src_file, dst_file, virtual_env=None):
         run("pip install supervisor")
 
     upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+
+def install_packages():
+    sudo("yum -y install libxml2-devel libxslt-devel db4-devel db4-devel-static")
 
 def update_libs(virtual_env=None):
     with cd(code_dir):
