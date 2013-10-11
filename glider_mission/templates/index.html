@@ -9,19 +9,36 @@
     <h3>Recent Updates</h3>
 
     <table class="table table-bordered table-striped">
-      {% for f in files[0:10] %}
-      <tr>
-        <td>{{ f[0] }}</td>
-        <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
-        <td>{{ f[2] }}</td>
-        <td>{{ f[3] | datetimeformat }}</td>
-      </tr>
-      {% endfor %}
-
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Mission</th>
+          <th>File</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in files[0:10] %}
+        <tr>
+          <td>{{ f[0] }}</td>
+          <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
+          <td>{{ f[2] }}</td>
+          <td>{{ f[3] | datetimeformat }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
 
     <h3>Missions</h3>
-      <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Mission</th>
+          <th>WMO ID</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
       {%- for m in missions %}
       <tr>
         <td><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
@@ -29,6 +46,7 @@
         <td>{{ m.updated | datetimeformat }}</td>
       </tr>
       {%- endfor %}
+      </tbody>
     </table>
   </div>
 
