@@ -43,7 +43,7 @@ def main(base):
                     wmoid_file = os.path.join(fullpath, f, 'wmoid.txt')
                     if os.path.exists(wmoid_file):
                         with open(wmoid_file) as wf:
-                            mission.wmo_id = wf.readline().strip()
+                            mission.wmo_id = unicode(wf.readline().strip())
 
                     mission.save()
 
