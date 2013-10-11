@@ -50,6 +50,11 @@ def index():
 
     missions = list(db.Mission.find(sort=[("updated" , pymongo.DESCENDING)], limit=20))
 
+    for m in missions:
+        f = filter(lambda x: x[4] == m, files)
+        if len(f):
+            m.updated = f[0][3]
+
     user_missions = User.get_mission_count_by_user()
     user_map = {u._id:u for u in db.User.find()}
 
