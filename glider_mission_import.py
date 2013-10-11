@@ -34,13 +34,13 @@ def main(base):
                 else:
                     print "Not Found: creating"
                     mission = db.Mission()
-                    mission.name = f
+                    mission.name = unicode(f)
                     mission.user_id = u._id
-                    mission.mission_dir = f
+                    mission.mission_dir = unicode(os.path.join(fullpath, f))
 
-                    mission.completed = os.path.exists(os.path.join(f, 'completed.txt'))
+                    mission.completed = os.path.exists(os.path.join(fullpath, f, 'completed.txt'))
 
-                    wmoid_file = os.path.join(f, 'wmoid.txt')
+                    wmoid_file = os.path.join(fullpath, f, 'wmoid.txt')
                     if os.path.exists(wmoid_file):
                         with open(wmoid_file) as wf:
                             mission.wmo_id = wf.readline().strip()
