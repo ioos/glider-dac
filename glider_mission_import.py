@@ -21,14 +21,12 @@ def main(base):
             fullpath = os.path.join(base, uname, 'upload')
 
             for f in os.listdir(fullpath):
-                if not os.path.isdir(f):
+                if not os.path.isdir(os.path.join(fullpath, f)):
                     continue
 
-                path_parts = os.path.split(f)
+                print "Mission", f
 
-                print "Mission", path_parts[-1]
-
-                mission = db.Mission.find_one({'name':path_parts[-1]})
+                mission = db.Mission.find_one({'name':f})
 
                 if mission:
                     print "Found: updating timestamp"
@@ -36,7 +34,7 @@ def main(base):
                 else:
                     print "Not Found: creating"
                     mission = db.Mission()
-                    mission.name = path_parts[-1]
+                    mission.name = f
                     mission.user_id = u._id
                     mission.mission_dir = f
 
