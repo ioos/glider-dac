@@ -10,7 +10,7 @@ from datetime import datetime
 
 from glider_mission import app, db
 
-users = ['jkerfoot']
+users = ['rutgers']
 
 def main(base):
     with app.app_context():
@@ -30,7 +30,8 @@ def main(base):
 
                 if mission:
                     print "Found: updating timestamp"
-                    mission.updated = datetime.fromtimestamp(os.path.getmtime(f))
+                    mission.updated = datetime.fromtimestamp(os.path.getmtime(os.path.join(fullpath, f)))
+                    mission.save()
                 else:
                     print "Not Found: creating"
                     mission = db.Mission()
