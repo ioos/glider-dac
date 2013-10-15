@@ -19,7 +19,8 @@ import time
         secret_key = x
         data_root = x
         rsync_ssh_user = x
-        rsync_to_host = x
+        rsync_remote_host = x
+        rsync_remote_path = x
         rsync_to_path = x
         dev_catalog_root = x
         prod_catalog_root = x

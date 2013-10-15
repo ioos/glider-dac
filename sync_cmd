@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# ./sync_cmd <ssh user> <src> <dest>
+# ./sync_cmd <ssh user> <remote host> <src> <dest>
 
-rsync -r -a -v --delete -e "ssh -l $1" $2 $3
+rsync -r -a -v --delete -e "ssh -l $1" $2:$3 $4
 
