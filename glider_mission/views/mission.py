@@ -10,7 +10,7 @@ from glider_mission import app, db, datetimeformat
 from glider_mission.glider_emails import send_wmoid_email
 
 from flask.ext.wtf import Form
-from wtforms import TextField, SubmitField, BooleanField
+from wtforms import TextField, SubmitField, BooleanField, validators
 
 class MissionForm(Form):
     estimated_deploy_date       = TextField(u'Estimated Deploy Date (yyyy-mm-dd)')
@@ -20,7 +20,7 @@ class MissionForm(Form):
     submit                      = SubmitField(u'Submit')
 
 class NewMissionForm(Form):
-    name    = TextField(u'Mission Name')
+    name    = TextField(u'Mission Name', [validators.required()])
     wmo_id  = TextField(u'WMO ID')
     submit  = SubmitField(u"Create")
 
@@ -103,6 +103,9 @@ def new_mission(username):
 
         if not mission.wmo_id:
             send_wmoid_email(username, mission)
+    else:
+        error_str = ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.iteritems()])
+        flash("Mission could not be created: %s" % error_str, 'danger')
 
     return redirect(url_for('list_user_missions', username=username))
 
@@ -132,6 +135,9 @@ def edit_mission(username, mission_id):
         mission.sync()
         flash("Mission updated", 'success')
         return redirect(url_for('show_mission', username=username, mission_id=mission._id))
+    else:
+        error_str = ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.iteritems()])
+        flash("Mission could not be edited: %s" % error_str, 'danger')
 
     return render_template('edit_mission.html', username=username, form=form, mission=mission)
 
