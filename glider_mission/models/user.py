@@ -64,7 +64,7 @@ class User(Document):
         return os.path.join(data_root, self.username)
 
     def ensure_dir(self, dir_name):
-        user_upload_dir = os.path.join(user.data_root, dir_name)
+        user_upload_dir = os.path.join(self.data_root, dir_name)
         if not os.path.exists(user_upload_dir):
             os.makedirs(user_upload_dir)
 
