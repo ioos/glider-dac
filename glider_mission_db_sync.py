@@ -8,7 +8,7 @@ import logging
 import smtplib
 import subprocess
 
-from watchdog.events import FileSystemEventHandler, DirCreatedEvent, DirDeletedEvent
+from watchdog.events import FileSystemEventHandler, DirCreatedEvent, DirDeletedEvent, FileCreatedEvent
 from watchdog.observers import Observer
 
 from glider_mission import app, db
@@ -48,7 +48,34 @@ class HandleMissionDB(FileSystemEventHandler):
                         mission.user_id     = usr._id
                         mission.name        = unicode(path_parts[2])
                         mission.mission_dir = unicode(event.src_path)
-                        mission.save()                  
+                        mission.save()
+
+        elif isinstance(event, FileCreatedEvent):
+            if self.base not in event.src_path:
+                return
+
+            path_parts = os.path.split(event.src_path)
+
+            if path_parts[-1] != "wmoid.txt":
+                return
+
+            rel_path = os.path.relpath(event.src_path, self.base)
+            logger.info("New wmoid.txt in %s", rel_path)
+
+            with app.app_context():
+                mission = db.Mission.find_one({'mission_dir':path_parts[0]})
+                if mission is None:
+                    logger.error("Cannot find mission for %s", path_parts[0])
+                    return
+
+                if mission.wmo_id:
+                    logger.error("Mission already has wmoid %s", mission.wmo_id)
+                    return
+
+                with open(event.src_path) as wf:
+                    mission.wmo_id = unicode(wf.readline().strip())
+
+                mission.save()
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):
@@ -70,7 +97,6 @@ class HandleMissionDB(FileSystemEventHandler):
                 mission = db.Mission.find_one({'mission_dir':event.src_path})
                 if mission:
                     mission.delete()
-
 
 def main(handler):
     observer = Observer()
