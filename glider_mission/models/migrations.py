@@ -16,6 +16,10 @@ class MissionMigration(DocumentMigration):
         self.target = {'username':{'$exists': False}}
         self.update = {'$set':{'username':u''}}
 
+    def allmigration04__add_operator(self):
+        self.target = {'operator':{'$exists': False}}
+        self.update = {'$set':{'operator':u''}}
+
 # Users
 from glider_mission.models import user
 class UserMigration(DocumentMigration):

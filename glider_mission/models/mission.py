@@ -8,14 +8,15 @@ from bson.objectid import ObjectId
 
 @db.register
 class Mission(Document):
-    __collection__ = 'missions'
+    __collection__   = 'missions'
     use_dot_notation = True
-    use_schemaless = True
+    use_schemaless   = True
 
     structure = {
         'name'                      : unicode,
         'user_id'                   : ObjectId,
         'username'                  : unicode,  # The cached username to lightly DB load
+        'operator'                  : unicode,  # The operator of this Glider. Shows up in TDS as the title.
         'mission_dir'               : unicode,
         'estimated_deploy_date'     : datetime,
         'estimated_deploy_location' : unicode,  # WKT text
@@ -64,3 +65,7 @@ class Mission(Document):
         json_file = os.path.join(self.mission_dir, "mission.json")
         with open(json_file, 'w') as f:
             f.write(self.to_json())
+
+    @classmethod
+    def get_mission_count_by_operator(cls):
+        return db.missions.aggregate({ '$group': { '_id': '$operator', 'count': { '$sum' : 1 }}}).get('result',[])

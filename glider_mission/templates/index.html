@@ -52,7 +52,6 @@
 
   <div class="col-lg-4">
     <h3>At a Glance</h3>
-
     <ul class="list-group">
       <li class="list-group-item">
         <span class="badge">{{ missions | length }}</span>
@@ -64,8 +63,17 @@
       </li>
     </ul>
 
-    <h3>Contributors</h3>
+    <h3>Operators</h3>
+    <ul class="list-group">
+      {%- for u in operator_missions %}
+      <li class="list-group-item">
+        <span class="badge">{{ u['count'] }} missions</span>
+        {{ u['_id'] }}
+      </li>
+      {%- endfor %}
+    </ul>
 
+    <h3>Contributors</h3>
     <ul class="list-group">
       {%- for u in user_missions %}
       <li class="list-group-item">

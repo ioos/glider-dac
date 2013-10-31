@@ -57,10 +57,12 @@ def index():
 
     missions = sorted(missions, lambda a,b: cmp(b.updated, a.updated))
 
-    user_missions = User.get_mission_count_by_user()
+    user_missions = db.User.get_mission_count_by_user()
     user_map = {u._id:u for u in db.User.find()}
 
-    return render_template('index.html', files=files, missions=missions, user_missions=user_missions, user_map=user_map)
+    operator_missions = db.Mission.get_mission_count_by_operator()
+
+    return render_template('index.html', files=files, missions=missions, user_missions=user_missions, user_map=user_map, operator_missions=operator_missions)
 
 @login_manager.user_loader
 def load_user(userid):

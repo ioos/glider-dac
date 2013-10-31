@@ -71,7 +71,7 @@
       });
 
       drop.on('dragleave', function(e) {
-        $(this).removeClass('hovered'); 
+        $(this).removeClass('hovered');
       });
 
       drop.on('drop', function(e) {
@@ -84,7 +84,7 @@
           return;
         }
 
-        $(this).removeClass('hovered');       
+        $(this).removeClass('hovered');
 
         var formData = new FormData();
         var filenames = [];
@@ -152,7 +152,7 @@
 
       });
     });
-    
+
     {% if editable %}
       $(function() {
 
@@ -255,7 +255,7 @@
     </li>
     <li class="list-group-item">
       <a href='{{mission.iso}}'>ISO</a>
-    </li>      
+    </li>
   </ul>
 
   {% if editable %}
@@ -265,6 +265,7 @@
 
   <form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) if editable}}">
     {{ form.hidden_tag() }}
+    {{ render_field(form.operator, not editable) }}
     {{ render_field(form.estimated_deploy_date, not editable) }}
     {{ render_field(form.estimated_deploy_location, not editable) }}
     {{ render_field(form.wmo_id, not editable) }}
