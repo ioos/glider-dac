@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 import os
 import time
+import json
 import shutil
 import argparse
 import subprocess
-from lxml import etree    
+from lxml import etree
 
 RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
-DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
-PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/prod")
+DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
+PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT")
 DEBUG = False
 
 def update_thredds_catalog(base, dev, prod, debug):
@@ -20,41 +21,43 @@ def update_thredds_catalog(base, dev, prod, debug):
         "xlink" :  xlink_ns
     }
 
-    catalog_paths = []
-
-    # Iterate over Users
-    for user in os.listdir(base):
-        user_dir = os.path.join(base, user)
-        if os.path.isdir(user_dir):
-            # In User directory
-            # Iterate over Missions
-            for mission in os.listdir(user_dir):
-                mission_dir = os.path.join(user_dir, mission)
-                if os.path.isdir(mission_dir):
-                    # In Mission directory
-                    # Touch directory to make sure the catalogs get regenerated
-                    # (the catalog scripts could have been updated since the first time they were generated)
-                    os.utime(mission_dir, None)
-
-                    # Mission specific THREDDS catalog file
-                    catalog_paths.append((user, mission))
-
-    # Wait for any catalog to be generated that need to be
-    time.sleep(30)
-
     # Create catalog file including all missions
     with open(os.path.join(dev, 'catalog.xml'), 'wb') as f:
 
         root = etree.Element("{%s}catalog" % catalog_ns, nsmap=nsmap)
         root.set("name", "IOOS Glider DAC - Catalog")
 
-        for cat in catalog_paths:
-            # Create mission catalogRef
-            catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
-            catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(cat[0], cat[1], "catalog.xml"))
-            catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (cat[0], cat[1]))
-            catalog_ref.set("name", "")
-            root.append(catalog_ref)
+        # Iterate over Users
+        for user in os.listdir(base):
+            user_dir = os.path.join(base, user)
+            if os.path.isdir(user_dir):
+                # In User directory
+                # Iterate over Missions
+                for mission in os.listdir(user_dir):
+                    mission_dir = os.path.join(user_dir, mission)
+                    if os.path.isdir(mission_dir):
+                        # In Mission directory
+                        # Touch directory to make sure the catalogs get regenerated
+                        # (the catalog generation scripts could have been updated since the first time they were generated)
+                        os.utime(mission_dir, None)
+
+                        # Load Misson JSON if is exists.  We want to pull information from this JSON
+                        # and not rely on the directory structure if possible.
+                        title        = user
+                        mission_name = mission
+                        mission_json = os.path.join(mission_dir, "mission.json")
+                        if os.path.isfile(mission_json):
+                            with open(mission_json) as f:
+                                js           = json.load(f)
+                                title        = js['username']
+                                mission_name = js['name']
+
+                        # Create mission catalogRef
+                        catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
+                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, mission, "catalog.xml"))
+                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (title, mission_name))
+                        catalog_ref.set("name", "")
+                        root.append(catalog_ref)
 
         # Add scratch directory
         catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)

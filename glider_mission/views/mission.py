@@ -53,7 +53,7 @@ def show_mission(username, mission_id):
     files = []
     for dirpath, dirnames, filenames in os.walk(mission.mission_dir):
         for f in filenames:
-            if f in ["wmoid.txt", "completed.txt"]:
+            if f in ["mission.json", "wmoid.txt", "completed.txt"]:
                 continue
             files.append((f, datetime.fromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
 
@@ -98,7 +98,6 @@ def new_mission(username):
         mission.mission_dir = new_mission_dir
         mission.updated = datetime.utcnow()
         mission.save()
-        mission.sync()
         flash("Mission created", 'success')
 
         if not mission.wmo_id:
@@ -132,7 +131,6 @@ def edit_mission(username, mission_id):
         except ValueError:
             mission.estimated_deploy_date = None
         mission.save()
-        mission.sync()
         flash("Mission updated", 'success')
         return redirect(url_for('show_mission', username=username, mission_id=mission._id))
     else:

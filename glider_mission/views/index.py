@@ -29,7 +29,7 @@ def index():
         path_parts = rel_path.split(os.sep)
 
         for filename in filenames:
-            if filename == "wmoid.txt":
+            if filename in ["wmoid.txt", "completed.txt", "mission.json"]:
                 continue
 
             entry = os.path.join(dirpath, filename)

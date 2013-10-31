@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import time
+import json
 import argparse
 import logging
 from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
@@ -12,7 +13,7 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
-DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
+DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
 
 class HandleMission(FileSystemEventHandler):
     def __init__(self, base, catalog):
@@ -36,9 +37,10 @@ class HandleMission(FileSystemEventHandler):
             # expecting a user/mission/file
             if len(path_parts) != 3:
                 return
-            if path_parts[-1] == "wmoid.txt":
-                logger.info("Recreating NcML Aggregations with new WMO ID")
+            if path_parts[-1] == "mission.json":
+                logger.info("Creating Catalog and NcML Aggregations with new Mission metadata")
                 self._create_ncml(user=path_parts[0], mission=path_parts[1])
+                self._create_catalog(user=path_parts[0], mission=path_parts[1])
             pass
 
     def on_modified(self, event):
@@ -58,9 +60,10 @@ class HandleMission(FileSystemEventHandler):
             # expecting a user/mission/file
             if len(path_parts) != 3:
                 return
-            if path_parts[-1] == "wmoid.txt":
-                logger.info("Recreating NcML Aggregations with modified WMO ID")
+            if path_parts[-1] == "mission.json":
+                logger.info("Recreating Catalog and NcML Aggregations with modified Mission metadata")
                 self._create_ncml(user=path_parts[0], mission=path_parts[1])
+                self._create_catalog(user=path_parts[0], mission=path_parts[1])
 
     def _create_catalog(self, user, mission):
 
@@ -69,6 +72,17 @@ class HandleMission(FileSystemEventHandler):
 
         time_path   =  os.path.join(cat_path, "timeagg.ncml")
         timeuv_path =  os.path.join(cat_path, "timeuvagg.ncml")
+
+        # Load Misson JSON if is exists.  We want to pull information from this JSON
+        # and not rely on the directory structure if possible.
+        title        = user
+        mission_name = mission
+        mission_json = os.path.join(dir_path, "mission.json")
+        if os.path.isfile(mission_json):
+          with open(mission_json) as f:
+            js           = json.load(f)
+            title        = js['username']
+            mission_name = js['name']
 
         try:
             os.makedirs(cat_path)
@@ -98,17 +112,17 @@ class HandleMission(FileSystemEventHandler):
             <service name="sos" serviceType="SOS" base="/thredds/sos/" />
           </service>
 
-          <dataset name="%(user)s - %(mission)s - Time Aggregation" ID="%(user)s_%(mission)s_Time" urlPath="%(user)s_%(mission)s_Time.ncml">
+          <dataset name="%(title)s - %(mission_name)s - Time Aggregation" ID="%(title)s_%(mission_name)s_Time" urlPath="%(title)s_%(mission_name)s_Time.ncml">
             <serviceName>agg</serviceName>
             <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(time_path)s" />
           </dataset>
 
-          <dataset name="%(user)s - %(mission)s - Depth Averaged Aggregation" ID="%(user)s_%(mission)s_TimeUV" urlPath="%(user)s_%(mission)s_TimeUV.ncml">
+          <dataset name="%(title)s - %(mission_name)s - Depth Averaged Aggregation" ID="%(title)s_%(mission_name)s_TimeUV" urlPath="%(title)s_%(mission_name)s_TimeUV.ncml">
             <serviceName>agg</serviceName>
             <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(timeuv_path)s" />
           </dataset>
 
-          <datasetScan name="%(user)s - %(mission)s - Individual Files" ID="%(user)s_%(mission)s_Files" path="%(user)s_%(mission)s_Files" location="%(dir_path)s">
+          <datasetScan name="%(title)s - %(mission_name)s - Individual Files" ID="%(title)s_%(mission_name)s_Files" path="%(title)s_%(mission_name)s_Files" location="%(dir_path)s">
             <metadata inherited="true">
               <serviceName>all</serviceName>
             </metadata>
@@ -134,11 +148,12 @@ class HandleMission(FileSystemEventHandler):
             pass
 
         # Add WMO ID if it exists
-        try:      
-          with open(os.path.join(dir_path, "wmoid.txt")) as f:
-            wmo_id = f.read().strip()
+        try:
+          with open(os.path.join(dir_path, "mission.json")) as f:
+            js     = json.load(f)
+            wmo_id = js['wmo_id'].strip()
             assert len(wmo_id) > 0
-        except (IOError, AssertionError):
+        except (IOError, AssertionError, AttributeError):
           # No wmoid.txt file
           wmo_id = "NotAssigned"
 
