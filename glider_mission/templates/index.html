@@ -43,7 +43,7 @@
       <tr>
         <td><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
         <td>{{ m.wmo_id }}</td>
-        <td>{{ m.updated | datetimeformat }}</td>
+        <td><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
       </tr>
       {%- endfor %}
       </tbody>

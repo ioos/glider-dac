@@ -8,6 +8,8 @@ import logging
 import smtplib
 import subprocess
 
+from datetime import datetime
+
 from watchdog.events import FileSystemEventHandler, DirCreatedEvent, DirDeletedEvent, FileCreatedEvent
 from watchdog.observers import Observer
 
@@ -48,6 +50,7 @@ class HandleMissionDB(FileSystemEventHandler):
                         mission.user_id     = usr._id
                         mission.name        = unicode(path_parts[2])
                         mission.mission_dir = unicode(event.src_path)
+                        mission.updated     = datetime.utcnow()
                         mission.save()
 
         elif isinstance(event, FileCreatedEvent):
@@ -74,6 +77,7 @@ class HandleMissionDB(FileSystemEventHandler):
                 with open(event.src_path) as wf:
                     mission.wmo_id = unicode(wf.readline().strip())
 
+                mission.updated     = datetime.utcnow()
                 mission.save()
 
     def on_deleted(self, event):

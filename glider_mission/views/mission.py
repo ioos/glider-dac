@@ -161,7 +161,7 @@ def post_mission_file(username, mission_id):
         with open(out_name, 'w') as of:
             f.save(of)
 
-        retval.append((safe_filename, datetimeformat(datetime.now())))
+        retval.append((safe_filename, datetimeformat(datetime.utcnow())))
 
     editable = current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)
 
