@@ -69,8 +69,7 @@ class HandleMissionDB(FileSystemEventHandler):
                     return
 
                 if mission.wmo_id:
-                    logger.error("Mission already has wmoid %s", mission.wmo_id)
-                    return
+                    logger.info("Mission already has wmoid %s.  Updating value with new file.", mission.wmo_id)
 
                 with open(event.src_path) as wf:
                     mission.wmo_id = unicode(wf.readline().strip())
