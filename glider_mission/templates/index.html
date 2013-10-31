@@ -23,7 +23,7 @@
           <td>{{ f[0] }}</td>
           <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
           <td>{{ f[2] }}</td>
-          <td>{{ f[3] | datetimeformat }}</td>
+          <td><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
         </tr>
         {% endfor %}
       </tbody>

@@ -30,7 +30,7 @@ def main(base):
 
                 if mission:
                     print "Found: updating timestamp"
-                    mission.updated = datetime.fromtimestamp(os.path.getmtime(os.path.join(fullpath, f)))
+                    mission.updated = datetime.utcfromtimestamp(os.path.getmtime(os.path.join(fullpath, f)))
                     mission.save()
                 else:
                     print "Not Found: creating"

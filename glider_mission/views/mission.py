@@ -40,7 +40,7 @@ def list_user_missions(username):
         if not os.path.exists(m.mission_dir):   # wat
             continue
 
-        m.updated = datetime.fromtimestamp(os.path.getmtime(m.mission_dir))
+        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.mission_dir))
 
     missions = sorted(missions, lambda a, b: cmp(b.updated, a.updated))
 
@@ -56,7 +56,7 @@ def show_mission(username, mission_id):
         for f in filenames:
             if f in ["mission.json", "wmoid.txt", "completed.txt"]:
                 continue
-            files.append((f, datetime.fromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
+            files.append((f, datetime.utcfromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
 
     files = sorted(files, lambda a,b: cmp(b[1], a[1]))
 
@@ -162,7 +162,7 @@ def post_mission_file(username, mission_id):
         with open(out_name, 'w') as of:
             f.save(of)
 
-        retval.append((safe_filename, datetimeformat(datetime.utcnow())))
+        retval.append((safe_filename, datetime.utcnow()))
 
     editable = current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)
 
