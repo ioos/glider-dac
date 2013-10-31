@@ -77,12 +77,15 @@ class HandleMission(FileSystemEventHandler):
         # and not rely on the directory structure if possible.
         title        = user
         mission_name = mission
-        mission_json = os.path.join(dir_path, "mission.json")
-        if os.path.isfile(mission_json):
-          with open(mission_json) as f:
+        wmo_id       = "NotAssigned"
+        try:
+          with open(os.path.join(dir_path, "mission.json")) as f:
             js           = json.load(f)
             title        = js['username']
             mission_name = js['name']
+            wmo_id       = js['wmo_id'].strip()
+        except (OSError, IOError, AssertionError, AttributeError):
+          pass
 
         try:
             os.makedirs(cat_path)
@@ -129,6 +132,11 @@ class HandleMission(FileSystemEventHandler):
             <filter>
               <include wildcard="*.nc"/>
             </filter>
+            <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2">
+              <variable name="platform">
+                <attribute name="wmo_id" value="%(wmo_id)s" />
+              </variable>
+            </netcdf>
           </datasetScan>
         </catalog>
         """ % locals()
