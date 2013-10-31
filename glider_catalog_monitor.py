@@ -94,7 +94,7 @@ class HandleMission(FileSystemEventHandler):
             pass
 
         cat_xml = """<?xml version="1.0" encoding="UTF-8"?>
-        <catalog name="IOOS Glider DAC - %(user)s - %(mission)s Catalog"
+        <catalog name="IOOS Glider DAC - %(title)s - %(mission)s Catalog"
          xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
          xmlns:xlink="http://www.w3.org/1999/xlink">
 
