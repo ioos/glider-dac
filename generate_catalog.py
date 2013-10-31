@@ -6,7 +6,7 @@ import argparse
 import subprocess
 from lxml import etree    
 
-DATA_ROOT = os.environ.get("DATA_ROOT", "/home/dev/Development/glider-mission/test")
+RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
 PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/prod")
 DEBUG = False
@@ -78,7 +78,7 @@ def update_thredds_catalog(base, dev, prod, debug):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('basedir',
-                        default=DATA_ROOT,
+                        default=RSYNC_TO_PATH,
                         nargs='?')
     parser.add_argument('devcatalogdir',
                         default=DEV_CATALOG_ROOT,
@@ -97,4 +97,3 @@ if __name__ == "__main__":
     debug = args.debug in ['true', 'True', 'TRUE', True]
 
     update_thredds_catalog(base, dev, prod, debug)
-    

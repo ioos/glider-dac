@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
-DATA_ROOT = os.environ.get("DATA_ROOT", "/home/dev/Development/glider-mission/test")
+RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT", "/home/dev/Development/glider-mission/test/thredds")
 
 class HandleMission(FileSystemEventHandler):
@@ -216,7 +216,7 @@ def main(handler):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('basedir',
-                        default=DATA_ROOT,
+                        default=RSYNC_TO_PATH,
                         nargs='?')
     parser.add_argument('catalogdir',
                         default=DEV_CATALOG_ROOT,
