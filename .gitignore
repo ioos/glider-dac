@@ -5,6 +5,9 @@ logs/*.txt
 test/*
 
 /.fab
+/.fabstage
+/.env
 
 ftp_temp
 tds_temp
+tds_catalogs
