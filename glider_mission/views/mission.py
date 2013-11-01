@@ -46,6 +46,20 @@ def list_user_missions(username):
 
     return render_template('user_missions.html', username=username, missions=missions, **kwargs)
 
+@app.route('/operators/<string:operator>/missions')
+def list_operator_missions(operator):
+    missions = list(db.Mission.find( { 'operator' : unicode(operator) } ))
+
+    for m in missions:
+        if not os.path.exists(m.mission_dir):
+            continue
+
+        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.mission_dir))
+
+    missions = sorted(missions, lambda a, b: cmp(b.updated, a.updated))
+
+    return render_template('operator_missions.html', operator=operator, missions=missions)
+
 @app.route('/users/<string:username>/mission/<ObjectId:mission_id>')
 def show_mission(username, mission_id):
     user = db.User.find_one( {'username' : username } )

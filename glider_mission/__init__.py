@@ -115,6 +115,18 @@ def padfit(value, size):
 
 app.jinja_env.filters['padfit'] = padfit
 
+def slugify(value):
+    """
+    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
+    Pulled from Django
+    """
+    import unicodedata
+    import re
+    value = unicode(value)
+    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    value = unicode(re.sub('[^\w\s-]', '', value).strip())
+    return unicode(re.sub('[-\s]+', '-', value))
+
 # Import everything
 import glider_mission.views
 import glider_mission.models

@@ -8,6 +8,8 @@ from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifie
 from watchdog.observers import Observer
 from lxml import etree
 
+from glider_mission import slugify
+
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
@@ -81,11 +83,16 @@ class HandleMission(FileSystemEventHandler):
         try:
           with open(os.path.join(dir_path, "mission.json")) as f:
             js           = json.load(f)
-            title        = js['username']
+            title        = js['operator']
+            if title is None or title == "":
+              title = js['username']
             mission_name = js['name']
             wmo_id       = js['wmo_id'].strip()
         except (OSError, IOError, AssertionError, AttributeError):
           pass
+        finally:
+          title        = slugify(title)
+          mission_name = slugify(mission_name)
 
         try:
             os.makedirs(cat_path)

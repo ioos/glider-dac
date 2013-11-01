@@ -66,10 +66,14 @@
     <h3>Operators</h3>
     <ul class="list-group">
       {%- for u in operator_missions %}
+      {%- if u['_id'] %}
       <li class="list-group-item">
         <span class="badge">{{ u['count'] }} missions</span>
-        {{ u['_id'] }}
+        <a href="{{ url_for('list_operator_missions', operator=u['_id']) }}">
+          {{ u['_id'] }}
+        </a>
       </li>
+      {%- endif %}
       {%- endfor %}
     </ul>
 

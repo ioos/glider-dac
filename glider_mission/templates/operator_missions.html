@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ operator }}'s missions{% endblock %}
+
+{% block page %}
+
+<h3>Glider Missions for {{ operator }}</h3>
+
+<div class="">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Mission</th>
+        <th>WMO ID</th>
+        <th>Last Updated</th>
+      </tr>
+    </thead>
+    <tbody>
+    {%- for m in missions %}
+    <tr>
+      <td><a href="{{ url_for('show_mission', username=m.username, mission_id=m._id) }}">{{ m.name }}</a></td>
+      <td>{{ m.wmo_id }}</td>
+      <td><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+    </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

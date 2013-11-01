@@ -7,6 +7,8 @@ import argparse
 import subprocess
 from lxml import etree
 
+from glider_mission import slugify
+
 RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
 PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT")
@@ -49,8 +51,13 @@ def update_thredds_catalog(base, dev, prod, debug):
                         if os.path.isfile(mission_json):
                             with open(mission_json) as f:
                                 js           = json.load(f)
-                                title        = js['username']
+                                title        = js['operator']
+                                if title is None or title == "":
+                                    title = js['username']
                                 mission_name = js['name']
+
+                        title        = slugify(title)
+                        mission_name = slugify(mission_name)
 
                         # Create mission catalogRef
                         catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)

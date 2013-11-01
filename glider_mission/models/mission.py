@@ -1,7 +1,7 @@
 import os
 import urllib
 
-from glider_mission import db
+from glider_mission import db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
@@ -41,18 +41,27 @@ class Mission(Document):
 
     @property
     def dap(self):
-        return u"http://tds.gliders.ioos.us/thredds/dodsC/%s_%s_Time.ncml" % (self.username, self.name)
+        return u"http://tds.gliders.ioos.us/thredds/dodsC/%s_%s_Time.ncml" % (slugify(self.title), slugify(self.name))
 
     @property
     def sos(self):
-        return u"http://tds.gliders.ioos.us/thredds/sos/%s_%s_Time.ncml" % (self.username, self.name)
+        return u"http://tds.gliders.ioos.us/thredds/sos/%s_%s_Time.ncml" % (slugify(self.title), slugify(self.name))
 
     @property
     def iso(self):
-        catalog_parameter = u'http://tds.gliders.ioos.us/thredds/%s/%s/catalog.html' % (self.username, self.name)
-        dataset_parameter = u'%s_%s_Time' % (self.username, self.name)
+        title = slugify(self.title)
+        name = slugify(self.name)
+        catalog_parameter = u'http://tds.gliders.ioos.us/thredds/%s/%s/catalog.html' % (title, name)
+        dataset_parameter = u'%s_%s_Time' % (title, name)
         query = urllib.urlencode({ 'catalog' : catalog_parameter, 'dataset' : dataset_parameter })
-        return u"http://tds.gliders.ioos.us/thredds/iso/%s_%s_Time.ncml?%s" % (self.username, self.name, query)
+        return u"http://tds.gliders.ioos.us/thredds/iso/%s_%s_Time.ncml?%s" % (title, name, query)
+
+    @property
+    def title(self):
+        if self.operator is not None and self.operator != "":
+            return self.operator
+        else:
+            return self.username
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
