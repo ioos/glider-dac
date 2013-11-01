@@ -6,12 +6,11 @@
 
 <div class="row">
   <div class="col-lg-8">
-    <h3>Recent Updates</h3>
+    <h3>Recent Uploads</h3>
 
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
-          <th>User</th>
           <th>Mission</th>
           <th>File</th>
           <th>Updated</th>
@@ -20,10 +19,9 @@
       <tbody>
         {% for f in files[0:10] %}
         <tr>
-          <td>{{ f[0] }}</td>
-          <td><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
-          <td>{{ f[2] }}</td>
-          <td><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
+          <td class="col-lg-4"><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
+          <td class="col-lg-4">{{ f[2] }}</td>
+          <td class="col-lg-4"><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
         </tr>
         {% endfor %}
       </tbody>
@@ -41,9 +39,9 @@
       <tbody>
       {%- for m in missions %}
       <tr>
-        <td><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
-        <td>{{ m.wmo_id }}</td>
-        <td><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+        <td class="col-lg-4"><a href="{{ url_for('show_mission_no_username', mission_id=m._id) }}">{{ m.name }}</a></td>
+        <td class="col-lg-4">{{ m.wmo_id }}</td>
+        <td class="col-lg-4"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
       </tr>
       {%- endfor %}
       </tbody>
