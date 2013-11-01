@@ -12,32 +12,14 @@
 
 
 <h3>
-  {{ mission.name }}
+  Mission: {{ mission.name }}
 </h3>
 
-<div class="col-lg-6">
+<div class="col-lg-8">
 
-  <h3>
-    {%- if editable %}
-    <button id="delete-files" class="pull-right btn btn-danger btn-xs" disabled="disabled" data-loading-text="Deleting...">Delete Selected</button>
-    {% endif %}
-    Files
-  </h3>
-
-  <table id="mission-files" class="table table-striped {{ "editable" if editable }}">
-    <thead>
-      <tr>
-        {% if editable %}
-        <th><input type="checkbox" /></th>
-        {% endif %}
-        <th>File</th>
-        <th>Modified</th>
-      </tr>
-    </thead>
-    <tbody>
-    {% include '_mission_files.html' %}
-    </tbody>
-  </table>
+  <br />
+  <br />
+  <br />
 
   {% if editable %}
 
@@ -153,93 +135,112 @@
       });
     });
 
-    {% if editable %}
-      $(function() {
+    $(function() {
 
-        $('#mission-files tbody').on('click', 'input[type="checkbox"]', function(e) {
-          e.stopPropagation();
-        });
-
-        // click row to toggle checkbox
-        $('#mission-files tbody').on('click', 'tr', function() {
-          var cb = $('input[type="checkbox"]', this);
-          cb.prop('checked', !cb.prop('checked'));
-          cb.change();
-        });
-
-        // checkbox toggle enables/disables delete button, highlight row
-        $('#mission-files tbody').on('change', 'input[type="checkbox"]', function() {
-
-          $(this).parents('tr').toggleClass('warning');
-
-          // enabled/disabled tied to any of them selected
-          updateDeleteBtnState();
-        });
-
-        function updateDeleteBtnState() {
-          if ($('#mission-files input[type="checkbox"]:checked').length == 0) {
-            $('#delete-files').attr('disabled', 'disabled');
-          } else {
-            $('#delete-files').removeAttr('disabled');
-          }
-        }
-
-        // button in thead toggles all checkboxes
-        $('#mission-files thead input[type="checkbox"]').on('change', function() {
-          var cur = $(this).prop('checked');
-
-          if (cur) {
-            var all = $('#mission-files tbody input[type="checkbox"]').not(':checked');
-          } else {
-            var all = $('#mission-files tbody input[type="checkbox"]:checked');
-          }
-          all.prop('checked', cur);
-          all.change();
-        });
-
-        // delete button functionality
-        $('#delete-files').on('click', function() {
-          // get list of files to click
-
-          var sel = $('#mission-files tbody input:checked');
-
-          var files = sel.parents('td').next('td').map(function(n, el) { return el.innerText; }).get();
-          if (!files.length) { return; }
-
-          if (confirm("Are you sure you want to delete " + files.length + " file(s)?")) {
-            var btn = $(this);
-            btn.button('loading');
-
-            var url = "{{ url_for('delete_mission_files', username=username, mission_id=mission._id) }}";
-            var req = $.ajax({
-              type: 'POST',
-              url: url,
-              data: JSON.stringify({files:files}),
-              contentType: 'application/json;charset=UTF-8',
-            });
-
-            req.done(function() {
-              sel.parents('tr').remove();
-            });
-
-            req.fail(function(jqxhr, textStatus, error) {
-              $('#mission-error').fadeIn(100);
-              $('#mission-error span').text("Could not delete: " + error);
-            });
-
-            req.always(function() {
-              btn.button('reset');
-              // ensure button is in correct disabled state
-              setTimeout(updateDeleteBtnState, 1);  // UGLY but have to due to .button() above doing the same
-            });
-          }
-        });
+      $('#mission-files tbody').on('click', 'input[type="checkbox"]', function(e) {
+        e.stopPropagation();
       });
-    {% endif %}
+
+      // click row to toggle checkbox
+      $('#mission-files tbody').on('click', 'tr', function() {
+        var cb = $('input[type="checkbox"]', this);
+        cb.prop('checked', !cb.prop('checked'));
+        cb.change();
+      });
+
+      // checkbox toggle enables/disables delete button, highlight row
+      $('#mission-files tbody').on('change', 'input[type="checkbox"]', function() {
+
+        $(this).parents('tr').toggleClass('warning');
+
+        // enabled/disabled tied to any of them selected
+        updateDeleteBtnState();
+      });
+
+      function updateDeleteBtnState() {
+        if ($('#mission-files input[type="checkbox"]:checked').length == 0) {
+          $('#delete-files').attr('disabled', 'disabled');
+        } else {
+          $('#delete-files').removeAttr('disabled');
+        }
+      }
+
+      // button in thead toggles all checkboxes
+      $('#mission-files thead input[type="checkbox"]').on('change', function() {
+        var cur = $(this).prop('checked');
+
+        if (cur) {
+          var all = $('#mission-files tbody input[type="checkbox"]').not(':checked');
+        } else {
+          var all = $('#mission-files tbody input[type="checkbox"]:checked');
+        }
+        all.prop('checked', cur);
+        all.change();
+      });
+
+      // delete button functionality
+      $('#delete-files').on('click', function() {
+        // get list of files to click
+
+        var sel = $('#mission-files tbody input:checked');
+
+        var files = sel.parents('td').next('td').map(function(n, el) { return el.innerText; }).get();
+        if (!files.length) { return; }
+
+        if (confirm("Are you sure you want to delete " + files.length + " file(s)?")) {
+          var btn = $(this);
+          btn.button('loading');
+
+          var url = "{{ url_for('delete_mission_files', username=username, mission_id=mission._id) }}";
+          var req = $.ajax({
+            type: 'POST',
+            url: url,
+            data: JSON.stringify({files:files}),
+            contentType: 'application/json;charset=UTF-8',
+          });
+
+          req.done(function() {
+            sel.parents('tr').remove();
+          });
+
+          req.fail(function(jqxhr, textStatus, error) {
+            $('#mission-error').fadeIn(100);
+            $('#mission-error span').text("Could not delete: " + error);
+          });
+
+          req.always(function() {
+            btn.button('reset');
+            // ensure button is in correct disabled state
+            setTimeout(updateDeleteBtnState, 1);  // UGLY but have to due to .button() above doing the same
+          });
+        }
+      });
+    });
   </script>
 
   {% endif %}
 
+  <h3>
+    {%- if editable %}
+    <button id="delete-files" class="pull-right btn btn-danger btn-xs" disabled="disabled" data-loading-text="Deleting...">Delete Selected</button>
+    {% endif %}
+    Files
+  </h3>
+
+  <table id="mission-files" class="table table-striped {{ "editable" if editable }}">
+    <thead>
+      <tr>
+        {% if editable %}
+        <th><input type="checkbox" /></th>
+        {% endif %}
+        <th>File</th>
+        <th>Modified</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% include '_mission_files.html' %}
+    </tbody>
+  </table>
 </div>
 
 <div class="col-lg-4">
