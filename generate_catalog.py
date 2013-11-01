@@ -7,8 +7,6 @@ import argparse
 import subprocess
 from lxml import etree
 
-from glider_mission import slugify
-
 RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
 PROD_CATALOG_ROOT = os.environ.get("PROD_CATALOG_ROOT")
@@ -84,6 +82,17 @@ def update_thredds_catalog(base, dev, prod, debug):
         subprocess.call(["git", "push", "origin", "master"])
     subprocess.call("rsync -r %s/* %s" % (dev, prod), shell=True)
 
+def slugify(value):
+    """
+    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
+    Pulled from Django
+    """
+    import unicodedata
+    import re
+    value = unicode(value)
+    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    value = unicode(re.sub('[^\w\s-]', '', value).strip())
+    return unicode(re.sub('[-\s]+', '-', value))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

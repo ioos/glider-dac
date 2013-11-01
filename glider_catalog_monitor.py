@@ -8,8 +8,6 @@ from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifie
 from watchdog.observers import Observer
 from lxml import etree
 
-from glider_mission import slugify
-
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
@@ -230,6 +228,18 @@ class HandleMission(FileSystemEventHandler):
 
         with open(os.path.join(cat_path, "timeuvagg.ncml"), 'w') as f:
             f.write(time_uv_agg)
+
+def slugify(value):
+    """
+    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
+    Pulled from Django
+    """
+    import unicodedata
+    import re
+    value = unicode(value)
+    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    value = unicode(re.sub('[^\w\s-]', '', value).strip())
+    return unicode(re.sub('[-\s]+', '-', value))
 
 def main(handler):
     observer = Observer()
