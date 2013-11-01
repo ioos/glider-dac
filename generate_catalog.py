@@ -47,8 +47,8 @@ def update_thredds_catalog(base, dev, prod, debug):
                         mission_name = mission
                         mission_json = os.path.join(mission_dir, "mission.json")
                         if os.path.isfile(mission_json):
-                            with open(mission_json) as f:
-                                js           = json.load(f)
+                            with open(mission_json) as m:
+                                js           = json.load(m)
                                 title        = js['operator']
                                 if title is None or title == "":
                                     title = js['username']
