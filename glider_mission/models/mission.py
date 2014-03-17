@@ -36,6 +36,8 @@ class Mission(Document):
             user = db.User.find_one( { '_id' : self.user_id } )
             self.username = user.username
 
+        self.updated = datetime.utcnow()
+
         self.sync()
         super(Mission, self).save()
 
