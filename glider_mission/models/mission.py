@@ -88,6 +88,7 @@ class Mission(Document):
 
         - write or remove complete.txt
         - generate/update md5 files (removed on not-complete)
+        - link/unlink via bindfs to archive dir
         """
         # Save a file called "completed.txt"
         completed_file = os.path.join(self.mission_dir, "completed.txt")
@@ -137,10 +138,27 @@ class Mission(Document):
                 # local test
                 #os.symlink(self.mission_dir, archive_mdir)
 
-                subprocess.call(['/usr/local/bin/bindfs', '--perms=a-w', self.mission_dir, archive_mdir])
+                not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
+                if not_mounted == 1:
+                    subprocess.call(['/usr/local/bin/bindfs', '-r', self.mission_dir, archive_mdir])
 
             except Exception as e:
                 warnings.warn("Could not link %s to %s: %s" % (self.mission_dir, archive_mdir, e))
+        else:
+            try:
+
+                archive_path = app.config.get('ARCHIVE_PATH')
+
+                _, mname = os.path.split(self.mission_dir)
+                archive_mdir = os.path.join(archive_path, mname)
+
+                if os.path.exists(archive_mdir):
+                    not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
+                    if not_mounted == 0:
+                        subprocess.call(['/usr/local/bin/bindfs', '-r', self.mission_dir, archive_mdir])
+
+            except Exception as e:
+                warnings.warn("Could not unlink %s: %s" % (archive_mdir, e))
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
