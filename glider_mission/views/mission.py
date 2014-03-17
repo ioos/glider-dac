@@ -68,7 +68,7 @@ def show_mission(username, mission_id):
     files = []
     for dirpath, dirnames, filenames in os.walk(mission.mission_dir):
         for f in filenames:
-            if f in ["mission.json", "wmoid.txt", "completed.txt"]:
+            if f in ["mission.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                 continue
             files.append((f, datetime.utcfromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
 

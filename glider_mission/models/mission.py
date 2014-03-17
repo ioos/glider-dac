@@ -1,5 +1,6 @@
 import os
 import urllib
+import hashlib
 
 from glider_mission import db, slugify
 from datetime import datetime
@@ -65,11 +66,26 @@ class Mission(Document):
         else:
             return self.username
 
+    def _hash_file(self, fname):
+        """
+        Calculates an md5sum of the passed in file (absolute path).
+
+        Based on http://stackoverflow.com/a/4213255/84732
+        """
+        md5 = hashlib.md5()
+
+        with open(fname, 'rb') as f:
+            for chunk in iter(lambda: f.read(128), b''):
+                md5.update(chunk)
+
+        return md5.hexdigest()
+
     def on_complete(self):
         """
         sync calls here to trigger any completion tasks.
 
         - write or remove complete.txt
+        - generate/update md5 files (not removed on not-complete)
         """
         # Save a file called "completed.txt"
         completed_file = os.path.join(self.mission_dir, "completed.txt")
@@ -79,6 +95,20 @@ class Mission(Document):
         else:
             if os.path.exists(completed_file):
                 os.remove(completed_file)
+
+        # generate md5s of all data files on completion
+        if self.completed:
+            for dirpath, dirnames, filenames in os.walk(self.mission_dir):
+                for f in filenames:
+                    if f in ["mission.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
+                        continue
+
+                    full_file = os.path.join(dirpath, f)
+                    md5_value = self._hash_file(full_file)
+
+                    md5_file = full_file + ".md5"
+                    with open(md5_file, 'w') as mf:
+                        mf.write(md5_value)
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
