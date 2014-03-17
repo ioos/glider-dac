@@ -14,6 +14,7 @@ USER_DB_FILE = os.environ.get("USER_DB_FILE", "local-user.db")
 ADMINS = os.environ.get("ADMINS", "").split(",")
 
 DATA_ROOT = os.environ.get("DATA_ROOT")
+ARCHIVE_PATH = os.environ.get("ARCHIVE_PATH")
 
 # database
 MONGO_URI = os.environ.get('MONGO_URI')

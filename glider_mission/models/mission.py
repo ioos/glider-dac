@@ -1,8 +1,10 @@
 import os
 import urllib
 import hashlib
+import subprocess
+import warnings
 
-from glider_mission import db, slugify
+from glider_mission import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
@@ -109,6 +111,24 @@ class Mission(Document):
                     md5_file = full_file + ".md5"
                     with open(md5_file, 'w') as mf:
                         mf.write(md5_value)
+
+        # link to archive user's ftp dir
+        # this will only work on production
+        if self.completed:
+            try:
+                archive_path = app.config.get('ARCHIVE_PATH')
+
+                _, mname = os.path.split(self.mission_dir)
+                archive_mdir = os.path.join(archive_path, mname)
+                os.makedirs(archive_mdir)
+
+                # local test
+                #os.symlink(self.mission_dir, archive_mdir)
+
+                subprocess.call(['/usr/local/bin/bindfs', '--perms=a-w', self.mission_dir, archive_mdir])
+
+            except Exception as e:
+                warnings.warn("Could not link %s to %s: %s" % (self.mission_dir, archive_mdir, e))
 
     def sync(self):
         if not os.path.exists(self.mission_dir):
