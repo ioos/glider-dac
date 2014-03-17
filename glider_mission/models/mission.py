@@ -120,7 +120,8 @@ class Mission(Document):
 
                 _, mname = os.path.split(self.mission_dir)
                 archive_mdir = os.path.join(archive_path, mname)
-                os.makedirs(archive_mdir)
+                if not os.path.exists(archive_mdir):
+                    os.makedirs(archive_mdir)
 
                 # local test
                 #os.symlink(self.mission_dir, archive_mdir)
