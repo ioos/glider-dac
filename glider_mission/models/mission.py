@@ -87,7 +87,7 @@ class Mission(Document):
         sync calls here to trigger any completion tasks.
 
         - write or remove complete.txt
-        - generate/update md5 files (not removed on not-complete)
+        - generate/update md5 files (removed on not-complete)
         """
         # Save a file called "completed.txt"
         completed_file = os.path.join(self.mission_dir, "completed.txt")
@@ -106,11 +106,22 @@ class Mission(Document):
                         continue
 
                     full_file = os.path.join(dirpath, f)
+                    md5_file = full_file + ".md5"
+
+                    # only calc md5 if it does not exist, this is expensive!
+                    if os.path.exists(md5_file):
+                        continue
+
                     md5_value = self._hash_file(full_file)
 
                     md5_file = full_file + ".md5"
                     with open(md5_file, 'w') as mf:
                         mf.write(md5_value)
+        else:
+            for dirpath, dirnames, filenames in os.walk(self.mission_dir):
+                for f in filenames:
+                    if f.endswith(".md5"):
+                        os.unlink(os.path.join(dirpath, f))
 
         # link to archive user's ftp dir
         # this will only work on production
