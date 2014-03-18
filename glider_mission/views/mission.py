@@ -26,6 +26,7 @@ class NewMissionForm(Form):
     submit  = SubmitField(u"Create")
 
 @app.route('/users/<string:username>/missions')
+@app.route('/users/<string:username>/deployments')
 def list_user_missions(username):
     user = db.User.find_one( {'username' : username } )
     missions = list(db.Mission.find( { 'user_id' : user._id } ))

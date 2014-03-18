@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Glider Missions - {% block title %}{% endblock %}</title>
+    <title>Glider DAC - {% block title %}{% endblock %}</title>
     {%- block javascript %}
     <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
     <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
@@ -19,7 +19,7 @@
         </div>
         <ul class="navbar-nav nav">
           {%- if current_user.is_active() %}
-          <li><a href="{{ url_for('list_user_missions', username=current_user.username) }}">Your Missions</a></li>
+          <li><a href="{{ url_for('list_user_missions', username=current_user.username) }}">Your Deployments</a></li>
           {%- endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
