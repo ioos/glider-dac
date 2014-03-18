@@ -1,25 +1,34 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ username }}'s missions{% endblock %}
+{% block title %}{{ username }}'s deployments{% endblock %}
 
 {% block page %}
 
-<h3>Glider Missions for {{ username }}</h3>
+<h3>Glider Deployments for {{ username }}</h3>
 
 {% if form %}
 
-<div class="" style="">
+<div id="new-deployment-form" class="" style="">
   <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_mission', username=username) }}">
     {{ form.hidden_tag() }}
     <div class="form-group">
-      {{ form.name(placeholder="Mission Name", class_="form-control") }}
+      {{ form.name(placeholder="Deployment Name", class_="form-control") }}
     </div>
     <div class="form-group">
       {{ form.wmo_id(placeholder="WMO ID (optional)", class_="form-control") }}
     </div>
-    <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> New Mission</button>
+    <button type="submit" class="btn btn-primary" disabled="disabled"><span class="glyphicon glyphicon-plus"></span> New Deployment</button>
   </form>
 </div>
+
+<script type="text/javascript">
+$(function() {
+  $('#new-deployment-form input[name="name"]').on('input', function (e) {
+    var btn = $('#new-deployment-form button');
+    btn.prop('disabled', !$(this).val());
+  });
+});
+</script>
 <br/>
 {% endif %}
 
@@ -27,7 +36,7 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>Mission</th>
+        <th>Deployment</th>
         <th>WMO ID</th>
         <th>Last Updated</th>
       </tr>
