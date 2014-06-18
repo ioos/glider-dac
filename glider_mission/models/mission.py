@@ -34,6 +34,13 @@ class Mission(Document):
         'completed': False
     }
 
+    indexes = [
+        {
+            'fields': 'name',
+            'unique': True,
+        },
+    ]
+
     def save(self):
         if self.username is None or self.username == u'':
             user = db.User.find_one( { '_id' : self.user_id } )

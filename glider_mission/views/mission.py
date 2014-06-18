@@ -11,6 +11,7 @@ from glider_mission.glider_emails import send_wmoid_email
 
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
+from pymongo.errors import DuplicateKeyError
 
 class MissionForm(Form):
     estimated_deploy_date       = TextField(u'Estimated Deploy Date (yyyy-mm-dd)')
@@ -21,7 +22,7 @@ class MissionForm(Form):
     submit                      = SubmitField(u'Submit')
 
 class NewMissionForm(Form):
-    name    = TextField(u'Mission Name', [validators.required()])
+    name    = TextField(u'Deployment Name', [validators.required()])
     wmo_id  = TextField(u'WMO ID')
     submit  = SubmitField(u"Create")
 
@@ -113,14 +114,18 @@ def new_mission(username):
         mission.user_id = user._id
         mission.mission_dir = new_mission_dir
         mission.updated = datetime.utcnow()
-        mission.save()
-        flash("Mission created", 'success')
+        try:
+            mission.save()
+            flash("Deployment created", 'success')
 
-        if not mission.wmo_id:
-            send_wmoid_email(username, mission)
+            if not mission.wmo_id:
+                send_wmoid_email(username, mission)
+        except DuplicateKeyError:
+            flash("Deployment names must be unique across Glider DAC: %s already used" % mission.name, 'danger')
+
     else:
         error_str = ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.iteritems()])
-        flash("Mission could not be created: %s" % error_str, 'danger')
+        flash("Deployment could not be created: %s" % error_str, 'danger')
 
     return redirect(url_for('list_user_missions', username=username))
 
