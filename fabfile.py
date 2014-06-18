@@ -130,4 +130,10 @@ def start_supervisord(conf, virtual_env=None):
             else:
                 run("supervisord -c %s" % conf)
 
-            
+def create_index():
+    MONGO_URI = env.get('mongo_db')
+    url = urlparse.urlparse(MONGO_URI)
+    MONGODB_DATABASE = url.path[1:]
+
+    run('mongo "%s" --eval "db.missions.ensureIndex({\'name\':1}, {unique:true})"' % MONGODB_DATABASE)
+
