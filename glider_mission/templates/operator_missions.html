@@ -1,16 +1,17 @@
 {% extends "layout.html" %}
 
-{% block title %}{{ operator }}'s missions{% endblock %}
+{% block title %}{{ operator }}'s deployments{% endblock %}
 
 {% block page %}
 
-<h3>Glider Missions for {{ operator }}</h3>
+<h3>Deployments for {{ operator }}</h3>
 
 <div class="">
-  <table class="table table-striped">
+  <table class="table table-striped sortable">
     <thead>
       <tr>
-        <th>Mission</th>
+        <th data-defaultsort='asc'>Deployment</th>
+        <th>Contributor</th>
         <th>WMO ID</th>
         <th>Last Updated</th>
       </tr>
@@ -19,8 +20,9 @@
     {%- for m in missions %}
     <tr>
       <td><a href="{{ url_for('show_mission', username=m.username, mission_id=m._id) }}">{{ m.name }}</a></td>
+      <td><a href="{{ url_for('list_user_missions', username=m.username) }}">{{ m.username }}</a></td>
       <td>{{ m.wmo_id }}</td>
-      <td><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+      <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
     </tr>
     {%- endfor %}
     </tbody>

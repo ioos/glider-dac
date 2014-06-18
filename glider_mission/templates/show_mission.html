@@ -12,7 +12,7 @@
 
 
 <h3>
-  Mission: {{ mission.name }}
+  Deployment: {{ mission.name }}
 </h3>
 
 <div class="col-lg-8">
@@ -227,14 +227,14 @@
     Files
   </h3>
 
-  <table id="mission-files" class="table table-striped {{ "editable" if editable }}">
+  <table id="mission-files" class="table table-striped {{ "editable" if editable }} sortable">
     <thead>
       <tr>
         {% if editable %}
-        <th><input type="checkbox" /></th>
+        <th data-defaultsort='disabled'><input type="checkbox" /></th>
         {% endif %}
         <th>File</th>
-        <th>Modified</th>
+        <th data-defaultsort='desc'>Modified</th>
       </tr>
     </thead>
     <tbody>

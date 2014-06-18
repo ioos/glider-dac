@@ -4,7 +4,7 @@
     <td><input type="checkbox" /></td>
     {% endif %}
     <td>{{ f[0] }}</td>
-    <td><abbr title="{{ f[1] | datetimeformat }} UTC">{{ f[1] | prettydate }}</abbr></td>
+    <td data-value="{{ f[1] }}"><abbr title="{{ f[1] | datetimeformat }} UTC">{{ f[1] | prettydate }}</abbr></td>
   </tr>
 {% endfor %}
 

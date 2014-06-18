@@ -8,12 +8,12 @@
   <div class="col-lg-8">
     <h3>Recent Uploads</h3>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped sortable">
       <thead>
         <tr>
-          <th>Mission</th>
+          <th>Deployment</th>
           <th>File</th>
-          <th>Updated</th>
+          <th data-defaultsort="desc">Updated</th>
         </tr>
       </thead>
       <tbody>
@@ -21,17 +21,17 @@
         <tr>
           <td class="col-lg-4"><a href="{{ url_for('show_mission', username=f[0], mission_id=f[4]._id) }}">{{ f[1] }}</a></td>
           <td class="col-lg-4">{{ f[2] }}</td>
-          <td class="col-lg-4"><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
+          <td class="col-lg-4" data-value="{{ f[3] }}"><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <h3>Missions</h3>
-    <table class="table table-bordered table-striped">
+    <h3>Deployments</h3>
+    <table class="table table-bordered table-striped sortable">
       <thead>
         <tr>
-          <th>Mission</th>
+          <th data-defaultsort="asc">Deployment</th>
           <th>WMO ID</th>
           <th>Updated</th>
         </tr>
@@ -53,7 +53,7 @@
     <ul class="list-group">
       <li class="list-group-item">
         <span class="badge">{{ missions | length }}</span>
-        Missions
+        Deployments
       </li>
       <li class="list-group-item">
         <span class="badge">{{ files | length }}</span>
@@ -66,7 +66,7 @@
       {%- for u in operator_missions %}
       {%- if u['_id'] %}
       <li class="list-group-item">
-        <span class="badge">{{ u['count'] }} missions</span>
+      <span class="badge">{{ u['count'] }} deployment{{ u['count']|pluralize('', 's')}}</span>
         <a href="{{ url_for('list_operator_missions', operator=u['_id']) }}">
           {{ u['_id'] }}
         </a>
@@ -79,7 +79,7 @@
     <ul class="list-group">
       {%- for u in user_missions %}
       <li class="list-group-item">
-        <span class="badge">{{ u['count'] }} missions</span>
+        <span class="badge">{{ u['count'] }} deployment{{ u['count']|pluralize('', 's')}}</span>
         {% if user_map.has_key(u['_id']) %}
         <a href="{{ url_for('list_user_missions', username=user_map[u['_id']].username) }}">
           {{ user_map[u['_id']].name or user_map[u['_id']].username }}

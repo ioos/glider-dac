@@ -63,7 +63,7 @@ def prettydate(d):
 def prettypastdate(d, diff):
     s = diff.seconds
     if diff.days > 7:
-        return d.strftime('%d %b %y')
+        return d.strftime('%Y %b %d')
     elif diff.days > 1:
         return '{} days ago'.format(diff.days)
     elif diff.days == 1:
@@ -84,7 +84,7 @@ def prettypastdate(d, diff):
 def prettyfuturedate(d, diff):
     s = diff.seconds
     if diff.days > 7:
-        return d.strftime('%d %b %y')
+        return d.strftime('%Y %b %d')
     elif diff.days > 1:
         return '{} days from now'.format(diff.days)
     elif diff.days == 1:
@@ -102,9 +102,11 @@ def prettyfuturedate(d, diff):
     else:
         return '{} hours from now'.format(s/3600)
 
-app.jinja_env.filters['datetimeformat'] = datetimeformat
-app.jinja_env.filters['timedeltaformat'] = timedeltaformat
-app.jinja_env.filters['prettydate'] = prettydate
+def pluralize(number, singular = '', plural = 's'):
+    if number == 1:
+        return singular
+    else:
+        return plural
 
 # pad/truncate filter (for making text tables)
 def padfit(value, size):
@@ -113,6 +115,10 @@ def padfit(value, size):
 
     return value[0:(size-3)] + "..."
 
+app.jinja_env.filters['datetimeformat'] = datetimeformat
+app.jinja_env.filters['timedeltaformat'] = timedeltaformat
+app.jinja_env.filters['prettydate'] = prettydate
+app.jinja_env.filters['pluralize'] = pluralize
 app.jinja_env.filters['padfit'] = padfit
 
 def slugify(value):

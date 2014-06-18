@@ -5,10 +5,12 @@
     {%- block javascript %}
     <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
     <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/moment.min.js') }}" /></script>
     {%- endblock %}
     {%- block css %}
     <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}"></link>
     <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}"></link>
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap-sortable.css') }}"></link>
     {%- endblock %}
   </head>
   <body>
@@ -56,5 +58,7 @@
       {%- block page %}{%- endblock %}
 
     </div>
+
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap-sortable.js') }}" /></script>
   </body>
 </html>

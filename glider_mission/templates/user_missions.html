@@ -4,7 +4,7 @@
 
 {% block page %}
 
-<h3>Glider Deployments for {{ username }}</h3>
+<h3>Deployments for {{ username }}</h3>
 
 {% if form %}
 
@@ -33,10 +33,11 @@ $(function() {
 {% endif %}
 
 <div class="">
-  <table class="table table-striped">
+  <table class="table table-striped sortable">
     <thead>
       <tr>
-        <th>Deployment</th>
+        <th data-defaultsort='asc'>Deployment</th>
+        <th>Operator</th>
         <th>WMO ID</th>
         <th>Last Updated</th>
       </tr>
@@ -45,8 +46,9 @@ $(function() {
     {%- for m in missions %}
     <tr>
       <td><a href="{{ url_for('show_mission', username=username, mission_id=m._id) }}">{{ m.name }}</a></td>
+      <td>{% if m.operator %}<a href="{{ url_for('list_operator_missions', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
       <td>{{ m.wmo_id }}</td>
-      <td><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+      <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
     </tr>
     {%- endfor %}
     </tbody>
