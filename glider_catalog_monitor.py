@@ -103,15 +103,6 @@ class HandleMission(FileSystemEventHandler):
          xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
          xmlns:xlink="http://www.w3.org/1999/xlink">
 
-          <service name="all" base="" serviceType="compound">
-            <service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" />
-            <service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" />
-            <service name="ncml" serviceType="NCML" base="/thredds/ncml/" />
-            <service name="uddc" serviceType="UDDC" base="/thredds/uddc/" />
-            <service name="iso" serviceType="ISO" base="/thredds/iso/"/>
-            <service name="sos" serviceType="SOS" base="/thredds/sos/" />
-          </service>
-
           <service name="agg" base="" serviceType="compound">
             <service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" />
             <service name="ncml" serviceType="NCML" base="/thredds/ncml/" />
@@ -129,6 +120,26 @@ class HandleMission(FileSystemEventHandler):
             <serviceName>agg</serviceName>
             <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(timeuv_path)s" />
           </dataset>
+        </catalog>
+        """ % locals()
+
+        with open(os.path.join(cat_path, "catalog.xml"), 'w') as f:
+            f.write(cat_xml)
+
+        # create individual files catalog
+        cat_indv_xml = """<?xml version="1.0" encoding="UTF-8"?>
+        <catalog name="IOOS Glider DAC - %(title)s - %(mission)s Catalog (Individual Files)"
+         xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
+         xmlns:xlink="http://www.w3.org/1999/xlink">
+
+          <service name="all" base="" serviceType="compound">
+            <service name="odap" serviceType="OpenDAP" base="/thredds/dodsC/" />
+            <service name="http" serviceType="HTTPServer" base="/thredds/fileServer/" />
+            <service name="ncml" serviceType="NCML" base="/thredds/ncml/" />
+            <service name="uddc" serviceType="UDDC" base="/thredds/uddc/" />
+            <service name="iso" serviceType="ISO" base="/thredds/iso/"/>
+            <service name="sos" serviceType="SOS" base="/thredds/sos/" />
+          </service>
 
           <datasetScan name="%(title)s - %(mission_name)s - Individual Files" ID="%(title)s_%(mission_name)s_Files" path="%(title)s_%(mission_name)s_Files" location="%(dir_path)s">
             <metadata inherited="true">
@@ -146,8 +157,8 @@ class HandleMission(FileSystemEventHandler):
         </catalog>
         """ % locals()
 
-        with open(os.path.join(cat_path, "catalog.xml"), 'w') as f:
-            f.write(cat_xml)
+        with open(os.path.join(cat_path, "catalog-individual.xml"), 'w') as f:
+            f.write(cat_indv_xml)
 
     def _create_ncml(self, user, mission):
 

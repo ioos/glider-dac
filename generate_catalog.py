@@ -64,6 +64,13 @@ def update_thredds_catalog(base, dev, prod, debug):
                         catalog_ref.set("name", "")
                         root.append(catalog_ref)
 
+                        # Create mission individual file catalogRef
+                        catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
+                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, mission, "catalog-individual.xml"))
+                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s - Individual Files" % (title, mission_name))
+                        catalog_ref.set("name", "")
+                        root.append(catalog_ref)
+
         # Add scratch directory
         catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
         catalog_ref.set("{%s}href" % xlink_ns,  "scratch.xml")
