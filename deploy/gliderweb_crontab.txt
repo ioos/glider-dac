@@ -1,4 +1,0 @@
-# Run catalog update script everyday at 3am
-0 3 * * * source ~/.bash_profile && workon glider && python ~/glider-dac/generate_catalog.py {{ rsync_to_path }} {{ dev_catalog_root }} {{ prod_catalog_root }} {{ debug }} >> ~/nightly_update.log 2>&1
-@hourly ~/glider-dac/sync_cmd {{ rsync_ssh_user }} {{ rsync_host }} {{ rsync_remote_path }} {{ rsync_to_path }}
-# END
