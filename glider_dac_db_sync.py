@@ -13,13 +13,13 @@ from datetime import datetime
 from watchdog.events import FileSystemEventHandler, DirCreatedEvent, DirDeletedEvent, FileCreatedEvent
 from watchdog.observers import Observer
 
-from glider_mission import app, db
+from glider_dac import app, db
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
-class HandleMissionDB(FileSystemEventHandler):
+class HandleDeploymentDB(FileSystemEventHandler):
     def __init__(self, base):
         self.base     = base
 
@@ -32,26 +32,26 @@ class HandleMissionDB(FileSystemEventHandler):
             rel_path = os.path.relpath(event.src_path, self.base)
 
             # we only care about this path if it's under a user dir
-            # user/upload/mission-name
+            # user/upload/deployment-name
             path_parts = rel_path.split(os.sep)
 
             if len(path_parts) != 3:
                 return
 
-            logger.info("New mission directory: %s", rel_path)
+            logger.info("New deployment directory: %s", rel_path)
 
             with app.app_context():
-                mission = db.Mission.find_one({'mission_dir':event.src_path})
-                if mission is None:
-                    mission             = db.Mission()
+                deployment = db.Deployment.find_one({'deployment_dir':event.src_path})
+                if deployment is None:
+                    deployment             = db.Deployment()
 
                     usr = db.User.find_one( { 'username' : unicode(path_parts[0]) } )
                     if hasattr(usr, '_id'):
-                        mission.user_id     = usr._id
-                        mission.name        = unicode(path_parts[2])
-                        mission.mission_dir = unicode(event.src_path)
-                        mission.updated     = datetime.utcnow()
-                        mission.save()
+                        deployment.user_id     = usr._id
+                        deployment.name        = unicode(path_parts[2])
+                        deployment.deployment_dir = unicode(event.src_path)
+                        deployment.updated     = datetime.utcnow()
+                        deployment.save()
 
         elif isinstance(event, FileCreatedEvent):
             if self.base not in event.src_path:
@@ -66,19 +66,19 @@ class HandleMissionDB(FileSystemEventHandler):
             logger.info("New wmoid.txt in %s", rel_path)
 
             with app.app_context():
-                mission = db.Mission.find_one({'mission_dir':path_parts[0]})
-                if mission is None:
-                    logger.error("Cannot find mission for %s", path_parts[0])
+                deployment = db.Deployment.find_one({'deployment_dir':path_parts[0]})
+                if deployment is None:
+                    logger.error("Cannot find deployment for %s", path_parts[0])
                     return
 
-                if mission.wmo_id:
-                    logger.info("Mission already has wmoid %s.  Updating value with new file.", mission.wmo_id)
+                if deployment.wmo_id:
+                    logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
 
                 with open(event.src_path) as wf:
-                    mission.wmo_id = unicode(wf.readline().strip())
+                    deployment.wmo_id = unicode(wf.readline().strip())
 
-                mission.updated     = datetime.utcnow()
-                mission.save()
+                deployment.updated     = datetime.utcnow()
+                deployment.save()
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):
@@ -88,18 +88,18 @@ class HandleMissionDB(FileSystemEventHandler):
             rel_path = os.path.relpath(event.src_path, self.base)
 
             # we only care about this path if it's under a user dir
-            # user/upload/mission-name
+            # user/upload/deployment-name
             path_parts = rel_path.split(os.sep)
 
             if len(path_parts) != 3:
                 return
 
-            logger.info("Removed mission directory: %s", rel_path)
+            logger.info("Removed deployment directory: %s", rel_path)
 
             with app.app_context():
-                mission = db.Mission.find_one({'mission_dir':event.src_path})
-                if mission:
-                    mission.delete()
+                deployment = db.Deployment.find_one({'deployment_dir':event.src_path})
+                if deployment:
+                    deployment.delete()
 
 def main(handler):
     observer = Observer()
@@ -125,5 +125,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     base = os.path.realpath(args.basedir)
-    main(HandleMissionDB(base))
+    main(HandleDeploymentDB(base))
 

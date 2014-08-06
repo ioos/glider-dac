@@ -1,0 +1,8 @@
+A new Glider Deployment ({{ deployment.name }}) has been created. Please assign it a WMO ID.
+
+Via Website:
+    {{ url_for('show_deployment', username=username, deployment_id=deployment._id, _external=True) }}
+
+Via FTP:
+    Place it in the directory inside of a file named "wmoid.txt".
+

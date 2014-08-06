@@ -29,41 +29,41 @@ import time
         user_db_file = x
 """
 
-env.user = "gliderweb"
-code_dir = "/home/gliderweb/glider-mission"
+env.user = "glider"
+code_dir = "/home/glider/glider-dac"
 
 
 def admin():
     env.user = "root"
-def gliderweb():
-    env.user = "gliderweb"
+def glider():
+    env.user = "glider"
 
 def deploy_tds():
-    sup_conf_file = "/home/gliderweb/supervisord-catalog-monitor.conf"
-    crontab_file = "/home/gliderweb/crontab.txt"
-    gliderweb()
+    sup_conf_file = "/home/glider/supervisord-catalog-monitor.conf"
+    crontab_file = "/home/glider/crontab.txt"
+    glider()
     stop_supervisord(conf=sup_conf_file)
-    gliderweb()
+    glider()
     with cd(code_dir):
         run("git pull origin master")
         update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file)
-        update_crontab(src_file="deploy/gliderweb_crontab.txt", dst_file=crontab_file)
+        update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
         update_libs()
         start_supervisord(conf=sup_conf_file)
         run("supervisorctl -c %s start all" % sup_conf_file)
 
 def deploy_ftp():
-    gliderweb()
-    stop_supervisord(conf="/home/gliderweb/supervisord.conf")
+    glider()
+    stop_supervisord(conf="/home/glider/supervisord.conf")
     admin()
     install_packages()
-    gliderweb()
+    glider()
     with cd(code_dir):
         run("git pull origin master")
-        update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/gliderweb/supervisord.conf")
+        update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/glider/supervisord.conf")
         update_libs()
-        start_supervisord(conf="/home/gliderweb/supervisord.conf")
-        run("supervisorctl -c /home/gliderweb/supervisord.conf start all")
+        start_supervisord(conf="/home/glider/supervisord.conf")
+        run("supervisorctl -c /home/glider/supervisord.conf start all")
 
     admin()
     stop_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
@@ -135,5 +135,5 @@ def create_index():
     url = urlparse.urlparse(MONGO_URI)
     MONGODB_DATABASE = url.path[1:]
 
-    run('mongo "%s" --eval "db.missions.ensureIndex({\'name\':1}, {unique:true})"' % MONGODB_DATABASE)
+    run('mongo "%s" --eval "db.deployments.ensureIndex({\'name\':1}, {unique:true})"' % MONGODB_DATABASE)
 

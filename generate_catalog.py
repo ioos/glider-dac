@@ -21,7 +21,7 @@ def update_thredds_catalog(base, dev, prod, debug):
         "xlink" :  xlink_ns
     }
 
-    # Create catalog file including all missions
+    # Create catalog file including all deployments
     with open(os.path.join(dev, 'catalog.xml'), 'wb') as f:
 
         root = etree.Element("{%s}catalog" % catalog_ns, nsmap=nsmap)
@@ -32,42 +32,42 @@ def update_thredds_catalog(base, dev, prod, debug):
             user_dir = os.path.join(base, user)
             if os.path.isdir(user_dir):
                 # In User directory
-                # Iterate over Missions
-                for mission in os.listdir(user_dir):
-                    mission_dir = os.path.join(user_dir, mission)
-                    if os.path.isdir(mission_dir):
-                        # In Mission directory
+                # Iterate over Deployments
+                for deployment in os.listdir(user_dir):
+                    deployment_dir = os.path.join(user_dir, deployment)
+                    if os.path.isdir(deployment_dir):
+                        # In Deployment directory
                         # Touch directory to make sure the catalogs get regenerated
                         # (the catalog generation scripts could have been updated since the first time they were generated)
-                        os.utime(mission_dir, None)
+                        os.utime(deployment_dir, None)
 
                         # Load Misson JSON if is exists.  We want to pull information from this JSON
                         # and not rely on the directory structure if possible.
                         title        = user
-                        mission_name = mission
-                        mission_json = os.path.join(mission_dir, "mission.json")
-                        if os.path.isfile(mission_json):
-                            with open(mission_json) as m:
+                        deployment_name = deployment
+                        deployment_json = os.path.join(deployment_dir, "deployment.json")
+                        if os.path.isfile(deployment_json):
+                            with open(deployment_json) as m:
                                 js           = json.load(m)
                                 title        = js['operator']
                                 if title is None or title == "":
                                     title = js['username']
-                                mission_name = js['name']
+                                deployment_name = js['name']
 
                         title        = slugify(title)
-                        mission_name = slugify(mission_name)
+                        deployment_name = slugify(deployment_name)
 
-                        # Create mission catalogRef
+                        # Create deployment catalogRef
                         catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
-                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, mission, "catalog.xml"))
-                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (title, mission_name))
+                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, deployment, "catalog.xml"))
+                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s" % (title, deployment_name))
                         catalog_ref.set("name", "")
                         root.append(catalog_ref)
 
-                        # Create mission individual file catalogRef
+                        # Create deployment individual file catalogRef
                         catalog_ref = etree.Element("{%s}catalogRef" % catalog_ns, nsmap=nsmap)
-                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, mission, "catalog-individual.xml"))
-                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s - Individual Files" % (title, mission_name))
+                        catalog_ref.set("{%s}href" % xlink_ns,  os.path.join(user, deployment, "catalog-individual.xml"))
+                        catalog_ref.set("{%s}title" % xlink_ns, "%s - %s - Individual Files" % (title, deployment_name))
                         catalog_ref.set("name", "")
                         root.append(catalog_ref)
 

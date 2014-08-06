@@ -1,4 +1,4 @@
-from glider_mission import app
+from glider_dac import app
 import os
 
 if os.environ.get('APPLICATION_SETTINGS') == 'development.py':

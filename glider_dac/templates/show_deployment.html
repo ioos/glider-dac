@@ -1,18 +1,18 @@
 {% from "macros.html" import render_field, render_boolean %}
 {% extends "layout.html" %}
 
-{% block title %}{{ mission.name }}{% endblock %}
+{% block title %}{{ deployment.name }}{% endblock %}
 
 {% block page %}
 
-<div id="mission-error" class="alert alert-danger alert-dismissable">
+<div id="deployment-error" class="alert alert-danger alert-dismissable">
   <button type="button" class="close" data-dismiss="alert">&times;</button>
   <span></span>
 </div>
 
 
 <h3>
-  Deployment: {{ mission.name }}
+  Deployment: {{ deployment.name }}
 </h3>
 
 <div class="col-lg-8">
@@ -81,7 +81,7 @@
         // check to see if there are any upcoming overwrites
         var idx = {{ 1 if editable else 0 }};   // set by jinja
         var replaces = filenames.filter(function(i, e) {
-          var exist = $('#mission-files tbody tr td:contains("' + i + '")');
+          var exist = $('#deployment-files tbody tr td:contains("' + i + '")');
           return exist.length > 0;
         });
 
@@ -93,7 +93,7 @@
 
         $(this).addClass('uploading');
 
-        var url = "{{ url_for('post_mission_file', username=username, mission_id=mission._id) }}";
+        var url = "{{ url_for('post_deployment_file', username=username, deployment_id=deployment._id) }}";
 
         var req = $.ajax({
           xhr: function() {
@@ -126,7 +126,7 @@
         req.done(function(data) {
           // remove any rows that we replaced already
           replaces.forEach(function(v) {
-            $('#mission-files tbody tr td:contains("' + v + '")').parents('tr').remove();
+            $('#deployment-files tbody tr td:contains("' + v + '")').parents('tr').remove();
           });
 
           $('tbody').prepend(data);
@@ -137,19 +137,19 @@
 
     $(function() {
 
-      $('#mission-files tbody').on('click', 'input[type="checkbox"]', function(e) {
+      $('#deployment-files tbody').on('click', 'input[type="checkbox"]', function(e) {
         e.stopPropagation();
       });
 
       // click row to toggle checkbox
-      $('#mission-files tbody').on('click', 'tr', function() {
+      $('#deployment-files tbody').on('click', 'tr', function() {
         var cb = $('input[type="checkbox"]', this);
         cb.prop('checked', !cb.prop('checked'));
         cb.change();
       });
 
       // checkbox toggle enables/disables delete button, highlight row
-      $('#mission-files tbody').on('change', 'input[type="checkbox"]', function() {
+      $('#deployment-files tbody').on('change', 'input[type="checkbox"]', function() {
 
         $(this).parents('tr').toggleClass('warning');
 
@@ -158,7 +158,7 @@
       });
 
       function updateDeleteBtnState() {
-        if ($('#mission-files input[type="checkbox"]:checked').length == 0) {
+        if ($('#deployment-files input[type="checkbox"]:checked').length == 0) {
           $('#delete-files').attr('disabled', 'disabled');
         } else {
           $('#delete-files').removeAttr('disabled');
@@ -166,13 +166,13 @@
       }
 
       // button in thead toggles all checkboxes
-      $('#mission-files thead input[type="checkbox"]').on('change', function() {
+      $('#deployment-files thead input[type="checkbox"]').on('change', function() {
         var cur = $(this).prop('checked');
 
         if (cur) {
-          var all = $('#mission-files tbody input[type="checkbox"]').not(':checked');
+          var all = $('#deployment-files tbody input[type="checkbox"]').not(':checked');
         } else {
-          var all = $('#mission-files tbody input[type="checkbox"]:checked');
+          var all = $('#deployment-files tbody input[type="checkbox"]:checked');
         }
         all.prop('checked', cur);
         all.change();
@@ -182,7 +182,7 @@
       $('#delete-files').on('click', function() {
         // get list of files to click
 
-        var sel = $('#mission-files tbody input:checked');
+        var sel = $('#deployment-files tbody input:checked');
 
         var files = sel.parents('td').next('td').map(function(n, el) { return el.innerText; }).get();
         if (!files.length) { return; }
@@ -191,7 +191,7 @@
           var btn = $(this);
           btn.button('loading');
 
-          var url = "{{ url_for('delete_mission_files', username=username, mission_id=mission._id) }}";
+          var url = "{{ url_for('delete_deployment_files', username=username, deployment_id=deployment._id) }}";
           var req = $.ajax({
             type: 'POST',
             url: url,
@@ -204,8 +204,8 @@
           });
 
           req.fail(function(jqxhr, textStatus, error) {
-            $('#mission-error').fadeIn(100);
-            $('#mission-error span').text("Could not delete: " + error);
+            $('#deployment-error').fadeIn(100);
+            $('#deployment-error span').text("Could not delete: " + error);
           });
 
           req.always(function() {
@@ -227,7 +227,7 @@
     Files
   </h3>
 
-  <table id="mission-files" class="table table-striped {{ "editable" if editable }} sortable">
+  <table id="deployment-files" class="table table-striped {{ "editable" if editable }} sortable">
     <thead>
       <tr>
         {% if editable %}
@@ -238,7 +238,7 @@
       </tr>
     </thead>
     <tbody>
-    {% include '_mission_files.html' %}
+    {% include '_deployment_files.html' %}
     </tbody>
   </table>
 </div>
@@ -249,13 +249,13 @@
 
   <ul class="list-group">
     <li class="list-group-item">
-      <a href='{{mission.dap}}'>DAP</a>
+      <a href='{{deployment.dap}}'>DAP</a>
     </li>
     <li class="list-group-item">
-      <a href='{{mission.sos}}'>SOS</a>
+      <a href='{{deployment.sos}}'>SOS</a>
     </li>
     <li class="list-group-item">
-      <a href='{{mission.iso}}'>ISO</a>
+      <a href='{{deployment.iso}}'>ISO</a>
     </li>
   </ul>
 
@@ -264,7 +264,7 @@
   <h3>Edit</h3>
   {% endif %}
 
-  <form name="mission_edit" id="mission_edit" method="POST" action="{{ url_for('edit_mission', username=username, mission_id=mission._id) if editable}}">
+  <form name="deployment_edit" id="deployment_edit" method="POST" action="{{ url_for('edit_deployment', username=username, deployment_id=deployment._id) if editable}}">
     {{ form.hidden_tag() }}
     {{ render_field(form.operator, not editable) }}
     {{ render_field(form.estimated_deploy_date, not editable) }}
@@ -281,8 +281,8 @@
   <hr />
 
   <h3>Admin</h3>
-  <form method="POST" action="{{ url_for('delete_mission', username=username, mission_id=mission._id) }}">
-    <button class="btn btn-danger">Delete Mission</button>
+  <form method="POST" action="{{ url_for('delete_deployment', username=username, deployment_id=deployment._id) }}">
+    <button class="btn btn-danger">Delete Deployment</button>
   </form>
 
   {% endif %}

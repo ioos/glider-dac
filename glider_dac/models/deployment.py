@@ -4,14 +4,14 @@ import hashlib
 import subprocess
 import warnings
 
-from glider_mission import app, db, slugify
+from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
 
 @db.register
-class Mission(Document):
-    __collection__   = 'missions'
+class Deployment(Document):
+    __collection__   = 'deployments'
     use_dot_notation = True
     use_schemaless   = True
 
@@ -20,7 +20,7 @@ class Mission(Document):
         'user_id'                   : ObjectId,
         'username'                  : unicode,  # The cached username to lightly DB load
         'operator'                  : unicode,  # The operator of this Glider. Shows up in TDS as the title.
-        'mission_dir'               : unicode,
+        'deployment_dir'               : unicode,
         'estimated_deploy_date'     : datetime,
         'estimated_deploy_location' : unicode,  # WKT text
         'wmo_id'                    : unicode,
@@ -49,7 +49,7 @@ class Mission(Document):
         self.updated = datetime.utcnow()
 
         self.sync()
-        super(Mission, self).save()
+        super(Deployment, self).save()
 
     @property
     def dap(self):
@@ -98,7 +98,7 @@ class Mission(Document):
         - link/unlink via bindfs to archive dir
         """
         # Save a file called "completed.txt"
-        completed_file = os.path.join(self.mission_dir, "completed.txt")
+        completed_file = os.path.join(self.deployment_dir, "completed.txt")
         if self.completed is True:
             with open(completed_file, 'w') as f:
                 f.write(" ")
@@ -108,9 +108,9 @@ class Mission(Document):
 
         # generate md5s of all data files on completion
         if self.completed:
-            for dirpath, dirnames, filenames in os.walk(self.mission_dir):
+            for dirpath, dirnames, filenames in os.walk(self.deployment_dir):
                 for f in filenames:
-                    if f in ["mission.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
+                    if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                         continue
 
                     full_file = os.path.join(dirpath, f)
@@ -126,7 +126,7 @@ class Mission(Document):
                     with open(md5_file, 'w') as mf:
                         mf.write(md5_value)
         else:
-            for dirpath, dirnames, filenames in os.walk(self.mission_dir):
+            for dirpath, dirnames, filenames in os.walk(self.deployment_dir):
                 for f in filenames:
                     if f.endswith(".md5"):
                         os.unlink(os.path.join(dirpath, f))
@@ -137,57 +137,58 @@ class Mission(Document):
             try:
                 archive_path = app.config.get('ARCHIVE_PATH')
 
-                _, mname = os.path.split(self.mission_dir)
+                _, mname = os.path.split(self.deployment_dir)
                 archive_mdir = os.path.join(archive_path, mname)
                 if not os.path.exists(archive_mdir):
                     os.makedirs(archive_mdir)
 
                 # local test
-                #os.symlink(self.mission_dir, archive_mdir)
+                #os.symlink(self.deployment_dir, archive_mdir)
 
                 not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
                 if not_mounted == 1:
-                    subprocess.call(['/usr/local/bin/bindfs', '-r', self.mission_dir, archive_mdir])
+                    subprocess.call(['/usr/local/bin/bindfs', '-r', self.deployment_dir, archive_mdir])
 
             except Exception as e:
-                warnings.warn("Could not link %s to %s: %s" % (self.mission_dir, archive_mdir, e))
+                warnings.warn("Could not link %s to %s: %s" % (self.deployment_dir, archive_mdir, e))
         else:
             try:
 
                 archive_path = app.config.get('ARCHIVE_PATH')
 
-                _, mname = os.path.split(self.mission_dir)
+                _, mname = os.path.split(self.deployment_dir)
                 archive_mdir = os.path.join(archive_path, mname)
 
                 if os.path.exists(archive_mdir):
                     not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
                     if not_mounted == 0:
-                        subprocess.call(['/usr/local/bin/bindfs', '-r', self.mission_dir, archive_mdir])
+                        subprocess.call(['/usr/local/bin/bindfs', '-r', self.deployment_dir, archive_mdir])
 
             except Exception as e:
                 warnings.warn("Could not unlink %s: %s" % (archive_mdir, e))
 
     def sync(self):
-        if not os.path.exists(self.mission_dir):
+        if not os.path.exists(self.deployment_dir):
             try:
-                os.makedirs(self.mission_dir)
+                os.makedirs(self.deployment_dir)
             except OSError:
                 pass
 
         # Keep the WMO file updated if it is edited via the web form
         if self.wmo_id is not None and self.wmo_id != "":
-            wmo_id_file = os.path.join(self.mission_dir, "wmoid.txt")
+            wmo_id_file = os.path.join(self.deployment_dir, "wmoid.txt")
             with open(wmo_id_file, 'w') as f:
                 f.write(self.wmo_id)
 
         # trigger any completed tasks if necessary
         self.on_complete()
 
-        # Serialize Mission model to disk
-        json_file = os.path.join(self.mission_dir, "mission.json")
+        # Serialize Deployment model to disk
+        json_file = os.path.join(self.deployment_dir, "deployment.json")
         with open(json_file, 'w') as f:
             f.write(self.to_json())
 
     @classmethod
-    def get_mission_count_by_operator(cls):
-        return db.missions.aggregate({ '$group': { '_id': '$operator', 'count': { '$sum' : 1 }}}).get('result',[])
+    def get_deployment_count_by_operator(cls):
+        return db.deployments.aggregate({ '$group': { '_id': '$operator', 'count': { '$sum' : 1 }}}).get('result',[])
+

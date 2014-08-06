@@ -3,7 +3,7 @@ import os.path
 import glob
 import sys
 from datetime import datetime
-from glider_mission import app, db
+from glider_dac import app, db
 from flask_login import UserMixin
 from glider_util.bdb import UserDB
 from flask.ext.mongokit import Document
@@ -84,5 +84,5 @@ class User(Document):
         return unicode(self._id)
 
     @classmethod
-    def get_mission_count_by_user(cls):
-        return db.missions.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])
+    def get_deployment_count_by_user(cls):
+        return db.deployments.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])

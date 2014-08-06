@@ -9,7 +9,7 @@
 {% if form %}
 
 <div id="new-deployment-form" class="" style="">
-  <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_mission', username=username) }}">
+  <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_deployment', username=username) }}">
     {{ form.hidden_tag() }}
     <div class="form-group">
       {{ form.name(placeholder="Deployment Name", class_="form-control") }}
@@ -43,10 +43,10 @@ $(function() {
       </tr>
     </thead>
     <tbody>
-    {%- for m in missions %}
+    {%- for m in deployments %}
     <tr>
-      <td><a href="{{ url_for('show_mission', username=username, mission_id=m._id) }}">{{ m.name }}</a></td>
-      <td>{% if m.operator %}<a href="{{ url_for('list_operator_missions', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
+      <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
+      <td>{% if m.operator %}<a href="{{ url_for('list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
       <td>{{ m.wmo_id }}</td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
     </tr>

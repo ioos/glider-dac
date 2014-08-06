@@ -3,7 +3,7 @@
 """
 A utility for dealing with BerkeleyDB user/pass files for Glider DAC.
 
-See glider_mission.bdb.UserDB for more information.
+See glider_dac.bdb.UserDB for more information.
 
 Usage:
     ./usertool.py mydb.db init

@@ -7,7 +7,7 @@ from flask_login import LoginManager
 # Create application object
 app = Flask(__name__)
 
-app.config.from_object('glider_mission.defaults')
+app.config.from_object('glider_dac.defaults')
 app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
 
 import sys
@@ -33,7 +33,7 @@ if not os.path.exists(app.config.get('USER_DB_FILE')):
 if app.config.get('LOG_FILE') == True:
     import logging
     from logging import FileHandler
-    file_handler = FileHandler('logs/glider_mission.txt')
+    file_handler = FileHandler('logs/glider_dac.txt')
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
 
@@ -134,6 +134,6 @@ def slugify(value):
     return unicode(re.sub('[-\s]+', '-', value))
 
 # Import everything
-import glider_mission.views
-import glider_mission.models
+import glider_dac.views
+import glider_dac.models
 

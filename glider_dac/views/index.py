@@ -7,8 +7,8 @@ import pymongo
 from bson.objectid import ObjectId
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
-from glider_mission import app, login_manager, db
-from glider_mission.models.user import User
+from glider_dac import app, login_manager, db
+from glider_dac.models.user import User
 from flask_login import login_required, login_user, logout_user, current_user
 from flask.ext.wtf import Form
 from wtforms import TextField, PasswordField
@@ -23,44 +23,44 @@ def index():
     data_root = app.config.get('DATA_ROOT')
 
     files = []
-    missions_by_dir = {}
+    deployments_by_dir = {}
     for dirpath, dirnames, filenames in os.walk(data_root):
         rel_path = os.path.relpath(dirpath, data_root)
         path_parts = rel_path.split(os.sep)
 
         for filename in filenames:
-            if filename in ["wmoid.txt", "completed.txt", "mission.json"] or filename.endswith(".md5"):
+            if filename in ["wmoid.txt", "completed.txt", "deployment.json"] or filename.endswith(".md5"):
                 continue
 
             entry = os.path.join(dirpath, filename)
 
-            if dirpath not in missions_by_dir:
-                missions_by_dir[dirpath] = db.Mission.find_one({'mission_dir':dirpath})
+            if dirpath not in deployments_by_dir:
+                deployments_by_dir[dirpath] = db.Deployment.find_one({'deployment_dir':dirpath})
 
             rel_path = os.path.relpath(entry, data_root)
 
-            # user/upload/mission-name/file
+            # user/upload/deployment-name/file
             path_parts = rel_path.split(os.sep)
             if len(path_parts) != 4:
                 continue
 
-            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.utcfromtimestamp(os.path.getmtime(entry)), missions_by_dir[dirpath]))
+            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.utcfromtimestamp(os.path.getmtime(entry)), deployments_by_dir[dirpath]))
 
     files = sorted(files, lambda a,b: cmp(b[3], a[3]))
 
-    missions = list(db.Mission.find(sort=[("name" , pymongo.ASCENDING)], limit=20))
+    deployments = list(db.Deployment.find(sort=[("name" , pymongo.ASCENDING)], limit=20))
 
-    for m in missions:
+    for m in deployments:
         f = filter(lambda x: x[4] == m, files)
         if len(f):
             m.updated = f[0][3]
 
-    user_missions = db.User.get_mission_count_by_user()
+    user_deployments = db.User.get_deployment_count_by_user()
     user_map = {u._id:u for u in db.User.find()}
 
-    operator_missions = db.Mission.get_mission_count_by_operator()
+    operator_deployments = db.Deployment.get_deployment_count_by_operator()
 
-    return render_template('index.html', files=files, missions=missions, user_missions=user_missions, user_map=user_map, operator_missions=operator_missions)
+    return render_template('index.html', files=files, deployments=deployments, user_deployments=user_deployments, user_map=user_map, operator_deployments=operator_deployments)
 
 @login_manager.user_loader
 def load_user(userid):

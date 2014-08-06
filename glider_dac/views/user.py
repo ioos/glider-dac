@@ -4,8 +4,8 @@ from datetime import datetime
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, current_user
-from glider_mission import app, db
-from glider_mission.models.user import User
+from glider_dac import app, db
+from glider_dac.models.user import User
 
 from flask_wtf import Form
 from wtforms import validators, TextField, PasswordField, SubmitField
@@ -67,10 +67,10 @@ def admin():
 
     users = db.User.find()
 
-    mission_counts_raw = db.User.get_mission_count_by_user()
-    mission_counts = {m['_id']:m['count'] for m in mission_counts_raw}
+    deployment_counts_raw = db.User.get_deployment_count_by_user()
+    deployment_counts = {m['_id']:m['count'] for m in deployment_counts_raw}
 
-    return render_template('admin.html', form=form, users=users, mission_counts=mission_counts)
+    return render_template('admin.html', form=form, users=users, deployment_counts=deployment_counts)
 
 @login_required
 @app.route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])

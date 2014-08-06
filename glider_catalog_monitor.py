@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
 DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
 
-class HandleMission(FileSystemEventHandler):
+class HandleDeployment(FileSystemEventHandler):
     def __init__(self, base, catalog):
         self.base     = base
         self.catalog  = catalog
@@ -26,21 +26,21 @@ class HandleMission(FileSystemEventHandler):
         path_parts = rel_path.split(os.sep)
 
         if isinstance(event, DirCreatedEvent):
-            # expecting a user/mission
+            # expecting a user/deployment
             if len(path_parts) != 2:
                 return
-            logger.info("New mission directory: %s", rel_path)
+            logger.info("New deployment directory: %s", rel_path)
             logger.info("Creating catalog and NcML Aggregations")
-            self._create_ncml(user=path_parts[0], mission=path_parts[1])
-            self._create_catalog(user=path_parts[0], mission=path_parts[1])
+            self._create_ncml(user=path_parts[0], deployment=path_parts[1])
+            self._create_catalog(user=path_parts[0], deployment=path_parts[1])
         else: # FileCreated
-            # expecting a user/mission/file
+            # expecting a user/deployment/file
             if len(path_parts) != 3:
                 return
-            if path_parts[-1] == "mission.json":
-                logger.info("Creating Catalog and NcML Aggregations with new Mission metadata")
-                self._create_ncml(user=path_parts[0], mission=path_parts[1])
-                self._create_catalog(user=path_parts[0], mission=path_parts[1])
+            if path_parts[-1] == "deployment.json":
+                logger.info("Creating Catalog and NcML Aggregations with new Deployment metadata")
+                self._create_ncml(user=path_parts[0], deployment=path_parts[1])
+                self._create_catalog(user=path_parts[0], deployment=path_parts[1])
             pass
 
     def on_modified(self, event):
@@ -49,26 +49,26 @@ class HandleMission(FileSystemEventHandler):
         path_parts = rel_path.split(os.sep)
 
         if isinstance(event, DirModifiedEvent):
-            # expecting a user/mission
+            # expecting a user/deployment
             if len(path_parts) != 2:
                 return
             logger.info("Directory modified: %s", rel_path)
             logger.info("Recreating catalog and NcML Aggregations")
-            self._create_ncml(user=path_parts[0], mission=path_parts[1])
-            self._create_catalog(user=path_parts[0], mission=path_parts[1])
+            self._create_ncml(user=path_parts[0], deployment=path_parts[1])
+            self._create_catalog(user=path_parts[0], deployment=path_parts[1])
         elif isinstance(event, FileModifiedEvent):
-            # expecting a user/mission/file
+            # expecting a user/deployment/file
             if len(path_parts) != 3:
                 return
-            if path_parts[-1] == "mission.json":
-                logger.info("Recreating Catalog and NcML Aggregations with modified Mission metadata")
-                self._create_ncml(user=path_parts[0], mission=path_parts[1])
-                self._create_catalog(user=path_parts[0], mission=path_parts[1])
+            if path_parts[-1] == "deployment.json":
+                logger.info("Recreating Catalog and NcML Aggregations with modified Deployment metadata")
+                self._create_ncml(user=path_parts[0], deployment=path_parts[1])
+                self._create_catalog(user=path_parts[0], deployment=path_parts[1])
 
-    def _create_catalog(self, user, mission):
+    def _create_catalog(self, user, deployment):
 
-        dir_path    = os.path.join(self.base, user, mission)
-        cat_path    = os.path.join(self.catalog, user, mission)
+        dir_path    = os.path.join(self.base, user, deployment)
+        cat_path    = os.path.join(self.catalog, user, deployment)
 
         time_path   =  os.path.join(cat_path, "timeagg.ncml")
         timeuv_path =  os.path.join(cat_path, "timeuvagg.ncml")
@@ -76,21 +76,21 @@ class HandleMission(FileSystemEventHandler):
         # Load Misson JSON if is exists.  We want to pull information from this JSON
         # and not rely on the directory structure if possible.
         title        = user
-        mission_name = mission
+        deployment_name = deployment
         wmo_id       = "NotAssigned"
         try:
-          with open(os.path.join(dir_path, "mission.json")) as f:
+          with open(os.path.join(dir_path, "deployment.json")) as f:
             js           = json.load(f)
             title        = js['operator']
             if title is None or title == "":
               title = js['username']
-            mission_name = js['name']
+            deployment_name = js['name']
             wmo_id       = js['wmo_id'].strip()
         except (OSError, IOError, AssertionError, AttributeError):
           pass
         finally:
           title        = slugify(title)
-          mission_name = slugify(mission_name)
+          deployment_name = slugify(deployment_name)
 
         try:
             os.makedirs(cat_path)
@@ -99,7 +99,7 @@ class HandleMission(FileSystemEventHandler):
             pass
 
         cat_xml = """<?xml version="1.0" encoding="UTF-8"?>
-        <catalog name="IOOS Glider DAC - %(title)s - %(mission)s Catalog"
+        <catalog name="IOOS Glider DAC - %(title)s - %(deployment)s Catalog"
          xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
          xmlns:xlink="http://www.w3.org/1999/xlink">
 
@@ -111,12 +111,12 @@ class HandleMission(FileSystemEventHandler):
             <service name="sos" serviceType="SOS" base="/thredds/sos/" />
           </service>
 
-          <dataset name="%(title)s - %(mission_name)s - Time Aggregation" ID="%(title)s_%(mission_name)s_Time" urlPath="%(title)s_%(mission_name)s_Time.ncml">
+          <dataset name="%(title)s - %(deployment_name)s - Time Aggregation" ID="%(title)s_%(deployment_name)s_Time" urlPath="%(title)s_%(deployment_name)s_Time.ncml">
             <serviceName>agg</serviceName>
             <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(time_path)s" />
           </dataset>
 
-          <dataset name="%(title)s - %(mission_name)s - Depth Averaged Aggregation" ID="%(title)s_%(mission_name)s_TimeUV" urlPath="%(title)s_%(mission_name)s_TimeUV.ncml">
+          <dataset name="%(title)s - %(deployment_name)s - Depth Averaged Aggregation" ID="%(title)s_%(deployment_name)s_TimeUV" urlPath="%(title)s_%(deployment_name)s_TimeUV.ncml">
             <serviceName>agg</serviceName>
             <netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="%(timeuv_path)s" />
           </dataset>
@@ -128,7 +128,7 @@ class HandleMission(FileSystemEventHandler):
 
         # create individual files catalog
         cat_indv_xml = """<?xml version="1.0" encoding="UTF-8"?>
-        <catalog name="IOOS Glider DAC - %(title)s - %(mission)s Catalog (Individual Files)"
+        <catalog name="IOOS Glider DAC - %(title)s - %(deployment)s Catalog (Individual Files)"
          xmlns="http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0"
          xmlns:xlink="http://www.w3.org/1999/xlink">
 
@@ -141,7 +141,7 @@ class HandleMission(FileSystemEventHandler):
             <service name="sos" serviceType="SOS" base="/thredds/sos/" />
           </service>
 
-          <datasetScan name="%(title)s - %(mission_name)s - Individual Files" ID="%(title)s_%(mission_name)s_Files" path="%(title)s_%(mission_name)s_Files" location="%(dir_path)s">
+          <datasetScan name="%(title)s - %(deployment_name)s - Individual Files" ID="%(title)s_%(deployment_name)s_Files" path="%(title)s_%(deployment_name)s_Files" location="%(dir_path)s">
             <metadata inherited="true">
               <serviceName>all</serviceName>
             </metadata>
@@ -160,10 +160,10 @@ class HandleMission(FileSystemEventHandler):
         with open(os.path.join(cat_path, "catalog-individual.xml"), 'w') as f:
             f.write(cat_indv_xml)
 
-    def _create_ncml(self, user, mission):
+    def _create_ncml(self, user, deployment):
 
-        dir_path = os.path.join(self.base, user, mission)
-        cat_path = os.path.join(self.catalog, user, mission)
+        dir_path = os.path.join(self.base, user, deployment)
+        cat_path = os.path.join(self.catalog, user, deployment)
 
         try:
             os.makedirs(cat_path)
@@ -173,7 +173,7 @@ class HandleMission(FileSystemEventHandler):
 
         # Add WMO ID if it exists
         try:
-          with open(os.path.join(dir_path, "mission.json")) as f:
+          with open(os.path.join(dir_path, "deployment.json")) as f:
             js     = json.load(f)
             wmo_id = js['wmo_id'].strip()
             assert len(wmo_id) > 0
@@ -275,4 +275,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     base = os.path.realpath(args.basedir)
     catalog = os.path.realpath(args.catalogdir)
-    main(HandleMission(base, catalog))
+    main(HandleDeployment(base, catalog))

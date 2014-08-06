@@ -21,7 +21,7 @@
         </div>
         <ul class="navbar-nav nav">
           {%- if current_user.is_active() %}
-          <li><a href="{{ url_for('list_user_missions', username=current_user.username) }}">Your Deployments</a></li>
+          <li><a href="{{ url_for('list_user_deployments', username=current_user.username) }}">Your Deployments</a></li>
           {%- endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-Mission dir perms watcher/fixer.
+Deployment dir perms watcher/fixer.
 
 This has to be run as root.
 
-It monitors the mission dirs created in $DATA_ROOT/<user>/upload and changes their ownership
-to the user. This is to repair the web New Mission button's creation.
+It monitors the deployment dirs created in $DATA_ROOT/<user>/upload and changes their ownership
+to the user. This is to repair the web New Deployment button's creation.
 """
 
 import time
@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
-class HandleMissionDir(FileSystemEventHandler):
+class HandleDeploymentDir(FileSystemEventHandler):
     def __init__(self, base):
         self.base = base
 
@@ -32,9 +32,9 @@ class HandleMissionDir(FileSystemEventHandler):
 
         # lookup username's uid/gid
         uid = pwd.getpwnam(username).pw_uid
-        gid = grp.getgrnam('gliderweb').gr_gid
+        gid = grp.getgrnam('glider').gr_gid
 
-        logger.info("Changing %s to owner %s (%s)/group gliderweb (%s)", rel_path, username, uid, gid)
+        logger.info("Changing %s to owner %s (%s)/group glider (%s)", rel_path, username, uid, gid)
         os.chown(path, uid, gid)
         os.chmod(path, mode)
 
@@ -47,7 +47,7 @@ class HandleMissionDir(FileSystemEventHandler):
         if isinstance(event, DirCreatedEvent):
 
             # we only care about this path if it's under a user dir
-            # user/upload/mission-name
+            # user/upload/deployment-name
             path_parts = rel_path.split(os.sep)
 
             if len(path_parts) != 3:
@@ -58,7 +58,7 @@ class HandleMissionDir(FileSystemEventHandler):
 
         else:
 
-            # should resemble user/upload/mission-name/wmo-file
+            # should resemble user/upload/deployment-name/wmo-file
             path_parts = rel_path.split(os.sep)
             if len(path_parts) != 4:
                 return
@@ -102,5 +102,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     base = os.path.realpath(args.basedir)
-    main(HandleMissionDir(base))
+    main(HandleDeploymentDir(base))
 

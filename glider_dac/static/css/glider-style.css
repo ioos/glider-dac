@@ -77,10 +77,10 @@ a {
   display: none;
 }
 
-#mission-files.editable tbody tr {
+#deployment-files.editable tbody tr {
   cursor: pointer;
 }
 
-#mission-error {
+#deployment-error {
   display: none;
 }
