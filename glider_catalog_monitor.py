@@ -13,16 +13,22 @@ logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
-RSYNC_TO_PATH = os.environ.get("RSYNC_TO_PATH")
-DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
+RSYNC_TO_PATH         = os.environ.get("RSYNC_TO_PATH")
+CATALOG_ROOT          = os.environ.get("CATALOG_ROOT")
+DATA_ROOT             = os.environ.get("DATA_ROOT")
+PRIV_ERDDAP_TEMPLATES = os.environ.get("PRIV_ERDDAP_TEMPLATES")
+PUB_ERDDAP_TEMPLATES  = os.environ.get("PUB_ERDDAP_TEMPLATES")
 
 class HandleDeployment(FileSystemEventHandler):
-    def __init__(self, base, catalog):
-        self.base    = base
-        self.catalog = catalog
+    def __init__(self, base, catalog, data_root, priv_erddap_templates, pub_erddap_templates):
+        self.base                  = base
+        self.catalog               = catalog
+        self.data_root             = data_root
+        self.priv_erddap_templates = priv_erddap_templates
+        self.pub_erddap_templates  = pub_erddap_templates
 
-        self.lock    = Lock()
-        self.timers  = {}
+        self.lock                  = Lock()
+        self.timers                = {}
 
     def _schedule(self, rel_path, path_parts):
         with self.lock:
@@ -35,10 +41,46 @@ class HandleDeployment(FileSystemEventHandler):
             self.timers[rel_path] = Timer(5, self._build_thredds_catalog, args=[rel_path, path_parts[0], path_parts[1]])
             self.timers[rel_path].start()
 
-    def _build_thredds_catalog(self, rel_path, user, deployment):
+    def _sync_catalogs(self, rel_path, user, deployment):
+        """
+        Synchronize all aspects of the catalog machine.
+
+        Makes calls to
+        - Ensure directories are present
+        - Build private/public erddap catalogs
+        - Build TDS catalogs
+        - Refresh anything
+        """
         with self.lock:
             self.timers.pop(rel_path)
 
+        self._make_all_dirs(rel_path, user, deployment)
+        self._build_thredds_catalog(rel_path, user, deployment)
+
+    def _make_all_dirs(self, rel_path, user, deployment):
+        """
+        Ensures all directories are created for a user/deployment.
+
+        - private/public erddap data roots
+        - tds data root
+        """
+        if not self.data_root:
+            raise StandardError("NO DATA ROOT")
+
+        for dir_suffix in ["priv_erddap", "pub_erddap", "thredds"]:
+            d = os.path.join(self.data_root, dir_suffix, user, deployment)
+
+            if not os.path.exists(d):
+                logger.info("Attempting to create %s", d)
+                try:
+                    os.makedirs(d)
+                except OSError:
+                    pass
+
+    def _build_thredds_catalog(self, rel_path, user, deployment):
+        """
+        Creates THREDDS catalog files for the given user/deployment.
+        """
         logger.info("Creating Thredds catalog and NcML Aggregations for %s", rel_path)
         self._create_ncml(user=user, deployment=deployment)
         self._create_catalog(user=user, deployment=deployment)
@@ -77,7 +119,7 @@ class HandleDeployment(FileSystemEventHandler):
     def _create_catalog(self, user, deployment):
 
         dir_path    = os.path.join(self.base, user, deployment)
-        cat_path    = os.path.join(self.catalog, user, deployment)
+        cat_path    = os.path.join(self.catalog, 'thredds', user, deployment)
 
         time_path   =  os.path.join(cat_path, "timeagg.ncml")
         timeuv_path =  os.path.join(cat_path, "timeuvagg.ncml")
@@ -172,7 +214,7 @@ class HandleDeployment(FileSystemEventHandler):
     def _create_ncml(self, user, deployment):
 
         dir_path = os.path.join(self.base, user, deployment)
-        cat_path = os.path.join(self.catalog, user, deployment)
+        cat_path = os.path.join(self.catalog, 'thredds', user, deployment)
 
         try:
             os.makedirs(cat_path)
@@ -279,9 +321,25 @@ if __name__ == "__main__":
                         default=RSYNC_TO_PATH,
                         nargs='?')
     parser.add_argument('catalogdir',
-                        default=DEV_CATALOG_ROOT,
+                        default=CATALOG_ROOT,
                         nargs='?')
+    parser.add_argument('data_root',
+                        default=DATA_ROOT,
+                        nargs='?')
+    parser.add_argument('priv_erddap_templates',
+                        default=PRIV_ERDDAP_TEMPLATES,
+                        nargs='?')
+    parser.add_argument('pub_erddap_templates',
+                        default=PUB_ERDDAP_TEMPLATES,
+                        nargs='?')
+
     args = parser.parse_args()
-    base = os.path.realpath(args.basedir)
-    catalog = os.path.realpath(args.catalogdir)
-    main(HandleDeployment(base, catalog))
+
+    base                  = os.path.realpath(args.basedir)
+    catalog               = os.path.realpath(args.catalogdir)
+    data_root             = os.path.realpath(args.data_root)
+    priv_erddap_templates = os.path.realpath(args.priv_erddap_templates)
+    pub_erddap_templates  = os.path.realpath(args.pub_erddap_templates)
+
+    main(HandleDeployment(base, catalog, data_root, priv_erddap_templates, pub_erddap_templates))
+
