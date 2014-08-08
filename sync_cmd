@@ -10,7 +10,12 @@ users=($(ssh -l $1 $2 ls $3))
 
 for i in "${users[@]}"
 do
-    rsync -r -a -v --delete -e "ssh -l $1" $2:$3/$i/upload/ $4/$i
+    srcs=($(find "$3/$i" -name '*.nc' -exec dirname {} \; | sort -u))
+    for s in "${srcs[@]}"
+    do
+        echo $s
+        rsync -r -a -v --delete -e "ssh -l $1" $2:$s $4/$i
+    done
 done
 
 
