@@ -4,8 +4,9 @@ import time
 import json
 import argparse
 import logging
-from watchdog.events import FileSystemEventHandler, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
+from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
 from watchdog.observers import Observer
+from threading import Lock, Timer
 from lxml import etree
 
 logging.basicConfig(level=logging.INFO,
@@ -17,53 +18,61 @@ DEV_CATALOG_ROOT = os.environ.get("DEV_CATALOG_ROOT")
 
 class HandleDeployment(FileSystemEventHandler):
     def __init__(self, base, catalog):
-        self.base     = base
-        self.catalog  = catalog
+        self.base    = base
+        self.catalog = catalog
+
+        self.lock    = Lock()
+        self.timers  = {}
+
+    def _schedule(self, rel_path, path_parts):
+        with self.lock:
+            if rel_path in self.timers:
+                logger.info("Cancelling existing timer for %s", rel_path)
+                t = self.timers.pop(rel_path)
+                t.cancel()
+
+            logger.info("Scheduling timer for %s", rel_path)
+            self.timers[rel_path] = Timer(5, self._build_thredds_catalog, args=[rel_path, path_parts[0], path_parts[1]])
+            self.timers[rel_path].start()
+
+    def _build_thredds_catalog(self, rel_path, user, deployment):
+        with self.lock:
+            self.timers.pop(rel_path)
+
+        logger.info("Creating Thredds catalog and NcML Aggregations for %s", rel_path)
+        self._create_ncml(user=user, deployment=deployment)
+        self._create_catalog(user=user, deployment=deployment)
 
     def on_created(self, event):
 
         rel_path = os.path.relpath(event.src_path, self.base)
         path_parts = rel_path.split(os.sep)
 
-        if isinstance(event, DirCreatedEvent):
-            # expecting a user/deployment
-            if len(path_parts) != 2:
-                return
+        # expecting a user/deployment
+        if isinstance(event, DirCreatedEvent) and len(path_parts) == 2:
             logger.info("New deployment directory: %s", rel_path)
-            logger.info("Creating catalog and NcML Aggregations")
-            self._create_ncml(user=path_parts[0], deployment=path_parts[1])
-            self._create_catalog(user=path_parts[0], deployment=path_parts[1])
-        else: # FileCreated
-            # expecting a user/deployment/file
-            if len(path_parts) != 3:
-                return
-            if path_parts[-1] == "deployment.json":
-                logger.info("Creating Catalog and NcML Aggregations with new Deployment metadata")
-                self._create_ncml(user=path_parts[0], deployment=path_parts[1])
-                self._create_catalog(user=path_parts[0], deployment=path_parts[1])
-            pass
+            self._schedule(rel_path, path_parts)
+
+        # expecting a user/deployment/file
+        elif isinstance(event, FileCreatedEvent) and len(path_parts) != 3 and path_parts[-1] == "deployment.json":
+            logger.info("Creating Catalog and NcML Aggregations with new Deployment metadata")
+            self._schedule(rel_path, path_parts)
 
     def on_modified(self, event):
 
         rel_path = os.path.relpath(event.src_path, self.base)
         path_parts = rel_path.split(os.sep)
 
-        if isinstance(event, DirModifiedEvent):
-            # expecting a user/deployment
-            if len(path_parts) != 2:
-                return
+        # expecting a user/deployment
+        if isinstance(event, DirModifiedEvent) and len(path_parts) == 2:
             logger.info("Directory modified: %s", rel_path)
             logger.info("Recreating catalog and NcML Aggregations")
-            self._create_ncml(user=path_parts[0], deployment=path_parts[1])
-            self._create_catalog(user=path_parts[0], deployment=path_parts[1])
-        elif isinstance(event, FileModifiedEvent):
-            # expecting a user/deployment/file
-            if len(path_parts) != 3:
-                return
-            if path_parts[-1] == "deployment.json":
-                logger.info("Recreating Catalog and NcML Aggregations with modified Deployment metadata")
-                self._create_ncml(user=path_parts[0], deployment=path_parts[1])
-                self._create_catalog(user=path_parts[0], deployment=path_parts[1])
+            self._schedule(rel_path, path_parts)
+
+        # expecting a user/deployment/file
+        elif isinstance(event, FileModifiedEvent) and len(path_parts) == 3 and path_parts[-1] == "deployment.json":
+            logger.info("Recreating Catalog and NcML Aggregations with modified Deployment metadata")
+            self._schedule(rel_path, path_parts)
 
     def _create_catalog(self, user, deployment):
 
