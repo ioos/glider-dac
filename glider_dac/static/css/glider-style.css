@@ -1,5 +1,5 @@
 tr.hilite>td {
-  background-color: #c6d4e1 !important;
+  background-color: #efefef !important;
   color: #565c61;
 }
 
@@ -17,7 +17,7 @@ tr.hilite>td {
 
 .navbar {
   border-bottom: 5px solid #9fabb7;
-  background-color: #c6d4e1;
+  background-color: #efefef;
 }
 
 .navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {
@@ -28,12 +28,20 @@ tr.hilite>td {
   background-color: #9fabb7;
 }
 
+.navbar-img-brand {
+  float: left;
+}
+
+.navbar-img-brand img {
+  height: 45px;
+}
+
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
   background-color: #9fabb7;
 }
 
 .well {
-  background-color: #c6d4e1;
+  background-color: #efefef;
   color: #565c61;
 }
 

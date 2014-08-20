@@ -17,7 +17,12 @@
     <nav class="navbar navbar-default">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="/">Glider DAC</a>
+          <a class="navbar-img-brand" href="/">
+            <img src="{{ url_for('.static', filename='img/ioos.png') }}" alt="IOOS Glider DAC" />
+          </a>
+          <a class="navbar-brand" href="/">
+            Glider DAC v2
+          </a>
         </div>
         <ul class="navbar-nav nav">
           {%- if current_user.is_active() %}
