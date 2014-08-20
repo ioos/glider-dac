@@ -29,7 +29,6 @@ import time
         user_db_file = x
 """
 
-env.user = "glider"
 code_dir = "/home/glider/glider-dac"
 
 
@@ -53,25 +52,20 @@ def deploy_tds():
         run("supervisorctl -c %s start all" % sup_conf_file)
 
 def deploy_ftp():
-    glider()
-    stop_supervisord(conf="/home/glider/supervisord.conf")
-    admin()
-    install_packages()
-    glider()
-    with cd(code_dir):
-        run("git pull origin master")
-        update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/glider/supervisord.conf")
-        update_libs()
-        start_supervisord(conf="/home/glider/supervisord.conf")
-        run("supervisorctl -c /home/glider/supervisord.conf start all")
+    with settings(sudo_user='glider'):
+        stop_supervisord(conf="/home/glider/supervisord.conf")
+        with cd(code_dir):
+            sudo("git pull origin master")
+            update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/glider/supervisord.conf", virtual_env="gliderdac")
+            update_libs(virtual_env="gliderdac")
+            start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
+            start_supervisor_processes(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
 
-    admin()
     stop_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
     update_supervisord(src_file="deploy/supervisord-perms-monitor.conf", dst_file="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
     update_libs(virtual_env="root-monitor")
     start_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
-    with prefix("workon root-monitor"):
-        run("supervisorctl -c /root/supervisord-perms-monitor.conf start all")
+    start_supervisor_processes(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
 
     restart_nginx()
 
@@ -80,39 +74,48 @@ def update_crontab(src_file, dst_file):
     run("crontab %s" % dst_file)
 
 def update_supervisord(src_file, dst_file, virtual_env=None):
+    """
+    Run from within with settings block setting sudo_user
+    """
     if virtual_env is not None:
         with prefix("workon %s" % virtual_env):
-            run("pip install supervisor")
+            sudo("pip install supervisor")
     else:
-        run("pip install supervisor")
+        sudo("pip install supervisor")
 
-    upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
-
-def install_packages():
-    sudo("yum -y install libxml2-devel libxslt-devel db4-devel db4-devel-static")
+    # @BUG: Fabric won't let you specify temp_dir to the underlying put call here, so it doesn't have perms to copy it out of the default
+    #       temp location which is ec2-user's home. see https://github.com/fabric/fabric/pull/932
+    # this is a workaround
+    upload_template(src_file, "/tmp/sd.conf", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    sudo("cp /tmp/sd.conf %s" % dst_file)
 
 def update_libs(virtual_env=None):
+    """
+    Run from within with settings block setting sudo_user
+    """
     with cd(code_dir):
         with settings(warn_only=True):
             if virtual_env is not None:
                 with prefix("workon %s" % virtual_env):
-                    run("pip install -r requirements.txt")
+                    sudo("pip install -r requirements.txt")
             else:
-                run("pip install -r requirements.txt")
+                sudo("pip install -r requirements.txt")
 
 def restart_nginx():
-    admin()
-    run("/etc/init.d/nginx restart")
+    sudo("/etc/init.d/nginx restart")
 
 def stop_supervisord(conf, virtual_env=None):
+    """
+    Run from within settings block setting sudo_user
+    """
     with cd(code_dir):
         with settings(warn_only=True):
             if virtual_env is not None:
                 with prefix("workon %s" % virtual_env):
-                    run("supervisorctl -c %s stop all" % conf)
+                    sudo("supervisorctl -c %s stop all" % conf)
             else:
-                run("supervisorctl -c %s stop all" % conf)
-            run("kill -QUIT $(ps aux | grep supervisord | grep %s | grep -v grep | awk '{print $2}')" % conf)
+                sudo("supervisorctl -c %s stop all" % conf)
+            sudo("kill -QUIT $(ps aux | grep supervisord | grep %s | grep -v grep | awk '{print $2}')" % conf)
 
     #kill_pythons()
 
@@ -122,13 +125,28 @@ def kill_pythons():
         run("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
 
 def start_supervisord(conf, virtual_env=None):
+    """
+    Run from within with settings block setting sudo_user
+    """
     with cd(code_dir):
         with settings(warn_only=True):
             if virtual_env is not None:
                 with prefix("workon %s" % virtual_env):
-                    run("supervisord -c %s" % conf)
+                    sudo("supervisord -c %s" % conf)
             else:
-                run("supervisord -c %s" % conf)
+                sudo("supervisord -c %s" % conf)
+
+def start_supervisor_processes(conf, virtual_env=None):
+    """
+    Run from within with settings block setting sudo_user
+    """
+    with cd(code_dir):
+        with settings(warn_only=True):
+            if virtual_env is not None:
+                with prefix("workon %s" % virtual_env):
+                    sudo("supervisorctl -c %s start all" % conf)
+            else:
+                sudo("supervisorctl -c %s start all" % conf)
 
 def create_index():
     MONGO_URI = env.get('mongo_db')
