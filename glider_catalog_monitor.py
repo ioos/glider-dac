@@ -4,6 +4,7 @@ import time
 import json
 import argparse
 import logging
+from string import Template
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
 from watchdog.observers import Observer
 from threading import Lock, Timer
@@ -38,7 +39,7 @@ class HandleDeployment(FileSystemEventHandler):
                 t.cancel()
 
             logger.info("Scheduling timer for %s", rel_path)
-            self.timers[rel_path] = Timer(5, self._build_thredds_catalog, args=[rel_path, path_parts[0], path_parts[1]])
+            self.timers[rel_path] = Timer(5, self._sync_catalogs, args=[rel_path, path_parts[0], path_parts[1]])
             self.timers[rel_path].start()
 
     def _sync_catalogs(self, rel_path, user, deployment):
@@ -55,7 +56,9 @@ class HandleDeployment(FileSystemEventHandler):
             self.timers.pop(rel_path)
 
         self._make_all_dirs(rel_path, user, deployment)
-        self._build_thredds_catalog(rel_path, user, deployment)
+        self._build_erddap_catalog_fragment(rel_path, user, deployment, 'priv_erddap', self.priv_erddap_templates)
+        #self._build_erddap_catalog_fragment(rel_path, user, deployment, 'pub_erddap', self.pub_erddap_templates)
+        #self._build_thredds_catalog(rel_path, user, deployment)
 
     def _make_all_dirs(self, rel_path, user, deployment):
         """
@@ -71,7 +74,7 @@ class HandleDeployment(FileSystemEventHandler):
             d = os.path.join(self.data_root, dir_suffix, user, deployment)
 
             if not os.path.exists(d):
-                logger.info("Attempting to create %s", d)
+                logger.info("Creating %s", d)
                 try:
                     os.makedirs(d)
                 except OSError:
@@ -115,6 +118,37 @@ class HandleDeployment(FileSystemEventHandler):
         elif isinstance(event, FileModifiedEvent) and len(path_parts) == 3 and path_parts[-1] == "deployment.json":
             logger.info("Recreating Catalog and NcML Aggregations with modified Deployment metadata")
             self._schedule(rel_path, path_parts)
+
+    def _build_erddap_catalog_fragment(self, rel_path, user, deployment, erddap_name, template_dir):
+        """
+        Builds an ERDDAP dataset xml fragment.
+        """
+        logger.info("Building ERDDAP (%s) catalog fragment for %s", erddap_name, rel_path)
+
+        # grab template for dataset fragment
+        template_path = os.path.join(template_dir, 'dataset.deployment.xml')
+        with open(template_path) as f:
+            template = Template("".join(f.readlines()))
+
+        # grab institution, if we can find one
+        institution     = user
+        deployment_name = deployment
+        dir_path        = os.path.join(self.base, user, deployment)
+        try:
+            with open(os.path.join(dir_path, "deployment.json")) as f:
+                js              = json.load(f)
+                institution     = js.get('operator', js.get('username'))
+                deployment_name = js['name']
+                wmo_id          = js['wmo_id'].strip()
+        except (OSError, IOError, AssertionError, AttributeError):
+            pass
+
+        frag_path = os.path.join(self.catalog, erddap_name, 'fragment-' + deployment + '.xml')
+        with open(frag_path, 'w') as f:
+            logger.warn("datasdt_id : %s, dataset_dir %s, instutiotn %s", deployment, dir_path, institution)
+            f.writelines(template.substitute(dataset_id=deployment,
+                                             dataset_dir=dir_path,
+                                             institution=institution))
 
     def _create_catalog(self, user, deployment):
 
