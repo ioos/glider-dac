@@ -31,25 +31,18 @@ import time
 
 code_dir = "/home/glider/glider-dac"
 
-
-def admin():
-    env.user = "root"
-def glider():
-    env.user = "glider"
-
-def deploy_tds():
+def deploy_dap():
     sup_conf_file = "/home/glider/supervisord-catalog-monitor.conf"
     crontab_file = "/home/glider/crontab.txt"
-    glider()
-    stop_supervisord(conf=sup_conf_file)
-    glider()
-    with cd(code_dir):
-        run("git pull origin master")
-        update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file)
-        update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
-        update_libs()
-        start_supervisord(conf=sup_conf_file)
-        run("supervisorctl -c %s start all" % sup_conf_file)
+    with settings(sudo_user='glider'):
+        stop_supervisord(conf=sup_conf_file)
+        with cd(code_dir):
+            sudo("git pull origin master")
+            update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file, virtual_env="gliderdac")
+            update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
+            update_libs(virtual_env="gliderdac")
+            start_supervisord(conf=sup_conf_file, virtual_env="gliderdac")
+            start_supervisor_processes(conf=sup_conf_file, virtual_env="gliderdac")
 
 def deploy_ftp():
     with settings(sudo_user='glider'):
@@ -120,9 +113,8 @@ def stop_supervisord(conf, virtual_env=None):
     #kill_pythons()
 
 def kill_pythons():
-    admin()
     with settings(warn_only=True):
-        run("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
+        sudo("kill -QUIT $(ps aux | grep python | grep -v supervisord | awk '{print $2}')")
 
 def start_supervisord(conf, virtual_env=None):
     """
