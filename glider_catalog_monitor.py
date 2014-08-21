@@ -4,6 +4,8 @@ import time
 import json
 import argparse
 import logging
+import fileinput
+import glob
 from string import Template
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent, DirCreatedEvent, FileModifiedEvent, DirModifiedEvent
 from watchdog.observers import Observer
@@ -59,6 +61,52 @@ class HandleDeployment(FileSystemEventHandler):
         self._build_erddap_catalog_fragment(rel_path, user, deployment, 'priv_erddap', self.priv_erddap_templates)
         #self._build_erddap_catalog_fragment(rel_path, user, deployment, 'pub_erddap', self.pub_erddap_templates)
         #self._build_thredds_catalog(rel_path, user, deployment)
+
+        # schedule a full catalog build out of the parts
+        self._schedule_catalog_assembly()
+
+    def _schedule_catalog_assembly(self):
+        full = 'full_catalog_asm'
+        with self.lock:
+            if full in self.timers:
+                t = self.timers.pop(full)
+                t.cancel()
+
+            logger.info("Scheduling timer for full catalog rebuild")
+            self.timers[full] = Timer(5, self._assemble_catalogs)
+            self.timers[full].start()
+
+    def _assemble_catalogs(self):
+        """
+        Builds a full ERDDAP datasets.xml for both pub/private, and a TDS catalog (??)
+        """
+        self._assemble_erddap_catalog('priv_erddap', self.priv_erddap_templates)
+        self._assemble_erddap_catalog('pub_erddap', self.pub_erddap_templates)
+        self._assemble_thredds_catalog()
+
+    def _assemble_erddap_catalog(self, erddap_name, template_dir):
+        """
+        Cats together the head, all fragments, and foot of a datasets.xml
+        """
+        head_path = os.path.join(template_dir, 'datasets.head.xml')
+        tail_path = os.path.join(template_dir, 'datasets.tail.xml')
+
+        # discover all filenames of dataset fragments
+        pattern = os.path.join(self.catalog, erddap_name, 'fragment-*')
+        fragment_files = glob.glob(pattern)
+
+        fragment_files.insert(0, head_path)
+        fragment_files.append(tail_path)
+
+        ds_path = os.path.join(self.catalog, erddap_name, 'datasets.xml')
+        with open(ds_path, 'w') as f:
+            for line in fileinput.input(fragment_files):
+                f.write(line)
+
+        logger.info("Wrote %s from %d files", ds_path, len(fragment_files))
+
+    def _assemble_thredds_catalog(self):
+        pass
 
     def _make_all_dirs(self, rel_path, user, deployment):
         """
@@ -145,7 +193,6 @@ class HandleDeployment(FileSystemEventHandler):
 
         frag_path = os.path.join(self.catalog, erddap_name, 'fragment-' + deployment + '.xml')
         with open(frag_path, 'w') as f:
-            logger.warn("datasdt_id : %s, dataset_dir %s, instutiotn %s", deployment, dir_path, institution)
             f.writelines(template.substitute(dataset_id=deployment,
                                              dataset_dir=dir_path,
                                              institution=institution))
