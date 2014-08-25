@@ -14,12 +14,6 @@ logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
 
-RSYNC_TO_PATH         = os.environ.get("RSYNC_TO_PATH")
-CATALOG_ROOT          = os.environ.get("CATALOG_ROOT")
-DATA_ROOT             = os.environ.get("DATA_ROOT")
-PRIV_ERDDAP_TEMPLATES = os.environ.get("PRIV_ERDDAP_TEMPLATES")
-PUB_ERDDAP_TEMPLATES  = os.environ.get("PUB_ERDDAP_TEMPLATES")
-
 def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir):
     """
     Cats together the head, all fragments, and foot of a datasets.xml
@@ -158,14 +152,10 @@ def main(mode, data_root, catalog_root, templates):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode',
-                        choices=['priv_erddap', 'pub_erddap', 'thredds'])
-    parser.add_argument('data_dir',
-                        default=DATA_ROOT)
-    parser.add_argument('catalog_dir',
-                        default=CATALOG_ROOT)
-    parser.add_argument('templates',
-                        nargs='?')
+    parser.add_argument('mode', choices=['priv_erddap', 'pub_erddap', 'thredds'])
+    parser.add_argument('data_dir')
+    parser.add_argument('catalog_dir')
+    parser.add_argument('templates', nargs='?')
 
     args      = parser.parse_args()
 
