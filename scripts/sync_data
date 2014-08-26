@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# ./sync_cmd <ssh user> <remote host> <src> <dest>
+# ./sync_data <ssh user> <remote host> <src> <dest>
 
 # loops through all users on remote host (aka top level dirs in /data/ftp)
 # and executes one rsync command per each in order to chop off the upload/
