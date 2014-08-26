@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# ./create_data_dirs <src_data_root> <arg1>...
+
+# copies directory structure of <src_data_root> to any given further directory locations
+#
+# example:
+#   ./create_data_dirs /data/data/priv_erddap /data/data/pub_erddap /data/data/thredds
+#
+# The above command will copy the structure of the priv_erddap dirs (expected to be user1/deployment1,
+# user1/deployment2, user2/deployment1...) to pub_erddap and thredds subdirs. NO FILES ARE COPIED.
+#
+# This script is used to pre-create the locations that will be used to hold the product of making
+# wget calls to the private erddaps.
+
+src=$1
+shift;
+
+for i in "${@}" ; do
+    echo "Syncing $i"
+    rsync --delete -av -f"+ */" -f"- *" "$src/" "$i"
+done
+
