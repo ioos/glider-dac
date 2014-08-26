@@ -12,6 +12,8 @@
 #
 # This script is used to pre-create the locations that will be used to hold the product of making
 # wget calls to the private erddaps.
+#
+# based on http://www.cyberciti.biz/faq/unix-linux-bsdosx-copying-directory-structures-trees-rsync/
 
 src=$1
 shift;
