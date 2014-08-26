@@ -32,17 +32,13 @@ import time
 code_dir = "/home/glider/glider-dac"
 
 def deploy_dap():
-    sup_conf_file = "/home/glider/supervisord-catalog-monitor.conf"
     crontab_file = "/home/glider/crontab.txt"
     with settings(sudo_user='glider'):
-        stop_supervisord(conf=sup_conf_file)
         with cd(code_dir):
             sudo("git pull origin master")
-            update_supervisord(src_file="deploy/supervisord-catalog-monitor.conf", dst_file=sup_conf_file, virtual_env="gliderdac")
-            update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
             update_libs(virtual_env="gliderdac")
-            start_supervisord(conf=sup_conf_file, virtual_env="gliderdac")
-            start_supervisor_processes(conf=sup_conf_file, virtual_env="gliderdac")
+            update_full_sync()
+            update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
 
 def deploy_ftp():
     with settings(sudo_user='glider'):
@@ -62,9 +58,12 @@ def deploy_ftp():
 
     restart_nginx()
 
+def update_full_sync():
+    upload_template(src_file="scripts/full_sync.j2", dst_file="/home/glider/glider-dac/scripts/full_sync", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+
 def update_crontab(src_file, dst_file):
     upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
-    run("crontab %s" % dst_file)
+    sudo("crontab %s" % dst_file)
 
 def update_supervisord(src_file, dst_file, virtual_env=None):
     """

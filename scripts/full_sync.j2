@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# ./full_sync ...
+
+# Performs a full sync from the FTP/web side to the DAP side.
+# 1) sync raw data to private erddap root
+# 2) create/delete directories for public erddap/thredds
+# 3) create catalogs for all
+# 4) manage catalogs with git
+# 5) flag ERDDAPs to notice new data
+# 6) schedule wgets to populate public erddap/thredds data
+
+# 1 sync raw data to private erddap root
+~/glider-dac/scripts/sync_data {{ rsync_ssh_user }} {{ rsync_host }} {{ rsync_remote_path }} {{ rsync_to_path }}
+
+# 2 create/delete directories for public erddap/thredds
+~/glider-dac/scripts/create_data_dirs {{ dap_data_priv_erddap }} {{ dap_data_pub_erddap }} {{ dap_data_thredds }}
+
+# 3 create catalogs
+~/glider-dac/scripts/build_erddap_catalog.py priv_erddap {{ dap_data_priv_erddap }} {{ dap_catalog_root }} {{ dap_template_root }}/erddap/templates/private
+~/glider-dac/scripts/build_erddap_catalog.py pub_erddap {{ dap_data_pub_erddap }} {{ dap_catalog_root }} {{ dap_template_root }}/erddap/templates/public
+~/glider-dac/scripts/build_thredds_catalog.py {{ dap_data_thredds }} {{ dap_catalog_root }} {{ dap_template_root }}/thredds/templates
+
+# 4 manage catalogs with git
+pushd {{ dap_catalog_root }}
+git add .
+git commit -m "Automated catalog commit"
+# git push
+popd
+
+# 5 flag ERDDAPs to notice new data
+
+# 6 schedule wgets
+
