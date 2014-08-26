@@ -152,10 +152,10 @@ def main(mode, data_root, catalog_root, templates):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['priv_erddap', 'pub_erddap', 'thredds'])
+    parser.add_argument('mode', choices=['priv_erddap', 'pub_erddap'])
     parser.add_argument('data_dir')
     parser.add_argument('catalog_dir')
-    parser.add_argument('templates', nargs='?')
+    parser.add_argument('templates')
 
     args      = parser.parse_args()
 
