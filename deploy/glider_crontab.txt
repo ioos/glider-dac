@@ -1,3 +1,3 @@
 #@hourly source ~/.bash_profile && workon glider-dac && ~/full_sync >> ~/sync.log 2>&1
-#@hourly ~/glider-dac/scripts/wget_data {{ dap_data_pub_erddap }} {{ dap_data_thredds }} >> ~/wget.log 2>&1
+#30 /1 * * * ~/glider-dac/scripts/wget_data {{ dap_data_pub_erddap }} {{ dap_data_thredds }} >> ~/wget.log 2>&1
 
