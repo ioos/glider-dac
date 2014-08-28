@@ -59,10 +59,14 @@ def deploy_ftp():
     restart_nginx()
 
 def update_full_sync():
-    upload_template(src_file="scripts/full_sync.j2", dst_file="/home/glider/glider-dac/scripts/full_sync", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    # @BUG: same as in update_supervisord, need to do to temp location
+    upload_template("scripts/full_sync.j2", "/tmp/full_sync", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    sudo("cp /tmp/full_sync /home/glider/full_sync")
 
 def update_crontab(src_file, dst_file):
-    upload_template(src_file, dst_file, context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    # @BUG: same
+    upload_template(src_file, "/tmp/glider-crontab.txt", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+    sudo("cp /tmp/glider-crontab.txt %s" % dst_file)
     sudo("crontab %s" % dst_file)
 
 def update_supervisord(src_file, dst_file, virtual_env=None):

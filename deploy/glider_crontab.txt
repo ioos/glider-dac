@@ -1,2 +1,2 @@
-#@hourly source ~/.bash_profile && workon glider-dac && ~/glider-dac/full_sync >> ~/sync.log 2>&1
+#@hourly source ~/.bash_profile && workon glider-dac && ~/full_sync >> ~/sync.log 2>&1
 
