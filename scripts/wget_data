@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# wget_data /path/to/pub/data/root /path/to/thredds/data/root
+
+# @TODO:
+# this script is pretty locked into how Glider DAC v2 is deployed,
+# should be more parameteresizeddizeed
+
+SERVER=http://localhost:8080/erddap
+
+# PUBLIC ERDDAP
+deployments=($(find $1/*/* -type d))
+for d in "${deployments[@]}"
+do
+    dname=($(basename $d))
+    ud=${d##$1}
+    wget -nH --cut-dirs=2 --output-document="$1$ud/$dname.ncCF.nc3.nc" "$SERVER/$dname.ncCF"
+done
+
+deployments=($(find $2/*/* -type d))
+for d in "${deployments[@]}"
+do
+    dname=($(basename $d))
+    ud=${d##$2}
+    wget -nH --cut-dirs=2 --output-document="$2$ud/$dname.nc3.nc" "$SERVER/$dname.ncCFMA"
+done
+
