@@ -60,7 +60,7 @@ def build_thredds_catalog_fragment(data_root, user, deployment, template_dir):
 
     user            = user
     deployment      = deployment
-    deployment_file = "%s.ncCFMA" % deployment
+    deployment_file = "%s.nc3.nc" % deployment
     dataset_id      = slugify("%s_%s" % (user, deployment))
     deployment_path = os.path.join(data_root, user, deployment, deployment_file)
 
