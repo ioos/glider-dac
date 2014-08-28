@@ -10,7 +10,7 @@ users=($(ssh -l $1 $2 ls $3))
 
 for i in "${users[@]}"
 do
-    srcs=($(find "$3/$i" -name '*.nc' -exec dirname {} \; | sort -u))
+    srcs=($(ssh -l $1 $2 "find \"$3/$i\" -name '*.nc' -exec dirname {} \; | sort -u"))
     for s in "${srcs[@]}"
     do
         echo $s
