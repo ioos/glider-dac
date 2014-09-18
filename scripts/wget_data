@@ -14,7 +14,7 @@ for d in "${deployments[@]}"
 do
     dname=($(basename $d))
     ud=${d##$1}
-    wget -nH --cut-dirs=2 --output-document="$1$ud/$dname.ncCF.nc3.nc" "$SERVER/$dname.ncCF"
+    wget -nH --cut-dirs=2 --output-document="$1$ud/$dname.ncCF.nc3.nc" "$SERVER/tabledap/$dname.ncCF"
 done
 
 deployments=($(find $2/*/* -type d))
@@ -22,6 +22,6 @@ for d in "${deployments[@]}"
 do
     dname=($(basename $d))
     ud=${d##$2}
-    wget -nH --cut-dirs=2 --output-document="$2$ud/$dname.nc3.nc" "$SERVER/$dname.ncCFMA"
+    wget -nH --cut-dirs=2 --output-document="$2$ud/$dname.nc3.nc" "$SERVER/tabledap/$dname.ncCFMA"
 done
 
