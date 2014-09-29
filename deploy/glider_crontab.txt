@@ -1,3 +1,5 @@
 @hourly source ~/.bash_profile && workon gliderdac && ~/full_sync >> ~/sync.log 2>&1
 @hourly  source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/replicatePrivateErddapDeployments.py >> ~/wget.log 2>&1
-
+@hourly /etc/init.d/tomcat-thredds restart
+@hourly /etc/init.d/tomcat-erddap-public restart
+@hourly /etc/init.d/tomcat-erddap-private restart
