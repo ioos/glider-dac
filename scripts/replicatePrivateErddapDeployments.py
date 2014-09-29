@@ -40,7 +40,7 @@ def main():
     for d in deployments:
         sync_deployment(d)
 
-def retrieve_data(where):
+def retrieve_data(where, d):
     ud=where+d
     pathDeployName = ud.split('/')[-1]
     path_arg = ud + "/" + pathDeployName + ".nc3.nc"
@@ -67,9 +67,9 @@ def sync_deployment(deployment):
     print currentEpoch, deltaT, mTime
     if deltaT <  time_in_past: 
         #Retrieve Data and send to public
-        retrieve_data(path2pub)
+        retrieve_data(path2pub, d)
         #Retrieve Data and send to Thredds
-        retrieve_data(path2thredds)
+        retrieve_data(path2thredds, d)
   
 if __name__ == "__main__":
     main()
