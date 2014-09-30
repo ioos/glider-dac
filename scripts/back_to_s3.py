@@ -11,7 +11,7 @@ import json
 AWS_ACCESS_KEY_ID = 'AKIAJEYHTZSDVJTSILDQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
-bucket_name = 'ioosgliderbackups'
+bucket_name = 'ioosgliderbackupsv2'
 conn = boto.connect_s3(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
 bucket = conn.create_bucket(bucket_name, location=boto.s3.connection.Location.DEFAULT)
 
