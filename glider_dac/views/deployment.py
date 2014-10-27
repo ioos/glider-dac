@@ -3,6 +3,7 @@ import os.path
 from datetime import datetime
 import json
 import shutil
+import re
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
@@ -102,7 +103,8 @@ def new_deployment(username):
         return redirect(url_for("index"))
 
     form = NewDeploymentForm()
-
+    bad_regex = r'[^a-zA-z0-9_]'
+    form.name.data = re.sub(bad_regex, '', form.name.data)
     if form.validate_on_submit():
 
         upload_root = os.path.join(user.data_root, 'upload')
