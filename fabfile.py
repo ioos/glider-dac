@@ -165,5 +165,5 @@ def full_sync():
 
 def services(command="restart"):
     sudo("service tomcat-erddap-private %s" % command)
-    sudo("service tomcat-erddap-private %s" % command)
-    sudo("service tomcat-erddap-private %s" % command)
+    sudo("service tomcat-erddap-public %s" % command)
+    sudo("service tomcat-thredds %s" % command)
