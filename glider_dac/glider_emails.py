@@ -1,10 +1,12 @@
 import os
 from flask.ext.mail import Message
-
 from flask import render_template
+from glider_dac.defaults import MAIL_ENABLED
 from glider_dac import app, mail
 
 def send_wmoid_email(username, deployment):
+    if not MAIL_ENABLED: # Mail is disabled
+        return
     # sender comes from MAIL_DEFAULT_SENDER in env
     subject        = "New Glider Deployment - %s" % deployment.name
     recipients     = [app.config.get('MAIL_DEFAULT_TO')]

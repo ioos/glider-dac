@@ -34,11 +34,13 @@ code_dir = "/home/glider/glider-dac"
 def deploy_dap():
     crontab_file = "/home/glider/crontab.txt"
     with settings(sudo_user='glider'):
+        stop_supervisord(conf="/home/glider/supervisord.conf")
         with cd(code_dir):
             sudo("git pull origin master")
             update_libs(virtual_env="gliderdac")
             update_full_sync()
             update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
+        start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
 
 def deploy_ftp():
     with settings(sudo_user='glider'):
@@ -57,6 +59,12 @@ def deploy_ftp():
     start_supervisor_processes(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
 
     restart_nginx()
+
+def deploy_supervisord_dap():
+    with settings(sudo_user='glider'):
+        stop_supervisord(conf="/home/glider/supervisord.conf")
+        update_supervisord('deploy/dap.supervisord.conf', '/home/glider/supervisord.conf', 'gliderdac')
+        start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
 
 def update_full_sync():
     # @BUG: same as in update_supervisord, need to do to temp location
@@ -150,3 +158,12 @@ def create_index():
 
     run('mongo "%s" --eval "db.deployments.ensureIndex({\'name\':1}, {unique:true})"' % MONGODB_DATABASE)
 
+def full_sync():
+    with settings(sudo_user='glider'):
+        with prefix("workon gliderdac"):
+            sudo("~/full_sync")
+
+def services(command="restart"):
+    sudo("service tomcat-erddap-private %s" % command)
+    sudo("service tomcat-erddap-private %s" % command)
+    sudo("service tomcat-erddap-private %s" % command)

@@ -12,3 +12,4 @@ test/*
 ftp_temp
 tds_temp
 tds_catalogs
+data/
