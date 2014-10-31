@@ -20,8 +20,8 @@ def poll_erddap(deployment_name, host):
     args = {}
     args['host'] = host
     args['deployment_name'] = deployment_name
-    template = 'http://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
-    log.info("Polling %s", template)
+    url = 'http://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
+    log.info("Polling %s", url)
     status = request_poll(url)
     return status
 
@@ -56,6 +56,8 @@ def touch_erddap(deployment_name, path):
     log.info("Touching flag file at %s", full_path)
     with open(full_path, 'w') as f:
         pass # Causes file creation
+    log.info("Sleeping 15 seconds")
+    time.sleep(15)
 
 
 def setup_logging(level=logging.DEBUG):
@@ -93,6 +95,8 @@ def get_mod_time(name):
     return (dataset['updated'])/1000
 
 def main(args):
+    '''
+    '''
     global log
     if log is None:
         log = setup_logging()
@@ -108,30 +112,25 @@ def main(args):
             
     log.info( "Processing the following deployments")
     for deployment in deployments:
-        log.info( " - %s", d)
+        log.info( " - %s", deployment)
     for deployment in deployments:
-        # First sync up the private
-        touch_erddap(deployment, flags_private)
-        if not poll_erddap(deployment, erddap_private):
-            log.error("Couldn't update deployment %s", deployment)
-            continue
-        
-        retrieve_data(path2pub, deployment)
-        retrieve_data(path2thredds, deployment)
-
-        touch_erddap(deployment, flags_public)
-        if not poll_erddap(deployment, erddap_public):
-            log.error("Couldn't update public erddap for deployment %s", deployment)
+        sync_deployment(deployment, args.force)
 
 
 
 def retrieve_data(where, deployment):
+    '''
+    '''
     publish_dir = os.path.join(where, deployment)
     log.info("Publish Directory: %s", publish_dir)
     deployment_name = publish_dir.split('/')[-1]
     user_name = publish_dir.split('/')[-2]
-    path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
-    host_arg = SERVER + "/tabledap/" + deployment_name + ".ncCFMA"
+    if 'thredds' in publish_dir:
+        path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
+        host_arg = SERVER + "/tabledap/" + deployment_name + ".ncCFMA"
+    else:
+        path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
+        host_arg = SERVER + "/tabledap/" + deployment_name + ".ncCF"
     log.info( "Path Arg %s", path_arg)
     log.info( "Host Arg %s", host_arg)
     args = [
@@ -145,6 +144,8 @@ def retrieve_data(where, deployment):
 
 
 def sync_deployment(deployment, force=False):
+    '''
+    '''
     log.info( "--------------------------------------------------------------------------------")
     log.info( "   Processing %s", deployment)
     log.info( "--------------------------------------------------------------------------------")
@@ -157,11 +158,19 @@ def sync_deployment(deployment, force=False):
     log.info( "Synchronizing at %s", datetime.datetime.utcnow().isoformat())
     #print currentEpoch, deltaT, mTime
     if force or deltaT <  time_in_past: 
-        #Retrieve Data and send to public
-        log.error("Path to public: %s", path2pub)
-        retrieve_data(path2pub, d)
-        #Retrieve Data and send to Thredds
-        retrieve_data(path2thredds, d)
+        deployment_name = deployment.split('/')[-1]
+        # First sync up the private
+        touch_erddap(deployment_name, flags_private)
+        if not poll_erddap(deployment_name, erddap_private):
+            log.error("Couldn't update deployment %s", deployment)
+            return
+        
+        retrieve_data(path2pub, deployment)
+        retrieve_data(path2thredds, deployment)
+
+        touch_erddap(deployment_name, flags_public)
+        if not poll_erddap(deployment_name, erddap_public):
+            log.error("Couldn't update public erddap for deployment %s", deployment)
     else:
         log.info("Everything is up to date")
   

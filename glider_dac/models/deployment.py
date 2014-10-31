@@ -8,6 +8,7 @@ from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
+from glider_dac.defaults import PUBLIC_ERDDAP, THREDDS
 
 @db.register
 class Deployment(Document):
@@ -53,20 +54,30 @@ class Deployment(Document):
 
     @property
     def dap(self):
-        return u"http://tds.gliders.ioos.us/thredds/dodsC/%s_%s_Time.ncml" % (slugify(self.title), slugify(self.name))
+        args = { 
+            'host' : THREDDS, 
+            'user' : slugify(self.username), 
+            'deployment' : slugify(self.name)
+        }
+        dap_url = u"http://%(host)s/thredds/dodsC/%(user)s/%(deployment)s.nc3.nc" % args
+        return dap_url
 
     @property
     def sos(self):
-        return u"http://tds.gliders.ioos.us/thredds/sos/%s_%s_Time.ncml" % (slugify(self.title), slugify(self.name))
+        args = { 
+            'host' : THREDDS, 
+            'user' : slugify(self.username), 
+            'deployment' : slugify(self.name)
+        }
+        sos_url = u"http://%(host)s/thredds/sos/%(user)s/%(deployment)s.nc3.nc" % args
+        return sos_url
 
     @property
     def iso(self):
         title = slugify(self.title)
         name = slugify(self.name)
-        catalog_parameter = u'http://tds.gliders.ioos.us/thredds/%s/%s/catalog.html' % (title, name)
-        dataset_parameter = u'%s_%s_Time' % (title, name)
-        query = urllib.urlencode({ 'catalog' : catalog_parameter, 'dataset' : dataset_parameter })
-        return u"http://tds.gliders.ioos.us/thredds/iso/%s_%s_Time.ncml?%s" % (title, name, query)
+        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : PUBLIC_ERDDAP, 'name' : name}
+        return iso_url
 
     @property
     def title(self):
