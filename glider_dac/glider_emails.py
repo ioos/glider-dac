@@ -6,8 +6,10 @@ from glider_dac import app, mail
 
 def send_wmoid_email(username, deployment):
     if not MAIL_ENABLED: # Mail is disabled
+        app.logger.info("Email is disabled")
         return
     # sender comes from MAIL_DEFAULT_SENDER in env
+    app.logger.info("Sending email about new deployment to %s", app.config.get('MAIL_DEFAULT_TO'))
     subject        = "New Glider Deployment - %s" % deployment.name
     recipients     = [app.config.get('MAIL_DEFAULT_TO')]
     cc_recipients  = []
