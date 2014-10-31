@@ -51,6 +51,8 @@ def deploy_ftp():
             update_libs(virtual_env="gliderdac")
             start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
             start_supervisor_processes(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
+        upload_template('deploy/env', "/tmp/env", context=copy(env), use_jinja=True, use_sudo=False, backup=False, mirror_local_mode=True)
+        sudo("cp /tmp/env /home/glider/env")
 
     stop_supervisord(conf="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
     update_supervisord(src_file="deploy/supervisord-perms-monitor.conf", dst_file="/root/supervisord-perms-monitor.conf", virtual_env="root-monitor")
