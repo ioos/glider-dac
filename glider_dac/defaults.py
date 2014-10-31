@@ -16,6 +16,11 @@ ADMINS = os.environ.get("ADMINS", "").split(",")
 DATA_ROOT = os.environ.get("DATA_ROOT")
 ARCHIVE_PATH = os.environ.get("ARCHIVE_PATH")
 
+# Hosts
+PRIVATE_ERDDAP = os.environ.get('PRIVATE_ERDDAP')
+PUBLIC_ERDDAP  = os.environ.get('PUBLIC_ERDDAP')
+THREDDS        = os.environ.get('THREDDS')
+
 # database
 MONGO_URI = os.environ.get('MONGO_URI')
 url = urlparse.urlparse(MONGO_URI)
@@ -39,5 +44,3 @@ MAIL_DEFAULT_TO     = os.environ.get('MAIL_DEFAULT_TO')
 MAIL_DEFAULT_LIST   = os.environ.get('MAIL_DEFAULT_LIST', None)
 
 
-print "Mail Enabled:", MAIL_ENABLED
-print "Environ:", os.environ.get('MAIL_ENABLED')
