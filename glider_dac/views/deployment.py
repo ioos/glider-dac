@@ -118,9 +118,7 @@ def new_deployment(username):
         try:
             deployment.save()
             flash("Deployment created", 'success')
-
-            if not deployment.wmo_id:
-                send_wmoid_email(username, deployment)
+            send_wmoid_email(username, deployment)
         except DuplicateKeyError:
             flash("Deployment names must be unique across Glider DAC: %s already used" % deployment.name, 'danger')
 
