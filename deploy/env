@@ -1,0 +1,23 @@
+export PORT=8000
+export WEB_PASSWORD={{webpass}}
+export SECRET_KEY='{{secret_key}}'
+export APPLICATION_SETTINGS=production.py
+export MAIL_SERVER='{{mail_server}}'
+export MAIL_PORT={{mail_port}}
+export MAIL_USERNAME='{{mail_username}}'
+export MAIL_PASSWORD='{{mail_password}}'
+export MAIL_DEFAULT_SENDER='{{mail_default_sender}}'
+export MAIL_USE_TLS='{{mail_use_tls}}'
+export MAILER_DEBUG={{mailer_debug}}
+export MAIL_DEFAULT_TO='{{mail_default_to}}'
+export MAIL_DEFAULT_LIST='{{mail_default_list}}'
+export DATA_ROOT='{{ data_root }}'
+export ARCHIVE_PATH='{{ archive_path }}'
+export RSYNC_SSH_USER='{{ rsync_ssh_user }}'
+export RSYNC_HOST='{{ rsync_host }}'
+export RSYNC_REMOTE_PATH='{{ rsync_remote_path }}'
+export RSYNC_TO_PATH='{{ rsync_to_path }}'
+export MONGO_URI='{{ mongo_db }}'
+export ADMINS='{{ admins }}'
+export USER_DB_FILE='{{ user_db_file }}'
+
