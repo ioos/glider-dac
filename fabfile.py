@@ -36,6 +36,7 @@ def deploy_dap():
     with settings(sudo_user='glider'):
         stop_supervisord(conf="/home/glider/supervisord.conf")
         with cd(code_dir):
+            update_supervisord(src_file="deploy/dap.supervisord.conf", dst_file="/home/glider/supervisord.conf", virtual_env="gliderdac")
             sudo("git pull origin master")
             update_libs(virtual_env="gliderdac")
             update_full_sync()

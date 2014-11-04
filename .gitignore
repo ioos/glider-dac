@@ -5,6 +5,7 @@ logs/*.txt
 test/*
 
 /.fab
+/.fab-production
 /.fabstage
 /.env
 .DS_Store
