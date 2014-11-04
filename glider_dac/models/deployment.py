@@ -54,6 +54,9 @@ class Deployment(Document):
 
     @property
     def dap(self):
+        '''
+        Returns the THREDDS DAP URL to this deployment
+        '''
         args = { 
             'host' : THREDDS, 
             'user' : slugify(self.username), 
@@ -64,12 +67,15 @@ class Deployment(Document):
 
     @property
     def sos(self):
+        '''
+        Returns the URL to the NcSOS endpoint
+        '''
         args = { 
             'host' : THREDDS, 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
-        sos_url = u"http://%(host)s/thredds/sos/%(user)s/%(deployment)s.nc3.nc" % args
+        sos_url = u"http://%(host)s/thredds/sos/%(user)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
         return sos_url
 
     @property

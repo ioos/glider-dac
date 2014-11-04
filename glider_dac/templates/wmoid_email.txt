@@ -1,10 +1,13 @@
 A new Glider Deployment ({{ deployment.username }} / {{ deployment.name }}) has been created. 
 
 DeploymentInfo:
-    URL: {{ url_for('show_deployment', username=username, deployment_id=deployment._id, _external=True) }}
-    DAP: {{ deployment.dap }}
-    ISO: {{ deployment.iso }}
+    DEPLOYMENT URL: {{ url_for('show_deployment', username=username, deployment_id=deployment._id, _external=True) }}
+    THREDDS DAP: {{ deployment.dap }}
+    ERDDAP ISO-19115: {{ deployment.iso }}
     SOS: {{ deployment.sos }}
+    THREDDS_CATALOG: {{ thredds_url }}
+    ERDDAP_CATALOG: {{ erddap_url }}
+    
 {% if deployment.wmo_id %}
     WMO_ID: {{ deployment.wmo_id }}
 {% else %}
