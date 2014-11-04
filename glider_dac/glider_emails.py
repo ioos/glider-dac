@@ -27,9 +27,15 @@ def send_wmoid_email(username, deployment):
     mail.send(msg)
 
 def get_thredds_catalog_url():
-    url = u'http://%(host)s/thredds/catalog.xml' % THREDDS
+    args = {
+        'host' : THREDDS
+    }
+    url = u'http://%(host)s/thredds/catalog.xml' % args
     return url
 
 def get_erddap_catalog_url():
-    url = u'http://%(host)s/erddap/metadata/iso19115/xml/' % PUBLIC_ERDDAP
+    args = {
+        'host' : PUBLIC_ERDDAP
+    }
+    url = u'http://%(host)s/erddap/metadata/iso19115/xml/' % args
     return url
