@@ -43,9 +43,16 @@ def deploy_dap():
             update_crontab(src_file="deploy/glider_crontab.txt", dst_file=crontab_file)
         start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
 
+def update_ioosngdac():
+    with settings(sudo_user='glider'):
+        stop_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
+        with cd('/home/glider/ioosngdac'):
+            sudo("git pull --ff-only origin master")
+        start_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
+
 def deploy_ftp():
     with settings(sudo_user='glider'):
-        stop_supervisord(conf="/home/glider/supervisord.conf")
+        stop_supervisord(conf="/home/glider/supervisord.conf", virtual_env="gliderdac")
         with cd(code_dir):
             sudo("git pull origin master")
             update_supervisord(src_file="deploy/supervisord.conf", dst_file="/home/glider/supervisord.conf", virtual_env="gliderdac")
