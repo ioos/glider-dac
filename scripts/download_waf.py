@@ -16,6 +16,7 @@ import sys
 from thredds_crawler.crawl import Crawl
 
 def main(args):
+    check_destination(args.destination)
     if args.erddap:
         get_erddap_waf(args.erddap, args.destination)
     if args.thredds:
@@ -48,7 +49,6 @@ def get_erddap_waf(url, destination_path):
         raise IOError("Failed to get index from ERDDAP at %s" % index_url)
     doc = response.json()
     datasets = create_dataset_doc(doc)
-    check_destination(destination_path)
 
     for dataset_id in datasets:
         if dataset_id.startswith('all'):
