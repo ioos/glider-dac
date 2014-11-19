@@ -36,8 +36,8 @@ def request_poll(url, attempts=15):
             log.warning("Failed to find deployment dataset")
         else:
             break
-        log.info("sleeping 1 second")
-        time.sleep(1)
+        log.info("sleeping %s second(s)" % (attempts * 2))
+        time.sleep(attempts * 2)
         attempts -= 1
     else:
         return False
