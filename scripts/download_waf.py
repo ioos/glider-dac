@@ -33,9 +33,8 @@ def get_thredds_waf(url, destination_path):
         services = { row['name'] : row for row in dataset.services }
         iso_url = services['iso']['url']
         if iso_url:
-            file_path = get_iso_doc(iso_url, destination_path, dataset.id + '.xml')
-            print "Created ISO at", file_path
-
+            get_iso_doc(iso_url, destination_path, dataset.id + '.xml')
+            
 def get_erddap_waf(url, destination_path):
     '''
     Scrapes the available datasets from ERDDAP and harvests the ISO 19115
@@ -57,7 +56,6 @@ def get_erddap_waf(url, destination_path):
         iso_url = datasets[dataset_id]['ISO 19115']
         if iso_url:
             file_path = get_iso_doc(iso_url, destination_path)
-            print "Created ISO at", file_path
 
 def check_destination(destination_path):
     '''
@@ -89,11 +87,14 @@ def get_iso_doc(iso_url, destination_path, file_name=None):
     Downloads an ISO document at the URL specified into the destination
     '''
     response = requests.get(iso_url, stream=True)
-    if response.status_code != 200:
-        raise IOError("Failed to retrieve ISO 19115 Document from ERDDAP at %s with error code %s" % (iso_url, response.status_code) )
+    if response.status_code == 500:
+        print "Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code)
+        return None
+    elif response.status_code != 200:
+        raise IOError("Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code) )
 
     xml_doc = response.text
-    file_name = file_name or iso_url.split('/')[-1]
+    file_name = file_name.split('/')[-1] or iso_url.split('/')[-1]
 
     file_path = os.path.join(destination_path, file_name)
     with open(file_path, 'wb') as f:
@@ -102,6 +103,7 @@ def get_iso_doc(iso_url, destination_path, file_name=None):
                 f.write(chunk)
                 f.flush()
 
+    print "Created ISO at", file_path
     return file_path
 
 
