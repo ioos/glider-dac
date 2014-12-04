@@ -18,29 +18,31 @@ from thredds_crawler.crawl import Crawl
 def main(args):
     check_destination(args.destination)
     if args.erddap:
-        get_erddap_waf(args.erddap, args.destination)
+        get_erddap_waf(args.erddap, args.destination, args.suffix)
     if args.thredds:
-        get_thredds_waf(args.thredds, args.destination)
+        get_thredds_waf(args.thredds, args.destination, args.suffix)
 
-def get_thredds_waf(url, destination_path):
+def get_thredds_waf(url, destination_path, suffix=None):
     '''
     Scrapes the available ISO files at the specified THREDDS instance.
     The URL must point to the catalog.xml
     '''
     c = Crawl(url)
     datasets = c.datasets
+    suffix = suffix or ''
     for dataset in datasets:
         services = { row['name'] : row for row in dataset.services }
         iso_url = services['iso']['url']
         if iso_url:
-            get_iso_doc(iso_url, destination_path, dataset.id + '.xml')
+            get_iso_doc(iso_url, destination_path, dataset.id + suffix + '.xml')
             
-def get_erddap_waf(url, destination_path):
+def get_erddap_waf(url, destination_path, suffix=None):
     '''
     Scrapes the available datasets from ERDDAP and harvests the ISO 19115
     documents that are available. This script currently does not gather
     metadata on the 'all' aggregate datasets that ERDDAP provides.
     '''
+    suffix = suffix or ''
     url = url.rstrip('/')
     index_url = url + '/info/index.json'
     response = requests.get(index_url)
@@ -55,7 +57,7 @@ def get_erddap_waf(url, destination_path):
 
         iso_url = datasets[dataset_id]['ISO 19115']
         if iso_url:
-            file_path = get_iso_doc(iso_url, destination_path)
+            file_path = get_iso_doc(iso_url, destination_path, dataset_id + suffix + '.xml')
 
 def check_destination(destination_path):
     '''
@@ -82,7 +84,7 @@ def create_dataset_doc(doc):
 
     return datasets
 
-def get_iso_doc(iso_url, destination_path, file_name=None):
+def get_iso_doc(iso_url, destination_path, file_name):
     '''
     Downloads an ISO document at the URL specified into the destination
     '''
@@ -113,6 +115,7 @@ if __name__ == '__main__':
     parser.add_argument('destination', help='Folder to download the ISO documents into')
     parser.add_argument('-e', '--erddap', help='URL to ERDDAP, example: http://coastwatch.pfeg.noaa.gov/erddap')
     parser.add_argument('-t', '--thredds', help='URL to THREDDS catalog.xml, example: http://data.ioos.us/gliders/thredds/catalog.xml')
+    parser.add_argument('-s', '--suffix', help='Suffix for the file to include a filename suffix to prevent service clobbering')
     args = parser.parse_args()
 
     main(args)
