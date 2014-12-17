@@ -116,6 +116,9 @@ def new_deployment(username):
         deployment.deployment_dir = new_deployment_dir
         deployment.updated = datetime.utcnow()
         try:
+            existing_deployment = db.Deployment.find_one({'name' : form.name.data})
+            if existing_deployment is not None:
+                raise DuplicateKeyError("Duplicate Key Detected: name")
             deployment.save()
             flash("Deployment created", 'success')
             send_wmoid_email(username, deployment)
