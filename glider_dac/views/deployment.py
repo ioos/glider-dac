@@ -15,7 +15,6 @@ from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 
 class DeploymentForm(Form):
-    estimated_deploy_date       = TextField(u'Estimated Deploy Date (yyyy-mm-dd)')
     estimated_deploy_location   = TextField(u'Estimated Deploy Location (WKT)')
     operator                    = TextField(u'Operator')
     wmo_id                      = TextField(u'WMO ID')
@@ -149,10 +148,6 @@ def edit_deployment(username, deployment_id):
     if form.validate_on_submit():
         form.populate_obj(deployment)
         deployment.updated = datetime.utcnow()
-        try:
-            deployment.estimated_deploy_date = datetime.strptime(form.estimated_deploy_date.data, "%Y-%m-%d")
-        except ValueError:
-            deployment.estimated_deploy_date = None
         deployment.save()
         flash("Deployment updated", 'success')
         return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
