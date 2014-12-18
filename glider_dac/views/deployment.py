@@ -15,7 +15,6 @@ from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 
 class DeploymentForm(Form):
-    estimated_deploy_location   = TextField(u'Estimated Deploy Location (WKT)')
     operator                    = TextField(u'Operator')
     wmo_id                      = TextField(u'WMO ID')
     completed                   = BooleanField(u'Completed')
