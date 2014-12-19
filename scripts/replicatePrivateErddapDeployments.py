@@ -140,7 +140,10 @@ def retrieve_data(where, deployment):
         host_arg
      ]
     log.info( "Args: %s", ' '.join(args))
-    sh.wget(*args)
+    try:
+        sh.wget(*args)
+    except: # Error codes
+        log.error("Failed to get %s", deployment)
 
 
 def sync_deployment(deployment, force=False):
