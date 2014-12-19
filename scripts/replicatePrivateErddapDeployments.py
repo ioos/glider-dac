@@ -64,7 +64,7 @@ def setup_logging(level=logging.DEBUG):
     import logging
     logger = logging.getLogger('replicate')
     logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler('/home/glider/logs/replciate.log')
+    file_handler = logging.FileHandler('replciate.log')
     stream_handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
@@ -100,6 +100,18 @@ def main(args):
     global log
     if log is None:
         log = setup_logging()
+    if args.deployment is not None:
+        deployments = [args.deployment]
+    else:
+        deployments = load_deployments()
+            
+    log.info( "Processing the following deployments")
+    for deployment in deployments:
+        log.info( " - %s", deployment)
+    for deployment in deployments:
+        sync_deployment(deployment, args.force)
+
+def load_deployments():
     deployments = []
     for user in os.listdir(path2priv):
         if not os.path.isdir(os.path.join(path2priv, user)):
@@ -107,14 +119,8 @@ def main(args):
         for deployment_name in os.listdir(os.path.join(path2priv, user)):
             deployment_path = os.path.join(path2priv, user, deployment_name)
             if os.path.isdir(deployment_path):
-
                 deployments.append(os.path.join(user, deployment_name))
-            
-    log.info( "Processing the following deployments")
-    for deployment in deployments:
-        log.info( " - %s", deployment)
-    for deployment in deployments:
-        sync_deployment(deployment, args.force)
+    return deployments
 
 
 
@@ -179,7 +185,8 @@ def sync_deployment(deployment, force=False):
   
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="replicate files from private ERDDAP")
-    parser.add_argument('-f', '--force', action="store_true")
+    parser.add_argument('-f', '--force', action="store_true", help="Force the processing by ignoring the time logs")
+    parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     args = parser.parse_args()
     main(args)
 
