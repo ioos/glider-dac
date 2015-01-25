@@ -226,6 +226,9 @@ def get_deployments():
         del d['_id']
         del d['deployment_dir']
         del d['user_id']
+        d['sos'] = deployment.sos
+        d['iso'] = deployment.iso
+        d['dap'] = deployment.dap
         results.append(d)
 
     return jsonify(results=results, num_results=len(results))
