@@ -215,3 +215,17 @@ def delete_deployment(username, deployment_id):
     deployment.delete()
 
     return redirect(url_for("list_user_deployments", username=username))
+
+@app.route('/api/deployment', methods=['GET'])
+def get_deployments():
+    deployments = db.Deployment.find()
+    results = []
+    for deployment in deployments:
+        d = json.loads(deployment.to_json())
+        d['id'] = d['_id']['$oid']
+        del d['_id']
+        del d['deployment_dir']
+        del d['user_id']
+        results.append(d)
+
+    return jsonify(results=results, num_results=len(results))
