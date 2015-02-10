@@ -1,5 +1,7 @@
 @hourly source ~/.bash_profile && workon gliderdac && ~/full_sync >> ~/sync.log 2>&1
 @hourly  source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/replicatePrivateErddapDeployments.py >> ~/wget.log 2>&1
-@hourly /etc/init.d/tomcat-thredds restart
+0 */3 * * * source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/replicatePrivateErddapDeployments.py -f >> ~/wget.log 2>&1
 0 5 * * 0 source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/back_to_s3.py /data/data/thredds /data/data/pub_erddap /data/data/priv_erddap
-
+@daily source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/download_waf.py /data/catalog/waf -e http://data.ioos.us/gliders/erddap -s .erddap
+@daily source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/download_waf.py /data/catalog/waf -t http://data.ioos.us/gliders/thredds/catalog.xml -s .thredds
+@daily source ~/.bash_profile && workon gliderdac && python ~/glider-dac/scripts/download_waf.py /data/catalog/waf -t http://tds.gliders.ioos.us/thredds/catalog.xml -s .thredds.1
