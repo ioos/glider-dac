@@ -19,7 +19,7 @@
 # 3 create catalogs
 ~/glider-dac/scripts/build_erddap_catalog.py priv_erddap {{ dap_data_priv_erddap }} {{ dap_catalog_root }} {{ dap_template_root }}/erddap/templates/private
 ~/glider-dac/scripts/build_erddap_catalog.py pub_erddap {{ dap_data_pub_erddap }} {{ dap_catalog_root }} {{ dap_template_root }}/erddap/templates/public
-~/glider-dac/scripts/build_thredds_catalog.py {{ dap_data_thredds }} {{ dap_catalog_root }} {{ dap_template_root }}/thredds/templates
+#~/glider-dac/scripts/build_thredds_catalog.py {{ dap_data_thredds }} {{ dap_catalog_root }} {{ dap_template_root }}/thredds/templates
 
 # 4 manage catalogs with git
 pushd {{ dap_catalog_root }}

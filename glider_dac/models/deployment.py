@@ -62,7 +62,7 @@ class Deployment(Document):
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
-        dap_url = u"http://%(host)s/thredds/dodsC/%(user)s/%(deployment)s.nc3.nc.ncml" % args
+        dap_url = u"http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s.nc3.nc.ncml" % args
         return dap_url
 
     @property
@@ -75,7 +75,7 @@ class Deployment(Document):
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
-        sos_url = u"http://%(host)s/thredds/sos/%(user)s/%(deployment)s.nc3.nc.ncml?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
+        sos_url = u"http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s.nc3.nc.ncml?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
         return sos_url
 
     @property
