@@ -59,8 +59,6 @@ def admin():
         user.save()
         User.update(username=user.username, password=form.password.data)
 
-        # make sure user dirs exist
-        user.ensure_dir('upload')
 
         flash("Account for '%s' created" % user.username, 'success')
         return redirect(url_for("admin"))

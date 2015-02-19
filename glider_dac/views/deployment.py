@@ -37,10 +37,10 @@ def list_user_deployments(username):
         kwargs['form'] = form
 
     for m in deployments:
-        if not os.path.exists(m.deployment_dir):   # wat
+        if not os.path.exists(m.full_path):   # wat
             continue
 
-        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.deployment_dir))
+        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
     deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
 
@@ -51,10 +51,10 @@ def list_operator_deployments(operator):
     deployments = list(db.Deployment.find( { 'operator' : unicode(operator) } ))
 
     for m in deployments:
-        if not os.path.exists(m.deployment_dir):
+        if not os.path.exists(m.full_path):
             continue
 
-        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.deployment_dir))
+        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
     deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
 
@@ -66,7 +66,7 @@ def show_deployment(username, deployment_id):
     deployment = db.Deployment.find_one({'_id':deployment_id})
 
     files = []
-    for dirpath, dirnames, filenames in os.walk(deployment.deployment_dir):
+    for dirpath, dirnames, filenames in os.walk(deployment.full_path):
         for f in filenames:
             if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                 continue
@@ -105,13 +105,13 @@ def new_deployment(username):
     form.name.data = re.sub(bad_regex, '', form.name.data)
     if form.validate_on_submit():
 
-        upload_root = os.path.join(user.data_root, 'upload')
+        upload_root = user.data_root
         new_deployment_dir = os.path.join(upload_root, form.name.data)
 
         deployment = db.Deployment()
         form.populate_obj(deployment)
         deployment.user_id = user._id
-        deployment.deployment_dir = new_deployment_dir
+        deployment.deployment_dir = os.path.join(username, form.name.data)
         deployment.updated = datetime.utcnow()
         try:
             existing_deployment = db.Deployment.find_one({'name' : form.name.data})
@@ -173,7 +173,7 @@ def post_deployment_file(username, deployment_id):
 
         safe_filename = f.filename # @TODO
 
-        out_name = os.path.join(deployment.deployment_dir, safe_filename)
+        out_name = os.path.join(deployment.full_path, safe_filename)
 
         with open(out_name, 'w') as of:
             f.save(of)
@@ -195,7 +195,7 @@ def delete_deployment_files(username, deployment_id):
             raise StandardError("Unauthorized")     # @TODO better response via ajax?
 
     for name in request.json['files']:
-        file_name = os.path.join(deployment.deployment_dir, name)
+        file_name = os.path.join(deployment.full_path, name)
         os.unlink(file_name)
 
     return ""
@@ -211,7 +211,7 @@ def delete_deployment(username, deployment_id):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
 
-    shutil.rmtree(deployment.deployment_dir)
+    shutil.rmtree(deployment.full_path)
     deployment.delete()
 
     return redirect(url_for("list_user_deployments", username=username))
@@ -224,7 +224,6 @@ def get_deployments():
         d = json.loads(deployment.to_json())
         d['id'] = d['_id']['$oid']
         del d['_id']
-        del d['deployment_dir']
         del d['user_id']
         d['sos'] = deployment.sos
         d['iso'] = deployment.iso
