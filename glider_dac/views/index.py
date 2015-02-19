@@ -3,6 +3,7 @@ import os
 import os.path
 import sys
 
+import time
 import pymongo
 from bson.objectid import ObjectId
 
@@ -17,13 +18,9 @@ class LoginForm(Form):
     username = TextField(u'Name')
     password = PasswordField(u'Password')
 
-@app.route('/', methods=['GET'])
-def index():
-
-    data_root = app.config.get('DATA_ROOT')
-
-    files = []
+def build_files(data_root):
     deployments_by_dir = {}
+    files = []
     for dirpath, dirnames, filenames in os.walk(data_root):
         rel_path = os.path.relpath(dirpath, data_root)
         path_parts = rel_path.split(os.sep)
@@ -42,14 +39,18 @@ def index():
             if len(path_parts) != 3:
                 continue
             deployment_path = os.path.join(path_parts[0], path_parts[1])
-            
-            if rel_path not in deployments_by_dir:
+            if deployment_path not in deployments_by_dir:
                 deployments_by_dir[deployment_path] = db.Deployment.find_one({'deployment_dir':deployment_path})
 
             files.append((path_parts[0], path_parts[1], path_parts[2], datetime.utcfromtimestamp(os.path.getmtime(entry)), deployments_by_dir[deployment_path]))
 
     files = sorted(files, lambda a,b: cmp(b[3], a[3]))
+    return files
 
+@app.route('/', methods=['GET'])
+def index():
+    data_root = app.config.get('DATA_ROOT')
+    files = build_files(data_root)
     deployments = list(db.Deployment.find(sort=[("name" , pymongo.ASCENDING)], limit=20))
 
     for m in deployments:

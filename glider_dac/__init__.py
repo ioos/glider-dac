@@ -3,12 +3,14 @@ import datetime
 
 from flask import Flask
 from flask_login import LoginManager
+from glider_dac.reverse_proxy import ReverseProxied
 
 # Create application object
 app = Flask(__name__)
 
 app.config.from_object('glider_dac.defaults')
 app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import sys
 
