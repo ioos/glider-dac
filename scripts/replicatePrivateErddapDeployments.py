@@ -25,7 +25,7 @@ def poll_erddap(deployment_name, host):
     status = request_poll(url)
     return status
 
-def request_poll(url, attempts=15):
+def request_poll(url, attempts=60):
     '''
     Polls a URL for the number of specified attempts
     returns True if the URL succeeded or False if it did not
@@ -146,10 +146,16 @@ def retrieve_data(where, deployment):
         host_arg
      ]
     log.info( "Args: %s", ' '.join(args))
+    try_wget(deployment, args, 5)
+
+def try_wget(deployment, args, count=1):
     try:
         sh.wget(*args)
     except: # Error codes
         log.error("Failed to get %s", deployment)
+        log.info("Attempts remainging: %s", count)
+        if count > 0:
+            try_wget(deployment, args, count-1)
 
 
 def sync_deployment(deployment, force=False):
