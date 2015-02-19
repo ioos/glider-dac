@@ -34,17 +34,19 @@ def index():
 
             entry = os.path.join(dirpath, filename)
 
-            if dirpath not in deployments_by_dir:
-                deployments_by_dir[dirpath] = db.Deployment.find_one({'deployment_dir':dirpath})
 
             rel_path = os.path.relpath(entry, data_root)
 
-            # user/upload/deployment-name/file
+            # user/deployment-name/file
             path_parts = rel_path.split(os.sep)
-            if len(path_parts) != 4:
+            if len(path_parts) != 3:
                 continue
+            deployment_path = os.path.join(path_parts[0], path_parts[1])
+            
+            if rel_path not in deployments_by_dir:
+                deployments_by_dir[deployment_path] = db.Deployment.find_one({'deployment_dir':deployment_path})
 
-            files.append((path_parts[0], path_parts[2], path_parts[3], datetime.utcfromtimestamp(os.path.getmtime(entry)), deployments_by_dir[dirpath]))
+            files.append((path_parts[0], path_parts[1], path_parts[2], datetime.utcfromtimestamp(os.path.getmtime(entry)), deployments_by_dir[deployment_path]))
 
     files = sorted(files, lambda a,b: cmp(b[3], a[3]))
 

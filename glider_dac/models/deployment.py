@@ -92,6 +92,10 @@ class Deployment(Document):
         else:
             return self.username
 
+    @property
+    def full_path(self):
+        return os.path.join(app.config.get('DATA_ROOT'), self.deployment_dir)
+
     def _hash_file(self, fname):
         """
         Calculates an md5sum of the passed in file (absolute path).
@@ -115,7 +119,7 @@ class Deployment(Document):
         - link/unlink via bindfs to archive dir
         """
         # Save a file called "completed.txt"
-        completed_file = os.path.join(self.deployment_dir, "completed.txt")
+        completed_file = os.path.join(self.full_path, "completed.txt")
         if self.completed is True:
             with open(completed_file, 'w') as f:
                 f.write(" ")
@@ -125,7 +129,7 @@ class Deployment(Document):
 
         # generate md5s of all data files on completion
         if self.completed:
-            for dirpath, dirnames, filenames in os.walk(self.deployment_dir):
+            for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
                     if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                         continue
@@ -143,57 +147,24 @@ class Deployment(Document):
                     with open(md5_file, 'w') as mf:
                         mf.write(md5_value)
         else:
-            for dirpath, dirnames, filenames in os.walk(self.deployment_dir):
+            for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
                     if f.endswith(".md5"):
                         os.unlink(os.path.join(dirpath, f))
 
-        # link to archive user's ftp dir
-        # this will only work on production
-        if self.completed:
-            try:
-                archive_path = app.config.get('ARCHIVE_PATH')
-
-                _, mname = os.path.split(self.deployment_dir)
-                archive_mdir = os.path.join(archive_path, mname)
-                if not os.path.exists(archive_mdir):
-                    os.makedirs(archive_mdir)
-
-                # local test
-                #os.symlink(self.deployment_dir, archive_mdir)
-
-                not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
-                if not_mounted == 1:
-                    subprocess.call(['/usr/local/bin/bindfs', '-r', self.deployment_dir, archive_mdir])
-
-            except Exception as e:
-                warnings.warn("Could not link %s to %s: %s" % (self.deployment_dir, archive_mdir, e))
-        else:
-            try:
-
-                archive_path = app.config.get('ARCHIVE_PATH')
-
-                _, mname = os.path.split(self.deployment_dir)
-                archive_mdir = os.path.join(archive_path, mname)
-
-                if os.path.exists(archive_mdir):
-                    not_mounted = subprocess.call(['mountpoint', '-q', archive_mdir])
-                    if not_mounted == 0:
-                        subprocess.call(['/usr/local/bin/bindfs', '-r', self.deployment_dir, archive_mdir])
-
-            except Exception as e:
-                warnings.warn("Could not unlink %s: %s" % (archive_mdir, e))
 
     def sync(self):
-        if not os.path.exists(self.deployment_dir):
+        if app.config.get('NODATA'):
+            return
+        if not os.path.exists(self.full_path):
             try:
-                os.makedirs(self.deployment_dir)
+                os.makedirs(self.full_path)
             except OSError:
                 pass
 
         # Keep the WMO file updated if it is edited via the web form
         if self.wmo_id is not None and self.wmo_id != "":
-            wmo_id_file = os.path.join(self.deployment_dir, "wmoid.txt")
+            wmo_id_file = os.path.join(self.full_path, "wmoid.txt")
             with open(wmo_id_file, 'w') as f:
                 f.write(self.wmo_id)
 
@@ -201,7 +172,7 @@ class Deployment(Document):
         self.on_complete()
 
         # Serialize Deployment model to disk
-        json_file = os.path.join(self.deployment_dir, "deployment.json")
+        json_file = os.path.join(self.full_path, "deployment.json")
         with open(json_file, 'w') as f:
             f.write(self.to_json())
 
