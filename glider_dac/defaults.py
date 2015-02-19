@@ -5,15 +5,26 @@ DEBUG = False
 TESTING = False
 LOG_FILE = True
 
+# This is the password for the admin user
 WEB_PASSWORD = os.environ.get("WEB_PASSWORD")
+# The application secret key, used for CSRF Protection
 SECRET_KEY = os.environ.get("SECRET_KEY")
+# Application context Server Name
 SERVER_NAME = os.environ.get("SERVER_NAME", None)
+# Specifies that the web server shouldn't interface with the filesystem
+# this is mostly for development
+NODATA = os.environ.get("NODATA", False)
 
+# Location of the users.db berkleydb file
 USER_DB_FILE = os.environ.get("USER_DB_FILE", "local-user.db")
 
+# A list of valid administrator user accounts
 ADMINS = os.environ.get("ADMINS", "").split(",")
 
+# The root directory of where the data resides
 DATA_ROOT = os.environ.get("DATA_ROOT")
+
+# Soon to be deprecated
 ARCHIVE_PATH = os.environ.get("ARCHIVE_PATH")
 
 # Hosts
