@@ -15,7 +15,7 @@ SERVER_NAME = os.environ.get("SERVER_NAME", None)
 APPLICATION_ROOT = os.environ.get("APPLICATION_ROOT", None)
 # Specifies that the web server shouldn't interface with the filesystem
 # this is mostly for development
-NODATA = os.environ.get("NODATA", False)
+NODATA = os.environ.get("NODATA", "False") == "True"
 
 # Location of the users.db berkleydb file
 USER_DB_FILE = os.environ.get("USER_DB_FILE", "local-user.db")
