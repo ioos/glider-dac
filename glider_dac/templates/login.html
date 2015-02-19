@@ -5,7 +5,10 @@
 <h3>Login</h3>
 
 <form class="form-horizontal" method="POST" action="{{ url_for('login') }}">
-  {{ form.hidden_tag() }}
+  {{ form.csrf_token }}
+  {% if form.csrf_token.errors %}
+      <div class="warning">You have submitted an invalid CSRF token</div>
+  {% endif %}
 
   {% for field in form %}
   {% if field.name != "csrf_token" %}

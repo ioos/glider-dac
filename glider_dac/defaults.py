@@ -11,6 +11,8 @@ WEB_PASSWORD = os.environ.get("WEB_PASSWORD")
 SECRET_KEY = os.environ.get("SECRET_KEY")
 # Application context Server Name
 SERVER_NAME = os.environ.get("SERVER_NAME", None)
+# Application Root
+APPLICATION_ROOT = os.environ.get("APPLICATION_ROOT", None)
 # Specifies that the web server shouldn't interface with the filesystem
 # this is mostly for development
 NODATA = os.environ.get("NODATA", False)
