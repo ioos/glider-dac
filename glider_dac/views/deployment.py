@@ -228,6 +228,8 @@ def get_deployments():
         d['sos'] = deployment.sos
         d['iso'] = deployment.iso
         d['dap'] = deployment.dap
+        d['erddap'] = deployment.erddap
+        d['thredds'] = deployment.thredds
         results.append(d)
 
     return jsonify(results=results, num_results=len(results))
