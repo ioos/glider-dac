@@ -86,6 +86,26 @@ class Deployment(Document):
         return iso_url
 
     @property
+    def thredds(self):
+        args = { 
+            'host' : THREDDS, 
+            'user' : slugify(self.username), 
+            'deployment' : slugify(self.name)
+        }
+        thredds_url = u"http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
+        return thredds_url
+
+    @property
+    def erddap(self):
+        args = {
+            'host': PUBLIC_ERDDAP,
+            'user': slugify(self.username),
+            'deployment' : slugify(self.name)
+        }
+        erddap_url = u"http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
+        return erddap_url
+
+    @property
     def title(self):
         if self.operator is not None and self.operator != "":
             return self.operator
