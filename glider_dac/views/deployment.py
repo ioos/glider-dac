@@ -233,3 +233,20 @@ def get_deployments():
         results.append(d)
 
     return jsonify(results=results, num_results=len(results))
+
+@app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
+def get_deployment(username, deployment_name):
+    deployment = db.Deployment.find_one({"username":username, "name":name})
+    if deployment is None:
+        return jsonify(message='No record found'), 204
+    d = json.loads(deployment.to_json())
+    d['id'] = d['_id']['$oid']
+    del d['_id']
+    del d['user_id']
+    d['sos'] = deployment.sos
+    d['iso'] = deployment.iso
+    d['dap'] = deployment.dap
+    d['erddap'] = deployment.erddap
+    d['thredds'] = deployment.thredds
+    return jsonify(**d)
+
