@@ -236,7 +236,7 @@ def get_deployments():
 
 @app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
 def get_deployment(username, deployment_name):
-    deployment = db.Deployment.find_one({"username":username, "name":name})
+    deployment = db.Deployment.find_one({"username":username, "name":deployment_name})
     if deployment is None:
         return jsonify(message='No record found'), 204
     d = json.loads(deployment.to_json())
