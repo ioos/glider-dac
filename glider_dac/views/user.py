@@ -22,12 +22,21 @@ class UserForm(Form):
     email           = TextField(u'Email')
     submit          = SubmitField("Submit")
 
+
+
 @login_required
 @app.route('/users/<string:username>', methods=['GET', 'POST'])
 def edit_user(username):
+    app.logger.info("GET %s", username)
+    app.logger.info("Request URL: %s", request.url)
+    action_path = request.url
     user = db.User.find_one( {'username' : username } )
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
+        app.logger.error("Permission is denied")
+        app.logger.error("User: %s", user)
+        app.logger.error("Admin?: %s", current_user.is_admin())
+        app.logger.error("Not current user?: %s", current_user != user)
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
@@ -41,7 +50,7 @@ def edit_user(username):
         flash("Account updated", 'success')
         return redirect(url_for("index"))
 
-    return render_template('edit_user.html', form=form, user=user)
+    return render_template('edit_user.html', form=form, user=user, action_path=action_path)
 
 @login_required
 @app.route('/admin', methods=['GET', 'POST'])

@@ -8,7 +8,7 @@
 <h3>Editing {{ user.username }}</h3>
 
   <div class="col-lg-6">
-  <form name="user_edit" id="user_edit" method="POST" action="{{ request.path }}">
+  <form name="user_edit" id="user_edit" method="POST" action="{{ action_path }}">
     {{ form.hidden_tag() }}
     {{ render_field(form.username) }}
     {{ render_field(form.name) }}
