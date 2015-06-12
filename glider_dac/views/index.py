@@ -8,7 +8,7 @@ import pymongo
 from bson.objectid import ObjectId
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
-from glider_dac import app, login_manager, db
+from glider_dac import app, login_manager, db, route
 from glider_dac.models.user import User
 from flask_login import login_required, login_user, logout_user, current_user
 from flask.ext.wtf import Form
@@ -47,7 +47,7 @@ def build_files(data_root):
     files = sorted(files, lambda a,b: cmp(b[3], a[3]))
     return files
 
-@app.route('/', methods=['GET'])
+@route('/', methods=['GET'])
 def index():
     data_root = app.config.get('DATA_ROOT')
     files = build_files(data_root)
@@ -69,7 +69,7 @@ def index():
 def load_user(userid):
     return db.User.find_one({ "_id" : ObjectId(userid) })
 
-@app.route('/login', methods=['GET', 'POST'])
+@route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_active():
         flash("Already logged in", 'warning')
@@ -88,7 +88,7 @@ def login():
 
     return render_template("login.html", form=form)
 
-@app.route('/logout', methods=['GET'])
+@route('/logout', methods=['GET'])
 def logout():
     logout_user()
     return redirect(url_for("index"))
@@ -97,7 +97,7 @@ def serialize_date(date):
     if date is not None:
         return date.isoformat()
 
-@app.route('/crossdomain.xml', methods=['GET'])
+@route('/crossdomain.xml', methods=['GET'])
 def crossdomain():
     domain = """
     <cross-domain-policy>

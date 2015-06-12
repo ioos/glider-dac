@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, current_user
-from glider_dac import app, db
+from glider_dac import app, db, route
 from glider_dac.models.user import User
 
 from flask_wtf import Form
@@ -25,7 +25,7 @@ class UserForm(Form):
 
 
 @login_required
-@app.route('/users/<string:username>', methods=['GET', 'POST'])
+@route('/users/<string:username>', methods=['GET', 'POST'])
 def edit_user(username):
     app.logger.info("GET %s", username)
     app.logger.info("Request URL: %s", request.url)
@@ -53,7 +53,7 @@ def edit_user(username):
     return render_template('edit_user.html', form=form, user=user, action_path=action_path)
 
 @login_required
-@app.route('/admin', methods=['GET', 'POST'])
+@route('/admin', methods=['GET', 'POST'])
 def admin():
     if not current_user.is_admin():
         # No permission
@@ -80,7 +80,7 @@ def admin():
     return render_template('admin.html', form=form, users=users, deployment_counts=deployment_counts)
 
 @login_required
-@app.route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])
+@route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])
 def admin_edit_user(user_id):
     user = db.User.find_one({'_id':user_id})
 
@@ -102,7 +102,7 @@ def admin_edit_user(user_id):
     return render_template('edit_user.html', form=form, user=user)
 
 @login_required
-@app.route('/admin/<ObjectId:user_id>/delete', methods=['POST'])
+@route('/admin/<ObjectId:user_id>/delete', methods=['POST'])
 def admin_delete_user(user_id):
     user = db.User.find_one({'_id':user_id})
 
