@@ -7,7 +7,7 @@ import re
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
-from glider_dac import app, db, datetimeformat
+from glider_dac import app, route, db, datetimeformat
 from glider_dac.glider_emails import send_wmoid_email
 
 from flask.ext.wtf import Form
@@ -25,7 +25,7 @@ class NewDeploymentForm(Form):
     wmo_id  = TextField(u'WMO ID')
     submit  = SubmitField(u"Create")
 
-@app.route('/users/<string:username>/deployments')
+@route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     user = db.User.find_one( {'username' : username } )
     deployments = list(db.Deployment.find( { 'user_id' : user._id } ))
@@ -46,7 +46,7 @@ def list_user_deployments(username):
 
     return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
 
-@app.route('/operators/<string:operator>/deployments')
+@route('/operators/<string:operator>/deployments')
 def list_operator_deployments(operator):
     deployments = list(db.Deployment.find( { 'operator' : unicode(operator) } ))
 
@@ -60,7 +60,7 @@ def list_operator_deployments(operator):
 
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
+@route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
 def show_deployment(username, deployment_id):
     user = db.User.find_one( {'username' : username } )
     deployment = db.Deployment.find_one({'_id':deployment_id})
@@ -85,13 +85,13 @@ def show_deployment(username, deployment_id):
 
     return render_template('show_deployment.html', username=username, form=form, deployment=deployment, files=files, **kwargs)
 
-@app.route('/deployment/<ObjectId:deployment_id>')
+@route('/deployment/<ObjectId:deployment_id>')
 def show_deployment_no_username(deployment_id):
     deployment = db.Deployment.find_one( { '_id' : deployment_id } )
     username = db.User.find_one( { '_id' : deployment.user_id } ).username
     return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
 
-@app.route('/users/<string:username>/deployment/new', methods=['POST'])
+@route('/users/<string:username>/deployment/new', methods=['POST'])
 @login_required
 def new_deployment(username):
     user = db.User.find_one( {'username' : username } )
@@ -130,7 +130,7 @@ def new_deployment(username):
     return redirect(url_for('list_user_deployments', username=username))
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/edit', methods=['POST'])
+@route('/users/<string:username>/deployment/<ObjectId:deployment_id>/edit', methods=['POST'])
 @login_required
 def edit_deployment(username, deployment_id):
 
@@ -156,7 +156,7 @@ def edit_deployment(username, deployment_id):
 
     return render_template('edit_deployment.html', username=username, form=form, deployment=deployment)
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/files', methods=['POST'])
+@route('/users/<string:username>/deployment/<ObjectId:deployment_id>/files', methods=['POST'])
 @login_required
 def post_deployment_file(username, deployment_id):
 
@@ -184,7 +184,7 @@ def post_deployment_file(username, deployment_id):
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])
+@route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])
 @login_required
 def delete_deployment_files(username, deployment_id):
 
@@ -200,7 +200,7 @@ def delete_deployment_files(username, deployment_id):
 
     return ""
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete', methods=['POST'])
+@route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete', methods=['POST'])
 @login_required
 def delete_deployment(username, deployment_id):
 
@@ -216,7 +216,7 @@ def delete_deployment(username, deployment_id):
 
     return redirect(url_for("list_user_deployments", username=username))
 
-@app.route('/api/deployment', methods=['GET'])
+@route('/api/deployment', methods=['GET'])
 def get_deployments():
     deployments = db.Deployment.find()
     results = []
@@ -234,7 +234,7 @@ def get_deployments():
 
     return jsonify(results=results, num_results=len(results))
 
-@app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
+@route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
 def get_deployment(username, deployment_name):
     deployment = db.Deployment.find_one({"username":username, "name":deployment_name})
     if deployment is None:
