@@ -12,18 +12,6 @@ app.config.from_object('glider_dac.defaults')
 app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-def route(rule, **options):
-    global app
-    def decorator(f):
-        endpoint = options.pop('endpoint', None)
-        rule_prefix = app.config.get('APPLICATION_PREFIX', None)
-        if rule_prefix:
-            app.add_url_rule('/'.join([rule_prefix, rule]), endpoint, f, **options)
-        else:
-            app.add_url_rule(rule, endpoint, f, **options)
-        return f
-    return decorator
-
 import sys
 
 from flask.ext.mongokit import MongoKit

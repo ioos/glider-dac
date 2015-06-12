@@ -13,7 +13,6 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 SERVER_NAME = os.environ.get("SERVER_NAME", None)
 # Application Root
 APPLICATION_ROOT = os.environ.get("APPLICATION_ROOT", None)
-APPLICATION_PREFIX = os.environ.get("APPLICATION_PREFIX", None)
 # Specifies that the web server shouldn't interface with the filesystem
 # this is mostly for development
 NODATA = os.environ.get("NODATA", "False") == "True"
