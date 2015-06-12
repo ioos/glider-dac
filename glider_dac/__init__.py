@@ -7,10 +7,10 @@ from glider_dac.reverse_proxy import ReverseProxied
 
 # Create application object
 app = Flask(__name__)
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 app.config.from_object('glider_dac.defaults')
 app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
-app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 import sys
 
