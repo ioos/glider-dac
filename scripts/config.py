@@ -8,3 +8,6 @@ flags_public   = '/scratch/tomcat-erddap-public/flag'
 SERVER         = "http://localhost:8080/erddap"
 erddap_private = 'localhost:8080'
 erddap_public  = 'data.ioos.us/gliders'
+AWS_ACCESS_KEY_ID = ""
+AWS_SECRET_ACCESS_KEY = ""
+BUCKET_NAME = 'ioosgliderbackups-test'
