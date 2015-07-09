@@ -45,6 +45,7 @@ def make_link(filepath):
     if not os.path.exists(target):
         logger.info("Creating symbolic link")
         os.symlink(source, target)
+    generate_hash(target)
 
 def generate_hash(filepath):
     '''
@@ -92,7 +93,6 @@ def main(args):
     for filepath in get_active_deployments():
         logger.info("Archiving %s", filepath)
         make_link(filepath)
-        hashfile(filepath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
