@@ -54,8 +54,8 @@ def generate_hash(filepath):
     '''
     hasher = hashlib.md5()
     hashfile(filepath, hasher)
-    hashfile = filepath + '.md5'
-    with open(filepath, 'w') as f:
+    md5sum = filepath + '.md5'
+    with open(md5sum, 'w') as f:
         f.write(hasher.hexdigest())
     logger.info("Hash generated")
 
@@ -96,7 +96,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
-    args.add_argument('-v', '--verbose', action='store_true', help='Turn on verbose output')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Turn on verbose output')
     args = parser.parse_args()
     sys.exit(main(args))
 
