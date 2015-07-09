@@ -96,8 +96,8 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
-    args = parser.parse_args()
     args.add_argument('-v', '--verbose', action='store_true', help='Turn on verbose output')
+    args = parser.parse_args()
     sys.exit(main(args))
 
 
