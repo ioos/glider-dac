@@ -13,3 +13,5 @@ AWS_SECRET_ACCESS_KEY = 'xxxxxxxxxxxxxxxxxxxx'
 BUCKET_NAME           = 'xxxxxxxxxxxxxxxxxxxxxx'
 NCEI_DIR              = "/tmp/ncei"
 API_URL               = 'http://data.ioos.us/gliders/providers/api/deployment'
+PUBLIC_CATALOG        = '/data/catalog/pub_erddap/datasets.xml'
+PRIVATE_CATALOG       = '/data/catalog/priv_erddap/datasets.xml'
