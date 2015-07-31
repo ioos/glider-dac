@@ -50,7 +50,8 @@ def build_files(data_root):
 @app.route('/', methods=['GET'])
 def index():
     data_root = app.config.get('DATA_ROOT')
-    files = build_files(data_root)
+    files = []
+
     deployments = list(db.Deployment.find(sort=[("name" , pymongo.ASCENDING)], limit=20))
 
     for m in deployments:
@@ -85,8 +86,8 @@ def login():
         login_user(user)
         flash("Logged in successfully", 'success')
         return redirect(request.args.get("next") or url_for("index"))
-
-    return render_template("login.html", form=form)
+    response = make_response(render_template("login.html", form=form))
+    return response
 
 @app.route('/logout', methods=['GET'])
 def logout():

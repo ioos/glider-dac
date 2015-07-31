@@ -6,27 +6,6 @@
 
 <div class="row">
   <div class="col-lg-8">
-    <h3>Recent Uploads</h3>
-
-    <table class="table table-bordered table-striped sortable">
-      <thead>
-        <tr>
-          <th>Deployment</th>
-          <th>File</th>
-          <th data-defaultsort="desc">Updated</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for f in files[0:10] %}
-        <tr>
-          <td class="col-lg-4"><a href="{{ url_for('show_deployment', username=f[0], deployment_id=f[4]._id) }}">{{ f[1] }}</a></td>
-          <td class="col-lg-4">{{ f[2] }}</td>
-          <td class="col-lg-4" data-value="{{ f[3] }}"><abbr title="{{ f[3] | datetimeformat }} UTC">{{ f[3] | prettydate }}</abbr></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
     <h3>Deployments</h3>
     <table class="table table-bordered table-striped sortable">
       <thead>

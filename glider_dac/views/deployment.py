@@ -13,6 +13,20 @@ from glider_dac.glider_emails import send_wmoid_email
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
+from dateutil.parser import parse as dateparse
+import re
+
+def is_date_parseable(form, field):
+    try:
+        dateobj = dateparse(field.data)
+    except ValueError:
+        raise validators.ValidationError("Invalid Date")
+
+def is_valid_glider_name(form, field):
+    regex = ur'^[a-zA-Z]+[a-zA-Z0-9-]*$'
+    if not re.match(regex, field.data):
+        raise validators.ValidationError("Invalid Glider Name")
+
 
 class DeploymentForm(Form):
     operator                    = TextField(u'Operator')
@@ -21,9 +35,10 @@ class DeploymentForm(Form):
     submit                      = SubmitField(u'Submit')
 
 class NewDeploymentForm(Form):
-    name    = TextField(u'Deployment Name', [validators.required()])
-    wmo_id  = TextField(u'WMO ID')
-    submit  = SubmitField(u"Create")
+    glider_name     = TextField(u'Glider Name', [is_valid_glider_name])
+    deployment_date = TextField(u'Deployment Date', [is_date_parseable])
+    wmo_id          = TextField(u'WMO ID')
+    submit          = SubmitField(u"Create")
 
 @app.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
@@ -101,22 +116,31 @@ def new_deployment(username):
         return redirect(url_for("index"))
 
     form = NewDeploymentForm()
-    bad_regex = r'[^a-zA-z0-9_-]'
-    form.name.data = re.sub(bad_regex, '', form.name.data)
+
+
     if form.validate_on_submit():
+        deployment_date = dateparse(form.deployment_date.data)
+        deployment_name = form.glider_name.data + '-' + deployment_date.strftime('%Y%m%dT%H%MZ')
 
         upload_root = user.data_root
-        new_deployment_dir = os.path.join(upload_root, form.name.data)
+        new_deployment_dir = os.path.join(upload_root, deployment_name)
 
         deployment = db.Deployment()
-        form.populate_obj(deployment)
+        #form.populate_obj(deployment)
         deployment.user_id = user._id
-        deployment.deployment_dir = os.path.join(username, form.name.data)
+        deployment.username = username
+        deployment.deployment_dir = os.path.join(username, deployment_name)
         deployment.updated = datetime.utcnow()
+        deployment.deployment_date = deployment_date
+        deployment.glider_name = form.glider_name.data
+        deployment.name = deployment_name
         try:
-            existing_deployment = db.Deployment.find_one({'name' : form.name.data})
+            existing_deployment = db.Deployment.find_one({'name' : deployment_name})
             if existing_deployment is not None:
                 raise DuplicateKeyError("Duplicate Key Detected: name")
+            existing_deployment = db.Deployment.find_one({'glider_name' : form.glider_name.data, 'deployment_date':deployment_date})
+            if existing_deployment is not None:
+                raise DuplicateKeyError("Duplicate Key Detected: glider_name and deployment_date")
             deployment.save()
             flash("Deployment created", 'success')
             send_wmoid_email(username, deployment)
