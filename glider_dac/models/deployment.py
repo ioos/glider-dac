@@ -27,7 +27,9 @@ class Deployment(Document):
         'wmo_id'                    : unicode,
         'completed'                 : bool,
         'created'                   : datetime,
-        'updated'                   : datetime
+        'updated'                   : datetime,
+        'glider_name'               : unicode,
+        'deployment_date'           : datetime
     }
 
     default_values = {

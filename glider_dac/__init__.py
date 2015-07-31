@@ -2,8 +2,13 @@ import os
 import datetime
 
 from flask import Flask
+from flask_kvsession import KVSessionExtension
+from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
+import redis
+
+store = RedisStore(redis.StrictRedis())
 
 # Create application object
 app = Flask(__name__)
@@ -11,6 +16,8 @@ app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 app.config.from_object('glider_dac.defaults')
 app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
+
+KVSessionExtension(store, app)
 
 import sys
 
