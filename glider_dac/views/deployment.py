@@ -120,7 +120,7 @@ def new_deployment(username):
 
     if form.validate_on_submit():
         deployment_date = dateparse(form.deployment_date.data)
-        deployment_name = form.glider_name.data + '-' + deployment_date.strftime('%Y%m%dT%H%MZ')
+        deployment_name = form.glider_name.data + '-' + deployment_date.strftime('%Y%m%dT%H%M')
 
         upload_root = user.data_root
         new_deployment_dir = os.path.join(upload_root, deployment_name)
