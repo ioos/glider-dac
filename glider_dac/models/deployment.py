@@ -29,7 +29,8 @@ class Deployment(Document):
         'created'                   : datetime,
         'updated'                   : datetime,
         'glider_name'               : unicode,
-        'deployment_date'           : datetime
+        'deployment_date'           : datetime,
+        'archive_safe'              : bool
     }
 
     default_values = {

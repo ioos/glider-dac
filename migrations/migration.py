@@ -14,6 +14,10 @@ class DeploymentMigration(DocumentMigration):
         self.target = {'deployment_date':{'$exists':False}}
         self.update = {'$set':{'deployment_date':None}}
 
+    def allmigration02__add_archive_safe(self):
+        print "Adding archive_safe"
+        self.target = {'archive_safe':{'$exists':False}}
+        self.update = {'$set':{'archive_safe':False}}
 
 if __name__ == '__main__':
     with app.app_context():

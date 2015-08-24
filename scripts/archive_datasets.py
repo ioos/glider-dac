@@ -27,7 +27,7 @@ def get_active_deployments():
     Yields a filepath for each deployment marked completed by the API
     '''
     deployments = get_deployments()
-    filtered = [d for d in deployments['results'] if d['completed']]
+    filtered = [d for d in deployments['results'] if d['completed'] and d['archive_safe']]
     for d in filtered:
         filedir = os.path.join(path2pub, d['deployment_dir'])
         filename = os.path.basename(d['deployment_dir']) + '.ncCF.nc3.nc'
