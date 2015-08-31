@@ -23,7 +23,7 @@ def is_date_parseable(form, field):
         raise validators.ValidationError("Invalid Date")
 
 def is_valid_glider_name(form, field):
-    regex = ur'^[a-zA-Z]+[a-zA-Z0-9-]*$'
+    regex = ur'^[a-zA-Z]+[a-zA-Z0-9-_]*$'
     if not re.match(regex, field.data):
         raise validators.ValidationError("Invalid Glider Name")
 
