@@ -30,7 +30,8 @@ class Deployment(Document):
         'updated'                   : datetime,
         'glider_name'               : unicode,
         'deployment_date'           : datetime,
-        'archive_safe'              : bool
+        'archive_safe'              : bool,
+        'checksum'                  : unicode
     }
 
     default_values = {
@@ -175,6 +176,22 @@ class Deployment(Document):
                     if f.endswith(".md5"):
                         os.unlink(os.path.join(dirpath, f))
 
+    def calculate_checksum(self):
+        '''
+        Calculates a checksum for the deployment based on the MongoKit to_json()
+        serialization and the modified time(s) of the dive file(s).
+        '''
+        md5 = hashlib.md5()
+        # First ad the Mongo to_json serlialization
+        md5.update(self.to_json())
+        # Now add the modified times for the dive files in the deployment directory
+        # We dont MD5 every dive file here to save time
+        for dirpath, dirnames, filenames in os.walk(self.full_path):
+            for f in filenames:
+                if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
+                    continue
+                md5.update(os.path.getmtime(os.path.join(dirpath, f)))
+        self.checksum = md5.hexdigest()
 
     def sync(self):
         if app.config.get('NODATA'):
@@ -193,6 +210,7 @@ class Deployment(Document):
 
         # trigger any completed tasks if necessary
         self.on_complete()
+        self.calculate_checksum()
 
         # Serialize Deployment model to disk
         json_file = os.path.join(self.full_path, "deployment.json")
@@ -202,4 +220,3 @@ class Deployment(Document):
     @classmethod
     def get_deployment_count_by_operator(cls):
         return db.deployments.aggregate({ '$group': { '_id': '$operator', 'count': { '$sum' : 1 }}}).get('result',[])
-
