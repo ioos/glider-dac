@@ -59,26 +59,27 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
             path_parts = os.path.split(event.src_path)
 
-            if path_parts[-1] != "wmoid.txt":
-                return
-
-            rel_path = os.path.relpath(event.src_path, self.base)
-            logger.info("New wmoid.txt in %s", rel_path)
-
             with app.app_context():
-                deployment = db.Deployment.find_one({'deployment_dir':path_parts[0]})
+                deployment = db.Deployment.find_one({'deployment_dir' : path_parts[0]})
                 if deployment is None:
                     logger.error("Cannot find deployment for %s", path_parts[0])
                     return
 
-                if deployment.wmo_id:
-                    logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
-
-                with open(event.src_path) as wf:
-                    deployment.wmo_id = unicode(wf.readline().strip())
-
-                deployment.updated     = datetime.utcnow()
-                deployment.save()
+                if path_parts[-1] == "wmoid.txt":
+                    rel_path = os.path.relpath(event.src_path, self.base)
+                    logger.info("New wmoid.txt in %s", rel_path)
+                    if deployment.wmo_id:
+                        logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
+                    with open(event.src_path) as wf:
+                        deployment.wmo_id = unicode(wf.readline().strip())
+                    deployment.save()
+                else:
+                    # Always save the Deployment when a new dive file is added
+                    # so a checksum is calculated and a new deployment.json file
+                    # is created
+                    fname, ext = os.path.splitext(path_parts[-1])
+                    if ext not in ['.md5', '.txt']:
+                        deployment.save()
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):

@@ -4,6 +4,11 @@ from mongokit import DocumentMigration
 # Services
 from glider_dac.models import deployment
 class DeploymentMigration(DocumentMigration):
+    def allmigration03__add_checksum(self):
+        print "Adding checksum"
+        self.target = {'checksum' : {'$exists':False}}
+        self.update = {'$set':{'checksum':None}}
+
     def allmigration01__add_glider_name(self):
         print "Adding glider_name"
         self.target = {'glider_name':{'$exists':False}}

@@ -71,12 +71,16 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir):
             institution     = js.get('operator', js.get('username'))
             deployment_name = js['name']
             wmo_id          = js['wmo_id'].strip()
+            checksum        = js.get('checksum', '').strip()
+            completed       = js['completed']
     except (OSError, IOError, AssertionError, AttributeError):
         pass
 
     return template.safe_substitute(dataset_id=deployment,
                                     dataset_dir=dir_path,
-                                    institution=institution)
+                                    institution=institution,
+                                    checksum=checksum,
+                                    completed=completed)
 
 def build_erddap_agg_fragment(data_root, user, template_dir):
     """
