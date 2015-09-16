@@ -129,7 +129,7 @@ class Deployment(Document):
         md5 = hashlib.md5()
 
         with open(fname, 'rb') as f:
-            for chunk in iter(lambda: f.read(128), b''):
+            for chunk in iter(lambda: f.read(1024 * 2048), b''):
                 md5.update(chunk)
 
         return md5.hexdigest()
@@ -182,16 +182,17 @@ class Deployment(Document):
         serialization and the modified time(s) of the dive file(s).
         '''
         md5 = hashlib.md5()
-        # First ad the Mongo to_json serlialization
-        md5.update(self.to_json())
         # Now add the modified times for the dive files in the deployment directory
         # We dont MD5 every dive file here to save time
         for dirpath, dirnames, filenames in os.walk(self.full_path):
             for f in filenames:
                 if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                     continue
-                md5.update(os.path.getmtime(os.path.join(dirpath, f)))
-        self.checksum = md5.hexdigest()
+                mtime = os.path.getmtime(os.path.join(dirpath, f))
+                mtime = datetime.utcfromtimestamp(mtime)
+
+                md5.update(mtime.isoformat())
+        self.checksum = unicode(md5.hexdigest())
 
     def sync(self):
         if app.config.get('NODATA'):
