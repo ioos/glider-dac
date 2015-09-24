@@ -61,7 +61,7 @@ def list_user_deployments(username):
 
     return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
 
-@app.route('/operators/<string:operator>/deployments')
+@app.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
     deployments = list(db.Deployment.find( { 'operator' : unicode(operator) } ))
 
