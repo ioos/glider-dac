@@ -7,8 +7,9 @@ import re
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
-from glider_dac import app, db, datetimeformat
+from glider_dac import app, db, datetimeformat, queue
 from glider_dac.glider_emails import send_wmoid_email
+from glider_dac import tasks
 
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
@@ -235,8 +236,8 @@ def delete_deployment(username, deployment_id):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
 
-    shutil.rmtree(deployment.full_path)
-    deployment.delete()
+    queue.enqueue_call(func=tasks.delete_deployment, args=(deployment_id,), timeout=30)
+    flash("Deployment queued for deletion", 'success')
 
     return redirect(url_for("list_user_deployments", username=username))
 

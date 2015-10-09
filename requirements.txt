@@ -13,3 +13,6 @@ sh==1.09
 requests==2.4.3
 -e git://github.com/asascience-open/thredds_crawler@c2164e3a805e423ff06e52986a8753038e9c00ce#egg=thredds_crawler-master
 Flask-KVSession==0.6.2
+Flask-Environments==0.1
+rq==0.5.6
+rq-dashboard==0.3.4

@@ -8,7 +8,6 @@ from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
-from glider_dac.defaults import PUBLIC_ERDDAP, THREDDS
 
 @db.register
 class Deployment(Document):
@@ -62,7 +61,7 @@ class Deployment(Document):
         Returns the THREDDS DAP URL to this deployment
         '''
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -75,7 +74,7 @@ class Deployment(Document):
         Returns the URL to the NcSOS endpoint
         '''
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -86,13 +85,13 @@ class Deployment(Document):
     def iso(self):
         title = slugify(self.title)
         name = slugify(self.name)
-        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : PUBLIC_ERDDAP, 'name' : name}
+        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : app.config['PUBLIC_ERDDAP'], 'name' : name}
         return iso_url
 
     @property
     def thredds(self):
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -102,7 +101,7 @@ class Deployment(Document):
     @property
     def erddap(self):
         args = {
-            'host': PUBLIC_ERDDAP,
+            'host': app.config['PUBLIC_ERDDAP'],
             'user': slugify(self.username),
             'deployment' : slugify(self.name)
         }

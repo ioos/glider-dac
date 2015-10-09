@@ -8,16 +8,31 @@ from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
 import redis
 
-store = RedisStore(redis.StrictRedis())
 
 # Create application object
 app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-app.config.from_object('glider_dac.defaults')
-app.config.from_envvar('APPLICATION_SETTINGS', silent=True)
+from flask_environments import Environments
+env = Environments(app)
+env.from_yaml('config.yml')
+if os.path.exists('config.local.yml'):
+    env.from_yaml('config.local.yml')
+
+
+import redis
+redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
+                                  port=app.config.get('REDIS_PORT'),
+                                  db=app.config.get('REDIS_DB'))
+redis_connection = redis.Redis(connection_pool=redis_pool)
+strict_redis = redis.StrictRedis(connection_pool=redis_pool)
+
+store = RedisStore(strict_redis)
 
 KVSessionExtension(store, app)
+
+from rq import Queue
+queue = Queue('default', connection=redis_connection)
 
 import sys
 
@@ -32,6 +47,7 @@ mail = Mail(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+
 
 # User Auth DB file - create if not existing
 if not os.path.exists(app.config.get('USER_DB_FILE')):
