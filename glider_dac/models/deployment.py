@@ -8,6 +8,7 @@ from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
+from shutil import rmtree
 
 @db.register
 class Deployment(Document):
@@ -53,7 +54,13 @@ class Deployment(Document):
         self.updated = datetime.utcnow()
 
         self.sync()
-        super(Deployment, self).save()
+        Document.save(self)
+
+    def delete(self):
+        if os.path.exists(self.full_path):
+            rmtree(self.full_path)
+        Document.delete(self)
+
 
     @property
     def dap(self):

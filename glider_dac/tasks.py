@@ -28,9 +28,6 @@ def with_app_ctxt(f):
 def delete_deployment(deployment_id):
     deployment_id = ObjectId(deployment_id)
     deployment = db.Deployment.find_one({"_id":deployment_id})
-    print "Looking for", deployment_id
-    print "Found", deployment
     if deployment is not None:
-        with open('/tmp/tobedelted.json', 'w') as f:
-            f.write(deployment.to_json())
+        deployment.delete()
 
