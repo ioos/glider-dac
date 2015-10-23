@@ -7,8 +7,9 @@ import re
 
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
-from glider_dac import app, db, datetimeformat
+from glider_dac import app, db, datetimeformat, queue
 from glider_dac.glider_emails import send_wmoid_email
+from glider_dac import tasks
 
 from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
@@ -95,7 +96,7 @@ def show_deployment(username, deployment_id):
 
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
         kwargs['editable'] = True
-        if current_user.is_admin():
+        if current_user.is_admin() or current_user == user:
             kwargs['admin'] = True
 
     return render_template('show_deployment.html', username=username, form=form, deployment=deployment, files=files, **kwargs)
@@ -214,9 +215,15 @@ def delete_deployment_files(username, deployment_id):
 
     deployment = db.Deployment.find_one({'_id':deployment_id})
     user = db.User.find_one({'username':username})
+    if deployment is None:
+        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+    if user is None:
+        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+    if not (current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)):
+        raise StandardError("Unauthorized")     # @TODO better response via ajax?
 
     if not (deployment and user and (current_user.is_admin() or user._id == deployment.user_id)):
-            raise StandardError("Unauthorized")     # @TODO better response via ajax?
+        raise StandardError("Unauthorized")     # @TODO better response via ajax?
 
     for name in request.json['files']:
         file_name = os.path.join(deployment.full_path, name)
@@ -230,13 +237,19 @@ def delete_deployment(username, deployment_id):
 
     deployment = db.Deployment.find_one({'_id':deployment_id})
     user = db.User.find_one( {'username' : username } )
-
-    if not (deployment is not None and user is not None and deployment.user_id == user._id and current_user.is_admin()):
+    if deployment is None:
+        flash("Permission denied", 'danger')
+        return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
+    if user is None:
+        flash("Permission denied", 'danger')
+        return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
+    if not (current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
 
-    shutil.rmtree(deployment.full_path)
-    deployment.delete()
+
+    queue.enqueue_call(func=tasks.delete_deployment, args=(deployment_id,), timeout=30)
+    flash("Deployment queued for deletion", 'success')
 
     return redirect(url_for("list_user_deployments", username=username))
 

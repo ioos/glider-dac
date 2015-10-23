@@ -75,7 +75,8 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir):
             js              = json.load(f)
             institution     = js.get('operator', js.get('username'))
             deployment_name = js['name']
-            wmo_id          = js['wmo_id'].strip()
+            wmo_id          = js.get('wmo_id', '') or ''
+            wmo_id          = wmo_id.strip()
             checksum        = js.get('checksum', '').strip()
             completed       = js['completed']
     except (OSError, IOError, AssertionError, AttributeError) as e:

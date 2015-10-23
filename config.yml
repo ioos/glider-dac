@@ -1,0 +1,45 @@
+COMMON: &common
+  HOST: localhost
+  PORT: 3000
+  DEBUG: False
+  MONGODB_HOST: localhost
+  MONGODB_PORT: 27017
+  MONGODB_DATABASE: gliderdac
+
+  APPLICATION_PREFIX: "/gliders/"
+  SECRET_KEY: thisisakey
+  LOG_FILE: yes
+  WEB_PASSWORD: password
+
+  MAIL_ENABLED: False
+  MAIL_SERVER: smtp-server
+  #MAIL_SERVER: localhost
+  MAIL_PORT: 25
+  #MAIL_PORT: 2525
+  MAIL_USERNAME: mail-username
+  MAIL_PASSWORD: mail-password
+  MAIL_USE_TLS: True
+  MAIL_DEFAULT_SENDER: sender@domain.com
+  MAILER_DEBUG: True
+  MAIL_DEFAULT_TO: receiver@domain.com
+  #MAIL_DEFAULT_LIST: YOUR_EMAIL
+
+  PUBLIC_ERDDAP: data.ioos.us
+  THREDDS: data.ioos.us
+  DATA_ROOT: data/data/priv_erddap
+  PUBLIC_DATA_ROOT: data/data/pub_erddap
+  THREDDS_DATA_ROOT: data/data/thredds
+  ARCHIVE_PATH: data/ftp/archive
+  DEV_CATALOG_ROOT: PATH_TO_CODE_ROOT/tds_catalogs
+  ADMINS: 
+   - admin
+  USER_DB_FILE: users.db
+
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
+  REDIS_DB: 8
+
+DEVELOPMENT: &development
+  <<: *common
+  DEBUG: True
+

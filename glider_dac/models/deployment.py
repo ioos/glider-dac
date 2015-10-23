@@ -8,7 +8,7 @@ from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
-from glider_dac.defaults import PUBLIC_ERDDAP, THREDDS
+from shutil import rmtree
 
 @db.register
 class Deployment(Document):
@@ -54,7 +54,17 @@ class Deployment(Document):
         self.updated = datetime.utcnow()
 
         self.sync()
-        super(Deployment, self).save()
+        Document.save(self)
+
+    def delete(self):
+        if os.path.exists(self.full_path):
+            rmtree(self.full_path)
+        if os.path.exists(self.public_erddap_path):
+            rmtree(self.public_erddap_path)
+        if os.path.exists(self.thredds_path):
+            rmtree(self.thredds_path)
+        Document.delete(self)
+
 
     @property
     def dap(self):
@@ -62,7 +72,7 @@ class Deployment(Document):
         Returns the THREDDS DAP URL to this deployment
         '''
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -75,7 +85,7 @@ class Deployment(Document):
         Returns the URL to the NcSOS endpoint
         '''
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -86,13 +96,13 @@ class Deployment(Document):
     def iso(self):
         title = slugify(self.title)
         name = slugify(self.name)
-        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : PUBLIC_ERDDAP, 'name' : name}
+        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : app.config['PUBLIC_ERDDAP'], 'name' : name}
         return iso_url
 
     @property
     def thredds(self):
         args = { 
-            'host' : THREDDS, 
+            'host' : app.config['THREDDS'], 
             'user' : slugify(self.username), 
             'deployment' : slugify(self.name)
         }
@@ -102,7 +112,7 @@ class Deployment(Document):
     @property
     def erddap(self):
         args = {
-            'host': PUBLIC_ERDDAP,
+            'host': app.config['PUBLIC_ERDDAP'],
             'user': slugify(self.username),
             'deployment' : slugify(self.name)
         }
@@ -119,6 +129,14 @@ class Deployment(Document):
     @property
     def full_path(self):
         return os.path.join(app.config.get('DATA_ROOT'), self.deployment_dir)
+
+    @property
+    def public_erddap_path(self):
+        return os.path.join(app.config.get('PUBLIC_ERDDAP'), self.deployment_dir)
+
+    @property
+    def thredds_path(self):
+        return os.path.join(app.config.get('THREDDS'), self.deployment_dir)
 
     def _hash_file(self, fname):
         """

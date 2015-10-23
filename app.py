@@ -47,5 +47,5 @@ def site_map():
     return jsonify(rules=links)
 initialize_logs(app)
 
-if os.environ.get('APPLICATION_SETTINGS') == 'development.py':
-    app.run(host="localhost", port=3000, debug=True)
+if __name__ == '__main__':
+    app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])

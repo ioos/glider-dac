@@ -1,11 +1,10 @@
 import os
 from flask.ext.mail import Message
 from flask import render_template
-from glider_dac.defaults import MAIL_ENABLED, PUBLIC_ERDDAP, THREDDS
 from glider_dac import app, mail
 
 def send_wmoid_email(username, deployment):
-    if not MAIL_ENABLED: # Mail is disabled
+    if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
         return
     # sender comes from MAIL_DEFAULT_SENDER in env
@@ -28,14 +27,14 @@ def send_wmoid_email(username, deployment):
 
 def get_thredds_catalog_url():
     args = {
-        'host' : THREDDS
+        'host' : app.config['THREDDS']
     }
     url = u'http://%(host)s/thredds/catalog.xml' % args
     return url
 
 def get_erddap_catalog_url():
     args = {
-        'host' : PUBLIC_ERDDAP
+        'host' : app.config['PUBLIC_ERDDAP']
     }
     url = u'http://%(host)s/erddap/metadata/iso19115/xml/' % args
     return url
