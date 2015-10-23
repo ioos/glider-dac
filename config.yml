@@ -26,8 +26,10 @@ COMMON: &common
 
   PUBLIC_ERDDAP: data.ioos.us
   THREDDS: data.ioos.us
-  DATA_ROOT: path/to/data/root
-  ARCHIVE_PATH: path/to/archive
+  DATA_ROOT: data/data/priv_erddap
+  PUBLIC_DATA_ROOT: data/data/pub_erddap
+  THREDDS_DATA_ROOT: data/data/thredds
+  ARCHIVE_PATH: data/ftp/archive
   DEV_CATALOG_ROOT: PATH_TO_CODE_ROOT/tds_catalogs
   ADMINS: 
    - admin

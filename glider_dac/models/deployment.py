@@ -59,6 +59,10 @@ class Deployment(Document):
     def delete(self):
         if os.path.exists(self.full_path):
             rmtree(self.full_path)
+        if os.path.exists(self.public_erddap_path):
+            rmtree(self.public_erddap_path)
+        if os.path.exists(self.thredds_path):
+            rmtree(self.thredds_path)
         Document.delete(self)
 
 
@@ -125,6 +129,14 @@ class Deployment(Document):
     @property
     def full_path(self):
         return os.path.join(app.config.get('DATA_ROOT'), self.deployment_dir)
+
+    @property
+    def public_erddap_path(self):
+        return os.path.join(app.config.get('PUBLIC_ERDDAP'), self.deployment_dir)
+
+    @property
+    def thredds_path(self):
+        return os.path.join(app.config.get('THREDDS'), self.deployment_dir)
 
     def _hash_file(self, fname):
         """
