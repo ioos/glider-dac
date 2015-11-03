@@ -15,8 +15,6 @@ DeploymentInfo:
 
 
 
-Once a WMO_ID is received, place it in the directory inside of a file named "wmoid.txt".
-
 {% endif %}
 
-Thank you for your cooperation
+Thank you for supporting the IOOS National Glider Data Assembly Center
