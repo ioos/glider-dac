@@ -10,6 +10,7 @@ import sys
 import os
 import hashlib
 import logging
+import shutil
 
 logger = logging.getLogger('archive_datasets')
 
@@ -34,7 +35,7 @@ def get_active_deployments():
         filepath = os.path.join(filedir, filename)
         yield filepath
 
-def make_link(filepath):
+def make_copy(filepath):
     '''
     Creates a symbolic link of the file specified in the new NCEI_DIR
     :param str filepath: Path to the source of the symbolic link
@@ -43,8 +44,8 @@ def make_link(filepath):
     target = os.path.join(NCEI_DIR, filename)
     source = filepath
     if not os.path.exists(target):
-        logger.info("Creating symbolic link")
-        os.symlink(source, target)
+        logger.info("Creating archive dataset")
+        shutil.copyfile(source, target)
     generate_hash(target)
 
 def generate_hash(filepath):
@@ -92,7 +93,7 @@ def main(args):
         set_verbose()
     for filepath in get_active_deployments():
         logger.info("Archiving %s", filepath)
-        make_link(filepath)
+        make_copy(filepath)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
