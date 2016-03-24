@@ -9,7 +9,6 @@ import re
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
 from glider_dac import app, db, datetimeformat
-from glider_dac.glider_emails import send_wmoid_email
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
 import re

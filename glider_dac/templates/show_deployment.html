@@ -273,7 +273,6 @@
   <form name="deployment_edit" id="deployment_edit" method="POST" action="{{ url_for('edit_deployment', username=username, deployment_id=deployment._id) if editable}}">
     {{ form.hidden_tag() }}
     {{ render_field(form.operator, not editable) }}
-    {{ render_field(form.wmo_id, not editable) }}
     {{ render_boolean(form.completed, not editable) }}
     {% if editable %}
     {{ form.submit(class_="btn btn-primary") }}

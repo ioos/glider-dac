@@ -17,9 +17,6 @@
     <div class="form-group">
       {{ form.deployment_date(placeholder="YYYY-MM-DDTHH:mmZ", class_="form-control datepicker") }}
     </div>
-    <div class="form-group">
-      {{ form.wmo_id(placeholder="WMO ID (optional)", class_="form-control") }}
-    </div>
     <button type="submit" class="btn btn-primary" disabled="disabled"><span class="glyphicon glyphicon-plus"></span> New Deployment</button>
   </form>
 </div>
@@ -49,7 +46,6 @@ $(function() {
       <tr>
         <th data-defaultsort='asc'>Deployment</th>
         <th>Operator</th>
-        <th>WMO ID</th>
         <th>Last Updated</th>
       </tr>
     </thead>
@@ -58,7 +54,6 @@ $(function() {
     <tr>
       <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
       <td>{% if m.operator %}<a href="{{ url_for('list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
-      <td>{{ m.wmo_id }}</td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
     </tr>
     {%- endfor %}

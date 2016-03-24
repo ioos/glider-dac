@@ -8,13 +8,5 @@ DeploymentInfo:
     THREDDS_CATALOG: {{ thredds_url }}
     ERDDAP_CATALOG: {{ erddap_url }}
     
-{% if deployment.wmo_id %}
-    WMO_ID: {{ deployment.wmo_id }}
-{% else %}
-    THIS DEPLOYMENT NEEDS A WMO_ID
-
-
-
-{% endif %}
 
 Thank you for supporting the IOOS National Glider Data Assembly Center
