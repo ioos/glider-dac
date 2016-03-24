@@ -8,7 +8,7 @@ import re
 from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, login_user, logout_user, current_user
 from glider_dac import app, db, datetimeformat, queue
-from glider_dac.glider_emails import send_wmoid_email
+from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
 
 from flask.ext.wtf import Form
@@ -31,14 +31,12 @@ def is_valid_glider_name(form, field):
 
 class DeploymentForm(Form):
     operator                    = TextField(u'Operator')
-    wmo_id                      = TextField(u'WMO ID')
     completed                   = BooleanField(u'Completed')
     submit                      = SubmitField(u'Submit')
 
 class NewDeploymentForm(Form):
     glider_name     = TextField(u'Glider Name', [is_valid_glider_name])
     deployment_date = TextField(u'Deployment Date', [is_date_parseable])
-    wmo_id          = TextField(u'WMO ID')
     submit          = SubmitField(u"Create")
 
 @app.route('/users/<string:username>/deployments')
@@ -144,7 +142,7 @@ def new_deployment(username):
                 raise DuplicateKeyError("Duplicate Key Detected: glider_name and deployment_date")
             deployment.save()
             flash("Deployment created", 'success')
-            send_wmoid_email(username, deployment)
+            send_registration_email(username, deployment)
         except DuplicateKeyError:
             flash("Deployment names must be unique across Glider DAC: %s already used" % deployment.name, 'danger')
 
