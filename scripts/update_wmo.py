@@ -17,7 +17,7 @@ def main(args):
     for deployment in db.Deployment.find({u"wmo_id":None}):
         try:
             wmo_id = determine_wmo_id(deployment)
-            deployment.wmo_id = wmo_id
+            deployment.wmo_id = unicode(wmo_id)
             deployment.save()
         except Exception as e:
             continue
