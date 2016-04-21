@@ -24,6 +24,11 @@ class DeploymentMigration(DocumentMigration):
         self.target = {'archive_safe':{'$exists':False}}
         self.update = {'$set':{'archive_safe':False}}
 
+    def allmigration04__add_attribution(self):
+        print "Adding attribution"
+        self.target = {'attribution': {'$exists': False}}
+        self.update = {'$set': {'attribution': None}}
+
 if __name__ == '__main__':
     with app.app_context():
         migration = DeploymentMigration(deployment.Deployment)

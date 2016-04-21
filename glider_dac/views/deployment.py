@@ -32,11 +32,13 @@ def is_valid_glider_name(form, field):
 class DeploymentForm(Form):
     operator                    = TextField(u'Operator')
     completed                   = BooleanField(u'Completed')
+    attribution                 = TextField(u'Attribution')
     submit                      = SubmitField(u'Submit')
 
 class NewDeploymentForm(Form):
     glider_name     = TextField(u'Glider Name', [is_valid_glider_name])
     deployment_date = TextField(u'Deployment Date', [is_date_parseable])
+    attribution     = TextField(u'Attribution')
     submit          = SubmitField(u"Create")
 
 @app.route('/users/<string:username>/deployments')
