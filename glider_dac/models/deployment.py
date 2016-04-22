@@ -31,7 +31,8 @@ class Deployment(Document):
         'glider_name'               : unicode,
         'deployment_date'           : datetime,
         'archive_safe'              : bool,
-        'checksum'                  : unicode
+        'checksum'                  : unicode,
+        'attribution'               : unicode
     }
 
     default_values = {
