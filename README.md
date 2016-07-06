@@ -1,6 +1,10 @@
 Glider DAC
 ==========
 
+This is the main repository for the IOOS Glider DAC site, scripts, and tools
+
+Please do not file issues here,  all GliderDAC related issues should be filed in the [IOOS National Glider Data Assembly Center (V2)](OOS National Glider Data Assembly Center (V2)) repository.
+
 ### Install Notes
 
 The `bsddb3` python package requires Berkeley DB installed. If using OSX, this can be done with `brew install berkeley-db`, but in order to install `bsddb3`, you'll need to execute the following (update for your current installed version):
