@@ -267,6 +267,7 @@ def get_deployments():
         d['dap'] = deployment.dap
         d['erddap'] = deployment.erddap
         d['thredds'] = deployment.thredds
+        d['attribution'] = deployment.attribution
         results.append(d)
 
     return jsonify(results=results, num_results=len(results))
@@ -285,5 +286,6 @@ def get_deployment(username, deployment_name):
     d['dap'] = deployment.dap
     d['erddap'] = deployment.erddap
     d['thredds'] = deployment.thredds
+    d['attribution'] = deployment.attribution
     return jsonify(**d)
 
