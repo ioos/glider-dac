@@ -1,0 +1,14 @@
+sea_water_temperature:
+  flat_line:
+    low_reps: 4
+    high_reps: 8
+    eps: 1.1920929e-07
+  gross_range:
+    sensor_span:
+      - -5.
+      - 45.
+  rate_of_change:
+    thresh_val: 5.
+  spike:
+    low_thresh: 5.
+    high_thresh: 10.

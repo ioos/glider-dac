@@ -4,13 +4,15 @@ glider_qc/glider_qc.py
 '''
 import numpy as np
 import quantities as pq
+import yaml
 from netCDF4 import num2date
 from ioos_qartod.qc_tests import qc
 
 
 class GliderQC(object):
-    def __init__(self, ncfile):
+    def __init__(self, ncfile, config_file=None):
         self.ncfile = ncfile
+        self.load_config(config_file)
 
     def find_geophysical_variables(self):
         '''
@@ -137,33 +139,20 @@ class GliderQC(object):
 
         return qcvariables
 
+    def load_config(self, path='data/qc_config.yml'):
+        '''
+        Loads a yaml file configuration for QC
+        '''
+        path = path or 'data/qc_config.yml'
+        with open(path, 'r') as f:
+            self.config = yaml.load(f.read())
+
     def apply_qc(self, ncvariable):
         '''
         Applies QC to a qartod variable
 
         :param netCDF4.Variable ncvariable: A QARTOD Variable
         '''
-        f32_eps = np.finfo(np.float32).eps
-        configuration = {
-            'sea_water_temperature': {
-                'flat_line': {
-                    'low_reps': 4,
-                    'high_reps': 8,
-                    'eps': f32_eps
-                },
-                'gross_range': {
-                    'sensor_span': [-5, 45]
-                },
-                'rate_of_change': {
-                    'thresh_val': 5. / pq.hour
-                },
-                'spike': {
-                    'low_thresh': 5,
-                    'high_thresh': 10
-                }
-            }
-        }
-
         qc_tests = {
             'flat_line': qc.flat_line_check,
             'gross_range': qc.range_check,
@@ -174,7 +163,9 @@ class GliderQC(object):
         qartod_test = getattr(ncvariable, 'qartod_test')
         standard_name = getattr(ncvariable, 'standard_name').split(' ')[0]
         parent = self.ncfile.get_variables_by_attributes(standard_name=standard_name)[0]
-        test_params = configuration[standard_name][qartod_test]
+        test_params = self.config[standard_name][qartod_test]
+        if 'thresh_val' in test_params:
+            test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
         if qartod_test in ('rate_of_change', 'pressure'):
             times = self.ncfile.variables['time'][:]
