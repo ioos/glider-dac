@@ -3,8 +3,10 @@
 glider_qc/glider_qc.py
 '''
 import numpy as np
+import numpy.ma as ma
 import quantities as pq
 import yaml
+from cf_units import Unit
 from netCDF4 import num2date
 from ioos_qartod.qc_tests import qc
 
@@ -126,7 +128,12 @@ class GliderQC(object):
             if tname == 'pressure' and standard_name != 'sea_water_pressure':
                 continue
             variable_name = template['name'] % {'name': name}
-            ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int8(9))
+
+            if variable_name not in self.ncfile.variables:
+                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int8(9))
+            else:
+                ncvar = self.ncfile.variables[variable_name]
+
             ncvar.units = '1'
             ncvar.standard_name = template['standard_name'] % {'standard_name': standard_name}
             ncvar.long_name = template['long_name'] % {'standard_name': standard_name}
@@ -146,6 +153,15 @@ class GliderQC(object):
         path = path or 'data/qc_config.yml'
         with open(path, 'r') as f:
             self.config = yaml.load(f.read())
+
+    @classmethod
+    def normalize_variable(cls, values, units, standard_name):
+        mapping = {
+            'sea_water_temperature': 'deg_C',
+            'sea_water_electrical_conductivity': 'S m-1',
+        }
+        converted = Unit(units).convert(values, mapping[standard_name])
+        return converted
 
     def apply_qc(self, ncvariable):
         '''
@@ -167,11 +183,25 @@ class GliderQC(object):
         if 'thresh_val' in test_params:
             test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
+        times = self.ncfile.variables['time'][:]
+        values = parent[:]
+
+        mask = np.zeros(times.shape[0], dtype=bool)
+
+        if hasattr(values, 'mask'):
+            mask |= values.mask
+
+        if hasattr(times, 'mask'):
+            mask |= times.mask
+
         if qartod_test in ('rate_of_change', 'pressure'):
-            times = self.ncfile.variables['time'][:]
+            times = ma.getdata(times[~mask])
             dates = np.array(num2date(times, self.ncfile.variables['time'].units), dtype='datetime64[ms]')
             test_params['times'] = dates
-        test_params['arr'] = parent[:]
+        values = ma.getdata(values[~mask])
+        values = self.normalize_variable(values, parent.units, parent.standard_name)
+
+        test_params['arr'] = values
 
         qc_flags = qc_tests[qartod_test](**test_params)
-        ncvariable[:] = qc_flags
+        ncvariable[~mask] = qc_flags
