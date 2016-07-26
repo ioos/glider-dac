@@ -35,7 +35,7 @@ def update_deployment(deployment):
     with Dataset(dap_url) as nc:
 
         if deployment.wmo_id is None:
-            wmo_id = get_wmo(deployment)
+            wmo_id = get_wmo(nc)
             if wmo_id:
                 deployment.wmo_id = unicode(wmo_id)
                 dirty = True
@@ -56,7 +56,7 @@ def get_wmo(nc):
 
     :param netCDF4.Dataset nc: An open netCDF4 Dataset
     '''
-    if hasattr(nc, 'wmo_id'):
+    if getattr(nc, 'wmo_id', None):
         wmo_id = nc.wmo_id
     elif 'wmo_id' in nc.variables:
         wmo_id = ''.join(nc.variables['wmo_id'][:].flatten())
