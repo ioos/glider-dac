@@ -9,6 +9,7 @@ import yaml
 from cf_units import Unit
 from netCDF4 import num2date
 from ioos_qartod.qc_tests import qc
+from ioos_qartod.qc_tests import gliders as gliders_qc
 
 
 class GliderQC(object):
@@ -66,6 +67,16 @@ class GliderQC(object):
         ancillary_variables.append(child.name)
         parent.ancillary_variables = ' '.join(ancillary_variables)
 
+    def needs_qc(self, ncvariable):
+        '''
+        Returns True if the variable has no associated QC variables
+
+        :param netCDF4.Variable ncvariable: Variable to get the ancillary
+                                            variables for
+        '''
+        ancillary_variables = self.find_ancillary_variables(ncvariable)
+        return len(ancillary_variables) == 0
+
     def create_qc_variables(self, ncvariable):
         '''
         Returns a list of variable names for the newly created variables for QC flags
@@ -119,6 +130,14 @@ class GliderQC(object):
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
                 'qartod_test': 'pressure'
+            },
+            'primary': {
+                'name': 'qartod_%(name)s_primary_flag',
+                'long_name': 'QARTOD Primary Flag for %(standard_name)s',
+                'standard_name': '%(standard_name)s status_flag',
+                'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
+                'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
+                'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
             }
         }
 
@@ -140,7 +159,8 @@ class GliderQC(object):
             ncvar.flag_values = template['flag_values']
             ncvar.flag_meanings = template['flag_meanings']
             ncvar.references = template['references']
-            ncvar.qartod_test = template['qartod_test']
+            if 'qartod_test' in template:
+                ncvar.qartod_test = template['qartod_test']
             qcvariables.append(variable_name)
             self.append_ancillary_variable(ncvariable, ncvar)
 
@@ -156,9 +176,18 @@ class GliderQC(object):
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
+        '''
+        Returns an array of values that are converted into a standard set of
+        units. The motivation behind this is so that we compare values of the
+        same units when performing QC.
+        '''
         mapping = {
             'sea_water_temperature': 'deg_C',
             'sea_water_electrical_conductivity': 'S m-1',
+            'sea_water_salinity': '1',
+            'sea_water_practical_salinity': 'S m-1',
+            'sea_water_pressure': 'dbar',
+            'sea_water_density': 'kg m-3'
         }
         converted = Unit(units).convert(values, mapping[standard_name])
         return converted
@@ -173,18 +202,37 @@ class GliderQC(object):
             'flat_line': qc.flat_line_check,
             'gross_range': qc.range_check,
             'rate_of_change': qc.rate_of_change_check,
-            'spike': qc.spike_check
+            'spike': qc.spike_check,
+            'pressure': gliders_qc.pressure_check
         }
 
-        qartod_test = getattr(ncvariable, 'qartod_test')
+        qartod_test = getattr(ncvariable, 'qartod_test', None)
+        if not qartod_test:
+            return
         standard_name = getattr(ncvariable, 'standard_name').split(' ')[0]
         parent = self.ncfile.get_variables_by_attributes(standard_name=standard_name)[0]
         test_params = self.config[standard_name][qartod_test]
         if 'thresh_val' in test_params:
             test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
+        times, values, mask = self.get_unmasked(parent)
+
+        if qartod_test == 'rate_of_change':
+            times = ma.getdata(times[~mask])
+            dates = np.array(num2date(times, self.ncfile.variables['time'].units), dtype='datetime64[ms]')
+            test_params['times'] = dates
+
+        if qartod_test == 'pressure':
+            test_params['pressure'] = values
+        else:
+            test_params['arr'] = values
+
+        qc_flags = qc_tests[qartod_test](**test_params)
+        ncvariable[~mask] = qc_flags
+
+    def get_unmasked(self, ncvariable):
         times = self.ncfile.variables['time'][:]
-        values = parent[:]
+        values = ncvariable[:]
 
         mask = np.zeros(times.shape[0], dtype=bool)
 
@@ -194,14 +242,30 @@ class GliderQC(object):
         if hasattr(times, 'mask'):
             mask |= times.mask
 
-        if qartod_test in ('rate_of_change', 'pressure'):
-            times = ma.getdata(times[~mask])
-            dates = np.array(num2date(times, self.ncfile.variables['time'].units), dtype='datetime64[ms]')
-            test_params['times'] = dates
         values = ma.getdata(values[~mask])
-        values = self.normalize_variable(values, parent.units, parent.standard_name)
+        values = self.normalize_variable(values, ncvariable.units, ncvariable.standard_name)
+        return times, values, mask
 
-        test_params['arr'] = values
+    def apply_primary_qc(self, ncvariable):
+        '''
+        Applies the primary QC array which is an aggregate of all the other QC
+        tests.
 
-        qc_flags = qc_tests[qartod_test](**test_params)
-        ncvariable[~mask] = qc_flags
+        :param netCDF4.Variable ncvariable: NCVariable
+        '''
+        primary_qc_name = 'qartod_%s_primary_flag' % ncvariable.name
+        if primary_qc_name not in self.ncfile.variables:
+            return
+
+        qcvar = self.ncfile.variables[primary_qc_name]
+
+        ancillary_variables = self.find_ancillary_variables(ncvariable)
+        vectors = []
+
+        for qc_variable in ancillary_variables:
+            ncvar = self.ncfile.variables[qc_variable]
+            vectors.append(ma.getdata(ncvar[:]))
+
+        flags = qc.qc_compare(vectors)
+        qcvar[:] = flags
+
