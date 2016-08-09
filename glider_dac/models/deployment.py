@@ -37,7 +37,8 @@ class Deployment(Document):
 
     default_values = {
         'created': datetime.utcnow,
-        'completed': False
+        'completed': False,
+        'archive_safe': True
     }
 
     indexes = [

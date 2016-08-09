@@ -22,7 +22,7 @@ class DeploymentMigration(DocumentMigration):
     def allmigration02__add_archive_safe(self):
         print "Adding archive_safe"
         self.target = {'archive_safe':{'$exists':False}}
-        self.update = {'$set':{'archive_safe':False}}
+        self.update = {'$set':{'archive_safe':True}}
 
     def allmigration04__add_attribution(self):
         print "Adding attribution"
