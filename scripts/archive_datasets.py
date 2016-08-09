@@ -30,7 +30,7 @@ def get_active_deployments():
     deployments = get_deployments()
     filtered = [d for d in deployments['results'] if d['completed']]
     for d in filtered:
-        if 'blacklisted' in d and d['blacklisted'] is True:
+        if 'archive_safe' in d and d['archive_safe'] is False:
             continue
         filedir = os.path.join(path2pub, d['deployment_dir'])
         filename = os.path.basename(d['deployment_dir']) + '.ncCF.nc3.nc'
