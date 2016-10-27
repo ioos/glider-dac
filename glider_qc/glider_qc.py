@@ -219,8 +219,11 @@ class GliderQC(object):
 
         if qartod_test == 'rate_of_change':
             times = ma.getdata(times[~mask])
-            dates = np.array(num2date(times, self.ncfile.variables['time'].units), dtype='datetime64[ms]')
+            time_units = self.ncfile.variables['time'].units
+            dates = np.array(num2date(times, time_units), dtype='datetime64[ms]')
             test_params['times'] = dates
+            # Calculate the threshold value
+            test_params['thresh_val'] = self.get_rate_of_change_threshold(values, times, time_units)
 
         if qartod_test == 'pressure':
             test_params['pressure'] = values
@@ -229,6 +232,30 @@ class GliderQC(object):
 
         qc_flags = qc_tests[qartod_test](**test_params)
         ncvariable[~mask] = qc_flags
+
+    def get_rate_of_change_threshold(self, values, times, time_units='seconds since 1970-01-01T00:00:00Z'):
+        '''
+        Return the threshold used for the rate of change test
+
+        :param values: numpy array of values
+        :param times: numpy array of times
+        :param time_units: string defining time units
+        '''
+        n_dev = 3   # Set to 3 standard deviations
+        std = np.nanstd(values)
+        thresh = n_dev * std
+        thresh_rate = thresh / np.median(np.diff(times))
+
+        # Set the python time quantity
+        time_quantity = pq.second  # Set default
+        if 'minute' in time_units:
+            time_quantity = pq.minute
+        elif 'hour' in time_units:
+            time_quantity = pq.hour
+        elif 'day' in time_units:
+            time_quantity = pq.day
+
+        return thresh_rate / time_quantity
 
     def get_unmasked(self, ncvariable):
         times = self.ncfile.variables['time'][:]
@@ -268,4 +295,3 @@ class GliderQC(object):
 
         flags = qc.qc_compare(vectors)
         qcvar[:] = flags
-
