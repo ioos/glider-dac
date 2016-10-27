@@ -86,7 +86,7 @@ class TestGliderQC(TestCase):
 
         qc.apply_qc(ncfile.variables['qartod_temperature_rate_of_change_flag'])
         np.testing.assert_equal(
-            np.array([2, 3, 1, 1, 3, 1, 3, 3], dtype=np.int8),
+            np.array([2, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
             ncfile.variables['qartod_temperature_rate_of_change_flag'][:])
 
         qc.apply_qc(ncfile.variables['qartod_temperature_spike_flag'])
