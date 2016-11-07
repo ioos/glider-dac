@@ -10,6 +10,9 @@ from cf_units import Unit
 from netCDF4 import num2date
 from ioos_qartod.qc_tests import qc
 from ioos_qartod.qc_tests import gliders as gliders_qc
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class GliderQC(object):
@@ -185,11 +188,17 @@ class GliderQC(object):
             'sea_water_temperature': 'deg_C',
             'sea_water_electrical_conductivity': 'S m-1',
             'sea_water_salinity': '1',
-            'sea_water_practical_salinity': 'S m-1',
+            'sea_water_practical_salinity': '1',
             'sea_water_pressure': 'dbar',
             'sea_water_density': 'kg m-3'
         }
-        converted = Unit(units).convert(values, mapping[standard_name])
+        try:
+            converted = Unit(units).convert(values, mapping[standard_name])
+        except:
+            print "HELP!"
+            print "Normalizing", standard_name
+            log.exception("Normalizing %s", standard_name)
+            raise
         return converted
 
     def apply_qc(self, ncvariable):
@@ -216,6 +225,9 @@ class GliderQC(object):
             test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
         times, values, mask = self.get_unmasked(parent)
+        # There's no data to QC
+        if len(values) == 0:
+            return
 
         if qartod_test == 'rate_of_change':
             times = ma.getdata(times[~mask])
