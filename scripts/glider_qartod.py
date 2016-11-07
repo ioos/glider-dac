@@ -6,12 +6,19 @@ from argparse import ArgumentParser
 from netCDF4 import Dataset
 from glider_qc.glider_qc import GliderQC
 import sys
+import logging
 
 
 def main():
     '''
     Apply QARTOD QC to GliderDAC submitted netCDF files
+
+    Example::
+
+        python scripts/glider_qartod.py -c data/qc_config.yml ~/Desktop/revellie/revellie.nc
+
     '''
+    logging.basicConfig(level=logging.INFO)
     parser = ArgumentParser(description=main.__doc__)
     parser.add_argument('-c', '--config', help='Path to config YML file to use')
     parser.add_argument('netcdf_files', nargs='+', help='NetCDF file to apply QC to')
