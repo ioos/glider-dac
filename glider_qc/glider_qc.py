@@ -195,8 +195,6 @@ class GliderQC(object):
         try:
             converted = Unit(units).convert(values, mapping[standard_name])
         except:
-            print "HELP!"
-            print "Normalizing", standard_name
             log.exception("Normalizing %s", standard_name)
             raise
         return converted
