@@ -47,8 +47,8 @@ sea_water_salinity: # unitless
     eps: 1.1920929e-07
   gross_range:
     sensor_span:
-      - 1000
-      - 1030
+      - 0
+      - 50
   rate_of_change:
     thresh_val: 0.15
   spike:
@@ -61,13 +61,13 @@ sea_water_density: # kg m-3
     eps: 1.1920929e-07
   gross_range:
     sensor_span:
-      - 0
-      - 50
+      - 1000
+      - 1050
   rate_of_change:
     thresh_val: 5.
   spike:
-    low_thresh: 5.
-    high_thresh: 10.
+    low_thresh: 1.
+    high_thresh: 2.
 sea_water_pressure: # `
   flat_line:
     low_reps: 4
@@ -76,7 +76,7 @@ sea_water_pressure: # `
   gross_range:
     sensor_span:
       - 0
-      - 1200
+      - 11000
   rate_of_change:
     thresh_val: 5.
   spike:

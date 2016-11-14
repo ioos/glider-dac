@@ -235,6 +235,10 @@ class GliderQC(object):
             # Calculate the threshold value
             test_params['thresh_val'] = self.get_rate_of_change_threshold(values, times, time_units)
 
+        if qartod_test == 'spike':
+            test_params['times'] = times
+            test_params['low_thresh'], test_params['high_thresh'] = self.get_spike_thresholds(values)
+
         if qartod_test == 'pressure':
             test_params['pressure'] = values
         else:
@@ -266,6 +270,18 @@ class GliderQC(object):
             time_quantity = pq.day
 
         return thresh_rate / time_quantity
+
+    def get_spike_thresholds(self, values):
+        '''
+        Return the min/max thresholds used for the spike test
+
+        :param values: numpy array of values
+        '''
+        std = np.nanstd(values)
+        min_thresh = 0.5 * std
+        max_thresh = 1.0 * std
+
+        return min_thresh, max_thresh
 
     def get_unmasked(self, ncvariable):
         times = self.ncfile.variables['time'][:]
