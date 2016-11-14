@@ -218,15 +218,13 @@ class GliderQC(object):
             return
         standard_name = getattr(ncvariable, 'standard_name').split(' ')[0]
         parent = self.ncfile.get_variables_by_attributes(standard_name=standard_name)[0]
-        test_params = self.config[standard_name][qartod_test]
-        if 'thresh_val' in test_params:
-            test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
         times, values, mask = self.get_unmasked(parent)
         # There's no data to QC
         if len(values) == 0:
             return
 
+        test_params = {}
         if qartod_test == 'rate_of_change':
             times = ma.getdata(times[~mask])
             time_units = self.ncfile.variables['time'].units
@@ -234,10 +232,14 @@ class GliderQC(object):
             test_params['times'] = dates
             # Calculate the threshold value
             test_params['thresh_val'] = self.get_rate_of_change_threshold(values, times, time_units)
-
-        if qartod_test == 'spike':
+        elif qartod_test == 'spike':
             test_params['times'] = times
             test_params['low_thresh'], test_params['high_thresh'] = self.get_spike_thresholds(values)
+        else:
+            test_params = self.config[standard_name][qartod_test]
+
+        if 'thresh_val' in test_params:
+            test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
 
         if qartod_test == 'pressure':
             test_params['pressure'] = values
@@ -278,9 +280,8 @@ class GliderQC(object):
         :param values: numpy array of values
         '''
         std = np.nanstd(values)
-        min_thresh = 0.5 * std
-        max_thresh = 1.0 * std
-
+        min_thresh = 1.0 * std
+        max_thresh = 2.0 * std
         return min_thresh, max_thresh
 
     def get_unmasked(self, ncvariable):
