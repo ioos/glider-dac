@@ -243,6 +243,11 @@ class GliderQC(object):
         qc_flags = qc_tests[qartod_test](**test_params)
         ncvariable[~mask] = qc_flags
 
+        for test_param in test_params:
+            if test_param in ('arr', 'times'):
+                continue
+            ncvariable.setncattr(test_param, test_params[test_param])
+
     def get_rate_of_change_threshold(self, values, times, time_units='seconds since 1970-01-01T00:00:00Z'):
         '''
         Return the threshold used for the rate of change test
