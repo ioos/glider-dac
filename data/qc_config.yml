@@ -7,11 +7,6 @@ sea_water_temperature: # deg_C
     sensor_span:
       - -5.
       - 45.
-  rate_of_change:
-    thresh_val: 5.
-  spike:
-    low_thresh: 5.
-    high_thresh: 10.
 sea_water_electrical_conductivity: # S m-1
   flat_line:
     low_reps: 4
@@ -21,11 +16,6 @@ sea_water_electrical_conductivity: # S m-1
     sensor_span:
       - 0
       - 7
-  rate_of_change:
-    thresh_val: 5.
-  spike:
-    low_thresh: 5.
-    high_thresh: 10.
 sea_water_practical_salinity: # unitless
   flat_line:
     low_reps: 4
@@ -35,26 +25,7 @@ sea_water_practical_salinity: # unitless
     sensor_span:
       - 0
       - 50
-  rate_of_change:
-    thresh_val: 5.
-  spike:
-    low_thresh: 5.
-    high_thresh: 10.
 sea_water_salinity: # unitless
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 1000
-      - 1030
-  rate_of_change:
-    thresh_val: 0.15
-  spike:
-    low_thresh: 0.05
-    high_thresh: 0.15
-sea_water_density: # kg m-3
   flat_line:
     low_reps: 4
     high_reps: 8
@@ -63,11 +34,15 @@ sea_water_density: # kg m-3
     sensor_span:
       - 0
       - 50
-  rate_of_change:
-    thresh_val: 5.
-  spike:
-    low_thresh: 5.
-    high_thresh: 10.
+sea_water_density: # kg m-3
+  flat_line:
+    low_reps: 4
+    high_reps: 8
+    eps: 1.1920929e-07
+  gross_range:
+    sensor_span:
+      - 1000
+      - 1050
 sea_water_pressure: # `
   flat_line:
     low_reps: 4
@@ -76,10 +51,5 @@ sea_water_pressure: # `
   gross_range:
     sensor_span:
       - 0
-      - 1200
-  rate_of_change:
-    thresh_val: 5.
-  spike:
-    low_thresh: 5.
-    high_thresh: 10.
+      - 11000
   pressure: {}
