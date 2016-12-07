@@ -8,6 +8,7 @@ sea_water_temperature: # deg_C
       - -5.
       - 45.
   spike: {}
+  rate_of_change: {}
 sea_water_electrical_conductivity: # S m-1
   flat_line:
     low_reps: 4
@@ -18,6 +19,7 @@ sea_water_electrical_conductivity: # S m-1
       - 0
       - 7
   spike: {}
+  rate_of_change: {}
 sea_water_practical_salinity: # unitless
   flat_line:
     low_reps: 4
@@ -28,6 +30,7 @@ sea_water_practical_salinity: # unitless
       - 0
       - 50
   spike: {}
+  rate_of_change: {}
 sea_water_salinity: # unitless
   flat_line:
     low_reps: 4
@@ -38,6 +41,7 @@ sea_water_salinity: # unitless
       - 0
       - 50
   spike: {}
+  rate_of_change: {}
 sea_water_density: # kg m-3
   flat_line:
     low_reps: 4
@@ -48,6 +52,7 @@ sea_water_density: # kg m-3
       - 1000
       - 1050
   spike: {}
+  rate_of_change: {}
 sea_water_pressure: # `
   flat_line:
     low_reps: 4
@@ -58,3 +63,5 @@ sea_water_pressure: # `
       - 0
       - 11000
   pressure: {}
+  rate_of_change: {}
+  spike: {}

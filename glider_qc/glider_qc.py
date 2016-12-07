@@ -2,17 +2,25 @@
 '''
 glider_qc/glider_qc.py
 '''
+from cf_units import Unit
+from netCDF4 import num2date, Dataset
+from ioos_qartod.qc_tests import qc
+from ioos_qartod.qc_tests import gliders as gliders_qc
 import numpy as np
 import numpy.ma as ma
 import quantities as pq
 import yaml
-from cf_units import Unit
-from netCDF4 import num2date
-from ioos_qartod.qc_tests import qc
-from ioos_qartod.qc_tests import gliders as gliders_qc
 import logging
+import redis
+import os
+import hashlib
 
 log = logging.getLogger(__name__)
+__RCONN = None
+
+
+class ProcessError(ValueError):
+    pass
 
 
 class GliderQC(object):
@@ -262,9 +270,6 @@ class GliderQC(object):
         else:
             test_params = self.config[standard_name][qartod_test]
 
-        if 'thresh_val' in test_params:
-            test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
-
         if qartod_test == 'pressure':
             test_params['pressure'] = values
         else:
@@ -358,3 +363,83 @@ class GliderQC(object):
         log.info("Applying QC for %s", primary_qc_name)
         flags = qc.qc_compare(vectors)
         qcvar[:] = flags
+
+
+def qc_task(nc_path, config):
+    '''
+    Job wrapper around performing QC
+    '''
+    lock = lock_file(nc_path)
+    if not lock.acquire():
+        raise ProcessError("File lock already acquired by another process")
+    try:
+        with Dataset(nc_path, 'r+') as nc:
+            run_qc(config, nc)
+    finally:
+        lock.release()
+
+
+def lock_file(path):
+    '''
+    Acquires a file lock or raises an exception
+    '''
+    rc = get_redis_connection()
+    digest = hashlib.sha1(path).hexdigest()
+    key = 'gliderdac:%s' % digest
+    lock = rc.lock(key, blocking_timeout=60)
+    return lock
+
+
+def get_redis_connection():
+    '''
+    Returns a redis connection configured with a pool. Redis can be configured
+    from the environment variables REDIS_HOST, REDIS_PORT and REDIS_DB
+    '''
+    global __RCONN
+    if __RCONN is not None:
+        return __RCONN
+    redis_host = os.environ.get('REDIS_HOST', 'localhost')
+    redis_port = os.environ.get('REDIS_PORT', 6379)
+    redis_db = os.environ.get('REDIS_DB', 0)
+    redis_pool = redis.ConnectionPool(host=redis_host,
+                                      port=redis_port,
+                                      db=redis_db)
+    __RCONN = redis.Redis(connection_pool=redis_pool)
+    return __RCONN
+
+
+def run_qc(config, ncfile):
+    '''
+    Runs QC on a netCDF file
+    '''
+    qc = GliderQC(ncfile, config)
+    for varname in qc.find_geophysical_variables():
+        log.info("Inspecting %s", varname)
+        ncvar = ncfile.variables[varname]
+
+        if not qc.needs_qc(ncvar):
+            log.info("%s does not need QARTOD", varname)
+            continue
+
+        for qcvarname in qc.create_qc_variables(ncvar):
+            log.info("Created QC Variable %s", qcvarname)
+            qcvar = ncfile.variables[qcvarname]
+
+            log.info("Applying QC for %s", qcvar.name)
+            qc.apply_qc(qcvar)
+
+        qc.apply_primary_qc(ncvar)
+
+
+def check_needs_qc(ncfile):
+    '''
+    Returns True if the netCDF file needs GliderQC
+    '''
+    qc = GliderQC(ncfile, None)
+    for varname in qc.find_geophysical_variables():
+        ncvar = ncfile.variables[varname]
+        if qc.needs_qc(ncvar):
+            return True
+    return False
+
+

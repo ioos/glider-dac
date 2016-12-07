@@ -4,9 +4,19 @@ scripts/glider_qartod.py
 '''
 from argparse import ArgumentParser
 from netCDF4 import Dataset
-from glider_qc.glider_qc import GliderQC, log
-import sys
+from glider_qc import glider_qc
+from rq import Queue, Connection, Worker
 import logging
+import os
+
+
+def acquire_master_lock():
+    '''
+    Acquire the master lock or raise an exception
+    '''
+    rc = glider_qc.get_redis_connection()
+    lock = rc.lock('gliderdac:glider_qartod', blocking_timeout=60)
+    return lock
 
 
 def main():
@@ -18,58 +28,73 @@ def main():
         python scripts/glider_qartod.py -c data/qc_config.yml ~/Desktop/revellie/revellie.nc
 
     '''
-    parser = ArgumentParser(description=main.__doc__)
-    parser.add_argument('-c', '--config', help='Path to config YML file to use')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Turn on logging')
-    parser.add_argument('netcdf_files', nargs='+', help='NetCDF file to apply QC to')
+    args = get_args()
+    if args.worker:
+        with Connection(glider_qc.get_redis_connection()):
+            worker = Worker(map(Queue, ['gliderdac']))
+            worker.work()
+        return 0
 
-    args = parser.parse_args()
-    if args.verbose:
-        setup_logging()
-    for nc_path in args.netcdf_files:
+    lock = acquire_master_lock()
+    if not lock.acquire():
+        raise glider_qc.ProcessError("Master lock already held by another process")
+    try:
+        file_paths = []
+        if args.verbose:
+            setup_logging()
+
+        if args.recursive:
+            file_paths = get_files(args.netcdf_files)
+        else:
+            file_paths = args.netcdf_files
+
+        if args.config is None:
+            raise ValueError("No configuration found, please set using -c")
+
+        process(file_paths, args.config)
+    finally:
+        lock.release()
+
+    return 0
+
+
+def process(file_paths, config):
+    queue = Queue('gliderdac', connection=glider_qc.get_redis_connection())
+
+    for nc_path in file_paths:
         with Dataset(nc_path, 'r') as nc:
-            if not check_needs_qc(nc):
+            if not glider_qc.check_needs_qc(nc):
                 continue
 
-        log.info("Applying QC to dataset %s", nc_path)
-        with Dataset(nc_path, 'r+') as nc:
-            run_qc(args.config, nc)
-    sys.exit(0)
+        glider_qc.log.info("Applying QC to dataset %s", nc_path)
+        queue.enqueue(glider_qc.qc_task, nc_path, config)
 
 
-def check_needs_qc(ncfile):
+def get_args():
+    parser = ArgumentParser(description=main.__doc__)
+    parser.add_argument('-w', '--worker', action='store_true', help='Launch a worker')
+    parser.add_argument('-r', '--recursive', action='store_true', help='Iterate through the directory contents recursively')
+    parser.add_argument('-c', '--config', help='Path to config YML file to use')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Turn on logging')
+    parser.add_argument('netcdf_files', nargs='*', help='NetCDF file to apply QC to')
+
+    args = parser.parse_args()
+    return args
+
+
+def get_files(netcdf_files):
     '''
-    Returns True if the netCDF file needs GliderQC
+    Returns all of the netCDF files found in the directory recursively
+
+    :param str netcdf_files: Directory of the netCDF files
     '''
-    qc = GliderQC(ncfile, None)
-    for varname in qc.find_geophysical_variables():
-        ncvar = ncfile.variables[varname]
-        if qc.needs_qc(ncvar):
-            return True
-    return False
-
-
-def run_qc(config, ncfile):
-    '''
-    Runs QC on a netCDF file
-    '''
-    qc = GliderQC(ncfile, config)
-    for varname in qc.find_geophysical_variables():
-        log.info("Inspecting %s", varname)
-        ncvar = ncfile.variables[varname]
-
-        if not qc.needs_qc(ncvar):
-            log.info("%s does not need QARTOD", varname)
-            continue
-
-        for qcvarname in qc.create_qc_variables(ncvar):
-            log.info("Created QC Variable %s", qcvarname)
-            qcvar = ncfile.variables[qcvarname]
-
-            log.info("Applying QC for %s", qcvar.name)
-            qc.apply_qc(qcvar)
-
-        qc.apply_primary_qc(ncvar)
+    file_paths = []
+    for netcdf_dir in netcdf_files:
+        for (path, dirs, files) in os.walk(netcdf_dir):
+            for filename in files:
+                if filename.endswith('.nc'):
+                    file_paths.append(os.path.join(path, filename))
+    return file_paths
 
 
 def setup_logging(
