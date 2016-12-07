@@ -7,6 +7,7 @@ sea_water_temperature: # deg_C
     sensor_span:
       - -5.
       - 45.
+  spike: {}
 sea_water_electrical_conductivity: # S m-1
   flat_line:
     low_reps: 4
@@ -16,6 +17,7 @@ sea_water_electrical_conductivity: # S m-1
     sensor_span:
       - 0
       - 7
+  spike: {}
 sea_water_practical_salinity: # unitless
   flat_line:
     low_reps: 4
@@ -25,6 +27,7 @@ sea_water_practical_salinity: # unitless
     sensor_span:
       - 0
       - 50
+  spike: {}
 sea_water_salinity: # unitless
   flat_line:
     low_reps: 4
@@ -34,6 +37,7 @@ sea_water_salinity: # unitless
     sensor_span:
       - 0
       - 50
+  spike: {}
 sea_water_density: # kg m-3
   flat_line:
     low_reps: 4
@@ -43,6 +47,7 @@ sea_water_density: # kg m-3
     sensor_span:
       - 1000
       - 1050
+  spike: {}
 sea_water_pressure: # `
   flat_line:
     low_reps: 4
