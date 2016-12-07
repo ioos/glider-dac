@@ -262,9 +262,6 @@ class GliderQC(object):
         else:
             test_params = self.config[standard_name][qartod_test]
 
-        if 'thresh_val' in test_params:
-            test_params['thresh_val'] = test_params['thresh_val'] / pq.hour
-
         if qartod_test == 'pressure':
             test_params['pressure'] = values
         else:
