@@ -51,14 +51,14 @@ def main():
         if args.config is None:
             raise ValueError("No configuration found, please set using -c")
 
-        process(file_paths, args.config)
+        process(file_paths, args.config, sync=args.sync)
     finally:
         lock.release()
 
     return 0
 
 
-def process(file_paths, config):
+def process(file_paths, config, sync=False):
     queue = Queue('gliderdac', connection=glider_qc.get_redis_connection())
 
     for nc_path in file_paths:
@@ -67,7 +67,11 @@ def process(file_paths, config):
                 continue
 
         glider_qc.log.info("Applying QC to dataset %s", nc_path)
-        queue.enqueue(glider_qc.qc_task, nc_path, config)
+
+        if sync:
+            glider_qc.qc_task(nc_path, config)
+        else:
+            queue.enqueue(glider_qc.qc_task, nc_path, config)
 
 
 def get_args():
@@ -76,6 +80,7 @@ def get_args():
     parser.add_argument('-r', '--recursive', action='store_true', help='Iterate through the directory contents recursively')
     parser.add_argument('-c', '--config', help='Path to config YML file to use')
     parser.add_argument('-v', '--verbose', action='store_true', help='Turn on logging')
+    parser.add_argument('--sync', action='store_true', help='Run the jobs synchronously')
     parser.add_argument('netcdf_files', nargs='*', help='NetCDF file to apply QC to')
 
     args = parser.parse_args()
