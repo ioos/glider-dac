@@ -49,7 +49,7 @@ sea_water_density: # kg m-3
     eps: 1.1920929e-07
   gross_range:
     sensor_span:
-      - 1000
+      - 900
       - 1050
   spike: {}
   rate_of_change: {}

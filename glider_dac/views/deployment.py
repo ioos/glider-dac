@@ -135,6 +135,7 @@ def new_deployment(username):
         deployment.deployment_date = deployment_date
         deployment.glider_name = form.glider_name.data
         deployment.name = deployment_name
+        deployment.attribution = form.attribution.data
         try:
             existing_deployment = db.Deployment.find_one({'name' : deployment_name})
             if existing_deployment is not None:

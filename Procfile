@@ -1,5 +1,4 @@
-web: ./web
-db_sync: python glider_dac_db_sync.py
-tds_sync: python glider_catalog_monitor.py
-
-
+web: python app.py
+worker: python glider_dac/worker.py
+qc_worker: python scripts/glider_qartod.py -w
+rq-dashboard: rq-dashboard
