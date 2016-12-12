@@ -62,16 +62,19 @@ def process(file_paths, config, sync=False):
     queue = Queue('gliderdac', connection=glider_qc.get_redis_connection())
 
     for nc_path in file_paths:
-        with Dataset(nc_path, 'r') as nc:
-            if not glider_qc.check_needs_qc(nc):
-                continue
+        try:
+            with Dataset(nc_path, 'r') as nc:
+                if not glider_qc.check_needs_qc(nc):
+                    continue
 
-        glider_qc.log.info("Applying QC to dataset %s", nc_path)
+            glider_qc.log.info("Applying QC to dataset %s", nc_path)
 
-        if sync:
-            glider_qc.qc_task(nc_path, config)
-        else:
-            queue.enqueue(glider_qc.qc_task, nc_path, config)
+            if sync:
+                glider_qc.qc_task(nc_path, config)
+            else:
+                queue.enqueue(glider_qc.qc_task, nc_path, config)
+        except Exception as e:
+            glider_qc.log.exception("Failed to check %s for QC", nc_path)
 
 
 def get_args():
