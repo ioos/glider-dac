@@ -25,6 +25,7 @@ def sync_lock():
     Locks the process while a deployment sync is in progress
     '''
     while os.path.exists('/tmp/deployment-sync'):
+        glider_qc.log.info("Waiting for sync to finish")
         time.sleep(10)
 
 
