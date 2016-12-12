@@ -63,6 +63,7 @@ def process(file_paths, config, sync=False):
 
     for nc_path in file_paths:
         try:
+            glider_qc.log.info("Inspecting %s", nc_path)
             with Dataset(nc_path, 'r') as nc:
                 if not glider_qc.check_needs_qc(nc):
                     continue
