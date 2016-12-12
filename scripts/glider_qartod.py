@@ -8,6 +8,7 @@ from glider_qc import glider_qc
 from rq import Queue, Connection, Worker
 import logging
 import os
+import time
 
 
 def acquire_master_lock():
@@ -17,6 +18,14 @@ def acquire_master_lock():
     rc = glider_qc.get_redis_connection()
     lock = rc.lock('gliderdac:glider_qartod', blocking_timeout=60)
     return lock
+
+
+def sync_lock():
+    '''
+    Locks the process while a deployment sync is in progress
+    '''
+    while os.path.exists('/tmp/deployment-sync'):
+        time.sleep(10)
 
 
 def main():
@@ -62,6 +71,7 @@ def process(file_paths, config, sync=False):
     queue = Queue('gliderdac', connection=glider_qc.get_redis_connection())
 
     for nc_path in file_paths:
+        sync_lock()
         try:
             glider_qc.log.info("Inspecting %s", nc_path)
             with Dataset(nc_path, 'r') as nc:
