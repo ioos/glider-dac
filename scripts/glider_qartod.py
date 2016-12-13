@@ -20,6 +20,14 @@ def acquire_master_lock():
     return lock
 
 
+def clear_master_lock():
+    '''
+    Clears the master lock regardless if it is acquired
+    '''
+    rc = glider_qc.get_redis_connection()
+    rc.delete('gliderdac:glider_qartod')
+
+
 def sync_lock():
     '''
     Locks the process while a deployment sync is in progress
@@ -39,6 +47,9 @@ def main():
 
     '''
     args = get_args()
+    if args.clear:
+        clear_master_lock()
+        return 0
     if args.worker:
         with Connection(glider_qc.get_redis_connection()):
             worker = Worker(map(Queue, ['gliderdac']))
@@ -96,6 +107,7 @@ def get_args():
     parser.add_argument('-c', '--config', help='Path to config YML file to use')
     parser.add_argument('-v', '--verbose', action='store_true', help='Turn on logging')
     parser.add_argument('--sync', action='store_true', help='Run the jobs synchronously')
+    parser.add_argument('--clear', action='store_true', help='Clear all locks')
     parser.add_argument('netcdf_files', nargs='*', help='NetCDF file to apply QC to')
 
     args = parser.parse_args()
@@ -124,7 +136,7 @@ def setup_logging(
 ):
     """Setup logging configuration
     """
-    logging.basicConfig(level=default_level)
+    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=default_level)
 
 if __name__ == '__main__':
     main()
