@@ -1,38 +1,42 @@
-import os
-import urllib
-import hashlib
-import subprocess
-import warnings
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+glider_dac/models/deployment.py
+Model definition for a Deployment
+'''
 from glider_dac import app, db, slugify
 from datetime import datetime
 from flask.ext.mongokit import Document
 from bson.objectid import ObjectId
 from shutil import rmtree
+import os
+import hashlib
+
 
 @db.register
 class Deployment(Document):
-    __collection__   = 'deployments'
+    __collection__ = 'deployments'
     use_dot_notation = True
-    use_schemaless   = True
+    use_schemaless = True
 
     structure = {
-        'name'                      : unicode,
-        'user_id'                   : ObjectId,
-        'username'                  : unicode,  # The cached username to lightly DB load
-        'operator'                  : unicode,  # The operator of this Glider. Shows up in TDS as the title.
-        'deployment_dir'               : unicode,
-        'estimated_deploy_date'     : datetime,
-        'estimated_deploy_location' : unicode,  # WKT text
-        'wmo_id'                    : unicode,
-        'completed'                 : bool,
-        'created'                   : datetime,
-        'updated'                   : datetime,
-        'glider_name'               : unicode,
-        'deployment_date'           : datetime,
-        'archive_safe'              : bool,
-        'checksum'                  : unicode,
-        'attribution'               : unicode
+        'name': unicode,
+        'user_id': ObjectId,
+        'username': unicode,  # The cached username to lightly DB load
+        # The operator of this Glider. Shows up in TDS as the title.
+        'operator': unicode,
+        'deployment_dir': unicode,
+        'estimated_deploy_date': datetime,
+        'estimated_deploy_location': unicode,  # WKT text
+        'wmo_id': unicode,
+        'completed': bool,
+        'created': datetime,
+        'updated': datetime,
+        'glider_name': unicode,
+        'deployment_date': datetime,
+        'archive_safe': bool,
+        'checksum': unicode,
+        'attribution': unicode
     }
 
     default_values = {
@@ -50,7 +54,7 @@ class Deployment(Document):
 
     def save(self):
         if self.username is None or self.username == u'':
-            user = db.User.find_one( { '_id' : self.user_id } )
+            user = db.User.find_one({'_id': self.user_id})
             self.username = user.username
 
         self.updated = datetime.utcnow()
@@ -67,16 +71,15 @@ class Deployment(Document):
             rmtree(self.thredds_path)
         Document.delete(self)
 
-
     @property
     def dap(self):
         '''
         Returns the THREDDS DAP URL to this deployment
         '''
-        args = { 
-            'host' : app.config['THREDDS'], 
-            'user' : slugify(self.username), 
-            'deployment' : slugify(self.name)
+        args = {
+            'host': app.config['THREDDS'],
+            'user': slugify(self.username),
+            'deployment': slugify(self.name)
         }
         dap_url = u"http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
         return dap_url
@@ -86,27 +89,27 @@ class Deployment(Document):
         '''
         Returns the URL to the NcSOS endpoint
         '''
-        args = { 
-            'host' : app.config['THREDDS'], 
-            'user' : slugify(self.username), 
-            'deployment' : slugify(self.name)
+        args = {
+            'host': app.config['THREDDS'],
+            'user': slugify(self.username),
+            'deployment': slugify(self.name)
         }
         sos_url = u"http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
         return sos_url
 
     @property
     def iso(self):
-        title = slugify(self.title)
         name = slugify(self.name)
-        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {'host' : app.config['PUBLIC_ERDDAP'], 'name' : name}
+        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
+            'host': app.config['PUBLIC_ERDDAP'], 'name': name}
         return iso_url
 
     @property
     def thredds(self):
-        args = { 
-            'host' : app.config['THREDDS'], 
-            'user' : slugify(self.username), 
-            'deployment' : slugify(self.name)
+        args = {
+            'host': app.config['THREDDS'],
+            'user': slugify(self.username),
+            'deployment': slugify(self.name)
         }
         thredds_url = u"http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
         return thredds_url
@@ -116,7 +119,7 @@ class Deployment(Document):
         args = {
             'host': app.config['PUBLIC_ERDDAP'],
             'user': slugify(self.username),
-            'deployment' : slugify(self.name)
+            'deployment': slugify(self.name)
         }
         erddap_url = u"http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
         return erddap_url
@@ -240,4 +243,4 @@ class Deployment(Document):
 
     @classmethod
     def get_deployment_count_by_operator(cls):
-        return db.deployments.aggregate({ '$group': { '_id': '$operator', 'count': { '$sum' : 1 }}}).get('result',[])
+        return db.deployments.aggregate({'$group': {'_id': '$operator', 'count': {'$sum': 1}}}).get('result', [])
