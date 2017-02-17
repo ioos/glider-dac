@@ -12,7 +12,7 @@
         <tr>
           <th data-defaultsort="asc">Deployment</th>
           <th>WMO ID</th>
-          <th>Updated</th>
+          <th>Created</th>
         </tr>
       </thead>
       <tbody>
@@ -20,7 +20,7 @@
       <tr>
         <td class="col-lg-4"><a href="{{ url_for('show_deployment_no_username', deployment_id=m._id) }}">{{ m.name }}</a></td>
         <td class="col-lg-4">{{ m.wmo_id }}</td>
-        <td class="col-lg-4"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+        <td class="col-lg-4"><abbr title="{{ m.created | datetimeformat }} UTC">{{ m.created | prettydate }}</abbr></td>
       </tr>
       {%- endfor %}
       </tbody>
@@ -28,18 +28,6 @@
   </div>
 
   <div class="col-lg-4">
-    <h3>At a Glance</h3>
-    <ul class="list-group">
-      <li class="list-group-item">
-        <span class="badge">{{ deployments | length }}</span>
-        Deployments
-      </li>
-      <li class="list-group-item">
-        <span class="badge">{{ files | length }}</span>
-        Dives
-      </li>
-    </ul>
-
     <h3>Operators</h3>
     <ul class="list-group">
       {%- for u in operator_deployments %}
