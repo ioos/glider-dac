@@ -4,10 +4,10 @@
 {% block page %}
 
 <div id="new-institution-form">
-  <form class="form-inline">
+  <form class="form-inline" method="POST" action="{{url_for('show_institutions')}}">
+    {{ form.hidden_tag() }}
     <div class="form-group">
-      <label class="sr-only" for="institution-name">Institution</label>
-      <input type="text" class="form-control" id="institution-name" placeholder="Instutition Name">
+      {{ form.name(placeholder="Institution Name", class_="form-control") }}
     </div>
     <button type="submit" class="btn btn-default">New Institution</button>
   </form>
@@ -20,7 +20,7 @@
       <thead>
         <tr>
           <th>Institution</th>
-          <th>Edit?</th>
+          <th>Delete</th>
         </tr>
       </thead>
       <tbody>
