@@ -24,8 +24,8 @@ class UserForm(Form):
 
 
 
-@login_required
 @app.route('/users/<string:username>', methods=['GET', 'POST'])
+@login_required
 def edit_user(username):
     app.logger.info("GET %s", username)
     app.logger.info("Request URL: %s", request.url)
@@ -52,8 +52,8 @@ def edit_user(username):
 
     return render_template('edit_user.html', form=form, user=user, action_path=action_path)
 
-@login_required
 @app.route('/admin', methods=['GET', 'POST'])
+@login_required
 def admin():
     if not current_user.is_admin():
         # No permission
@@ -79,8 +79,8 @@ def admin():
 
     return render_template('admin.html', form=form, users=users, deployment_counts=deployment_counts)
 
-@login_required
 @app.route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])
+@login_required
 def admin_edit_user(user_id):
     user = db.User.find_one({'_id':user_id})
 
@@ -101,8 +101,8 @@ def admin_edit_user(user_id):
 
     return render_template('edit_user.html', form=form, user=user)
 
-@login_required
 @app.route('/admin/<ObjectId:user_id>/delete', methods=['POST'])
+@login_required
 def admin_delete_user(user_id):
     user = db.User.find_one({'_id':user_id})
 
