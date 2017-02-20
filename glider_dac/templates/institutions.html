@@ -7,9 +7,9 @@
   <form class="form-inline" method="POST" action="{{url_for('show_institutions')}}">
     {{ form.hidden_tag() }}
     <div class="form-group">
-      {{ form.name(placeholder="Institution Name", class_="form-control") }}
+      {{ form.name(id="institution-name", placeholder="Institution Name", class_="form-control") }}
     </div>
-    <button type="submit" class="btn btn-default">New Institution</button>
+    <button id="new-institution" type="submit" class="btn btn-default">New Institution</button>
   </form>
 </div>
 
@@ -28,8 +28,8 @@
         <tr>
           <td>{{inst.name}}</td>
           <td>
-            <a href="#">
-              Edit
+            <a class="delete-institution" data-institution="{{inst._id}}" href="#">
+              Delete
             </a>
           </td>
         </tr>
@@ -38,4 +38,48 @@
     </table>
   </div>
 </div>
+
+<script type="text/javascript">
+$(function() {
+  $('.delete-institution').click(function(event) {
+    var getUrl = function(institution_id) {
+      return "{{ url_for('delete_institution', institution_id='institution_id') }}".replace(/institution_id/, institution_id);
+    };
+
+    $.ajax({
+      dataType: "json",
+      type: "DELETE",
+      url: getUrl($(event.target).data('institution')),
+      success: function(result) {
+        window.location.reload();
+      },
+      error: function(request, msg, error) {
+      }
+    });
+  });
+
+  $('#new-institution').click(function(event) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    $.ajax({
+      dataType: "json",
+      type: "POST",
+      url: "{{url_for('new_institution')}}",
+      contentType: "application/json;charset=utf-8",
+      data: JSON.stringify({name: $('#institution-name').val()}),
+      success: function(result) {
+        window.location.reload();
+      },
+      error: function(jqXHR, status, error) {
+        console.error(jqXHR);
+        console.error(status);
+        console.error(error);
+      }
+    });
+
+  });
+
+});
+</script>
 {% endblock %}
