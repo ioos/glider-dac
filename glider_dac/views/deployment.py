@@ -1,13 +1,13 @@
-import os
-import os.path
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+glider_dac/views/deployment.py
+View definition for Deployments
+'''
 from datetime import datetime
-import json
-import shutil
-import re
-
-from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
-from flask_login import login_required, login_user, logout_user, current_user
-from glider_dac import app, db, datetimeformat, queue
+from flask import render_template, redirect, jsonify, flash, url_for, request
+from flask_login import login_required, current_user
+from glider_dac import app, db, queue
 from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
 
@@ -16,12 +16,17 @@ from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
 import re
+import json
+import os
+import os.path
+
 
 def is_date_parseable(form, field):
     try:
-        dateobj = dateparse(field.data)
+        dateparse(field.data)
     except ValueError:
         raise validators.ValidationError("Invalid Date")
+
 
 def is_valid_glider_name(form, field):
     regex = ur'^[a-zA-Z]+[a-zA-Z0-9-_]*$'
@@ -30,21 +35,23 @@ def is_valid_glider_name(form, field):
 
 
 class DeploymentForm(Form):
-    operator                    = TextField(u'Operator')
-    completed                   = BooleanField(u'Completed')
-    attribution                 = TextField(u'Attribution')
-    submit                      = SubmitField(u'Submit')
+    operator = TextField(u'Operator')
+    completed = BooleanField(u'Completed')
+    attribution = TextField(u'Attribution')
+    submit = SubmitField(u'Submit')
+
 
 class NewDeploymentForm(Form):
-    glider_name     = TextField(u'Glider Name', [is_valid_glider_name])
+    glider_name = TextField(u'Glider Name', [is_valid_glider_name])
     deployment_date = TextField(u'Deployment Date', [is_date_parseable])
-    attribution     = TextField(u'Attribution')
-    submit          = SubmitField(u"Create")
+    attribution = TextField(u'Attribution')
+    submit = SubmitField(u"Create")
+
 
 @app.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
-    user = db.User.find_one( {'username' : username } )
-    deployments = list(db.Deployment.find( { 'user_id' : user._id } ))
+    user = db.User.find_one({'username': username})
+    deployments = list(db.Deployment.find({'user_id': user._id}))
 
     kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
@@ -62,9 +69,10 @@ def list_user_deployments(username):
 
     return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
 
+
 @app.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
-    deployments = list(db.Deployment.find( { 'operator' : unicode(operator) } ))
+    deployments = list(db.Deployment.find({'operator': unicode(operator)}))
 
     for m in deployments:
         if not os.path.exists(m.full_path):
@@ -76,19 +84,21 @@ def list_operator_deployments(operator):
 
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
+
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
 def show_deployment(username, deployment_id):
-    user = db.User.find_one( {'username' : username } )
-    deployment = db.Deployment.find_one({'_id':deployment_id})
+    user = db.User.find_one({'username': username})
+    deployment = db.Deployment.find_one({'_id': deployment_id})
 
     files = []
     for dirpath, dirnames, filenames in os.walk(deployment.full_path):
         for f in filenames:
             if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
                 continue
-            files.append((f, datetime.utcfromtimestamp(os.path.getmtime(os.path.join(dirpath, f)))))
+            files.append((f, datetime.utcfromtimestamp(
+                os.path.getmtime(os.path.join(dirpath, f)))))
 
-    files = sorted(files, lambda a,b: cmp(b[1], a[1]))
+    files = sorted(files, lambda a, b: cmp(b[1], a[1]))
 
     kwargs = {}
 
@@ -101,16 +111,18 @@ def show_deployment(username, deployment_id):
 
     return render_template('show_deployment.html', username=username, form=form, deployment=deployment, files=files, **kwargs)
 
+
 @app.route('/deployment/<ObjectId:deployment_id>')
 def show_deployment_no_username(deployment_id):
-    deployment = db.Deployment.find_one( { '_id' : deployment_id } )
-    username = db.User.find_one( { '_id' : deployment.user_id } ).username
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+    username = db.User.find_one({'_id': deployment.user_id}).username
     return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
+
 
 @app.route('/users/<string:username>/deployment/new', methods=['POST'])
 @login_required
 def new_deployment(username):
-    user = db.User.find_one( {'username' : username } )
+    user = db.User.find_one({'username': username})
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
         flash("Permission denied", 'danger')
@@ -118,16 +130,13 @@ def new_deployment(username):
 
     form = NewDeploymentForm()
 
-
     if form.validate_on_submit():
         deployment_date = dateparse(form.deployment_date.data)
-        deployment_name = form.glider_name.data + '-' + deployment_date.strftime('%Y%m%dT%H%M')
-
-        upload_root = user.data_root
-        new_deployment_dir = os.path.join(upload_root, deployment_name)
+        deployment_name = form.glider_name.data + '-' + \
+            deployment_date.strftime('%Y%m%dT%H%M')
 
         deployment = db.Deployment()
-        #form.populate_obj(deployment)
+        # form.populate_obj(deployment)
         deployment.user_id = user._id
         deployment.username = username
         deployment.deployment_dir = os.path.join(username, deployment_name)
@@ -137,20 +146,25 @@ def new_deployment(username):
         deployment.name = deployment_name
         deployment.attribution = form.attribution.data
         try:
-            existing_deployment = db.Deployment.find_one({'name' : deployment_name})
+            existing_deployment = db.Deployment.find_one(
+                {'name': deployment_name})
             if existing_deployment is not None:
                 raise DuplicateKeyError("Duplicate Key Detected: name")
-            existing_deployment = db.Deployment.find_one({'glider_name' : form.glider_name.data, 'deployment_date':deployment_date})
+            existing_deployment = db.Deployment.find_one(
+                {'glider_name': form.glider_name.data, 'deployment_date': deployment_date})
             if existing_deployment is not None:
-                raise DuplicateKeyError("Duplicate Key Detected: glider_name and deployment_date")
+                raise DuplicateKeyError(
+                    "Duplicate Key Detected: glider_name and deployment_date")
             deployment.save()
             flash("Deployment created", 'success')
             send_registration_email(username, deployment)
         except DuplicateKeyError:
-            flash("Deployment names must be unique across Glider DAC: %s already used" % deployment.name, 'danger')
+            flash("Deployment names must be unique across Glider DAC: %s already used" %
+                  deployment.name, 'danger')
 
     else:
-        error_str = ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.iteritems()])
+        error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
+                               for k, v in form.errors.iteritems()])
         flash("Deployment could not be created: %s" % error_str, 'danger')
 
     return redirect(url_for('list_user_deployments', username=username))
@@ -160,13 +174,13 @@ def new_deployment(username):
 @login_required
 def edit_deployment(username, deployment_id):
 
-    user = db.User.find_one( {'username' : username } )
+    user = db.User.find_one({'username': username})
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for('list_user_deployments', username=username))
 
-    deployment = db.Deployment.find_one({'_id':deployment_id})
+    deployment = db.Deployment.find_one({'_id': deployment_id})
 
     form = DeploymentForm(obj=deployment)
 
@@ -177,27 +191,29 @@ def edit_deployment(username, deployment_id):
         flash("Deployment updated", 'success')
         return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
     else:
-        error_str = ", ".join(["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.iteritems()])
+        error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
+                               for k, v in form.errors.iteritems()])
         flash("Deployment could not be edited: %s" % error_str, 'danger')
 
     return render_template('edit_deployment.html', username=username, form=form, deployment=deployment)
+
 
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/files', methods=['POST'])
 @login_required
 def post_deployment_file(username, deployment_id):
 
-    deployment = db.Deployment.find_one({'_id':deployment_id})
-    user = db.User.find_one( {'username' : username } )
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+    user = db.User.find_one({'username': username})
 
     if not (deployment and user and deployment.user_id == user._id and (current_user.is_admin() or current_user == user)):
-        raise StandardError("Unauthorized") # @TODO better response via ajax?
+        raise StandardError("Unauthorized")  # @TODO better response via ajax?
 
     retval = []
     for name, f in request.files.iteritems():
         if not name.startswith('file-'):
             continue
 
-        safe_filename = f.filename # @TODO
+        safe_filename = f.filename  # @TODO
 
         out_name = os.path.join(deployment.full_path, safe_filename)
 
@@ -206,25 +222,31 @@ def post_deployment_file(username, deployment_id):
 
         retval.append((safe_filename, datetime.utcnow()))
 
-    editable = current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)
+    editable = current_user and current_user.is_active() and (
+        current_user.is_admin() or current_user == user)
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
+
 
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])
 @login_required
 def delete_deployment_files(username, deployment_id):
 
-    deployment = db.Deployment.find_one({'_id':deployment_id})
-    user = db.User.find_one({'username':username})
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+    user = db.User.find_one({'username': username})
     if deployment is None:
-        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
     if user is None:
-        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
     if not (current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)):
-        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
 
     if not (deployment and user and (current_user.is_admin() or user._id == deployment.user_id)):
-        raise StandardError("Unauthorized")     # @TODO better response via ajax?
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
 
     for name in request.json['files']:
         file_name = os.path.join(deployment.full_path, name)
@@ -232,12 +254,13 @@ def delete_deployment_files(username, deployment_id):
 
     return ""
 
+
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete', methods=['POST'])
 @login_required
 def delete_deployment(username, deployment_id):
 
-    deployment = db.Deployment.find_one({'_id':deployment_id})
-    user = db.User.find_one( {'username' : username } )
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+    user = db.User.find_one({'username': username})
     if deployment is None:
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
@@ -248,11 +271,12 @@ def delete_deployment(username, deployment_id):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
 
-
-    queue.enqueue_call(func=tasks.delete_deployment, args=(deployment_id,), timeout=30)
+    queue.enqueue_call(func=tasks.delete_deployment,
+                       args=(deployment_id,), timeout=30)
     flash("Deployment queued for deletion", 'success')
 
     return redirect(url_for("list_user_deployments", username=username))
+
 
 @app.route('/api/deployment', methods=['GET'])
 def get_deployments():
@@ -273,9 +297,11 @@ def get_deployments():
 
     return jsonify(results=results, num_results=len(results))
 
+
 @app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
 def get_deployment(username, deployment_name):
-    deployment = db.Deployment.find_one({"username":username, "name":deployment_name})
+    deployment = db.Deployment.find_one(
+        {"username": username, "name": deployment_name})
     if deployment is None:
         return jsonify(message='No record found'), 204
     d = json.loads(deployment.to_json())
@@ -289,4 +315,3 @@ def get_deployment(username, deployment_name):
     d['thredds'] = deployment.thredds
     d['attribution'] = deployment.attribution
     return jsonify(**d)
-
