@@ -3,6 +3,7 @@ import datetime
 
 from flask import Flask
 from flask_kvsession import KVSessionExtension
+from flask_cors import CORS, cross_origin
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
@@ -12,6 +13,7 @@ import redis
 # Create application object
 app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+cors = CORS(app, resources={"r/api/*": {"origins": "*"}})
 
 from flask_environments import Environments
 env = Environments(app)
