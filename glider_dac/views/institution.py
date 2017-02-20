@@ -35,7 +35,7 @@ def admin_required(func):
     def wrapper(*args, **kwargs):
         if app.login_manager._login_disabled:
             return func(*args, **kwargs)
-        elif not current_user.is_authenticated:
+        elif not current_user.is_authenticated():
             return app.login_manager.unauthorized()
         elif not current_user.is_admin():
             flash("Permission denied", 'danger')
