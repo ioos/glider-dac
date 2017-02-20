@@ -13,7 +13,6 @@ import redis
 # Create application object
 app = Flask(__name__)
 app.wsgi_app = ReverseProxied(app.wsgi_app)
-cors = CORS(app, resources={"r/api/*": {"origins": "*"}})
 
 from flask_environments import Environments
 env = Environments(app)

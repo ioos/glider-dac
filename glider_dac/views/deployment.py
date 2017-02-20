@@ -7,6 +7,7 @@ View definition for Deployments
 from datetime import datetime
 from flask import render_template, redirect, jsonify, flash, url_for, request
 from flask_login import login_required, current_user
+from flask_cors import cross_origin
 from glider_dac import app, db, queue
 from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
@@ -279,6 +280,7 @@ def delete_deployment(username, deployment_id):
 
 
 @app.route('/api/deployment', methods=['GET'])
+@cross_origin()
 def get_deployments():
     deployments = db.Deployment.find()
     results = []
@@ -299,6 +301,7 @@ def get_deployments():
 
 
 @app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
+@cross_origin()
 def get_deployment(username, deployment_name):
     deployment = db.Deployment.find_one(
         {"username": username, "name": deployment_name})
