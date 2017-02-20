@@ -6,6 +6,7 @@ View definition for institutions
 '''
 from __future__ import unicode_literals
 from flask import render_template, redirect, flash, url_for, jsonify, request
+from flask_cors import cross_origin
 from flask_login import current_user
 from glider_dac import app, db
 from flask_wtf import Form
@@ -66,6 +67,7 @@ def show_institutions():
 
 
 @app.route('/api/institution', methods=['GET'])
+@cross_origin()
 def get_institutions():
     institutions = [inst.to_json() for inst in db.Institution.find()]
     return jsonify(results=institutions)
