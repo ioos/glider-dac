@@ -69,7 +69,7 @@ def show_institutions():
 @app.route('/api/institution', methods=['GET'])
 @cross_origin()
 def get_institutions():
-    institutions = [inst.to_json() for inst in db.Institution.find()]
+    institutions = [json.loads(inst.to_json()) for inst in db.Institution.find()]
     return jsonify(results=institutions)
 
 
