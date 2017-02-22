@@ -3,7 +3,6 @@
 Script to create symlinks of archivable datasets and generate an MD5 sum
 '''
 from config import API_URL, NCEI_DIR, path2pub
-import json
 import requests
 import argparse
 import sys
@@ -14,6 +13,7 @@ import shutil
 
 logger = logging.getLogger('archive_datasets')
 
+
 def get_deployments():
     '''
     Returns an HTTP GET request for the API_URL
@@ -22,6 +22,7 @@ def get_deployments():
     if r.status_code != 200:
         raise IOError("Failed to get deployments from API")
     return r.json()
+
 
 def get_active_deployments():
     '''
@@ -37,6 +38,7 @@ def get_active_deployments():
         filepath = os.path.join(filedir, filename)
         yield filepath
 
+
 def make_copy(filepath):
     '''
     Creates a symbolic link of the file specified in the new NCEI_DIR
@@ -50,6 +52,7 @@ def make_copy(filepath):
         shutil.copyfile(source, target)
     generate_hash(target)
 
+
 def generate_hash(filepath):
     '''
     Creates an MD5 sum file containing the hash of the file
@@ -61,6 +64,7 @@ def generate_hash(filepath):
     with open(md5sum, 'w') as f:
         f.write(hasher.hexdigest())
     logger.info("Hash generated")
+
 
 def hashfile(filepath, hasher, blocksize=65536):
     '''
@@ -76,6 +80,7 @@ def hashfile(filepath, hasher, blocksize=65536):
             buf = f.read(blocksize)
     return hasher
 
+
 def set_verbose():
     '''
     Enables console logging
@@ -87,15 +92,39 @@ def set_verbose():
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
 
+
+def remove_archive(deployment):
+    '''
+    Removes a deployment from the archive
+
+    :param str deployment: Deployment name
+    '''
+    filename = '{}.ncCF.nc3.nc'.format(deployment)
+    path = os.path.join(NCEI_DIR, filename)
+    logger.info("Removing archive: %s", deployment)
+    if os.path.exists(path + '.md5'):
+        os.unlink(path + '.md5')
+    if os.path.exists(path):
+        os.unlink(path)
+
+
 def main(args):
     '''
     Script to create symlinks of archivable datasets and generate an MD5 sum
     '''
     if args.verbose:
         set_verbose()
-    for filepath in get_active_deployments():
+    active_deployments = list(get_active_deployments())
+    for filepath in active_deployments:
         logger.info("Archiving %s", filepath)
         make_copy(filepath)
+
+    for filename in os.listdir(NCEI_DIR):
+        if filename.endswith('.ncCF.nc3.nc'):
+            deployment = filename.split('.')[0]
+            if deployment not in active_deployments:
+                remove_archive(deployment)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
