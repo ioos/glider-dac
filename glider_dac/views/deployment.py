@@ -38,6 +38,7 @@ def is_valid_glider_name(form, field):
 class DeploymentForm(Form):
     operator = TextField(u'Operator')
     completed = BooleanField(u'Completed')
+    archive_safe = BooleanField(u"Submit to NCEI on Completion")
     attribution = TextField(u'Attribution')
     submit = SubmitField(u'Submit')
 

@@ -275,6 +275,7 @@
     {{ render_field(form.operator, not editable) }}
     {{ render_field(form.attribution, not editable) }}
     {{ render_boolean(form.completed, not editable) }}
+    {{ render_boolean(form.archive_safe, not editable) }}
     {% if editable %}
     {{ form.submit(class_="btn btn-primary") }}
     {% endif %}
