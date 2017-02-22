@@ -12,27 +12,39 @@ import logging
 import shutil
 
 logger = logging.getLogger('archive_datasets')
+_DEP_CACHE = None
 
 
 def get_deployments():
     '''
     Returns an HTTP GET request for the API_URL
     '''
-    r = requests.get(API_URL)
-    if r.status_code != 200:
-        raise IOError("Failed to get deployments from API")
-    return r.json()
+    global _DEP_CACHE
+    if _DEP_CACHE is None:
+        r = requests.get(API_URL)
+        if r.status_code != 200:
+            raise IOError("Failed to get deployments from API")
+        _DEP_CACHE = r.json()
+    return _DEP_CACHE
 
 
 def get_active_deployments():
     '''
-    Yields a filepath for each deployment marked completed by the API
+    Returns a list of deployments that are safe for achival
     '''
     deployments = get_deployments()
     filtered = [d for d in deployments['results'] if d['completed']]
     for d in filtered:
         if 'archive_safe' in d and d['archive_safe'] is False:
             continue
+        yield d
+
+
+def get_active_deployment_paths():
+    '''
+    Yields a filepath for each deployment marked completed by the API
+    '''
+    for d in get_active_deployments():
         filedir = os.path.join(path2pub, d['deployment_dir'])
         filename = os.path.basename(d['deployment_dir']) + '.ncCF.nc3.nc'
         filepath = os.path.join(filedir, filename)
@@ -114,11 +126,11 @@ def main(args):
     '''
     if args.verbose:
         set_verbose()
-    active_deployments = list(get_active_deployments())
-    for filepath in active_deployments:
+    for filepath in get_active_deployment_paths():
         logger.info("Archiving %s", filepath)
         make_copy(filepath)
 
+    active_deployments = [d['name'] for d in get_active_deployments()]
     for filename in os.listdir(NCEI_DIR):
         if filename.endswith('.ncCF.nc3.nc'):
             deployment = filename.split('.')[0]
@@ -132,5 +144,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     sys.exit(main(args))
 
-
-        
