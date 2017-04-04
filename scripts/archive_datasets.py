@@ -172,6 +172,7 @@ def main(args):
             deployment = filename.split('.')[0]
             if deployment not in active_deployments:
                 mark_do_not_archive(deployment)
+                remove_archive(deployment)
 
 
 if __name__ == '__main__':
