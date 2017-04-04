@@ -141,19 +141,19 @@ def retrieve_data(where, deployment):
     user_name = publish_dir.split('/')[-2]
     if 'thredds' in publish_dir:
         path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
-        host_arg = SERVER + "/tabledap/" + deployment_name + ".ncCFMA"
+        url = 'http://{}/erddap/tabledap/{}.ncCFMA'.format(erddap_private, deployment_name)
     else:
         path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
-        host_arg = SERVER + "/tabledap/" + deployment_name + ".ncCF"
-    log.info( "Path Arg %s", path_arg)
-    log.info( "Host Arg %s", host_arg)
+        url = 'http://{}/erddap/tabledap/{}.ncCF'.format(erddap_private, deployment_name)
+    log.info("Path Arg %s", path_arg)
+    log.info("Host Arg %s", url)
     args = [
         "--no-host-directories",
         "--cut-dirs=2",
         "--output-document=%s" % path_arg,
-        host_arg
-     ]
-    log.info( "Args: %s", ' '.join(args))
+        url
+    ]
+    log.info("Args: %s", ' '.join(args))
     try_wget(deployment, args, 5)
 
 def try_wget(deployment, args, count=1):

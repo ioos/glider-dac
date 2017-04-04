@@ -137,11 +137,11 @@ class Deployment(Document):
 
     @property
     def public_erddap_path(self):
-        return os.path.join(app.config.get('PUBLIC_ERDDAP'), self.deployment_dir)
+        return os.path.join(app.config.get('PUBLIC_DATA_ROOT'), self.deployment_dir)
 
     @property
     def thredds_path(self):
-        return os.path.join(app.config.get('THREDDS'), self.deployment_dir)
+        return os.path.join(app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
 
     def _hash_file(self, fname):
         """

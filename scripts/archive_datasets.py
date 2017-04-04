@@ -13,6 +13,7 @@ import shutil
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
+DNA_SUFFIX = '.DO-NOT-ARCHIVE'
 
 
 def get_deployments():
@@ -53,21 +54,27 @@ def get_active_deployment_paths():
 
 def make_copy(filepath):
     '''
-    Creates a symbolic link of the file specified in the new NCEI_DIR
+    Creates a copy of the file specified in the new NCEI_DIR
+
     :param str filepath: Path to the source of the symbolic link
     '''
     filename = os.path.basename(filepath)
     target = os.path.join(NCEI_DIR, filename)
+    do_not_archive_filename = target + DNA_SUFFIX
     source = filepath
     if not os.path.exists(target):
         logger.info("Creating archive dataset")
         shutil.copyfile(source, target)
     generate_hash(target)
+    if os.path.exists(do_not_archive_filename):
+        os.unlink(do_not_archive_filename)
+        logger.info("Removing DO NOT ARCHIVE File")
 
 
 def generate_hash(filepath):
     '''
     Creates an MD5 sum file containing the hash of the file
+
     :param str filepath: Path to the file to be hashed
     '''
     hasher = hashlib.md5()
@@ -81,6 +88,7 @@ def generate_hash(filepath):
 def hashfile(filepath, hasher, blocksize=65536):
     '''
     Uses a memory efficient scheme to hash a file
+
     :param str filepath: Path to the file to be hashed
     :param hashlib.algorithm hasher: The hasher to use
     :param int blocksize: Size in bytes of the memory segment
@@ -120,6 +128,34 @@ def remove_archive(deployment):
         os.unlink(path)
 
 
+def mark_do_not_archive(deployment):
+    '''
+    Creates an empty file in the archive directory indicating the deployment
+    should not be archived by NCEI. NCEI will then remove the file when their
+    automations discover the empty file.
+
+    :param str deployment: Deployment name
+    '''
+    filename = '{}.ncCF.nc3.nc'.format(deployment)
+    path = os.path.join(NCEI_DIR, filename)
+    logger.info("Marking deployment %s as DO NOT ARCHIVE", deployment)
+    updated_filename = path + DNA_SUFFIX
+    if os.path.exists(path):
+        touch_file(updated_filename)
+
+
+def touch_file(filepath):
+    '''
+    Creates an empty file
+    '''
+    if not os.path.exists(filepath):
+        logger.info("Touching file %s", filepath)
+        with open(filepath, 'w'):
+            pass
+    else:
+        logger.info("File %s already exists", filepath)
+
+
 def main(args):
     '''
     Script to create symlinks of archivable datasets and generate an MD5 sum
@@ -135,6 +171,7 @@ def main(args):
         if filename.endswith('.ncCF.nc3.nc'):
             deployment = filename.split('.')[0]
             if deployment not in active_deployments:
+                mark_do_not_archive(deployment)
                 remove_archive(deployment)
 
 
