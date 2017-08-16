@@ -30,7 +30,6 @@ class UserForm(Form):
 def edit_user(username):
     app.logger.info("GET %s", username)
     app.logger.info("Request URL: %s", request.url)
-    action_path = request.url
     user = db.User.find_one({'username': username})
     if user is None or (user is not None and not current_user.is_admin() and current_user != user):
         # No permission
@@ -51,7 +50,7 @@ def edit_user(username):
         flash("Account updated", 'success')
         return redirect(url_for("index"))
 
-    return render_template('edit_user.html', form=form, user=user, action_path=action_path)
+    return render_template('edit_user.html', form=form, user=user)
 
 
 @app.route('/admin', methods=['GET', 'POST'])
