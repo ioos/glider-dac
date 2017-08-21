@@ -50,7 +50,8 @@ def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, roo
 
     logger.info("Wrote %s from %d deployments", ds_path, len(deployment_dirs))
 
-def build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir=None):
+def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
+                                  root_dir=None):
     """
     Builds an ERDDAP dataset xml fragment.
     """
@@ -85,23 +86,39 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir, roo
         return ''
 
     nc_file = get_first_nc_file(dir_path)
-    qartod_variables = []
     if nc_file:
-        qartod_variables = check_for_qartod(nc_file)
+        qc_var_types = check_for_qc_vars(nc_file)
+    else:
+        qc_var_types ={'gen_qc': {}, 'qartod': {}}
+
+    # variables which need to have the variable {var_name}_qc present in the
+    # template.  Right now these are all the same, so are hardcoded
+    required_qc_vars = ("conductivity_qc", "density_qc", "depth_qc",
+                        "latitude_qc", "lat_uv_qc", "longitude_qc",
+                        "lon_uv_qc", "pressure_qc", "salinity_qc",
+                        "temperature_qc", "time_qc", "time_uv_qc", "u_qc",
+                        "v_qc")
+
+    # any destinationNames that need to have a different name.
+    # by default the destinationName will equal the sourceName
+    dest_var_remaps = {'longitude_qc': 'precise_lon_qc',
+                       'latitude_qc': 'precise_lat_qc',
+                       'time_qc': 'precise_time_qc'}
 
     return template.render(dataset_id=deployment,
-                                    dataset_dir=dir_path,
-                                    institution=institution,
-                                    checksum=checksum,
-                                    completed=completed,
-                                    include_qartod=len(qartod_variables)>0,
-                                    qartod_variables=qartod_variables)
+                           dataset_dir=dir_path,
+                           institution=institution,
+                           checksum=checksum,
+                           completed=completed,
+                           reqd_qc_vars=required_qc_vars,
+                           dest_var_remaps=dest_var_remaps,
+                           qc_var_types=qc_var_types)
 
 
 def get_first_nc_file(root):
     '''
     Returns the first netCDF file found in the directory
-    
+
     :param str root: Root of the directory to scan
     '''
     for content in os.listdir(root):
@@ -109,14 +126,22 @@ def get_first_nc_file(root):
             return os.path.join(root, content)
 
 
-def check_for_qartod(nc_file):
+def check_for_qc_vars(nc_file):
+    """
+    Checks for general gc variables and QARTOD variables by naming conventions.
+    Returns a dict with both sets of variables as keys, and their attributes
+    as values.
+    """
+    # STYLE: shouldn't this go at the top of the file?
     from netCDF4 import Dataset
-    qartod_variables = []
+    qc_vars = {'gen_qc': {}, 'qartod': {}}
     with Dataset(nc_file, 'r') as nc:
         for var in nc.variables:
-            if var.startswith('qartod_'):
-                qartod_variables.append(var)
-    return qartod_variables
+            if var.endswith('_qc'):
+                qc_vars['gen_qc'][var] = nc.variables[var].ncattrs()
+            elif var.startswith('qartod'):
+                qc_vars['qartod'][var] = nc.variables[var].ncattrs()
+    return qc_vars
 
 
 def build_erddap_agg_fragment(data_root, user, template_dir):
