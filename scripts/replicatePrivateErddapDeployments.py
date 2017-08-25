@@ -120,6 +120,7 @@ def main(args):
         release_lock(args.lock_file)
 
 def load_deployments():
+    """Loads deployment directories into a list"""
     deployments = []
     for user in os.listdir(path2priv):
         if not os.path.isdir(os.path.join(path2priv, user)):
