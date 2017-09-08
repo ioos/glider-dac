@@ -29,7 +29,7 @@ def poll_erddap(deployment_name, host):
     status = request_poll(url)
     return status
 
-def request_poll(url, attempts=60):
+def request_poll(url, attempts=3):
     '''
     Polls a URL for the number of specified attempts
     returns True if the URL succeeded or False if it did not
@@ -37,11 +37,11 @@ def request_poll(url, attempts=60):
     while attempts > 0:
         response = requests.get(url)
         if response.status_code != 200:
-            log.warning("Failed to find deployment dataset")
+            log.warning("Failed to find deployment dataset: {}".format(url))
         else:
             break
-        log.info("sleeping %s second(s)" % (attempts * 2))
-        time.sleep(attempts * 2)
+        log.info("sleeping 15 second(s)")
+        time.sleep(15)
         attempts -= 1
     else:
         return False
@@ -73,7 +73,7 @@ def setup_logging(level=logging.DEBUG):
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
     stream_handler.setFormatter(formatter)
-    logger.addHandler(file_handler) 
+    logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
     logger.setLevel(logging.DEBUG)
     return logger
@@ -90,7 +90,7 @@ def get_mod_time(name):
         with  open(jsonFile, 'w') as outfile:
             json.dump({'updated':jsonTime*1000}, outfile)
         log.info("Initiated JSON file")
-        
+
 
     with open(jsonFile, 'r') as fid:
         dataset = json.load(fid)
@@ -110,7 +110,7 @@ def main(args):
             deployments = [args.deployment]
         else:
             deployments = load_deployments()
-                
+
         log.info( "Processing the following deployments")
         for deployment in deployments:
             log.info( " - %s", deployment)
@@ -181,14 +181,14 @@ def sync_deployment(deployment, force=False):
     deltaT= int(currentEpoch) - int(mTime)
     log.info( "Synchronizing at %s", datetime.datetime.utcnow().isoformat())
     #print currentEpoch, deltaT, mTime
-    if force or deltaT <  time_in_past: 
+    if force or deltaT <  time_in_past:
         deployment_name = deployment.split('/')[-1]
         # First sync up the private
         touch_erddap(deployment_name, flags_private)
         if not poll_erddap(deployment_name, erddap_private):
             log.error("Couldn't update deployment %s", deployment)
             return
-        
+
         retrieve_data(path2pub, deployment)
         retrieve_data(path2thredds, deployment)
 
@@ -228,7 +228,7 @@ def check_pid(pid):
     else:
         return True
 
-  
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="replicate files from private ERDDAP")
     parser.add_argument('-l', '--lock-file', default='/tmp/replicate.lock', help='Lockfile to synchronize processes')
