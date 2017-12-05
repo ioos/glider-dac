@@ -1,0 +1,3 @@
+[submodule "documentation-theme-jekyll"]
+	path = documentation-theme-jekyll
+	url = https://github.com/ioos/documentation-theme-jekyll

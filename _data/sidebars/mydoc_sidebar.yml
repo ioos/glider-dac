@@ -1,0 +1,85 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: "The text that appear on top of the side menu"
+  levels: two
+  version: 
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage
+      output: pdf
+      type: frontmatter
+
+# Always visible folder name that contains top-level menu items with links to 1st document/page
+  - title: "Homepage [First Document]"
+    output: web
+
+    folderitems:
+
+# Top-level menu item #1
+    - title: "Homepage Header 1"
+# A link to the 1st rendered document; consists of '/'+'markdown-document-name'+'.html'[+'#'+'any-header-or-other-anchor-on-the-page'
+      url: /index.html#header-1
+      output: web
+
+    - title: "Homepage Header 2"
+      url: /index.html#header-2
+      output: web
+
+    - title: "Homepage Header 3"
+      url: /index.html#header-3
+      output: web
+
+#Always visible folder name that contains top-level menu items with links to 2nd document/page
+  - title: "Second document"
+    output: web
+
+    folderitems:
+
+#A link to the 2nd rendered document; consists of '/'+'markdown-document-name'+'.html'[+'#'+'any-header-or-other-anchor-on-the-page', e.g. '
+    - title: "Second Document Header 1"
+      url: /doc-template.html#header-1
+      output: web
+
+    - title: "Second Document Header 2"
+      url: /doc-template.html#header-2
+      output: web
+
+      subfolders:
+
+# A subfolder name that contains sub-level menu items with links to 2nd document/page
+      - title: "Sub-headers"
+        output: web
+
+        subfolderitems:
+
+        - title: "Sub-header #1"
+          url: /doc-template.html#sub-header-1
+          output: web
+
+        - title: "Sub-header #2"
+          url: /doc-template.html#sub-header-2
+          output: web
+
+        - title: "Sub-header #3"
+          url: /doc-template.html#sub-header-3
+          output: web
+
+        - title: "Sub-header #4"
+          url: /doc-template.html#sub-header-4
+          output: web
+
+    - title: "Second Document Header 3"
+      url: /doc-template.html#header-3
+      output: web
+

@@ -1,0 +1,153 @@
+output: web
+# this property is useful for conditional filtering of content that is separate from the PDF.
+
+topnav_title: A Template for IOOS Documentation GitHub Pages
+# this appears on the top navigation bar next to the home button; replace the value with your site name
+
+site_title: IOOS GitHub Documentation
+# this appears in the html browser tab for the site title (seen mostly by search engines, not users)
+
+company_name: US IOOS
+# this appears in the footer
+
+host: 127.0.0.1
+# the preview server used. Leave as is.
+
+port: 4000
+# the port where the preview is rendered. You can leave this as is unless you have other Jekyll builds using this same port that might cause conflicts. in that case, use another port such as 4006.
+
+# Reading Files
+include:
+  - .htaccess
+  #- _pages
+  #- documentation-theme-jekyll/_data/topnav.yml
+exclude:
+  - .idea/
+  - .gitignore
+  - Gemfile*
+  - documentation-theme-jekyll/pages
+  #- documentation-theme-jekyll/posts
+  - documentation-theme-jekyll/Dockerfile
+  - documentation-theme-jekyll/Gemfile
+  - documentation-theme-jekyll/Gemfile.lock
+  - documentation-theme-jekyll/search.json
+  - documentation-theme-jekyll/update.sh
+  - documentation-theme-jekyll/pdf-*
+  #- documentation-theme-jekyll/
+
+# these are the files and directories that jekyll will exclude from the build
+
+feedback_subject_line: Jekyll documentation theme
+
+feedback_email: data.ioos@noaa.gov
+# used as a contact email for the Feedback link in the top navigation bar
+
+# feedback_disable: true
+# if you uncomment the previous line, the Feedback link gets removed
+
+# feedback_text: "Need help?"
+# if you uncomment the previous line, it changes the Feedback text
+
+# feedback_link: "http://helpy.io/"
+# if you uncomment the previous line, it changes where the feedback link points to
+
+highlighter: rouge
+# library used for syntax highlighting
+
+markdown: kramdown
+kramdown:
+ input: GFM
+ auto_ids: true
+ hard_wrap: false
+ syntax_highlighter: rouge
+
+# filter used to process markdown. note that kramdown differs from github-flavored markdown in some subtle ways
+
+collections:
+  tooltips:
+    output: false
+  docs:
+    output: true
+    # using /docs/:name causes many link/path failures in hard-coded paths or values
+    #  written into the templates (search, nav menu, etc).  Instead just output :name
+    #permalink: /docs/:name
+    permalink: :name:output_ext
+
+# collections are declared here. this renders the content in _tooltips and processes it, but doesn't output it as actual files in the output unless you change output to true
+
+defaults:
+  -
+    scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "page"
+      comments: true
+      search: true
+      sidebar: home_sidebar
+      topnav: topnav
+  -
+    scope:
+      path: ""
+      type: "docs"
+    values:
+      layout: "page"
+      comments: true
+      search: true
+      sidebar: home_sidebar
+      topnav: topnav
+
+  -
+    scope:
+      path: ""
+      type: "tooltips"
+    values:
+      layout: "page"
+      comments: true
+      search: true
+      tooltip: true
+
+  -
+    scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      comments: true
+      search: true
+      sidebar: home_sidebar
+      topnav: topnav
+
+# these are defaults used for the frontmatter for these file types
+
+sidebars:
+- home_sidebar
+- mydoc_sidebar
+- product1_sidebar
+- product2_sidebar
+- other
+
+description: "Intended as a documentation theme based on Jekyll for technical writers documenting software and other technical products, this theme has all the elements you would need to handle multiple products with both multi-level sidebar navigation, tags, and other documentation features."
+# the description is used in the feed.xml file
+
+#disqus_shortname: idrbwjekyll
+# if you're using disqus for comments, add the shortname here. if not, leave this value blank.
+
+
+# EDIT HERE! Added settings for IOOS (replace 'ioos-documentation-jekyll-skeleton' with your GitHub repo name):
+url                      : "https://ioos.github.io"
+
+baseurl                  : "/your-documentation-repo-name"
+
+repository               : "ioos/documentation-theme-jekyll"
+
+github_editme_path       : "ioos/your-documentation-repo-name/blob/gh-pages/_docs"
+# if you're using Github, provide the basepath to the branch you've created for reviews, following the sample here. if not, leave this value blank.
+
+#Setup/config for 'ioos_jekyll_theme' git submodule:
+source                   : .
+destination              : _site
+plugins_dir              : documentation-theme-jekyll/_plugins
+layouts_dir              : documentation-theme-jekyll/_layouts
+data_dir                 : _data
+includes_dir             : documentation-theme-jekyll/_includes
