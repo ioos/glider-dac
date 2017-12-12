@@ -1,3 +1,4 @@
+{% from "macros.html" import render_field, render_boolean %}
 {% extends "layout.html" %}
 
 {% block title %}{{ username }}'s deployments{% endblock %}
@@ -19,6 +20,9 @@
     </div>
     <div class="form-group">
       {{ form.attribution(placeholder="Attribution", class_="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ render_boolean(form.delayed_mode, False, "Check if this deployment is delayed mode data") }}
     </div>
     <button type="submit" class="btn btn-primary" disabled="disabled"><span class="glyphicon glyphicon-plus"></span> New Deployment</button>
   </form>
@@ -58,6 +62,13 @@ $(function() {
       <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
       <td>{% if m.operator %}<a href="{{ url_for('list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
+      <td>
+        {% if not m.delayed_mode %}
+          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('new_delayed_mode_deployment', username=username, deployment_id=m._id) }}">
+            <button title="Submit delayed mode data for this deployment" class="btn btn-primary btn-xs" {{ disabled }}><span class="glyphicon glyphicon-plus"></span> Delayed Mode</button>
+          </form>
+        {% endif %}
+      </td>
     </tr>
     {%- endfor %}
     </tbody>
