@@ -49,7 +49,7 @@ wikiToJekyll:
 output: web
 # this property is useful for conditional filtering of content that is separate from the PDF.
 
-topnav_title: A Template for IOOS Documentation GitHub Pages
+topnav_title: IOOS National Glider Data Assembly Center (V2)
 # this appears on the top navigation bar next to the home button; replace the value with your site name
 
 site_title: IOOS GitHub Documentation
