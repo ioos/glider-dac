@@ -1,16 +1,19 @@
 ---
-title: "HOMEPAGE [First Document]"
-keywords: homepage
-tags: [getting_started, about, overview]
-#sidebar: home_sidebar
+title: Links for Data Providers
+wikiPageName: Links-for-Data-Providers
 sidebar: mydoc_sidebar
-topnav: topnav
+keywords: IOOS, documentation
+tags: [getting_started, about, overview]
+#topnav: topnav_ioos
 toc: false
+#search: exclude
 #permalink: index.html
-summary: This is a Markdown document that will be rendered as the site 2nd page 
+summary: A list of links for Data Providers
 ---
 
-## [Wiki](https://github.com/kerfoot/ioosngdac/wiki)  **Data Provider Links**
+<!--
+> [Wiki](https://github.com/kerfoot/ioosngdac/wiki) ▸ **Data Provider Links**
+-->
 
 The following is a list of links for data providers and web applications developers that provide the means to create new deployments, upload conforming [DAC NetCDF files](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2), view data set status and programmatically interface with the DAC via a RESTful API.
 
