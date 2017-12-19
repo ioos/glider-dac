@@ -40,7 +40,7 @@ wikiToJekyll:
   wiki_source: "_wiki"
 
   # wiki Jekyll generated pages destination folder
-  wiki_dest: "wiki"
+  wiki_dest: "_docs"
 
   # commit and push to Jekyll repository after wiki synchronization
   commit_and_push: false
