@@ -5,3 +5,6 @@
 	path = _data/navbars_theme
 	url = https://github.com/ioos/documentation-theme-jekyll
 	branch = navbars
+[submodule "_wiki"]
+	path = _wiki
+	url = https://github.com/ioos/ioosngdac.wiki.git
