@@ -8,7 +8,7 @@ tags: [getting_started, about, overview]
 toc: false
 #search: exclude
 #permalink: index.html
-summary: These brief instructions will help you get started quickly with the data backup and recovery processes.
+summary:  These brief instructions will help you get started quickly with the data backup and recovery processes.
 ---
 
 ## Data Backup
