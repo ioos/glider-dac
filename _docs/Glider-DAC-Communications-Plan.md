@@ -1,3 +1,16 @@
+---
+title: Glider DAC Communications Plan
+wikiPageName: Glider-DAC-Communications-Plan
+sidebar: mydoc_sidebar
+keywords: IOOS, documentation
+tags: [getting_started, about, overview]
+#topnav: topnav_ioos
+toc: false
+#search: exclude
+#permalink: index.html
+summary: These brief instructions will help you get started quickly with the IOOS Documentation Theme for Jekyll.
+---
+
 Assessing the current state of glider DAC documentation and coming up with a strategy for docs that is clear for data providers, program managers, and data consumers.
 
 Currently we have the following URLs that contain some piece of the glider story.  What is current/accurate/relevant?  What is missing? What is out of date and in need of updating?  What is redundant or unnecessary and should be deleted?
