@@ -183,13 +183,13 @@ description: "Intended as a documentation theme based on Jekyll for technical wr
 
 
 # EDIT HERE! Added settings for IOOS (replace 'ioos-documentation-jekyll-skeleton' with your GitHub repo name):
-url                      : "https://ioos.github.io"
+url                      : "https://gitchrisadams.github.io"
 
-baseurl                  : "/your-documentation-repo-name"
+baseurl                  : "/ioosngdac"
 
-repository               : "ioos/documentation-theme-jekyll"
+repository               : "gitchrisadams/ioosngdac"
 
-github_editme_path       : "ioos/your-documentation-repo-name/blob/gh-pages/_docs"
+github_editme_path       : "gitchrisadams/ioosngdac/blob/gh-pages/_docs"
 # if you're using Github, provide the basepath to the branch you've created for reviews, following the sample here. if not, leave this value blank.
 
 #Setup/config for 'ioos_jekyll_theme' git submodule:
