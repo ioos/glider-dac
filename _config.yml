@@ -5,10 +5,10 @@
 wikiToJekyll:
 
   # your user Github Name
-  user_name: gitchrisadams
+  user_name: ioos
 
   # your repository Name
-  repository_name: ioos-documentation-ghpages
+  repository_name: ioosngdac
 
   # set your remote name. 'origin' is the default name set
   # when you do a 'git init'
@@ -183,13 +183,13 @@ description: "Intended as a documentation theme based on Jekyll for technical wr
 
 
 # EDIT HERE! Added settings for IOOS (replace 'ioos-documentation-jekyll-skeleton' with your GitHub repo name):
-url                      : "https://gitchrisadams.github.io"
+url                      : "https://ioos.github.io"
 
 baseurl                  : "/ioosngdac"
 
-repository               : "gitchrisadams/ioosngdac"
+repository               : "ioos/ioosngdac"
 
-github_editme_path       : "gitchrisadams/ioosngdac/blob/gh-pages/_docs"
+github_editme_path       : "ioos/ioosngdac/blob/gh-pages/_docs"
 # if you're using Github, provide the basepath to the branch you've created for reviews, following the sample here. if not, leave this value blank.
 
 #Setup/config for 'ioos_jekyll_theme' git submodule:
