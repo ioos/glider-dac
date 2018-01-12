@@ -1,0 +1,261 @@
+<dataset type="EDDTableFromNcCFFiles" datasetID="{{dataset_id}}" active="true">
+    <!--
+    <defaultGraphQuery>longitude,latitude&amp;.draw=linesAndMarkers&amp;.marker=1|5&amp;.color=0xFFFFFF</defaultGraphQuery>
+    -->
+    <reloadEveryNMinutes>15</reloadEveryNMinutes>
+    <fileDir>{{dataset_dir}}</fileDir>
+    <recursive>false</recursive>
+    <fileNameRegex>.*\.nc3\.nc</fileNameRegex>
+    <metadataFrom>last</metadataFrom>
+    <preExtractRegex></preExtractRegex>
+    <postExtractRegex></postExtractRegex>
+    <extractRegex></extractRegex>
+    <columnNameForExtract></columnNameForExtract>
+    <sortFilesBySourceNames></sortFilesBySourceNames>
+    <fileTableInMemory>false</fileTableInMemory>
+    
+    <dataVariable>
+        <sourceName>trajectory</sourceName>
+        <destinationName>trajectory</destinationName>
+        <dataType>String</dataType>
+    </dataVariable>
+    
+    <dataVariable>
+        <sourceName>wmo_id</sourceName>
+        <destinationName>wmo_id</destinationName>
+        <dataType>String</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time</sourceName>
+        <destinationName>time</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>latitude</sourceName>
+        <destinationName>latitude</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>latitude_qc</sourceName>
+        <destinationName>latitude_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>longitude</sourceName>
+        <destinationName>longitude</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>longitude_qc</sourceName>
+        <destinationName>longitude_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time_qc</sourceName>
+        <destinationName>time_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>depth</sourceName>
+        <destinationName>depth</destinationName>
+        <dataType>float</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>depth_qc</sourceName>
+        <destinationName>depth_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>pressure</sourceName>
+        <destinationName>pressure</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>pressure_qc</sourceName>
+        <destinationName>pressure_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>conductivity</sourceName>
+        <destinationName>conductivity</destinationName>
+        <dataType>float</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>conductivity_qc</sourceName>
+        <destinationName>conductivity_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>density</sourceName>
+        <destinationName>density</destinationName>
+        <dataType>float</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>density_qc</sourceName>
+        <destinationName>density_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_lat</sourceName>
+        <destinationName>precise_lat</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_lon</sourceName>
+        <destinationName>precise_lon</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_time</sourceName>
+        <destinationName>precise_time</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>profile_id</sourceName>
+        <destinationName>profile_id</destinationName>
+        <dataType>int</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_lat_qc</sourceName>
+        <destinationName>precise_lat_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_lon_qc</sourceName>
+        <destinationName>precise_lon_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>precise_time_qc</sourceName>
+        <destinationName>precise_time_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>salinity</sourceName>
+        <destinationName>salinity</destinationName>
+        <dataType>float</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>salinity_qc</sourceName>
+        <destinationName>salinity_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>temperature</sourceName>
+        <destinationName>temperature</destinationName>
+        <dataType>float</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>temperature_qc</sourceName>
+        <destinationName>temperature_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time_uv</sourceName>
+        <destinationName>time_uv</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+    
+    <dataVariable>
+        <sourceName>time_uv_qc</sourceName>
+        <destinationName>time_uv_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lat_uv</sourceName>
+        <destinationName>lat_uv</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lat_uv_qc</sourceName>
+        <destinationName>lat_uv_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lon_uv</sourceName>
+        <destinationName>lon_uv</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lon_uv_qc</sourceName>
+        <destinationName>lon_uv_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>u</sourceName>
+        <destinationName>u</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>u_qc</sourceName>
+        <destinationName>u_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>v</sourceName>
+        <destinationName>v</destinationName>
+        <dataType>double</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>v_qc</sourceName>
+        <destinationName>v_qc</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>platform_meta</sourceName>
+        <destinationName>platform_meta</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>instrument_ctd</sourceName>
+        <destinationName>instrument_ctd</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+
+    {% if include_qartod %}
+    {% for var in qartod_variables %}
+    <dataVariable>
+        <sourceName>{{var}}</sourceName>
+        <destinationName>{{var}}</destinationName>
+        <dataType>byte</dataType>
+    </dataVariable>
+    {% endfor %}
+    {% endif %}
+
+</dataset>
