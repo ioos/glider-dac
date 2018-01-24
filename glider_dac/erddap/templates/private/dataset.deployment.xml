@@ -88,6 +88,8 @@
         <addAttributes>
             <att name="colorBarMaximum" type="double">90.0</att>
             <att name="colorBarMinimum" type="double">-90.0</att>
+            <att name="valid_max" type="double">90.0</att>
+            <att name="valid_min" type="double">-90.0</att>
             <att name="ioos_category">Location</att>
             <att name="long_name">Profile Latitude</att>
             <att name="comment">Value is interpolated to provide an estimate of the latitude at the mid-point of the profile.</att>
@@ -101,6 +103,8 @@
         <addAttributes>
             <att name="colorBarMaximum" type="double">180.0</att>
             <att name="colorBarMinimum" type="double">-180.0</att>
+            <att name="valid_max" type="double">180.0</att>
+            <att name="valid_min" type="double">-180.0</att>
             <att name="ioos_category">Location</att>
             <att name="long_name">Profile Longitude</att>
             <att name="comment">Value is interpolated to provide an estimate of the longitude at the mid-point of the profile.</att>
