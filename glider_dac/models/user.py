@@ -85,4 +85,4 @@ class User(Document):
 
     @classmethod
     def get_deployment_count_by_user(cls):
-        return db.deployments.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}).get('result',[])
+        return [count for count in db.deployments.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}, cursor={})]
