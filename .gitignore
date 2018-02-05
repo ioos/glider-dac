@@ -3,6 +3,7 @@
 .*.swo
 logs/*.txt
 test/*
+config.local.yml
 
 /.fab
 /.fab-production

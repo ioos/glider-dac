@@ -5,7 +5,7 @@ glider_dac/views/deployment.py
 View definition for Deployments
 '''
 from datetime import datetime
-from flask import render_template, redirect, jsonify, flash, url_for, request
+from flask import render_template, redirect, jsonify, flash, url_for, request, Markup
 from flask_login import login_required, current_user
 from flask_cors import cross_origin
 from glider_dac import app, db, queue
@@ -47,6 +47,7 @@ class NewDeploymentForm(Form):
     glider_name = TextField(u'Glider Name', [is_valid_glider_name])
     deployment_date = TextField(u'Deployment Date', [is_date_parseable])
     attribution = TextField(u'Attribution')
+    delayed_mode = BooleanField(u'Delayed Mode?')
     submit = SubmitField(u"Create")
 
 
@@ -134,8 +135,11 @@ def new_deployment(username):
 
     if form.validate_on_submit():
         deployment_date = dateparse(form.deployment_date.data)
+        delayed_mode = form.delayed_mode.data
         deployment_name = form.glider_name.data + '-' + \
             deployment_date.strftime('%Y%m%dT%H%M')
+        if delayed_mode:
+            deployment_name += '-delayed'
 
         deployment = db.Deployment()
         # form.populate_obj(deployment)
@@ -147,6 +151,7 @@ def new_deployment(username):
         deployment.glider_name = form.glider_name.data
         deployment.name = deployment_name
         deployment.attribution = form.attribution.data
+        deployment.delayed_mode = delayed_mode
         try:
             existing_deployment = db.Deployment.find_one(
                 {'name': deployment_name})
@@ -171,6 +176,61 @@ def new_deployment(username):
 
     return redirect(url_for('list_user_deployments', username=username))
 
+
+@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/new', methods=['POST'])
+@login_required
+def new_delayed_mode_deployment(username, deployment_id):
+    '''
+    Endpoint for submitting a delayed mode deployment from an existing
+    realtime deployment
+
+    :param string username: Username
+    :param ObjectId deployment_id: Id of the existing realtime deployment
+    '''
+    user = db.User.find_one({'username': username})
+    if user is None or (user is not None and not current_user.is_admin() and current_user != user):
+        # No permission
+        flash("Permission denied", 'danger')
+        return redirect(url_for("index"))
+
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+
+    # Need to check if the "real time" deployment is complete yet
+    if not deployment.completed:
+        deployment_url = url_for('show_deployment', username=username, deployment_id=deployment_id)
+        flash(Markup('The real time deployment <a href="%s">%s</a> must be marked as complete before adding delayed mode data' %
+              (deployment_url, deployment.name)), 'danger')
+        return redirect(url_for('list_user_deployments', username=username))
+
+    form = NewDeploymentForm(obj=deployment)
+    form.delayed_mode.data = True
+    deployment_date = form.deployment_date.data
+    deployment_name = form.glider_name.data + '-' + \
+        deployment_date.strftime('%Y%m%dT%H%M') + '-delayed'
+
+    deployment = db.Deployment()
+    deployment.user_id = user._id
+    deployment.username = username
+    deployment.deployment_dir = os.path.join(username, deployment_name)
+    deployment.updated = datetime.utcnow()
+    deployment.deployment_date = deployment_date
+    deployment.glider_name = form.glider_name.data
+    deployment.name = deployment_name
+    deployment.attribution = form.attribution.data
+    deployment.delayed_mode = True
+    try:
+        existing_deployment = db.Deployment.find_one(
+            {'name': deployment_name})
+        if existing_deployment is not None:
+            raise DuplicateKeyError("Duplicate Key Detected: name")
+        deployment.save()
+        flash("Deployment created", 'success')
+        send_registration_email(username, deployment)
+    except DuplicateKeyError:
+        flash("Deployment names must be unique across Glider DAC: %s already used" %
+              deployment.name, 'danger')
+
+    return redirect(url_for('list_user_deployments', username=username))
 
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/edit', methods=['POST'])
 @login_required

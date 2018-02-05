@@ -36,13 +36,15 @@ class Deployment(Document):
         'deployment_date': datetime,
         'archive_safe': bool,
         'checksum': unicode,
-        'attribution': unicode
+        'attribution': unicode,
+        'delayed_mode': bool
     }
 
     default_values = {
         'created': datetime.utcnow,
         'completed': False,
-        'archive_safe': True
+        'archive_safe': True,
+        'delayed_mode': False,
     }
 
     indexes = [
