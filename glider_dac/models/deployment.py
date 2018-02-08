@@ -245,4 +245,4 @@ class Deployment(Document):
 
     @classmethod
     def get_deployment_count_by_operator(cls):
-        return db.deployments.aggregate({'$group': {'_id': '$operator', 'count': {'$sum': 1}}}).get('result', [])
+        return [count for count in db.deployments.aggregate({'$group': {'_id': '$operator', 'count': {'$sum': 1}}}, cursor={})]
