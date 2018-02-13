@@ -3,7 +3,6 @@ import argparse
 import json
 import os
 import sys
-import urllib2
 import argparse
 import calendar
 import time
@@ -12,57 +11,44 @@ import glob
 import datetime
 import logging
 import requests
+import aiohttp
+import async_timeout
+
+import asyncio
 
 from config import *
 log = None
 
+###
+# REQUIRES PYTHON >= 3.5 FOR ASYNC FEATURES
+###
 
 class LockAcquireError(IOError):
     pass
 
-def poll_erddap(deployment_name, host):
+async def poll_erddap(deployment_name, host, session, attempts=3):
     args = {}
     args['host'] = host
     args['deployment_name'] = deployment_name
     url = 'http://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
     log.info("Polling %s", url)
-    status = request_poll(url)
-    return status
-
-def request_poll(url, attempts=3):
-    '''
-    Polls a URL for the number of specified attempts
-    returns True if the URL succeeded or False if it did not
-    '''
-    while attempts > 0:
-        response = requests.get(url)
-        if response.status_code != 200:
-            log.warning("Failed to find deployment dataset: {}".format(url))
-        else:
-            break
-        log.info("sleeping 15 second(s)")
-        time.sleep(15)
-        attempts -= 1
+    att_counter = attempts
+    while att_counter > 0:
+        with async_timeout.timeout(30):
+            try:
+                async with session.get(url) as response:
+                    if response.status != 200:
+                        log.warning("Failed to find deployment dataset: {}".format(url))
+                    else:
+                        break
+            except Exception:
+               log.exception("hit exception while processing")
+            log.info("sleeping 15 second(s)")
+            await asyncio.sleep(15)
+            att_counter -= 1
     else:
         return False
     return True
-
-
-
-def touch_erddap(deployment_name, path):
-    '''
-    Creates a flag file for erddap's file monitoring thread so that it reloads
-    the dataset
-
-    path should be from config either flags_private or flags_public
-    '''
-    full_path = os.path.join(path, deployment_name)
-    log.info("Touching flag file at %s", full_path)
-    with open(full_path, 'w') as f:
-        pass # Causes file creation
-    log.info("Sleeping 15 seconds")
-    time.sleep(15)
-
 
 def setup_logging(level=logging.DEBUG):
     import logging
@@ -114,8 +100,18 @@ def main(args):
         log.info( "Processing the following deployments")
         for deployment in deployments:
             log.info( " - %s", deployment)
-        for deployment in deployments:
-            sync_deployment(deployment, args.force)
+        # limit to 4 simultaneous connections open
+        data_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit_per_host=4))
+        # the polling session are relatively quick, so don't rate limit them
+        polling_session = aiohttp.ClientSession()
+        loop = asyncio.get_event_loop()
+        tasks = [loop.create_task(sync_deployment(d, data_session,
+                                                  polling_session, args.force))
+                                                  for d in deployments]
+        wait_tasks = asyncio.wait(tasks)
+        loop.run_until_complete(wait_tasks)
+        loop.close()
+
     finally:
         release_lock(args.lock_file)
 
@@ -133,7 +129,7 @@ def load_deployments():
 
 
 
-def retrieve_data(where, deployment):
+async def retrieve_data(where, deployment, session):
     '''
     '''
     publish_dir = os.path.join(where, deployment)
@@ -155,7 +151,28 @@ def retrieve_data(where, deployment):
         url
     ]
     log.info("Args: %s", ' '.join(args))
-    try_wget(deployment, args, 5)
+
+    fail_counter = 5
+    while True:
+        try:
+            # This causes timeouts even when the max simultaneous connection
+            # lock isn't released
+            async with session.get(url) as response:
+                with open(path_arg, 'wb') as f_handle:
+                    while True:
+                        chunk = await response.content.read(1024)
+                        if not chunk:
+                            break
+                        f_handle.write(chunk)
+                return await response.release()
+        except Exception as e:
+            fail_counter -= 1
+            log.exception("Failed to get %s", deployment)
+            log.info("Attempts remainging: %s", fail_counter)
+            if fail_counter <= 0:
+               break
+        else:
+            break
 
 def try_wget(deployment, args, count=1):
     try:
@@ -167,9 +184,23 @@ def try_wget(deployment, args, count=1):
             try_wget(deployment, args, count-1)
 
 
-def sync_deployment(deployment, force=False):
+async def sync_deployment(deployment, data_session, poll_session, force=False):
     '''
     '''
+    def touch_erddap(deployment_name, path):
+        '''
+        Creates a flag file for erddap's file monitoring thread so that it reloads
+        the dataset
+
+        path should be from config either flags_private or flags_public
+        '''
+        full_path = os.path.join(path, deployment_name)
+        log.info("Touching flag file at %s", full_path)
+        # technically could async this as it's I/O, but touching a file is pretty
+        # unlikely to be a bottleneck
+        with open(full_path, 'w') as f:
+            pass # Causes file creation
+
     log.info( "--------------------------------------------------------------------------------")
     log.info( "   Processing %s", deployment)
     log.info( "--------------------------------------------------------------------------------")
@@ -180,21 +211,27 @@ def sync_deployment(deployment, force=False):
     mTime=get_mod_time(d)
     deltaT= int(currentEpoch) - int(mTime)
     log.info( "Synchronizing at %s", datetime.datetime.utcnow().isoformat())
-    #print currentEpoch, deltaT, mTime
     if force or deltaT <  time_in_past:
         deployment_name = deployment.split('/')[-1]
         # First sync up the private
         touch_erddap(deployment_name, flags_private)
-        if not poll_erddap(deployment_name, erddap_private):
+        log.info("Sleeping 15 seconds")
+        await asyncio.sleep(15)
+        if not await poll_erddap(deployment_name, erddap_private, poll_session):
             log.error("Couldn't update deployment %s", deployment)
             return
 
-        retrieve_data(path2pub, deployment)
-        retrieve_data(path2thredds, deployment)
+        await retrieve_data(path2pub, deployment, data_session)
 
         touch_erddap(deployment_name, flags_public)
-        if not poll_erddap(deployment_name, erddap_public):
+        log.info("Sleeping 15 seconds")
+        await asyncio.sleep(15)
+        if not await poll_erddap(deployment_name, erddap_public, poll_session):
             log.error("Couldn't update public erddap for deployment %s", deployment)
+
+        await retrieve_data(path2thredds, deployment, data_session)
+
+        # moved touch_erddap block from here
     else:
         log.info("Everything is up to date")
 
@@ -236,4 +273,3 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     args = parser.parse_args()
     main(args)
-
