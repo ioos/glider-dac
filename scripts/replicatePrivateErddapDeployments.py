@@ -24,7 +24,7 @@ log = None
 class LockAcquireError(IOError):
     pass
 
-async def poll_erddap(deployment_name, host, session, proto='http', attempts=3):
+async def poll_erddap(deployment_name, host, proto='http', attempts=3):
     args = {}
     args['host'] = host
     args['deployment_name'] = deployment_name
@@ -32,21 +32,26 @@ async def poll_erddap(deployment_name, host, session, proto='http', attempts=3):
     url = '%(proto)s://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
     log.info("Polling %s", url)
     att_counter = attempts
-    while att_counter > 0:
-        try:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    log.warning("Failed to find deployment dataset: {}".format(url))
-                else:
-                    break
-        except Exception:
-            log.exception("hit exception while processing for deployment {}".format(url))
-        log.info("sleeping 15 second(s)")
-        await asyncio.sleep(15)
-        att_counter -= 1
-    else:
+    try:
+        async with aiohttp.ClientSession() as session:
+            while att_counter > 0:
+                try:
+                    async with session.get(url) as response:
+                        if response.status != 200:
+                            log.warning("Failed to find deployment dataset: {}".format(url))
+                        else:
+                            break
+                except Exception:
+                    log.exception("hit exception while processing for deployment {}".format(url))
+                log.info("sleeping 15 second(s)")
+                await asyncio.sleep(15)
+                att_counter -= 1
+            else:
+                return False
+            return True
+    except Exception:
+        logger.exception("Error while fetching http for deployment {}".format(url))
         return False
-    return True
 
 def setup_logging(level=logging.DEBUG):
     import logging
@@ -98,19 +103,13 @@ def main(args):
         log.info( "Processing the following deployments")
         for deployment in deployments:
             log.info( " - %s", deployment)
-        # limit to 4 simultaneous connections open
-        sem = asyncio.Semaphore(4)
-        data_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit_per_host=4))
-        # the polling session are relatively quick, so don't rate limit them
-        polling_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector())
+        # limit to 8 simultaneous connections open for fetching data
+        sem = asyncio.Semaphore(8)
         loop = asyncio.get_event_loop()
-        tasks = [loop.create_task(sync_deployment(d, data_session,
-                                                  polling_session, sem, args.force))
+        tasks = [loop.create_task(sync_deployment(d, sem, args.force))
                                                   for d in deployments]
         wait_tasks = asyncio.wait(tasks)
         loop.run_until_complete(wait_tasks)
-        polling_session.close()
-        data_session.close()
         loop.close()
 
     finally:
@@ -130,7 +129,7 @@ def load_deployments():
 
 
 
-async def retrieve_data(where, deployment, session, sem, proto='http'):
+async def retrieve_data(where, deployment, sem, proto='http'):
     '''
     '''
     publish_dir = os.path.join(where, deployment)
@@ -149,26 +148,27 @@ async def retrieve_data(where, deployment, session, sem, proto='http'):
     fail_counter = 5
     # try to release semaphore before attempting to get the response
     async with sem:
-        while True:
-            try:
-                # This causes timeouts even when the max simultaneous connection
-                # lock isn't released
-                async with session.get(url) as response:
-                    with open(path_arg, 'wb') as f_handle:
-                        while True:
-                            chunk = await response.content.read(1024)
-                            if not chunk:
-                                break
-                            f_handle.write(chunk)
-                    return await response.release()
-            except Exception as e:
-                fail_counter -= 1
-                log.exception("Failed to get %s", deployment)
-                log.info("Attempts remainging: %s", fail_counter)
-                if fail_counter <= 0:
-                   break
-            else:
-                break
+        async with aiohttp.ClientSession() as session:
+            while True:
+                try:
+                    # This causes timeouts even when the max simultaneous connection
+                    # lock isn't released
+                    async with session.get(url) as response:
+                        with open(path_arg, 'wb') as f_handle:
+                            while True:
+                                chunk = await response.content.read(1024)
+                                if not chunk:
+                                    break
+                                f_handle.write(chunk)
+                        return await response.release()
+                except Exception as e:
+                    fail_counter -= 1
+                    log.exception("Failed to get %s", deployment)
+                    log.info("Attempts remainging: %s", fail_counter)
+                    if fail_counter <= 0:
+                        break
+                    else:
+                        break
 
 def try_wget(deployment, args, count=1):
     try:
@@ -180,8 +180,7 @@ def try_wget(deployment, args, count=1):
             try_wget(deployment, args, count-1)
 
 
-async def sync_deployment(deployment, data_session, poll_session, sem,
-                          force=False):
+async def sync_deployment(deployment, sem, force=False):
     '''
     '''
     def touch_erddap(deployment_name, path):
@@ -214,19 +213,19 @@ async def sync_deployment(deployment, data_session, poll_session, sem,
         touch_erddap(deployment_name, flags_private)
         log.info("Sleeping 15 seconds")
         await asyncio.sleep(15)
-        if not await poll_erddap(deployment_name, erddap_private, poll_session):
+        if not await poll_erddap(deployment_name, erddap_private):
             log.error("Couldn't update deployment %s", deployment)
             return
 
-        await retrieve_data(path2pub, deployment, data_session, sem)
+        await retrieve_data(path2pub, deployment, sem)
 
         touch_erddap(deployment_name, flags_public)
         log.info("Sleeping 15 seconds")
         await asyncio.sleep(15)
-        if not await poll_erddap(deployment_name, erddap_public, poll_session):
+        if not await poll_erddap(deployment_name, erddap_public):
             log.error("Couldn't update public erddap for deployment %s", deployment)
 
-        await retrieve_data(path2thredds, deployment, data_session, sem)
+        await retrieve_data(path2thredds, deployment, sem)
 
         # moved touch_erddap block from here
     else:
