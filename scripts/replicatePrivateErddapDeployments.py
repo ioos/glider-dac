@@ -203,7 +203,8 @@ async def sync_deployment(deployment, sem, force=False):
     d = deployment
     #Get Current Epoch Time and how far back in time to search
     currentEpoch = time.time()
-    time_in_past = 3800
+    # reload any datasets which have been updated in the last 8 hours
+    time_in_past = 3600 * 8
     mTime=get_mod_time(d)
     deltaT= int(currentEpoch) - int(mTime)
     log.info( "Synchronizing at %s", datetime.datetime.utcnow().isoformat())
