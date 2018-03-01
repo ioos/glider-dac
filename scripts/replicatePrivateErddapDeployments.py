@@ -220,10 +220,6 @@ async def sync_deployment(deployment, sem, force=False):
         await retrieve_data(path2pub, deployment, sem)
 
         touch_erddap(deployment_name, flags_public)
-        log.info("Sleeping 15 seconds")
-        await asyncio.sleep(15)
-        if not await poll_erddap(deployment_name, erddap_public):
-            log.error("Couldn't update public erddap for deployment %s", deployment)
 
         await retrieve_data(path2thredds, deployment, sem)
 
