@@ -211,7 +211,7 @@ async def sync_deployment(deployment, sem, force=False):
     d = deployment
     #Get Current Epoch Time and how far back in time to search
     currentEpoch = time.time()
-    # reload any datasets which have been updated in the last 8 hours
+    # reload any datasets which have been updated in the last 24 hours
     time_in_past = 3600 * 24
     mTime=get_mod_time(d)
     deltaT= int(currentEpoch) - int(mTime)
