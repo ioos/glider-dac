@@ -204,9 +204,10 @@ async def sync_deployment(deployment, sem, force=False):
     #Get Current Epoch Time and how far back in time to search
     currentEpoch = time.time()
     # reload any datasets which have been updated in the last 8 hours
-    time_in_past = 3600 * 8
+    time_in_past = 3600 * 24
     mTime=get_mod_time(d)
     deltaT= int(currentEpoch) - int(mTime)
+
     log.info( "Synchronizing at %s", datetime.datetime.utcnow().isoformat())
     if force or deltaT <  time_in_past:
         deployment_name = deployment.split('/')[-1]
