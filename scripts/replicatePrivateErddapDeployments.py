@@ -72,20 +72,28 @@ def get_mod_time(name):
     jsonFile = os.path.join(JSON_DIR, name + '/deployment.json')
     log.info("Inspecting %s", jsonFile)
 
+    try:
+        newest = max(glob.iglob(JSON_DIR+name+'/'+'*.nc') , key=os.path.getmtime)
+    # if there are no nc files, arbitrarily set time as 0
+    except ValueError:
+        newest = 0
+    ncTime = os.path.getmtime(newest)
     if not os.path.exists(jsonFile):
         log.info( "JSON file does not exist.")
-        newest = max(glob.iglob(JSON_DIR+name+'/'+'*.nc') , key=os.path.getmtime)
-        jsonTime = os.path.getmtime(newest)
-        with  open(jsonFile, 'w') as outfile:
-            json.dump({'updated':jsonTime*1000}, outfile)
+        with open(jsonFile, 'w') as outfile:
+            json.dump({'updated':ncTime*1000}, outfile)
         log.info("Initiated JSON file")
 
 
     with open(jsonFile, 'r') as fid:
         dataset = json.load(fid)
-
-    log.info( dataset['updated'])
-    return (dataset['updated'])/1000
+    # get the max time reported between the netCDF files and the update time
+    # in the deployments json file
+    update_time = max(ncTime * 1000, dataset['updated'])
+    update_timestring = datetime.datetime.fromtimestamp(update_time /
+                                                        1000).isoformat()
+    log.info("Dataset {} last updated {}".format(name, update_timestring))
+    return update_time/1000
 
 def main(args):
     '''
