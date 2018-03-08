@@ -14,6 +14,8 @@ import async_timeout
 
 import asyncio
 
+from netCDF4 import Dataset
+
 from config import *
 log = None
 
@@ -50,7 +52,7 @@ async def poll_erddap(deployment_name, host, proto='http', attempts=3):
                 return False
             return True
     except Exception:
-        logger.exception("Error while fetching http for deployment {}".format(url))
+        log.exception("Error while fetching http for deployment {}".format(url))
         return False
 
 def setup_logging(level=logging.DEBUG):
@@ -100,6 +102,7 @@ def main(args):
         else:
             deployments = load_deployments()
 
+
         log.info( "Processing the following deployments")
         for deployment in deployments:
             log.info( " - %s", deployment)
@@ -148,27 +151,47 @@ async def retrieve_data(where, deployment, sem, proto='http'):
     fail_counter = 5
     # try to release semaphore before attempting to get the response
     async with sem:
-        async with aiohttp.ClientSession() as session:
-            while True:
-                try:
-                    # This causes timeouts even when the max simultaneous connection
-                    # lock isn't released
-                    async with session.get(url) as response:
-                        with open(path_arg, 'wb') as f_handle:
-                            while True:
-                                chunk = await response.content.read(1024)
-                                if not chunk:
-                                    break
-                                f_handle.write(chunk)
-                        return await response.release()
-                except Exception as e:
-                    fail_counter -= 1
-                    log.exception("Failed to get %s", deployment)
-                    log.info("Attempts remainging: %s", fail_counter)
-                    if fail_counter <= 0:
-                        break
-                    else:
-                        break
+        try:
+            async with aiohttp.ClientSession(raise_for_status=True) as session:
+                while True:
+                    try:
+                        # This causes timeouts even when the max simultaneous connection
+                        # lock isn't released
+                        async with session.get(url) as response:
+                            with open(path_arg + '.tmp', 'wb') as f_handle:
+                                while True:
+                                    chunk = await response.content.read(1024)
+                                    if not chunk:
+                                        break
+                                    f_handle.write(chunk)
+                            return await response.release()
+                    except Exception as e:
+                        fail_counter -= 1
+                        log.exception("Failed to get %s", deployment)
+                        log.info("Attempts remainging: %s", fail_counter)
+                        if fail_counter <= 0:
+                            break
+                        else:
+                            break
+        except:
+            log.exception("HTTP issue occurred while fetching data for {}".format(deployment))
+            os.unlink(path_arg + '.tmp')
+        else:
+            # sanity check to see if file is valid
+            try:
+                with Dataset(path_arg + '.tmp') as d:
+                    pass
+            except:
+                log.exception("Exception occurring while attempting to open NetCDF dataset {}".format(path_arg +
+                                                                                                         '.tmp'))
+                os.unlink(path_arg + '.tmp')
+                return
+
+            # if the download succeeded and file isn't corrupt, replace the previous file
+            log.info(os.stat(path_arg + '.tmp'))
+            os.rename(path_arg + '.tmp', path_arg)
+            log.info(("moved file {}".format(path_arg + '.tmp')))
+
 
 def try_wget(deployment, args, count=1):
     try:
