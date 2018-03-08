@@ -171,8 +171,7 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                         log.info("Attempts remainging: %s", fail_counter)
                         if fail_counter <= 0:
                             break
-                        else:
-                            break
+
         except:
             log.exception("HTTP issue occurred while fetching data for {}".format(deployment))
             os.unlink(path_arg + '.tmp')
