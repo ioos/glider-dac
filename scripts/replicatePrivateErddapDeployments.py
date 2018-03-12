@@ -164,6 +164,20 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                                     if not chunk:
                                         break
                                     f_handle.write(chunk)
+                            try:
+                                log.info(os.stat(path_arg + '.tmp'))
+                                # sanity check to ensure netCDF file is valid
+                                with Dataset(path_arg + '.tmp') as d:
+                                    pass
+                            except:
+                                log.exception("Exception occurring while attempting to open NetCDF dataset {}".format(path_arg +
+                                                                                                                         '.tmp'))
+                                os.unlink(path_arg + '.tmp')
+                            else:
+                                os.rename(path_arg + '.tmp', path_arg)
+
+                                    # if the download succeeded and file isn't corrupt, replace the previous file
+                                log.info(("moved file {}".format(path_arg + '.tmp')))
                             return await response.release()
                     except Exception as e:
                         fail_counter -= 1
@@ -175,21 +189,6 @@ async def retrieve_data(where, deployment, sem, proto='http'):
         except:
             log.exception("HTTP issue occurred while fetching data for {}".format(deployment))
             os.unlink(path_arg + '.tmp')
-        else:
-            # sanity check to see if file is valid
-            try:
-                with Dataset(path_arg + '.tmp') as d:
-                    pass
-            except:
-                log.exception("Exception occurring while attempting to open NetCDF dataset {}".format(path_arg +
-                                                                                                         '.tmp'))
-                os.unlink(path_arg + '.tmp')
-                return
-
-            # if the download succeeded and file isn't corrupt, replace the previous file
-            log.info(os.stat(path_arg + '.tmp'))
-            os.rename(path_arg + '.tmp', path_arg)
-            log.info(("moved file {}".format(path_arg + '.tmp')))
 
 
 def try_wget(deployment, args, count=1):
