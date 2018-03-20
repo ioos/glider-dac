@@ -6,9 +6,11 @@ import argparse
 import logging
 import fileinput
 import glob
+import warnings
 from jinja2 import Template
 from lxml import etree
 from collections import defaultdict
+from __future__ import print_function
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
@@ -40,16 +42,14 @@ def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, roo
                 try:
                     f.write(build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir))
                 except Exception as e:
-                    print "Error: deployment: {}, user: {}".format(deployment, user)
-                    print str(e)
+                    warnings.warn("Error: deployment: {}, user: {}\n{}".format(deployment, user, str(e)))
         # if we have an "agg" file in our templates, fill one out per user
         if os.path.exists(os.path.join(template_dir, 'dataset.agg.xml')):
             for user in udeployments:
                 try:
                     f.write(build_erddap_agg_fragment(data_root, user, template_dir))
                 except Exception as e:
-                    print "Error: user: {}".format(user)
-                    print str(e)
+                    warnings.warn("Error: user: {}\n{}".format(user, str(e)))
 
         for line in fileinput.input([tail_path]):
             f.write(line)
@@ -87,8 +87,8 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             checksum        = js.get('checksum', '').strip()
             completed       = js['completed']
     except (OSError, IOError, AssertionError, AttributeError) as e:
-        print "%s: %s" % (repr(e), e.message)
-        print e
+        print("%s: %s" % (repr(e), e.message))
+        print(e)
         return ''
 
     nc_file = get_first_nc_file(dir_path)
