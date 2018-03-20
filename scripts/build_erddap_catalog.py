@@ -34,16 +34,22 @@ def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, roo
     with open(ds_path, 'w') as f:
         for line in fileinput.input([head_path]):
             f.write(line)
-
         # for each user deployment, create a dataset fragment
         for user in udeployments:
             for deployment in udeployments[user]:
-                f.write(build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir))
-
+                try:
+                    f.write(build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir))
+                except Exception as e:
+                    print "Error: deployment: {}, user: {}".format(deployment, user)
+                    print str(e)
         # if we have an "agg" file in our templates, fill one out per user
         if os.path.exists(os.path.join(template_dir, 'dataset.agg.xml')):
             for user in udeployments:
-                f.write(build_erddap_agg_fragment(data_root, user, template_dir))
+                try:
+                    f.write(build_erddap_agg_fragment(data_root, user, template_dir))
+                except Exception as e:
+                    print "Error: user: {}".format(user)
+                    print str(e)
 
         for line in fileinput.input([tail_path]):
             f.write(line)
