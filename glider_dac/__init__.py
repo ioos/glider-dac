@@ -12,6 +12,7 @@ import redis
 
 # Create application object
 app = Flask(__name__)
+app.url_map.strict_slashes = False
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 from flask_environments import Environments
