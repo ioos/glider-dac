@@ -193,30 +193,26 @@ def new_delayed_mode_deployment(username, deployment_id):
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
 
-    deployment = db.Deployment.find_one({'_id': deployment_id})
-
+    rt_deployment = db.Deployment.find_one({'_id': deployment_id})
     # Need to check if the "real time" deployment is complete yet
-    if not deployment.completed:
+    if not rt_deployment.completed:
         deployment_url = url_for('show_deployment', username=username, deployment_id=deployment_id)
         flash(Markup('The real time deployment <a href="%s">%s</a> must be marked as complete before adding delayed mode data' %
-              (deployment_url, deployment.name)), 'danger')
+              (deployment_url, rt_deployment.name)), 'danger')
         return redirect(url_for('list_user_deployments', username=username))
 
-    form = NewDeploymentForm(obj=deployment)
-    form.delayed_mode.data = True
-    deployment_date = form.deployment_date.data
-    deployment_name = form.glider_name.data + '-' + \
-        deployment_date.strftime('%Y%m%dT%H%M') + '-delayed'
-
     deployment = db.Deployment()
+    deployment_name = rt_deployment.name + '-delayed'
+    deployment.name = deployment_name
     deployment.user_id = user._id
     deployment.username = username
+    deployment.operator = rt_deployment.operator
     deployment.deployment_dir = os.path.join(username, deployment_name)
+    deployment.wmo_id = rt_deployment.wmo_id
     deployment.updated = datetime.utcnow()
-    deployment.deployment_date = deployment_date
-    deployment.glider_name = form.glider_name.data
-    deployment.name = deployment_name
-    deployment.attribution = form.attribution.data
+    deployment.glider_name = rt_deployment.glider_name
+    deployment.deployment_date = rt_deployment.deployment_date
+    deployment.attribution = rt_deployment.attribution
     deployment.delayed_mode = True
     try:
         existing_deployment = db.Deployment.find_one(
