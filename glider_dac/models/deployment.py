@@ -180,7 +180,8 @@ class Deployment(Document):
         if self.completed:
             for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
-                    if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
+                    if (f in ["deployment.json", "wmoid.txt", "completed.txt"]
+                        or f.endswith(".md5") or not f.endswith('.nc')):
                         continue
 
                     full_file = os.path.join(dirpath, f)
@@ -211,7 +212,9 @@ class Deployment(Document):
         # We dont MD5 every dive file here to save time
         for dirpath, dirnames, filenames in os.walk(self.full_path):
             for f in filenames:
-                if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
+                # could simply do `not f.endswith(.nc)`
+                if (f in ["deployment.json", "wmoid.txt", "completed.txt"]
+                    or f.endswith(".md5") or not f.endswith('.nc')):
                     continue
                 mtime = os.path.getmtime(os.path.join(dirpath, f))
                 mtime = datetime.utcfromtimestamp(mtime)
