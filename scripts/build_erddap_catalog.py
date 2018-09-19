@@ -95,6 +95,15 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
 
     # look for a file named extra_atts.json that provides
     # variable and/or global attributes to add and/or modify
+    # an example of extra_atts.json file which modifies the history global
+    # attribute and the depth variable's units attribute is below
+    #
+    #  {
+    #      "_global_attrs":
+    #      { "history": "updated units"},
+    #      "depth":
+    #         { "units": "m" }
+    #  }
     extra_atts_file = os.path.join(dir_path, "extra_atts.json")
     if mode == 'priv_erddap' and os.path.isfile(extra_atts_file):
         try:
@@ -168,7 +177,6 @@ def add_extra_attributes(tree, identifier, mod_atts):
     """
     if identifier == '_global_attrs':
         xpath_expr = "."
-        #subtree = etree.find('dataset/addAttribues')
     else:
         xpath_expr = "dataVariable[sourceName='{}']".format(identifier)
     subtree = tree.find(xpath_expr)
