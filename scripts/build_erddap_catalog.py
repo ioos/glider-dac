@@ -93,6 +93,8 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
         return ''
 
 
+    # look for a file named extra_atts.json that provides
+    # variable and/or global attributes to add and/or modify
     extra_atts_file = os.path.join(dir_path, "extra_atts.json")
     if mode == 'priv_erddap' and os.path.isfile(extra_atts_file):
         try:
@@ -156,7 +158,14 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
 
 
 def add_extra_attributes(tree, identifier, mod_atts):
-    """Adds extra user-defined attributes to the ERDDAP datasets.xml"""
+    """
+    Adds extra user-defined attributes to the ERDDAP datasets.xml.
+    Usually sourced from the extra_atts.json file, this function modifies an
+    ERDDAP xml datasets tree.   `identifier` should either be "_global_attrs"
+    to modify a global attribute, or the name of a variable in the dataset
+    to modify a variable's attributes.  `mod_atts` is a dict with the attributes
+    to create or modify.
+    """
     if identifier == '_global_attrs':
         xpath_expr = "."
         #subtree = etree.find('dataset/addAttribues')
