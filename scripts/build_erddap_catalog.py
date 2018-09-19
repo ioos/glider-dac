@@ -10,7 +10,6 @@ import warnings
 from jinja2 import Template
 from lxml import etree
 from collections import defaultdict
-from __future__ import print_function
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
@@ -40,7 +39,9 @@ def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, roo
         for user in udeployments:
             for deployment in udeployments[user]:
                 try:
-                    f.write(build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir))
+                    f.write(build_erddap_catalog_fragment(data_root, user,
+                                                          deployment, template_dir,
+                                                          root_dir, erddap_name))
                 except Exception as e:
                     warnings.warn("Error: deployment: {}, user: {}\n{}".format(deployment, user, str(e)))
         # if we have an "agg" file in our templates, fill one out per user
@@ -57,7 +58,7 @@ def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, roo
     logger.info("Wrote %s from %d deployments", ds_path, len(deployment_dirs))
 
 def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
-                                  root_dir=None):
+                                  root_dir=None, mode='pub_erddap'):
     """
     Builds an ERDDAP dataset xml fragment.
     """
@@ -91,11 +92,35 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
         print(e)
         return ''
 
+
+    # look for a file named extra_atts.json that provides
+    # variable and/or global attributes to add and/or modify
+    # an example of extra_atts.json file which modifies the history global
+    # attribute and the depth variable's units attribute is below
+    #
+    #  {
+    #      "_global_attrs":
+    #      { "history": "updated units"},
+    #      "depth":
+    #         { "units": "m" }
+    #  }
+    extra_atts_file = os.path.join(dir_path, "extra_atts.json")
+    if mode == 'priv_erddap' and os.path.isfile(extra_atts_file):
+        try:
+            with open(extra_atts_file) as f:
+                extra_atts = json.load(f)
+        except:
+            logger.exception("Error loading extra_atts.json file:")
+            extra_atts = {}
+    else:
+        extra_atts = {}
+
     nc_file = get_first_nc_file(dir_path)
     if nc_file:
         qc_var_types = check_for_qc_vars(nc_file)
     else:
         qc_var_types = {'gen_qc': {}, 'qartod': {}}
+
 
     # variables which need to have the variable {var_name}_qc present in the
     # template.  Right now these are all the same, so are hardcoded
@@ -115,7 +140,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                        'time_qc': 'precise_time_qc',
                        'profile_time_qc': 'time_qc'}
 
-    return template.render(dataset_id=deployment,
+    templ = template.render(dataset_id=deployment,
                            dataset_dir=dir_path,
                            institution=institution,
                            checksum=checksum,
@@ -123,6 +148,61 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                            reqd_qc_vars=required_qc_vars,
                            dest_var_remaps=dest_var_remaps,
                            qc_var_types=qc_var_types)
+    if not extra_atts:
+        return templ
+
+    else:
+
+        try:
+            tree = etree.fromstring(templ)
+            for identifier, mod_attrs in extra_atts.iteritems():
+                add_extra_attributes(tree, identifier, mod_attrs)
+
+            return etree.tostring(tree)
+
+        except:
+            logger.exception()
+            return templ
+
+
+
+def add_extra_attributes(tree, identifier, mod_atts):
+    """
+    Adds extra user-defined attributes to the ERDDAP datasets.xml.
+    Usually sourced from the extra_atts.json file, this function modifies an
+    ERDDAP xml datasets tree.   `identifier` should either be "_global_attrs"
+    to modify a global attribute, or the name of a variable in the dataset
+    to modify a variable's attributes.  `mod_atts` is a dict with the attributes
+    to create or modify.
+    """
+    if identifier == '_global_attrs':
+        xpath_expr = "."
+    else:
+        xpath_expr = "dataVariable[sourceName='{}']".format(identifier)
+    subtree = tree.find(xpath_expr)
+
+    if subtree is None:
+        logger.warning("Element specified By XPath expression {} not found, skipping".format(xpath_expr))
+        return
+
+    add_atts_found = subtree.find('addAttributes')
+    if add_atts_found is not None:
+        add_atts_elem = add_atts_found
+    else:
+        add_atts_elem = subtree.append(etree.Element('addAttributes'))
+        logger.info('Added "addAttributes" to xpath for {}'.format(xpath_expr))
+
+    for att_name, value in mod_atts.iteritems():
+        # find the attribute
+        found_elem = add_atts_elem.find(att_name)
+        # attribute exists, update current value
+        if found_elem is not None:
+            found_elem.text = value
+        # attribute
+        else:
+            new_elem = etree.Element('att', {'name': att_name})
+            new_elem.text = value
+            add_atts_elem.append(new_elem)
 
 
 def get_first_nc_file(root):
