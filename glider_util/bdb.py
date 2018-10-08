@@ -1,6 +1,7 @@
 import os.path
 from bsddb3 import db
 from contextlib import contextmanager
+from passlib.hash import sha512_crypt
 
 class UserDB(object):
     """
@@ -37,12 +38,18 @@ class UserDB(object):
             return bdb.get(username, None, flags=0)
 
     def set(self, username, password):
+        """Writes a SHA512 hashed password into the specified username"""
         with self._use_db() as bdb:
-            bdb.put(username, password)
+            bdb.put(username, sha512_crypt.hash(password))
 
     def check(self, username, password):
-        dbp = self.get(username)
-        return dbp == password
+        """
+        Verifies a user supplied password against the stored hash for a user
+        """
+        dbp_hashed = self.get(username)
+        if dbp_hashed is None:
+            return False
+        return sha512_crypt.verify(password, dbp_hashed)
 
     def list_users(self):
         with self._use_db() as bdb:
@@ -55,4 +62,3 @@ class UserDB(object):
                 r = c.next()
 
             return users
-
