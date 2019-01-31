@@ -1,7 +1,7 @@
 import os
 from flask.ext.mail import Message
 from flask import render_template
-from glider_dac import app, mail
+from glider_dac import app, mail, db
 
 def send_registration_email(username, deployment):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
@@ -22,6 +22,21 @@ def send_registration_email(username, deployment):
                         username=username, 
                         thredds_url=get_thredds_catalog_url(), 
                         erddap_url=get_erddap_catalog_url())
+
+    mail.send(msg)
+
+def send_deployment_cchecker_email(deployment, message):
+    if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
+        app.logger.info("Email is disabled")
+        return
+    # sender comes from MAIL_DEFAULT_SENDER in env
+
+    user = db.User.find_one({"username": deployment.username})
+    app.logger.info("Sending email about deployment complaince_checker to {}".format(user.username))
+    subject        = "Glider DAC Compliance Check on Deployment %s" % deployment.name
+    recipients     = [user.email] #app.config.get('MAIL_DEFAULT_TO')]
+    msg            = Message(subject, recipients=recipients)
+    msg.body       = message
 
     mail.send(msg)
 

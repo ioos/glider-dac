@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+# -*- coding utf-8 -*-
+
+from compliance_checker.suite import CheckSuite
+from compliance_checker.runner import ComplianceChecker
+import tempfile
+import glob
+import sys
+import os
+import json
+from itertools import groupby
+import argparse
+from glider_dac import app, db
+from glider_dac.glider_emails import send_deployment_cchecker_email
+import logging
+
+
+parser = argparse.ArgumentParser()
+arg_group = parser.add_mutually_exclusive_group()
+arg_group.add_argument('-t', dest='data_type', choices=['realtime', 'delayed'])
+arg_group.add_argument('-d', dest='deployment_dir', type=str)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.INFO)
+root_logger.addHandler(handler)
+
+
+def main():
+    args = parser.parse_args()
+    cs = CheckSuite()
+    cs.load_all_available_checkers()
+    groups = []
+    uniquekeys = []
+    with app.app_context():
+        if args.data_type is not None:
+            is_delayed_mode = args.data_type == 'delayed'
+            if is_delayed_mode:
+                deployment_set = db.Deployment.find({"delayed_mode": True})
+            else:
+                deployment_set = db.Deployment.find({"$or": [{"delayed_mode": False},
+                                                             {"delayed_mode":
+                                                               {"$exists": False}}]})
+        # a particular deployment has been specified
+        else:
+            deployment_set = db.Deployment.find({"deployment_dir":
+                                                 args.deployment_dir})
+        for dep in deployment_set:
+            deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
+
+            # TODO: remove hardcoding
+            dep_dir = os.path.join("/data/data/priv_erddap", dep.deployment_dir)
+            #print(dep_dir)
+        
+            try:
+                for k, g in groupby(file_loop(dep_dir), lambda x: x[1]):
+                    groups.append(list(g))
+                    uniquekeys.append(k) 
+                for group in groups:
+                    deployment_issues += "\nIssues for files {} through {}:".format(os.path.basename(group[0][0]),
+                                             os.path.basename(group[-1][0]))
+                    for issue in group[0][1]:
+                        deployment_issues += "\n\t- {}".format(issue)
+            except Exception as e:
+                root_logger.exception()
+                continue
+
+            send_deployment_cchecker_email(dep, deployment_issues)
+            
+
+
+
+def file_loop(filepath):
+    """
+    Gets subset of error messages
+    
+    """
+    # TODO: consider parallelizing this loop for speed gains
+    for nc_filename in sorted(glob.iglob(os.path.join(filepath, '*.nc'))):
+        root_logger.info("Processing {}".format(nc_filename))
+        # TODO: would be better if we didn't have to write to a temp file
+        # and instead could just
+        outhandle, outfile = tempfile.mkstemp()
+        try:
+            ComplianceChecker.run_checker(ds_loc=nc_filename,
+                                          checker_names=['gliderdac'], verbose=True,
+                                          criteria='normal', output_format='json',
+                                          output_filename=outfile)
+
+            with open(outfile, 'rt') as f:
+                ers = json.loads(f.read())
+        finally:
+            # fix this?
+            os.close(outhandle)
+            if os.path.isfile(outfile):
+                os.remove(outfile)
+
+        # TODO: consider rewriting this when Glider DAC compliance checker
+        # priorities are refactored
+
+        mixed_errs = {er['name']: er for er in ers['gliderdac']['all_priorities'] if er['name'] in
+                        {'Abs value of sum of first-order difference non-neglible',
+                         "Cartesian product of depth and time coordinate variables must have at least two instances of time and depth which are both not FillValue",
+                         "Time is not monotonically increasing",
+                         "Sum of first order difference in depth values must be non-negligible (> 1e-4 m)",
+                         "Recommended Variable Attributes"} and
+                        er['value'][0] < er['value'][1]}
+
+        # need to extract only certain errors from
+        #"Recommended Variable Attributes"
+        if "Recommended Variable Attributes" in mixed_errs:
+            var_errs = [er_msg for er_msg in
+                        mixed_errs['Recommended Variable Attributes']['msgs']
+                        if 'must have a standard_name' in er_msg
+                        or '_FillValue' in er_msg or 'units' in er_msg]
+        else:
+            var_errs = []
+
+        all_errs = [er_msg for er_name, er_contents
+                    in mixed_errs.iteritems() for er_msg in er_contents['msgs']
+                    if er_name != 'Recommended Variable Attributes'] + var_errs
+
+        yield (nc_filename, all_errs)
+
+
+if __name__ == '__main__':
+    main()
