@@ -20,6 +20,15 @@ arg_group = parser.add_mutually_exclusive_group()
 arg_group.add_argument('-t', dest='data_type', choices=['realtime', 'delayed'])
 arg_group.add_argument('-d', dest='deployment_dir', type=str)
 
+parser.add_argument('-c', '--completed', dest='completed',
+                       action='store_true')
+# TODO: maybe don't use on deployment, as it should already be explicit whether
+#       desired or not?
+parser.add_argument('-f', '--force', dest='force', action='store_true')
+
+parser.set_defaults(completed=False)
+parser.set_defaults(force=False)
+
 root_logger = logging.getLogger()
 root_logger.setLevel(logging.INFO)
 
@@ -38,26 +47,30 @@ def main():
         if args.data_type is not None:
             is_delayed_mode = args.data_type == 'delayed'
             if is_delayed_mode:
-                deployment_set = db.Deployment.find({"delayed_mode": True})
+                q_dict = {"delayed_mode": True,
+                          "completed": args.completed}
             else:
-                deployment_set = db.Deployment.find({"$or": [{"delayed_mode": False},
-                                                             {"delayed_mode":
-                                                               {"$exists": False}}]})
+                q_dict = {"$or": [{"delayed_mode": False},
+                                  {"delayed_mode": {"$exists": False}}],
+                          "completed": args.completed}
+
+            if not args.force:
+                q_dict["compliance_check_passed"] = {"$ne": True}
+
         # a particular deployment has been specified
         else:
-            deployment_set = db.Deployment.find({"deployment_dir":
-                                                 args.deployment_dir})
-        for dep in deployment_set:
+            q_dict = {"deployment_dir": args.deployment_dir}
+        # if force is enabled, re-check the datasets no matter what
+        for dep in db.Deployment.find(q_dict):
             deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
 
             # TODO: remove hardcoding
             dep_dir = os.path.join("/data/data/priv_erddap", dep.deployment_dir)
-            #print(dep_dir)
         
             try:
                 for k, g in groupby(file_loop(dep_dir), lambda x: x[1]):
                     groups.append(list(g))
-                    uniquekeys.append(k) 
+                    uniquekeys.append(k)
                 for group in groups:
                     deployment_issues += "\nIssues for files {} through {}:".format(os.path.basename(group[0][0]),
                                              os.path.basename(group[-1][0]))
@@ -67,6 +80,14 @@ def main():
                 root_logger.exception()
                 continue
 
+
+            # is there a better way to fetch these individual objects?
+            # db.Deployment.find() returns a cursor which returns dict objects
+            dep_obj = db.Deployment.find_one({'_id': dep['_id']})
+
+            # check only passes if there are no errors
+            dep_obj["compliance_check_passed"] = len(group[0][1]) == 0
+            dep_obj.save()
             send_deployment_cchecker_email(dep, deployment_issues)
             
 
