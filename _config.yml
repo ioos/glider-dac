@@ -20,20 +20,20 @@ port: 4000
 include:
   - .htaccess
   #- _pages
-  #- documentation-theme-jekyll/_data/topnav.yml
+  #- theme/_data/topnav.yml
 exclude:
   - .idea/
   - .gitignore
   - Gemfile*
-  - documentation-theme-jekyll/pages
-  #- documentation-theme-jekyll/posts
-  - documentation-theme-jekyll/Dockerfile
-  - documentation-theme-jekyll/Gemfile
-  - documentation-theme-jekyll/Gemfile.lock
-  - documentation-theme-jekyll/search.json
-  - documentation-theme-jekyll/update.sh
-  - documentation-theme-jekyll/pdf-*
-  #- documentation-theme-jekyll/
+  - theme/pages
+  #- theme/posts
+  - theme/Dockerfile
+  - theme/Gemfile
+  - theme/Gemfile.lock
+  - theme/search.json
+  - theme/update.sh
+  - theme/pdf-*
+  #- theme/
 
 # these are the files and directories that jekyll will exclude from the build
 
@@ -147,7 +147,7 @@ github_editme_path       : "ioos/ioosngdac/blob/gh-pages/_docs"
 #Setup/config for 'ioos_jekyll_theme' git submodule:
 source                   : .
 destination              : _site
-plugins_dir              : documentation-theme-jekyll/_plugins
-layouts_dir              : documentation-theme-jekyll/_layouts
+plugins_dir              : theme/_plugins
+layouts_dir              : theme/_layouts
 data_dir                 : _data
-includes_dir             : documentation-theme-jekyll/_includes
+includes_dir             : theme/_includes
