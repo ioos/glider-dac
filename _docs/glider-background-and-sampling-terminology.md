@@ -1,10 +1,8 @@
 ---
 title: Glider Background and Sampling Terminology
 wikiPageName: Glider-Background-and-Sampling-Terminology
-sidebar: mydoc_sidebar
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
-#topnav: topnav_ioos
 toc: false
 #search: exclude
 #permalink: index.html
@@ -36,6 +34,6 @@ The schematic and definitions below define the sampling terminology of a profili
  + **Profile**: A single vertically oriented track of a glider, either upward or downward through the water column.  A profile is one-half of a **dive**.  The profile is the fundamental atomic data type used by the **NGDAC**.  All data submitted to the **NGDAC** is submitted as individual profiles, containing the various water column properties or sensor values.  Examples of the file format description can be found as [CDL](https://github.com/kerfoot/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), [NetCDF file](https://github.com/kerfoot/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc) and [ncml](https://github.com/kerfoot/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) can be found [here](https://github.com/kerfoot/ioosngdac/tree/master/nc/template).
  + **Dive**: A single vertical <strong>profile</strong> to depth followed by a vertical **profile** towards the surface.  A dive does not necessarily begin with or terminate with a surfacing and/or gps fix.
  + **Segment**: The set of data collected between 2 gps fixes obtained while the glider is on the surface of the water.  The first gps fix is acquired prior to the beginning of a dive and the second gps fix is acquired following the completion of at least one dive.  Glider **segments** always consist of at least one, and possibly many **dives**.
- + **Trajectory** or **Deployment**: A series of one or more **segments** completed by a glider between the time of deployment and the time of recovery. 
+ + **Trajectory** or **Deployment**: A series of one or more **segments** completed by a glider between the time of deployment and the time of recovery.
 
 A detailed description of the official NetCDF file format used by the **NGDAC** can be found [here](NGDAC-NetCDF-File-Format-Version-2).

@@ -1,10 +1,8 @@
 ---
 title: NGDAC NetCDF File Submission Process
 wikiPageName: NGDAC-NetCDF-File-Submission-Process
-sidebar: mydoc_sidebar
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
-#topnav: topnav_ioos
 toc: false
 #search: exclude
 #permalink: index.html
@@ -38,7 +36,7 @@ You must register as a data provider and receive a user account in order to cont
  + Contact organization
  + Email address
  + Telephone number
- 
+
 and all user account requests should be emailed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   glider.dac.support@noaa.gov`
@@ -76,10 +74,10 @@ Deployments are registered and managed via a [web page](http://data.ioos.us/glid
 3. Specify a unique deployment name using the following convention:
     **GLIDER-YYYYmmddTHHMM**
 
-    Where **GLIDER** is the actual name of the glider and **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#trajectory) variable in each NetCDF file that is submitted to the DAC.  Enter the **WMO id** assigned to this glider for the new deployment in the form element. 
+    Where **GLIDER** is the actual name of the glider and **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#trajectory) variable in each NetCDF file that is submitted to the DAC.  Enter the **WMO id** assigned to this glider for the new deployment in the form element.
 
     **IMPORTANT**:
-    This WMO id must also be referenced as a [global](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**. 
+    This WMO id must also be referenced as a [global](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 4. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
 
@@ -116,7 +114,7 @@ Here's an example of the ftp login process and the resulting directory structure
     drwxr-xr-x    2 ftp      ftp         65536 Dec 08 16:41 ru01-20140217T1244
     drwxr-xr-x    2 ftp      ftp         36864 Jan 15 16:07 ru05-20150105T1600
     drwxr-xr-x    2 ftp      ftp         65536 Feb 02 13:41 ru05-20150115T1443
-    
+
     226 Directory send OK.
 ```
 
@@ -129,7 +127,7 @@ New NetCDF files should be uploaded to the directory [created above](#deployment
     Local directory now LOCAL_DIRECTORY
     ftp> mput *.nc
 ```
-    
+
 Please remember to use the [proper](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#file-naming-conventions) file naming convention.
 
 The resulting deployment directory structure will look something like this:

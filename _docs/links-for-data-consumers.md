@@ -1,10 +1,8 @@
 ---
 title: Links for Data Consumers
 wikiPageName: Links-for-Data-Consumers
-sidebar: mydoc_sidebar
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
-#topnav: topnav_ioos
 toc: false
 #search: exclude
 #permalink: index.html
