@@ -121,27 +121,10 @@ def file_loop(filepath):
         # TODO: consider rewriting this when Glider DAC compliance checker
         # priorities are refactored
 
-        mixed_errs = {er['name']: er for er in ers['gliderdac']['all_priorities'] if er['name'] in
-                        {'Abs value of sum of first-order difference non-neglible',
-                         "Cartesian product of depth and time coordinate variables must have at least two instances of time and depth which are both not FillValue",
-                         "Time is not monotonically increasing",
-                         "Sum of first order difference in depth values must be non-negligible (> 1e-4 m)",
-                         "Recommended Variable Attributes"} and
-                        er['value'][0] < er['value'][1]}
-
-        # need to extract only certain errors from
-        #"Recommended Variable Attributes"
-        if "Recommended Variable Attributes" in mixed_errs:
-            var_errs = [er_msg for er_msg in
-                        mixed_errs['Recommended Variable Attributes']['msgs']
-                        if 'must have a standard_name' in er_msg
-                        or '_FillValue' in er_msg or 'units' in er_msg]
-        else:
-            var_errs = []
-
-        all_errs = [er_msg for er_name, er_contents
-                    in mixed_errs.iteritems() for er_msg in er_contents['msgs']
-                    if er_name != 'Recommended Variable Attributes'] + var_errs
+        # BWA: change over to high priority messages w/ cc-plugin-glider
+        #      2.0.0 release instead of string matching
+        all_errs = [er_msg for er in ers['gliderdac']['high_priorities'] for
+                    er_msg in er['msgs'] if er['value'][0] < er['value'][1]]
 
         yield (nc_filename, all_errs)
 
