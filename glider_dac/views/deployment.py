@@ -16,6 +16,7 @@ from flask.ext.wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
+import requests
 import re
 import json
 import os
@@ -284,6 +285,39 @@ def post_deployment_file(username, deployment_id):
         current_user.is_admin() or current_user == user)
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
+
+
+@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/upload_raw', methods=['GET'])
+@login_required
+def upload_raw_deployment_files(username, deployment_id):
+
+    deployment = db.Deployment.find_one({'_id': deployment_id})
+    user = db.User.find_one({'username': username})
+    session = request.cookies['session']
+    
+    if (deployment is None) or (user is None):
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
+    
+    if not (current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)):
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
+
+    if not (deployment and user and (current_user.is_admin() or user._id == deployment.user_id)):
+        # @TODO better response via ajax?
+        raise StandardError("Unauthorized")
+
+    # TODO:
+    # request to upload backend with session (str) which it then passes back here to validate the user
+    # if the user is valid then upload backend returns a response (JWT token) which i pass back to frontend
+    #
+    # alternate method: pass some complex key or pass phrase (hashed and salted too?) which if recognized by upload-backend
+    # triggers immediate JWT generation and returned in response to this method
+
+    # TODO: add all necessary deployment attributes here.. which ones do we need? deployment id, deployment name, glider name...
+
+    return jsonify(token='JWT TOKEN', name=str(user['username']), 
+        email=str(user['email']), organization=str(user['organization']))
 
 
 @app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])

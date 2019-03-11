@@ -36,6 +36,14 @@
     </div>
   </div>
 
+  <div>
+    <hr />
+    <p style="text-align: left"><b>OR</b></p>
+    <button type="button" class="btn btn-default" id="upload-raw-button">
+      Upload Raw File
+    </button>
+  </div>
+
   <script type="text/javascript">
     $(function() {
       var drop = $('#dropbox');
@@ -134,6 +142,45 @@
 
       });
     });
+
+    $(function() {
+      var gliderUploadUrl = 'http://localhost:3001/' // 'https://www.google.com/';
+      $('#upload-raw-button').on('click', function() {
+        var url = "{{ url_for('upload_raw_deployment_files', username=username, deployment_id=deployment._id) }}";
+        var req = $.ajax({
+            type: 'GET',
+            url: url,
+            contentType: 'application/json;charset=UTF-8',
+          });
+
+          req.done(function(resp) {
+            // save pertinent info in both a cookie and localStorage since I don't know how gliderdac and 
+            // gliderdac upload will be integrated
+
+            // TODO: put this in a loop to simplify
+            var expirationTime = moment().utc().add(5,'m').format('ddd, D MMM YYYY HH:mm:ss UTC');
+            document.cookie = `name=${resp['name']}; expires=${expirationTime}; path=/`;
+            document.cookie = `token=${resp['token']}; expires=${expirationTime}; path=/`;
+            document.cookie = `email=${resp['email']}; expires=${expirationTime}; path=/`;
+            document.cookie = `organization=${resp['organization']}; expires=${expirationTime}; path=/`;
+            
+            // local storage isnt updating when domain is the same (hence save in cookie as well)
+            if (typeof(Storage) !== "undefined") {
+              for (key in resp) {
+                localStorage.setItem([key], resp[key]);
+              }
+              window.open(gliderUploadUrl, '_blank');
+              // setTimeout(function() {localStorage.clear()}, 10000); // clear local storage after 10 seconds
+            } else {
+              alert('Sorry a problem was encountered with your browser');
+            }
+          });
+
+          req.fail(function(jqxhr, textStatus, error) {
+            // do stuff
+          });
+      })
+    })
 
     $(function() {
 
