@@ -8,8 +8,10 @@ import glob
 import sys
 import os
 import json
-from itertools import groupby
+from itertools import chain, combinations
 import argparse
+from collections import OrderedDict, defaultdict
+from more_itertools import consecutive_groups
 from glider_dac import app, db
 from glider_dac.glider_emails import send_deployment_cchecker_email
 import logging
@@ -36,13 +38,13 @@ handler = logging.StreamHandler(sys.stderr)
 handler.setLevel(logging.INFO)
 root_logger.addHandler(handler)
 
+def pset_len(set_list, r):
+  return [(r, set.intersection(*i)) for i in combinations(set_list, r)]
 
 def main():
     args = parser.parse_args()
     cs = CheckSuite()
     cs.load_all_available_checkers()
-    groups = []
-    uniquekeys = []
     with app.app_context():
         if args.data_type is not None:
             is_delayed_mode = args.data_type == 'delayed'
@@ -63,40 +65,94 @@ def main():
         # if force is enabled, re-check the datasets no matter what
         for dep in db.Deployment.find(q_dict):
             deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
+	    groups = OrderedDict()
 
             # TODO: remove hardcoding
             dep_dir = os.path.join("/data/data/priv_erddap", dep.deployment_dir)
-        
+
             try:
-                for k, g in groupby(file_loop(dep_dir), lambda x: x[1]):
-                    groups.append(list(g))
-                    uniquekeys.append(k)
-                for group in groups:
-                    deployment_issues += "\nIssues for files {} through {}:".format(os.path.basename(group[0][0]),
-                                             os.path.basename(group[-1][0]))
-                    for issue in group[0][1]:
-                        deployment_issues += "\n\t- {}".format(issue)
+                for file_number, (fname, res) in enumerate(file_loop(dep_dir)):
+                    # TODO: memoize call?
+                    if len(res) == 0:
+                        continue
+                    else:
+                        if res not in groups:
+                            groups[res] = []
+
+                        groups[res].append((file_number, fname))
+
             except Exception as e:
-                root_logger.exception()
+                root_logger.exception(
+                        "Exception occurred while processing deployment {}".format(dep.name))
                 continue
 
-
-            # is there a better way to fetch these individual objects?
-            # db.Deployment.find() returns a cursor which returns dict objects
+	    all_keys = set.union(*[set(kg) for kg in groups.keys()])
+	    prev_keys = set()
+            messages = []
+	    while prev_keys != all_keys:
+		prev_keys, error_text = parse_issues(groups, prev_keys)
+                messages.append(error_text)
+            # can we work with the raw object instead of finding via a dict
             dep_obj = db.Deployment.find_one({'_id': dep['_id']})
-
-            # check only passes if there are no errors
-            dep_obj["compliance_check_passed"] = len(group[0][1]) == 0
+            if len(messages) == 0:
+                dep_obj["compliance_check_passed"] = True
+                final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
+            else:
+                dep_obj["compliance_check_passed"] = False
+                final_message = ("Deployment {} has issues:".format(dep.name) +
+                                 "\n".join(messages))
             dep_obj.save()
-            send_deployment_cchecker_email(dep, deployment_issues)
-            
+            send_deployment_cchecker_email(dep, final_message)
 
+
+# intersection of all issues
+def parse_issues(groups, prev_issues=None):
+    """
+    Parses the issues, exlcuding any that weren't previously present
+    """
+    if prev_issues is None:
+	prev_issues = set()
+    leftover_issues = [set(k) - prev_issues for k in groups.keys()
+		       if len(set(k) - prev_issues) > 0]
+    core_issues = [set.intersection(*[set(k) for k in leftover_issues])]
+    # if the intersection is zero length, we've hit the end of shared issues
+    if len(core_issues[0]) == 0:
+	if len(leftover_issues) > 2:
+	    tiebreak_issues = [i for i in
+				  chain.from_iterable(pset_len(leftover_issues, r)
+				  for r in range(2, len(leftover_issues)))
+				  if len(i[1]) > 0]
+            if len(tiebreak_issues) == 0:
+               issues = leftover_issues
+            else:
+		issues = [max(tiebreak_issues,
+			     key=lambda tup: (tup[0], len(tup[1])))[1]]
+	else:
+	    issues = leftover_issues
+    else:
+	issues = core_issues
+
+    for issue_set in issues:
+	affected_files = [(file_ct, name) for errors, file_info in
+			  groups.iteritems() for file_ct, name in file_info if
+			  issue_set.issubset(errors)]
+	contiguous_files = [list(g) for g in consecutive_groups(affected_files, lambda x: x[0])]
+
+	fname_message = ', '.join("{} to {}".format(l[0][1],
+						    l[-1][1])
+				  if len(l) > 1 else l[0][1] for
+				  l in contiguous_files)
+
+	error_str = "\n".join([' * {}'.format(i) for i
+			       in sorted(issue_set)])
+    return (prev_issues | set.union(*issues),
+            "{}\n{}".format(fname_message, error_str))
 
 
 def file_loop(filepath):
     """
     Gets subset of error messages
-    
+
     """
     # TODO: consider parallelizing this loop for speed gains
     for nc_filename in sorted(glob.iglob(os.path.join(filepath, '*.nc'))):
@@ -123,8 +179,8 @@ def file_loop(filepath):
 
         # BWA: change over to high priority messages w/ cc-plugin-glider
         #      2.0.0 release instead of string matching
-        all_errs = [er_msg for er in ers['gliderdac']['high_priorities'] for
-                    er_msg in er['msgs'] if er['value'][0] < er['value'][1]]
+        all_errs = tuple(er_msg for er in ers['gliderdac']['high_priorities'] for
+                         er_msg in er['msgs'] if er['value'][0] < er['value'][1])
 
         yield (nc_filename, all_errs)
 
