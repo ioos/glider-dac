@@ -64,14 +64,13 @@ def main():
             q_dict = {"deployment_dir": args.deployment_dir}
         # if force is enabled, re-check the datasets no matter what
         for dep in db.Deployment.find(q_dict):
+            os.chdir(os.path.join("/data/data/priv_erddap",
+                                  dep.deployment_dir))
             deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
 	    groups = OrderedDict()
 
-            # TODO: remove hardcoding
-            dep_dir = os.path.join("/data/data/priv_erddap", dep.deployment_dir)
-
             try:
-                for file_number, (fname, res) in enumerate(file_loop(dep_dir)):
+                for file_number, (fname, res) in enumerate(file_loop()):
                     # TODO: memoize call?
                     if len(res) == 0:
                         continue
@@ -99,7 +98,7 @@ def main():
                 final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
             else:
                 dep_obj["compliance_check_passed"] = False
-                final_message = ("Deployment {} has issues:".format(dep.name) +
+                final_message = ("Deployment {} has issues:\n".format(dep.name) +
                                  "\n".join(messages))
             dep_obj.save()
             send_deployment_cchecker_email(dep, final_message)
@@ -133,7 +132,7 @@ def parse_issues(groups, prev_issues=None):
 	issues = core_issues
 
     for issue_set in issues:
-	affected_files = [(file_ct, name) for errors, file_info in
+        affected_files = [(file_ct, name) for errors, file_info in
 			  groups.iteritems() for file_ct, name in file_info if
 			  issue_set.issubset(errors)]
 	contiguous_files = [list(g) for g in consecutive_groups(affected_files, lambda x: x[0])]
@@ -149,13 +148,17 @@ def parse_issues(groups, prev_issues=None):
             "{}\n{}".format(fname_message, error_str))
 
 
-def file_loop(filepath):
+def file_loop(filepath=None):
     """
     Gets subset of error messages
 
     """
     # TODO: consider parallelizing this loop for speed gains
-    for nc_filename in sorted(glob.iglob(os.path.join(filepath, '*.nc'))):
+    if filepath is None:
+        glob_path = '*.nc'
+    else:
+        glob_path = os.path.join(filepath, '*.nc')
+    for nc_filename in sorted(glob.iglob(glob_path)):
         root_logger.info("Processing {}".format(nc_filename))
         # TODO: would be better if we didn't have to write to a temp file
         # and instead could just
