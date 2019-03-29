@@ -62,47 +62,64 @@ def main():
         # a particular deployment has been specified
         else:
             q_dict = {"deployment_dir": args.deployment_dir}
+        agg_pipeline = [{"$match": q_dict},
+                        {"$group": {"_id": "$user_id",
+                           "deployments": {"$push":
+                                {"_id": "$_id",
+                                 "name": "$name",
+                                 "deployment_dir": "$deployment_dir"} } }
+                        }]
         # if force is enabled, re-check the datasets no matter what
-        for dep in db.Deployment.find(q_dict):
-            os.chdir(os.path.join("/data/data/priv_erddap",
-                                  dep.deployment_dir))
-            deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
-	    groups = OrderedDict()
+        for res in db.deployments.aggregate(agg_pipeline)['result']:
+            user = db.users.find_one(res["_id"])
+            all_messages = []
+            failing_deployments = []
+            for dep in res['deployments']:
+                try:
+                    dep_passed, dep_messages = process_deployment(dep)
+                    all_messages.append(dep_messages)
+                    if not dep_passed:
+                        failing_deployments.append(dep)
+                except Exception as e:
+                    root_logger.exception(
+                        "Exception occurred while processing deployment {}".format(dep['name']))
+                    text_body = ''
+            send_deployment_cchecker_email(user, failing_deployments,
+                                           "\n".join(all_messages))
 
-            try:
-                for file_number, (fname, res) in enumerate(file_loop()):
-                    # TODO: memoize call?
-                    if len(res) == 0:
-                        continue
-                    else:
-                        if res not in groups:
-                            groups[res] = []
+def process_deployment(dep):
+    os.chdir(os.path.join("/data/data/priv_erddap",
+                          dep['deployment_dir']))
+    deployment_issues = "Deployment {}".format(os.path.basename(dep['name']))
+    groups = OrderedDict()
 
-                        groups[res].append((file_number, fname))
+    for file_number, (fname, res) in enumerate(file_loop()):
+        # TODO: memoize call?
+        if len(res) == 0:
+            continue
+        else:
+            if res not in groups:
+                groups[res] = []
 
-            except Exception as e:
-                root_logger.exception(
-                        "Exception occurred while processing deployment {}".format(dep.name))
-                continue
+            groups[res].append((file_number, fname))
 
-	    all_keys = set.union(*[set(kg) for kg in groups.keys()])
-	    prev_keys = set()
-            messages = []
-	    while prev_keys != all_keys:
-		prev_keys, error_text = parse_issues(groups, prev_keys)
-                messages.append(error_text)
-            # can we work with the raw object instead of finding via a dict
-            dep_obj = db.Deployment.find_one({'_id': dep['_id']})
-            if len(messages) == 0:
-                dep_obj["compliance_check_passed"] = True
-                final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
-            else:
-                dep_obj["compliance_check_passed"] = False
-                final_message = ("Deployment {} has issues:\n".format(dep.name) +
-                                 "\n".join(messages))
-            dep_obj.save()
-            send_deployment_cchecker_email(dep, final_message)
-
+    all_keys = set.union(*[set(kg) for kg in groups.keys()])
+    prev_keys = set()
+    messages = []
+    while prev_keys != all_keys:
+        prev_keys, error_text = parse_issues(groups, prev_keys)
+        messages.append(error_text)
+    # can we work with the raw object instead of finding via a dict
+    dep_obj = db.Deployment.find_one({'_id': dep['_id']})
+    compliance_passed = len(messages) == 0
+    if compliance_passed:
+        final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
+    else:
+        final_message = ("Deployment {} has issues:\n".format(dep['name']) +
+                         "\n".join(messages))
+    dep_obj["compliance_check_passed"] = compliance_passed
+    dep_obj.save()
+    return compliance_passed, final_message
 
 # intersection of all issues
 def parse_issues(groups, prev_issues=None):
@@ -179,7 +196,6 @@ def file_loop(filepath=None):
 
         # TODO: consider rewriting this when Glider DAC compliance checker
         # priorities are refactored
-
         # BWA: change over to high priority messages w/ cc-plugin-glider
         #      2.0.0 release instead of string matching
         all_errs = tuple(er_msg for er in ers['gliderdac']['high_priorities'] for
