@@ -164,6 +164,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
     ds = Dataset(nc_file)
     standard_name_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars,
                                                         standard_name=lambda n: n in standard_name_table)
+    used_extra_vars = set(standard_name_vars)
 
 
 
@@ -189,8 +190,18 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             # append latest changes to etree
 
             for var in standard_name_vars:
-                var_elem = add_standard_name_var(var)
+                var_elem = add_erddap_var_elem(var)
                 tree.append(var_elem)
+                # pick up ancillary variables for things such as
+                # status flags, etc.
+                if hasattr(var, 'ancillary_variables'):
+                    for anc_var_name in var.ancillary_variables.split(' '):
+                        if (anc_var_name not in exclude_vars and
+                            anc_var_name not in used_extra_vars and
+                            anc_var_name in ds.variables):
+                            anc_var = ds.variables[anc_var_name]
+                            used_extra_vars.add(anc_var)
+                            tree.append(add_erddap_var_elem(anc_var))
 
             return etree.tostring(tree)
 
@@ -198,7 +209,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             logger.exception("Exception occurred while generating dataset XML:")
             return templ
 
-def add_standard_name_var(var):
+def add_erddap_var_elem(var):
     """
     Adds an unhandled standard name variable to the ERDDAP datasets.xml
     """
