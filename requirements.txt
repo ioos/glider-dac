@@ -22,3 +22,4 @@ rq-dashboard==0.3.4
 netCDF4==1.2.4
 cf-units==1.1.1
 flask-cors==3.0.2
+compliance-checker>=4.1.1
