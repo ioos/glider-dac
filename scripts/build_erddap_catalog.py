@@ -183,25 +183,37 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
 
         try:
             tree = etree.fromstring(templ)
+
+
             for identifier, mod_attrs in extra_atts.iteritems():
                 add_extra_attributes(tree, identifier, mod_attrs)
 
+            def maybe_add_extra_var(var):
+                """
+                Add variable definition to ERDDAP datasets.xml tree output
+                if the variable does not already exist in the existing and
+                blacklisted variables
+                """
+                if (var.name not in exclude_vars and
+                    var.name not in used_extra_vars and
+                    var.name in ds.variables):
+                    #anc_var = ds.variables[anc_var_name]
+                    used_extra_vars.add(var.name)
+                    tree.append(add_erddap_var_elem(var))
 
             # append latest changes to etree
 
             for var in standard_name_vars:
-                var_elem = add_erddap_var_elem(var)
-                tree.append(var_elem)
+                maybe_add_extra_var(var)
                 # pick up ancillary variables for things such as
                 # status flags, etc.
                 if hasattr(var, 'ancillary_variables'):
                     for anc_var_name in var.ancillary_variables.split(' '):
-                        if (anc_var_name not in exclude_vars and
-                            anc_var_name not in used_extra_vars and
-                            anc_var_name in ds.variables):
+                        if anc_var_name in ds.variables:
                             anc_var = ds.variables[anc_var_name]
-                            used_extra_vars.add(anc_var)
-                            tree.append(add_erddap_var_elem(anc_var))
+                            maybe_add_extra_var(anc_var)
+                        else:
+                            continue
 
             return etree.tostring(tree)
 
