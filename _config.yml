@@ -35,11 +35,10 @@ exclude:
   - theme/pdf-*
   #- theme/
 
-# these are the files and directories that jekyll will exclude from the build
+feedback_subject_line: IOOS National Glider DAC
+# subject line prefix for feedback emails
 
-feedback_subject_line: Jekyll documentation theme
-
-feedback_email: data.ioos@noaa.gov
+feedback_email: glider.dac.support@noaa.gov
 # used as a contact email for the Feedback link in the top navigation bar
 
 # feedback_disable: true
