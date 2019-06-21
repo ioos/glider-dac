@@ -1,5 +1,5 @@
 ---
-title: Home
+title: Overview
 wikiPageName: Home
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
