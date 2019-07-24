@@ -9,11 +9,22 @@ import glob
 import warnings
 from jinja2 import Template
 from lxml import etree
+from netCDF4 import Dataset
 from collections import defaultdict
+from compliance_checker.cf import util
+import numpy as np
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
 logger = logging.getLogger(__name__)
+
+
+erddap_mapping_dict = defaultdict(lambda: 'String',
+                                  { np.int8: 'byte',
+                                    np.int16: 'short',
+                                    np.float32: 'float',
+                                    np.float64: 'double' })
+
 
 def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, root_dir=None):
     """
@@ -89,7 +100,6 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
         print(e)
         return ''
 
-
     # look for a file named extra_atts.json that provides
     # variable and/or global attributes to add and/or modify
     # an example of extra_atts.json file which modifies the history global
@@ -121,12 +131,12 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
 
     # variables which need to have the variable {var_name}_qc present in the
     # template.  Right now these are all the same, so are hardcoded
-    required_qc_vars = ("conductivity_qc", "density_qc", "depth_qc",
+    required_qc_vars = {"conductivity_qc", "density_qc", "depth_qc",
                         "latitude_qc", "lat_uv_qc", "longitude_qc",
                         "lon_uv_qc", "profile_lat_qc", "profile_lon_qc",
                         "pressure_qc", "salinity_qc", "temperature_qc",
                         "time_qc", "time_uv_qc", "profile_time_qc",
-                        "u_qc", "v_qc")
+                        "u_qc", "v_qc"}
 
     # any destinationNames that need to have a different name.
     # by default the destinationName will equal the sourceName
@@ -137,6 +147,27 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                        'time_qc': 'precise_time_qc',
                        'profile_time_qc': 'time_qc'}
 
+
+    existing_varnames = {'trajectory', 'wmo_id', 'profile_id', 'profile_time',
+                         'profile_lat', 'profile_lon', 'time', 'depth',
+                         'pressure', 'temperature', 'conductivity', 'salinity',
+                         'density', 'lat', 'lon', 'time_uv', 'lat_uv',
+                         'lon_uv', 'u', 'v', 'platform', 'instrument_ctd'}
+
+    # need to explicitly cast keys to set in Python 2
+    exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
+                    required_qc_vars | {'latitude', 'longitude'})
+
+    # need to pass None to constructor?  Why?
+    standard_name_table = util.StandardNameTable(None)
+
+    ds = Dataset(nc_file)
+    standard_name_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars,
+                                                        standard_name=lambda n: n in standard_name_table)
+    used_extra_vars = set(standard_name_vars)
+
+
+
     templ = template.render(dataset_id=deployment,
                            dataset_dir=dir_path,
                            institution=institution,
@@ -145,22 +176,64 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                            reqd_qc_vars=required_qc_vars,
                            dest_var_remaps=dest_var_remaps,
                            qc_var_types=qc_var_types)
-    if not extra_atts:
+    if not extra_atts and not standard_name_vars:
         return templ
 
     else:
 
         try:
             tree = etree.fromstring(templ)
+
+
             for identifier, mod_attrs in extra_atts.iteritems():
                 add_extra_attributes(tree, identifier, mod_attrs)
+
+            def maybe_add_extra_var(var):
+                """
+                Add variable definition to ERDDAP datasets.xml tree output
+                if the variable does not already exist in the existing and
+                blacklisted variables
+                """
+                if (var.name not in exclude_vars and
+                    var.name not in used_extra_vars and
+                    var.name in ds.variables):
+                    #anc_var = ds.variables[anc_var_name]
+                    used_extra_vars.add(var.name)
+                    tree.append(add_erddap_var_elem(var))
+
+            # append latest changes to etree
+
+            for var in standard_name_vars:
+                maybe_add_extra_var(var)
+                # pick up ancillary variables for things such as
+                # status flags, etc.
+                if hasattr(var, 'ancillary_variables'):
+                    for anc_var_name in var.ancillary_variables.split(' '):
+                        if anc_var_name in ds.variables:
+                            anc_var = ds.variables[anc_var_name]
+                            maybe_add_extra_var(anc_var)
+                        else:
+                            continue
 
             return etree.tostring(tree)
 
         except:
-            logger.exception()
+            logger.exception("Exception occurred while generating dataset XML:")
             return templ
 
+def add_erddap_var_elem(var):
+    """
+    Adds an unhandled standard name variable to the ERDDAP datasets.xml
+    """
+    dvar_elem = etree.Element('dataVariable')
+    source_name = etree.SubElement(dvar_elem, 'sourceName')
+    source_name.text = var.name
+    data_type = etree.SubElement(dvar_elem, 'dataType')
+    data_type.text = erddap_mapping_dict[var.dtype.type]
+    add_atts = etree.SubElement(dvar_elem, 'addAttributes')
+    ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
+    ioos_category.text = "Other"
+    return dvar_elem
 
 
 def add_extra_attributes(tree, identifier, mod_atts):
@@ -322,4 +395,4 @@ if __name__ == "__main__":
         root_dir = os.path.realpath(args.root_dir)
 
 
-    main(args.mode, data_root, catalog, templates, root_dir) 
+    main(args.mode, data_root, catalog, templates, root_dir)
