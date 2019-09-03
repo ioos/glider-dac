@@ -11,4 +11,20 @@
         <service name="iso" serviceType="ISO" base="/thredds/iso/"/>
         <service name="sos" serviceType="SOS" base="/thredds/sos/" />
     </service>
+    <dataset name="All Deployments">
+        <metadata inherited="true">
+            <serviceName>all</serviceName>
+            <dataType>TrajectoryProfile</dataType>
+            <dataFormat>NetCDF</dataFormat>
+        </metadata>
+        <datasetScan name="deployments"
+            path="deployments"
+            location="/data/data/thredds/">
+            <filter>
+                <include wildcard="*.nc3.nc" />
+            </filter>
+            <addDatasetSize />
+        </datasetScan>
 
+    </dataset>
+</catalog>
