@@ -50,7 +50,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 if deployment.wmo_id:
                     logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
                 with open(event.src_path) as wf:
-                    deployment.wmo_id = unicode(wf.readline().strip())
+                    deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
                 logger.info("Updated deployment %s", path_parts[0])
             else:
@@ -89,11 +89,11 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 if deployment is None:
                     deployment             = db.Deployment()
 
-                    usr = db.User.find_one( { 'username' : unicode(path_parts[0]) } )
+                    usr = db.User.find_one( { 'username' : str(path_parts[0]) } )
                     if hasattr(usr, '_id'):
                         deployment.user_id     = usr._id
-                        deployment.name        = unicode(path_parts[2])
-                        deployment.deployment_dir = unicode(event.src_path)
+                        deployment.name        = str(path_parts[2])
+                        deployment.deployment_dir = str(event.src_path)
                         deployment.updated     = datetime.utcnow()
                         deployment.save()
 

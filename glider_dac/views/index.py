@@ -14,8 +14,8 @@ import pymongo
 
 
 class LoginForm(Form):
-    username = TextField(u'Name')
-    password = PasswordField(u'Password')
+    username = TextField('Name')
+    password = PasswordField('Password')
 
 
 @app.route('/', methods=['GET'])

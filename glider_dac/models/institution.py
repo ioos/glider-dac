@@ -16,7 +16,7 @@ class Institution(Document):
     use_schemaless = True
 
     structure = {
-        'name': unicode,
+        'name': str,
         'created': datetime,
         'updated': datetime
     }

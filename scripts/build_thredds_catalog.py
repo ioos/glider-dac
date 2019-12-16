@@ -50,10 +50,10 @@ def slugify(value):
     """
     import unicodedata
     import re
-    value = unicode(value)
+    value = str(value)
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = unicode(re.sub('[^\w\s-]', '', value).strip())
-    return unicode(re.sub('[-\s]+', '-', value))
+    value = str(re.sub('[^\w\s-]', '', value).strip())
+    return str(re.sub('[-\s]+', '-', value))
 
 def main(data_root, catalog_root, templates):
 

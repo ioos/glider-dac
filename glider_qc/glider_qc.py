@@ -58,7 +58,7 @@ class GliderQC(object):
         '''
         valid_variables = []
         ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
-        if isinstance(ancillary_variables, basestring):
+        if isinstance(ancillary_variables, str):
             ancillary_variables = ancillary_variables.split(' ')
         else:
             return []
@@ -82,7 +82,7 @@ class GliderQC(object):
         '''
 
         ancillary_variables = getattr(parent, 'ancillary_variables', None)
-        if isinstance(ancillary_variables, basestring) and len(ancillary_variables) > 0:
+        if isinstance(ancillary_variables, str) and len(ancillary_variables) > 0:
             ancillary_variables = ancillary_variables.split(' ')
         else:
             ancillary_variables = []

@@ -14,14 +14,14 @@ from wtforms.form import BaseForm
 
 
 class UserForm(Form):
-    username = TextField(u'Username')
-    name = TextField(u'Name')
+    username = TextField('Username')
+    name = TextField('Name')
     password = PasswordField('Password', [
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Confirm Password')
-    organization = TextField(u'Organization')
-    email = TextField(u'Email')
+    organization = TextField('Organization')
+    email = TextField('Email')
     submit = SubmitField("Submit")
 
 

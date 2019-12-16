@@ -158,10 +158,10 @@ def slugify(value):
     """
     import unicodedata
     import re
-    value = unicode(value)
+    value = str(value)
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = unicode(re.sub('[^\w\s-]', '', value).strip())
-    return unicode(re.sub('[-\s]+', '-', value))
+    value = re.sub(r'[^\w\s-]', '', value).strip()
+    return re.sub(r'[-\s]+', '-', value)
 
 # Import everything
 import glider_dac.views

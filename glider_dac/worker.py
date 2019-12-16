@@ -9,7 +9,7 @@ listen = ['default']
 
 def main():
     with Connection(redis_connection):
-        worker = Worker(map(Queue, listen))
+        worker = Worker(list(map(Queue, listen)))
         worker.work()
 
 if __name__ == '__main__':

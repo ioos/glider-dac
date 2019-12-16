@@ -1,5 +1,5 @@
 import os
-import urlparse
+import urllib.parse
 
 DEBUG = True
 TESTING = True
@@ -9,7 +9,7 @@ DATA_ROOT="/data/ftp"
 
 # database
 MONGO_URI = os.environ.get('MONGO_URI')
-url = urlparse.urlparse(MONGO_URI)
+url = urllib.parse.urlparse(MONGO_URI)
 MONGODB_HOST = url.hostname
 MONGODB_PORT = url.port
 MONGODB_USERNAME = url.username

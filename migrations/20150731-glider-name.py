@@ -8,7 +8,7 @@ import sys
 import re
 
 def update():
-    regex = ur'(\w+)[-_](\w+)'
+    regex = r'(\w+)[-_](\w+)'
     for deployment in db.Deployment.find({}):
         matches = re.match(regex, deployment.name)
         glider_name = matches.group(1)

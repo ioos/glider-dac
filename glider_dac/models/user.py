@@ -16,10 +16,10 @@ class User(Document):
     use_schemaless = True
 
     structure = {
-        'username'                  : unicode,
-        'name'                      : unicode,
-        'email'                     : unicode,
-        'organization'              : unicode,
+        'username'                  : str,
+        'name'                      : str,
+        'email'                     : str,
+        'organization'              : str,
         'created'                   : datetime,
         'updated'                   : datetime
     }
@@ -81,7 +81,7 @@ class User(Document):
         return False == self.is_active()
 
     def get_id(self):
-        return unicode(self._id)
+        return str(self._id)
 
     @classmethod
     def get_deployment_count_by_user(cls):

@@ -59,6 +59,6 @@ class UserDB(object):
             users = []
             while r:
                 users.append(r[0])
-                r = c.next()
+                r = next(c)
 
             return users
