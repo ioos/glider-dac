@@ -96,7 +96,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             checksum        = js.get('checksum', '').strip()
             completed       = js['completed']
     except (OSError, IOError, AssertionError, AttributeError) as e:
-        print("%s: %s" % (repr(e), e.message))
+        print(("%s: %s" % (repr(e), e.message)))
         print(e)
         return ''
 

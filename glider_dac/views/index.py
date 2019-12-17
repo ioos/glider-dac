@@ -8,7 +8,7 @@ from flask import render_template, make_response, redirect, flash, url_for, requ
 from glider_dac import app, login_manager, db
 from glider_dac.models.user import User
 from flask_login import login_user, logout_user, current_user
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextField, PasswordField
 import pymongo
 

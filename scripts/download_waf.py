@@ -90,7 +90,7 @@ def get_iso_doc(iso_url, destination_path, file_name):
     '''
     response = requests.get(iso_url, stream=True)
     if response.status_code == 500:
-        print "Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code)
+        print("Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code))
         return None
     elif response.status_code != 200:
         raise IOError("Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code) )
@@ -105,7 +105,7 @@ def get_iso_doc(iso_url, destination_path, file_name):
                 f.write(chunk)
                 f.flush()
 
-    print "Created ISO at", file_path
+    print("Created ISO at", file_path)
     return file_path
 
 

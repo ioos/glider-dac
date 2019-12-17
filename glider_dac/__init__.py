@@ -38,11 +38,11 @@ queue = Queue('default', connection=redis_connection)
 
 import sys
 
-from flask.ext.mongokit import MongoKit
+from flask_mongokit import MongoKit
 db = MongoKit(app)
 
 # Mailer
-from flask.ext.mail import Mail
+from flask_mail import Mail
 mail = Mail(app)
 
 # Login manager for frontend

@@ -6,7 +6,7 @@ Model definition for a Deployment
 '''
 from glider_dac import app, db, slugify
 from datetime import datetime
-from flask.ext.mongokit import Document
+from flask_mongokit import Document
 from bson.objectid import ObjectId
 from shutil import rmtree
 import os

@@ -1,5 +1,5 @@
 import os
-from flask.ext.mail import Message
+from flask_mail import Message
 from flask import render_template
 from glider_dac import app, mail, db
 from datetime import datetime

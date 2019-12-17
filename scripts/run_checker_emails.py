@@ -150,7 +150,7 @@ def parse_issues(groups, prev_issues=None):
 
     for issue_set in issues:
         affected_files = [(file_ct, name) for errors, file_info in
-			  groups.iteritems() for file_ct, name in file_info if
+			  groups.items() for file_ct, name in file_info if
 			  issue_set.issubset(errors)]
 	contiguous_files = [list(g) for g in consecutive_groups(affected_files, lambda x: x[0])]
 

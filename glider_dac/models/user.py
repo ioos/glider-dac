@@ -6,7 +6,7 @@ from datetime import datetime
 from glider_dac import app, db
 from flask_login import UserMixin
 from glider_util.bdb import UserDB
-from flask.ext.mongokit import Document
+from flask_mongokit import Document
 from bson import ObjectId
 
 @db.register

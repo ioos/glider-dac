@@ -75,14 +75,14 @@ def dacv2tov1(oldNc, newNc):
     
     # Loop through each of the variables in oldNc and create new variables in outNc
     # all variables that have 'time' as the dimension
-    for varName, inVar in inFid.variables.iteritems():
+    for varName, inVar in inFid.variables.items():
         
         # Must have 'time' as the dimension and the length of the variable data
         # array must be equal to tLength
         if 'time' not in inVar.dimensions:
             continue
         elif len(inVar) != tLength:
-            print 'time length error:', varName
+            print('time length error:', varName)
             continue
         
         # Create the variable
@@ -111,8 +111,8 @@ def dacv2tov1(oldNc, newNc):
         for att in inVar.ncattrs():
             outVar.setncattr(att, inVar.getncattr(att))
             
-        print outVar.shape
-        print inVar.shape
+        print(outVar.shape)
+        print(inVar.shape)
         # Add the data
         outVar[:] = inVar[:]
         
@@ -190,7 +190,7 @@ def main(args):
             sys.exit(1)
         else:
             # Create it if the --mkdir option was specified and it does not exist
-            print 'Creating output directory:{0}\n'.format(args.outputDirectory)
+            print('Creating output directory:{0}\n'.format(args.outputDirectory))
             os.makedirs(args.outputDirectory)
     
     for oldNc in args.ncFiles:
@@ -200,7 +200,7 @@ def main(args):
         
         nc = dacv2tov1(oldNc, newNc)
         
-        print 'File created:{0}\n'.format(newNc)
+        print('File created:{0}\n'.format(newNc))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert one or more DAC 2.0 NetCDF files to version 1.0.  Output files use the same name as the input files.')

@@ -172,7 +172,7 @@ class GliderQC(object):
 
         qcvariables = []
 
-        for tname, template in templates.items():
+        for tname, template in list(templates.items()):
             if tname == 'pressure' and standard_name != 'sea_water_pressure':
                 continue
             variable_name = template['name'] % {'name': name}

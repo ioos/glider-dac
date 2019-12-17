@@ -6,7 +6,7 @@ Model definition for Institution
 '''
 from datetime import datetime
 from glider_dac import db
-from flask.ext.mongokit import Document
+from flask_mongokit import Document
 
 
 @db.register

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not os.path.exists(args.db_file) and not args.op == "init":
-        raise StandardError("File %s does not exist. Use %s %s 'init' if you want to create it" % (args.db_file, sys.argv[0], args.db_file))
+        raise Exception("File %s does not exist. Use %s %s 'init' if you want to create it" % (args.db_file, sys.argv[0], args.db_file))
 
     u = UserDB(args.db_file)
 
@@ -52,13 +52,13 @@ if __name__ == "__main__":
 
         cv = u.check(args.user, pw)
         if cv:
-            print "Success"
+            print("Success")
         else:
-            print "Failure"
+            print("Failure")
             sys.exit(1)
 
     elif args.op == 'list':
-        print "\n".join(u.list_users())
+        print("\n".join(u.list_users()))
 
     elif args.op == 'init':
         u.init_db(args.db_file)

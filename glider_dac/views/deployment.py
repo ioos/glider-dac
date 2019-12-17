@@ -12,7 +12,7 @@ from glider_dac import app, db, queue
 from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
 
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
@@ -54,7 +54,7 @@ class NewDeploymentForm(Form):
 @app.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     user = db.User.find_one({'username': username})
-    deployments = list(db.Deployment.find({'user_id': user._id}))
+    deployments = db.Deployment.find({'user_id': user._id})
 
     kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
@@ -75,7 +75,7 @@ def list_user_deployments(username):
 
 @app.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
-    deployments = list(db.Deployment.find({'operator': str(operator)}))
+    deployments = db.Deployment.find({'operator': str(operator)})
 
     for m in deployments:
         if not os.path.exists(m.full_path):
