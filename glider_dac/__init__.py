@@ -8,6 +8,8 @@ from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
 import redis
+import yaml
+import logging
 
 
 # Create application object
@@ -15,12 +17,24 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-from flask_environments import Environments
-env = Environments(app)
-env.from_yaml('config.yml')
-if os.path.exists('config.local.yml'):
-    env.from_yaml('config.local.yml')
+cur_dir = os.path.dirname(__file__)
+with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
+    config_dict = yaml.load(base_config, Loader=yaml.BaseLoader)
 
+extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
+# merge in settings from config.local.yml, if it exists
+if os.path.exists(extra_config_path):
+    with open(extra_config_path) as extra_config:
+        config_dict = {**config_dict, **yaml.load(extra_config,
+                                                  Loader=yaml.BaseLoader)}
+
+if app.config["ENV"].upper() == "PRODUCTION":
+    try:
+        app.config.update(config_dict["PRODUCTION"])
+    except KeyError:
+        app.config.update(config_dict["DEVELOPMENT"])
+else:
+    app.config.update(config_dict["DEVELOPMENT"])
 
 import redis
 redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
