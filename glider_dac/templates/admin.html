@@ -25,7 +25,7 @@
         <td>{{user.email}}</td>
         <td>{{user.organization}}</td>
         <td>
-          {% if deployment_counts.has_key(user._id) %}
+          {% if '_id' in deployment_counts %}
           <a href="{{ url_for('list_user_deployments', username=user.username) }}"><span class="label label-success">{{ deployment_counts.get(user._id, '0') }}</span></a>
           {% else %}
             <span class="label label-default">0</span>
