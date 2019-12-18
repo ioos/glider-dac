@@ -19,14 +19,14 @@ app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 cur_dir = os.path.dirname(__file__)
 with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
-    config_dict = yaml.load(base_config, Loader=yaml.BaseLoader)
+    config_dict = yaml.load(base_config, Loader=yaml.Loader)
 
 extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
 # merge in settings from config.local.yml, if it exists
 if os.path.exists(extra_config_path):
     with open(extra_config_path) as extra_config:
         config_dict = {**config_dict, **yaml.load(extra_config,
-                                                  Loader=yaml.BaseLoader)}
+                                                  Loader=yaml.Loader)}
 
 if app.config["ENV"].upper() == "PRODUCTION":
     try:
