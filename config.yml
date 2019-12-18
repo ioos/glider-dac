@@ -20,7 +20,9 @@ COMMON: &common
   MAIL_PASSWORD: mail-password
   MAIL_USE_TLS: True
   MAIL_DEFAULT_SENDER: sender@domain.com
-  MAILER_DEBUG: True
+  # Must be numeric to operate properly?
+  #MAILER_DEBUG: True
+  MAILER_DEBUG: 1
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
 
