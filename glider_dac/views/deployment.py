@@ -68,7 +68,8 @@ def list_user_deployments(username):
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
+    deployments = sorted(deployments,
+                         key=lambda a, b: cmp(b.updated, a.updated))
 
     return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
 
@@ -83,7 +84,8 @@ def list_operator_deployments(operator):
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
+    deployments = sorted(deployments,
+                         key=lambda a, b: cmp(b.updated, a.updated))
 
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
@@ -101,7 +103,7 @@ def show_deployment(username, deployment_id):
             files.append((f, datetime.utcfromtimestamp(
                 os.path.getmtime(os.path.join(dirpath, f)))))
 
-    files = sorted(files, lambda a, b: cmp(b[1], a[1]))
+    files = sorted(files, key=lambda a, b: cmp(b[1], a[1]))
 
     kwargs = {}
 
