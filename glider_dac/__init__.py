@@ -119,11 +119,11 @@ def prettypastdate(d, diff):
     elif s < 120:
         return '1 minute ago'
     elif s < 3600:
-        return '{} minutes ago'.format(s/60)
+        return '{} minutes ago'.format(s//60)
     elif s < 7200:
         return '1 hour ago'
     else:
-        return '{} hours ago'.format(s/3600)
+        return '{} hours ago'.format(s//3600)
 
 def prettyfuturedate(d, diff):
     s = diff.seconds
