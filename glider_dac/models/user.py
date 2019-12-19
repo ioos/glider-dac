@@ -30,12 +30,8 @@ class User(Document):
 
     @classmethod
     def _check_login(cls, username, password):
-        # @TODO could be problem
-        username = str(username)
-        password = str(password)
-
         u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.check(username, password)
+        return u.check(username.encode(), password.encode())
 
     @classmethod
     def authenticate(cls, username, password):
@@ -51,12 +47,8 @@ class User(Document):
 
     @classmethod
     def update(cls, username, password):
-        # @TODO could be problem
-        username = str(username)
-        password = str(password)
-
         u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.set(username, password)
+        return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):

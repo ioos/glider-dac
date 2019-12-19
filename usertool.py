@@ -46,11 +46,11 @@ if __name__ == "__main__":
     if args.op == 'set':
         pw = getpass.getpass()
 
-        u.set(args.user, pw)
+        u.set(args.user.encode(), pw.encode())
     elif args.op == 'check':
         pw = getpass.getpass()
 
-        cv = u.check(args.user, pw)
+        cv = u.check(args.user.encode(), pw.encode())
         if cv:
             print("Success")
         else:
