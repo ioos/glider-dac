@@ -172,8 +172,8 @@ def slugify(value):
     """
     import unicodedata
     import re
-    value = str(value)
-    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    #value = str(value)
+    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = re.sub(r'[^\w\s-]', '', value).strip()
     return re.sub(r'[-\s]+', '-', value)
 
