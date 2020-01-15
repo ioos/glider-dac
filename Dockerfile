@@ -18,4 +18,5 @@ USER glider
 VOLUME /glider-dac/logs/
 ENV PYTHONPATH="${PYTHONPATH}:/glider_dac"
 
-CMD ["python", "app.py", "run"]
+EXPOSE 5000
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
