@@ -1,5 +1,5 @@
 import os
-from flask.ext.mail import Message
+from flask_mail import Message
 from flask import render_template
 from glider_dac import app, mail, db
 from datetime import datetime
@@ -53,12 +53,12 @@ def get_thredds_catalog_url():
     args = {
         'host' : app.config['THREDDS']
     }
-    url = u'http://%(host)s/thredds/catalog.xml' % args
+    url = 'http://%(host)s/thredds/catalog.xml' % args
     return url
 
 def get_erddap_catalog_url():
     args = {
         'host' : app.config['PUBLIC_ERDDAP']
     }
-    url = u'http://%(host)s/erddap/metadata/iso19115/xml/' % args
+    url = 'http://%(host)s/erddap/metadata/iso19115/xml/' % args
     return url

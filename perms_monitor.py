@@ -54,7 +54,7 @@ class HandleDeploymentDir(FileSystemEventHandler):
                 return
 
             # Dir permissions
-            mode = 0775
+            mode = 0o775
 
         else:
 
@@ -68,7 +68,7 @@ class HandleDeploymentDir(FileSystemEventHandler):
                 return
 
             # File permissions
-            mode = 0664
+            mode = 0o664
 
         # allow a slight delay so if the web app wants to create wmoid.txt it still can
         time.sleep(5)

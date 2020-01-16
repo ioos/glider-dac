@@ -24,27 +24,27 @@ def main(base):
                 if not os.path.isdir(os.path.join(fullpath, f)):
                     continue
 
-                print "Deployment", f
+                print("Deployment", f)
 
                 deployment = db.Deployment.find_one({'name':f})
 
                 if deployment:
-                    print "Found: updating timestamp"
+                    print("Found: updating timestamp")
                     deployment.updated = datetime.utcfromtimestamp(os.path.getmtime(os.path.join(fullpath, f)))
                     deployment.save()
                 else:
-                    print "Not Found: creating"
+                    print("Not Found: creating")
                     deployment = db.Deployment()
-                    deployment.name = unicode(f)
+                    deployment.name = str(f)
                     deployment.user_id = u._id
-                    deployment.deployment_dir = unicode(os.path.join(fullpath, f))
+                    deployment.deployment_dir = str(os.path.join(fullpath, f))
 
                     deployment.completed = os.path.exists(os.path.join(fullpath, f, 'completed.txt'))
 
                     wmoid_file = os.path.join(fullpath, f, 'wmoid.txt')
                     if os.path.exists(wmoid_file):
                         with open(wmoid_file) as wf:
-                            deployment.wmo_id = unicode(wf.readline().strip())
+                            deployment.wmo_id = str(wf.readline().strip())
 
                     deployment.save()
 

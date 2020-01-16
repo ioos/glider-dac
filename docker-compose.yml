@@ -1,0 +1,46 @@
+version: '2.1'
+
+services:
+  providers_app: &provider_anchor
+    restart: always
+    build: .
+    ports:
+      - 3000:5000
+    volumes:
+      - ./config.local.yml:/glider-dac/config.local.yml
+    depends_on:
+      - mongo
+      - redis
+
+  worker:
+    <<: *provider_anchor
+    command: python glider_dac/worker.py
+    ports: []
+
+  mongo:
+    image: mongo
+    volumes:
+      - mongo_storage:/data/db
+      - mongo_config:/data/configdb
+
+  # TODO: THREDDS and ERDDAP will need volume configurations
+  thredds:
+    image: unidata/thredds-docker:4.6.14
+    ports:
+      - 8082:8080
+
+  erddap:
+    image: axiom/docker-erddap
+    ports:
+      - 8080:8080
+
+  redis:
+    restart: always
+    image: redis
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongo_storage:
+  mongo_config:
+  redis_data:

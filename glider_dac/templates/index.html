@@ -47,7 +47,7 @@
       {%- for u in user_deployments %}
       <li class="list-group-item">
         <span class="badge">{{ u['count'] }} deployment{{ u['count']|pluralize('', 's')}}</span>
-        {% if user_map.has_key(u['_id']) %}
+        {% if '_id' in user_map %}
         <a href="{{ url_for('list_user_deployments', username=user_map[u['_id']].username) }}">
           {{ user_map[u['_id']].name or user_map[u['_id']].username }}
         </a>

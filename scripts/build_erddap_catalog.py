@@ -96,7 +96,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             checksum        = js.get('checksum', '').strip()
             completed       = js['completed']
     except (OSError, IOError, AssertionError, AttributeError) as e:
-        print("%s: %s" % (repr(e), e.message))
+        print(("%s: %s" % (repr(e), e.message)))
         print(e)
         return ''
 
@@ -185,7 +185,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             tree = etree.fromstring(templ)
 
 
-            for identifier, mod_attrs in extra_atts.iteritems():
+            for identifier, mod_attrs in extra_atts.items():
                 add_extra_attributes(tree, identifier, mod_attrs)
 
             def maybe_add_extra_var(var):
@@ -262,7 +262,7 @@ def add_extra_attributes(tree, identifier, mod_atts):
         add_atts_elem = subtree.append(etree.Element('addAttributes'))
         logger.info('Added "addAttributes" to xpath for {}'.format(xpath_expr))
 
-    for att_name, value in mod_atts.iteritems():
+    for att_name, value in mod_atts.items():
         # find the attribute
         found_elem = add_atts_elem.find(att_name)
         # attribute exists, update current value
@@ -359,10 +359,10 @@ def slugify(value):
     """
     import unicodedata
     import re
-    value = unicode(value)
+    value = str(value)
     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = unicode(re.sub('[^\w\s-]', '', value).strip())
-    return unicode(re.sub('[-\s]+', '-', value))
+    value = str(re.sub('[^\w\s-]', '', value).strip())
+    return str(re.sub('[-\s]+', '-', value))
 
 def main(mode, data_root, catalog_root, templates, root_dir=None):
 

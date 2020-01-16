@@ -52,7 +52,7 @@ def main():
         return 0
     if args.worker:
         with Connection(glider_qc.get_redis_connection()):
-            worker = Worker(map(Queue, ['gliderdac']))
+            worker = Worker(list(map(Queue, ['gliderdac'])))
             worker.work()
         return 0
 

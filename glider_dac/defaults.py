@@ -1,5 +1,5 @@
 import os
-import urlparse
+import urllib.parse
 
 DEBUG = False
 TESTING = False
@@ -36,7 +36,7 @@ THREDDS        = os.environ.get('THREDDS')
 
 # database
 MONGO_URI = os.environ.get('MONGO_URI')
-url = urlparse.urlparse(MONGO_URI)
+url = urllib.parse.urlparse(MONGO_URI)
 MONGODB_HOST = url.hostname
 MONGODB_PORT = url.port
 MONGODB_USERNAME = url.username

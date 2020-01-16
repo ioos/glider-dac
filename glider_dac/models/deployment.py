@@ -6,7 +6,7 @@ Model definition for a Deployment
 '''
 from glider_dac import app, db, slugify
 from datetime import datetime
-from flask.ext.mongokit import Document
+from flask_mongokit import Document
 from bson.objectid import ObjectId
 from shutil import rmtree
 import os
@@ -20,23 +20,23 @@ class Deployment(Document):
     use_schemaless = True
 
     structure = {
-        'name': unicode,
+        'name': str,
         'user_id': ObjectId,
-        'username': unicode,  # The cached username to lightly DB load
+        'username': str,  # The cached username to lightly DB load
         # The operator of this Glider. Shows up in TDS as the title.
-        'operator': unicode,
-        'deployment_dir': unicode,
+        'operator': str,
+        'deployment_dir': str,
         'estimated_deploy_date': datetime,
-        'estimated_deploy_location': unicode,  # WKT text
-        'wmo_id': unicode,
+        'estimated_deploy_location': str,  # WKT text
+        'wmo_id': str,
         'completed': bool,
         'created': datetime,
         'updated': datetime,
-        'glider_name': unicode,
+        'glider_name': str,
         'deployment_date': datetime,
         'archive_safe': bool,
-        'checksum': unicode,
-        'attribution': unicode,
+        'checksum': str,
+        'attribution': str,
         'delayed_mode': bool
     }
 
@@ -55,7 +55,7 @@ class Deployment(Document):
     ]
 
     def save(self):
-        if self.username is None or self.username == u'':
+        if self.username is None or self.username == '':
             user = db.User.find_one({'_id': self.user_id})
             self.username = user.username
 
@@ -83,7 +83,7 @@ class Deployment(Document):
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
-        dap_url = u"http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
+        dap_url = "http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
         return dap_url
 
     @property
@@ -96,13 +96,13 @@ class Deployment(Document):
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
-        sos_url = u"http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
+        sos_url = "http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
         return sos_url
 
     @property
     def iso(self):
         name = slugify(self.name)
-        iso_url = u'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
+        iso_url = 'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
             'host': app.config['PUBLIC_ERDDAP'], 'name': name}
         return iso_url
 
@@ -113,7 +113,7 @@ class Deployment(Document):
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
-        thredds_url = u"http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
+        thredds_url = "http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
         return thredds_url
 
     @property
@@ -123,7 +123,7 @@ class Deployment(Document):
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
-        erddap_url = u"http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
+        erddap_url = "http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
         return erddap_url
 
     @property
@@ -220,7 +220,7 @@ class Deployment(Document):
                 mtime = datetime.utcfromtimestamp(mtime)
 
                 md5.update(mtime.isoformat())
-        self.checksum = unicode(md5.hexdigest())
+        self.checksum = md5.hexdigest()
 
     def sync(self):
         if app.config.get('NODATA'):

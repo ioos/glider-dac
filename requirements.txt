@@ -2,11 +2,12 @@ Flask>=0.12.3
 Flask-Login==0.2.7
 gunicorn>=19.5.0
 Flask-WTF==0.9.1
-watchdog==0.6.0
+watchdog>=0.9.0
 lxml==3.3.6
 pymongo==2.8
+mongokit-py3>=0.9.1.1
 Flask-MongoKit==0.6
-bsddb3==6.0.0
+bsddb3>=6.2.6
 Flask-Mail==0.9.0
 Flask-Script==2.0.5
 feedparser==5.1.3
@@ -15,12 +16,12 @@ requests>=2.20.0
 passlib>=1.7.1
 -e git://github.com/asascience-open/thredds_crawler@c2164e3a805e423ff06e52986a8753038e9c00ce#egg=thredds_crawler-master
 Flask-KVSession==0.6.2
-Flask-Environments==0.1
+pyyaml>=5.2
 rq==0.5.6
 rq-dashboard==0.3.4
 -e git://github.com/ioos/qartod@12301185bb874fb8193e54822b9ea7da4a34bc9a#egg=ioos_qartod
-netCDF4==1.2.4
-cf-units==1.1.1
+netCDF4>=1.4.0
+cf-units>=2
 flask-cors==3.0.2
-compliance-checker>=4.2.2
+compliance-checker>=4.3.1
 cc-plugin-glider>=2.0.0

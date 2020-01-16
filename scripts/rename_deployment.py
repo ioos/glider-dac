@@ -27,10 +27,10 @@ def update_db(src, dest):
         d_provider, d_deployment_name = deployment_split(dest)
         deployments = list(db.Deployment.find({'name':deployment_name}))
         for dep in deployments:
-            print dep.name, '->', d_deployment_name
-            dep.name = unicode(d_deployment_name)
-            print dep.deployment_dir, '->', dest
-            dep.deployment_dir = unicode(dest)
+            print(dep.name, '->', d_deployment_name)
+            dep.name = str(d_deployment_name)
+            print(dep.deployment_dir, '->', dest)
+            dep.deployment_dir = str(dest)
             dep.save()
 
 def update_catalog(catalog_loc, src, dest):
@@ -42,19 +42,19 @@ def update_catalog(catalog_loc, src, dest):
     with open(catalog_loc, 'r') as f, open(swp_file, 'w') as swp:
         for i, line in enumerate(f):
             if src in line:
-                print 'XML:%s:%s' % (catalog_loc, i), src, '->', dest
+                print('XML:%s:%s' % (catalog_loc, i), src, '->', dest)
                 line = line.replace(src, dest)
-                print line
+                print(line)
             elif deployment_name in line:
-                print 'XML:%s:%s' % (catalog_loc, i), deployment_name, '->', d_deployment_name
+                print('XML:%s:%s' % (catalog_loc, i), deployment_name, '->', d_deployment_name)
                 line = line.replace(deployment_name, d_deployment_name)
-                print line
+                print(line)
             swp.write(line)
     shutil.move(swp_file, catalog_loc)
 
 def update_filesystem(root, src, dest):
     if os.path.exists(os.path.join(root, src)):
-        print 'Filesystem: mv %s %s' % (os.path.join(root, src), os.path.join(root, dest))
+        print('Filesystem: mv %s %s' % (os.path.join(root, src), os.path.join(root, dest)))
         shutil.move(os.path.join(root, src), os.path.join(root, dest))
 
 def deployment_split(deployment):

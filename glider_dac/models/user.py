@@ -6,7 +6,7 @@ from datetime import datetime
 from glider_dac import app, db
 from flask_login import UserMixin
 from glider_util.bdb import UserDB
-from flask.ext.mongokit import Document
+from flask_mongokit import Document
 from bson import ObjectId
 
 @db.register
@@ -16,10 +16,10 @@ class User(Document):
     use_schemaless = True
 
     structure = {
-        'username'                  : unicode,
-        'name'                      : unicode,
-        'email'                     : unicode,
-        'organization'              : unicode,
+        'username'                  : str,
+        'name'                      : str,
+        'email'                     : str,
+        'organization'              : str,
         'created'                   : datetime,
         'updated'                   : datetime
     }
@@ -30,12 +30,8 @@ class User(Document):
 
     @classmethod
     def _check_login(cls, username, password):
-        # @TODO could be problem
-        username = str(username)
-        password = str(password)
-
         u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.check(username, password)
+        return u.check(username.encode(), password.encode())
 
     @classmethod
     def authenticate(cls, username, password):
@@ -51,12 +47,8 @@ class User(Document):
 
     @classmethod
     def update(cls, username, password):
-        # @TODO could be problem
-        username = str(username)
-        password = str(password)
-
         u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.set(username, password)
+        return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):
@@ -81,7 +73,7 @@ class User(Document):
         return False == self.is_active()
 
     def get_id(self):
-        return unicode(self._id)
+        return str(self._id)
 
     @classmethod
     def get_deployment_count_by_user(cls):

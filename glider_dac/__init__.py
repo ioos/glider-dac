@@ -8,6 +8,8 @@ from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
 import redis
+import yaml
+import logging
 
 
 # Create application object
@@ -15,12 +17,24 @@ app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-from flask_environments import Environments
-env = Environments(app)
-env.from_yaml('config.yml')
-if os.path.exists('config.local.yml'):
-    env.from_yaml('config.local.yml')
+cur_dir = os.path.dirname(__file__)
+with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
+    config_dict = yaml.load(base_config, Loader=yaml.Loader)
 
+extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
+# merge in settings from config.local.yml, if it exists
+if os.path.exists(extra_config_path):
+    with open(extra_config_path) as extra_config:
+        config_dict = {**config_dict, **yaml.load(extra_config,
+                                                  Loader=yaml.Loader)}
+
+if app.config["ENV"].upper() == "PRODUCTION":
+    try:
+        app.config.update(config_dict["PRODUCTION"])
+    except KeyError:
+        app.config.update(config_dict["DEVELOPMENT"])
+else:
+    app.config.update(config_dict["DEVELOPMENT"])
 
 import redis
 redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
@@ -38,11 +52,11 @@ queue = Queue('default', connection=redis_connection)
 
 import sys
 
-from flask.ext.mongokit import MongoKit
+from flask_mongokit import MongoKit
 db = MongoKit(app)
 
 # Mailer
-from flask.ext.mail import Mail
+from flask_mail import Mail
 mail = Mail(app)
 
 # Login manager for frontend
@@ -105,11 +119,11 @@ def prettypastdate(d, diff):
     elif s < 120:
         return '1 minute ago'
     elif s < 3600:
-        return '{} minutes ago'.format(s/60)
+        return '{} minutes ago'.format(s//60)
     elif s < 7200:
         return '1 hour ago'
     else:
-        return '{} hours ago'.format(s/3600)
+        return '{} hours ago'.format(s//3600)
 
 def prettyfuturedate(d, diff):
     s = diff.seconds
@@ -158,10 +172,10 @@ def slugify(value):
     """
     import unicodedata
     import re
-    value = unicode(value)
-    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = unicode(re.sub('[^\w\s-]', '', value).strip())
-    return unicode(re.sub('[-\s]+', '-', value))
+    #value = str(value)
+    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    value = re.sub(r'[^\w\s-]', '', value).strip()
+    return re.sub(r'[-\s]+', '-', value)
 
 # Import everything
 import glider_dac.views

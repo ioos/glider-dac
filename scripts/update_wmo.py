@@ -14,7 +14,7 @@ def main(args):
     Parse WMO IDs from netCDF files and update mongo records
     '''
     # For each deployment without a wmo id
-    for deployment in db.Deployment.find({u"$or":[{u"wmo_id":None}, {u"attribution":None}]}):
+    for deployment in db.Deployment.find({"$or":[{"wmo_id":None}, {"attribution":None}]}):
         try:
             update_deployment(deployment)
         except Exception as e:
@@ -37,13 +37,13 @@ def update_deployment(deployment):
         if deployment.wmo_id is None:
             wmo_id = get_wmo(nc)
             if wmo_id:
-                deployment.wmo_id = unicode(wmo_id)
+                deployment.wmo_id = wmo_id
                 dirty = True
 
         elif deployment.attribution is None:
             attribution = get_acknowledgment(nc)
             if attribution:
-                deployment.attribution = unicode(attribution)
+                deployment.attribution = attribution
                 dirty = True
 
         if dirty:

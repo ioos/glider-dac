@@ -5,7 +5,7 @@ def initialize_logs(app):
     '''
     Initializes the Application Logger
     '''
-    print "INITIALIZING LOGGING"
+    print("INITIALIZING LOGGING")
     import logging
     log_path = app.config.get('LOG_DIR', 'logs')
     if not os.path.exists(log_path):

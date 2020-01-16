@@ -12,7 +12,7 @@ from glider_dac import app, db, queue
 from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
 
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
@@ -30,31 +30,31 @@ def is_date_parseable(form, field):
 
 
 def is_valid_glider_name(form, field):
-    regex = ur'^[a-zA-Z]+[a-zA-Z0-9-_]*$'
+    regex = r'^[a-zA-Z]+[a-zA-Z0-9-_]*$'
     if not re.match(regex, field.data):
         raise validators.ValidationError("Invalid Glider Name")
 
 
 class DeploymentForm(Form):
-    operator = TextField(u'Operator')
-    completed = BooleanField(u'Completed')
-    archive_safe = BooleanField(u"Submit to NCEI on Completion")
-    attribution = TextField(u'Attribution')
-    submit = SubmitField(u'Submit')
+    operator = TextField('Operator')
+    completed = BooleanField('Completed')
+    archive_safe = BooleanField("Submit to NCEI on Completion")
+    attribution = TextField('Attribution')
+    submit = SubmitField('Submit')
 
 
 class NewDeploymentForm(Form):
-    glider_name = TextField(u'Glider Name', [is_valid_glider_name])
-    deployment_date = TextField(u'Deployment Date', [is_date_parseable])
-    attribution = TextField(u'Attribution')
-    delayed_mode = BooleanField(u'Delayed Mode?')
-    submit = SubmitField(u"Create")
+    glider_name = TextField('Glider Name', [is_valid_glider_name])
+    deployment_date = TextField('Deployment Date', [is_date_parseable])
+    attribution = TextField('Attribution')
+    delayed_mode = BooleanField('Delayed Mode?')
+    submit = SubmitField("Create")
 
 
 @app.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     user = db.User.find_one({'username': username})
-    deployments = list(db.Deployment.find({'user_id': user._id}))
+    deployments = db.Deployment.find({'user_id': user._id})
 
     kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
@@ -68,14 +68,15 @@ def list_user_deployments(username):
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
+    deployments = sorted(deployments,
+                         key=lambda a, b: cmp(b.updated, a.updated))
 
     return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
 
 
 @app.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
-    deployments = list(db.Deployment.find({'operator': unicode(operator)}))
+    deployments = db.Deployment.find({'operator': str(operator)})
 
     for m in deployments:
         if not os.path.exists(m.full_path):
@@ -83,7 +84,8 @@ def list_operator_deployments(operator):
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments, lambda a, b: cmp(b.updated, a.updated))
+    deployments = sorted(deployments,
+                         key=lambda a, b: cmp(b.updated, a.updated))
 
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
@@ -101,7 +103,7 @@ def show_deployment(username, deployment_id):
             files.append((f, datetime.utcfromtimestamp(
                 os.path.getmtime(os.path.join(dirpath, f)))))
 
-    files = sorted(files, lambda a, b: cmp(b[1], a[1]))
+    files = sorted(files, key=lambda a, b: cmp(b[1], a[1]))
 
     kwargs = {}
 
@@ -171,7 +173,7 @@ def new_deployment(username):
 
     else:
         error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
-                               for k, v in form.errors.iteritems()])
+                               for k, v in form.errors.items()])
         flash("Deployment could not be created: %s" % error_str, 'danger')
 
     return redirect(url_for('list_user_deployments', username=username))
@@ -250,7 +252,7 @@ def edit_deployment(username, deployment_id):
         return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
     else:
         error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
-                               for k, v in form.errors.iteritems()])
+                               for k, v in form.errors.items()])
         flash("Deployment could not be edited: %s" % error_str, 'danger')
 
     return render_template('edit_deployment.html', username=username, form=form, deployment=deployment)
@@ -264,10 +266,10 @@ def post_deployment_file(username, deployment_id):
     user = db.User.find_one({'username': username})
 
     if not (deployment and user and deployment.user_id == user._id and (current_user.is_admin() or current_user == user)):
-        raise StandardError("Unauthorized")  # @TODO better response via ajax?
+        raise Exception("Unauthorized")  # @TODO better response via ajax?
 
     retval = []
-    for name, f in request.files.iteritems():
+    for name, f in request.files.items():
         if not name.startswith('file-'):
             continue
 
@@ -294,17 +296,17 @@ def delete_deployment_files(username, deployment_id):
     user = db.User.find_one({'username': username})
     if deployment is None:
         # @TODO better response via ajax?
-        raise StandardError("Unauthorized")
+        raise Exception("Unauthorized")
     if user is None:
         # @TODO better response via ajax?
-        raise StandardError("Unauthorized")
+        raise Exception("Unauthorized")
     if not (current_user and current_user.is_active() and (current_user.is_admin() or current_user == user)):
         # @TODO better response via ajax?
-        raise StandardError("Unauthorized")
+        raise Exception("Unauthorized")
 
     if not (deployment and user and (current_user.is_admin() or user._id == deployment.user_id)):
         # @TODO better response via ajax?
-        raise StandardError("Unauthorized")
+        raise Exception("Unauthorized")
 
     for name in request.json['files']:
         file_name = os.path.join(deployment.full_path, name)
