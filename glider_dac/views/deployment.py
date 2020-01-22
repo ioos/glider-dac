@@ -34,6 +34,14 @@ def is_valid_glider_name(form, field):
     if not re.match(regex, field.data):
         raise validators.ValidationError("Invalid Glider Name")
 
+def deployment_key_fn(dep):
+    """
+    Helper function for sorting deployments.  Returns the "updated" attribute
+    timestamp (defaulting to 1970-01-01 if not found), followed by the
+    deployment name as the sorting key.
+    """
+    default_dt = datetime(1970, 1, 1)
+    return getattr(dep, 'updated', default_dt), dep.name
 
 class DeploymentForm(Form):
     operator = TextField('Operator')
@@ -50,11 +58,10 @@ class NewDeploymentForm(Form):
     delayed_mode = BooleanField('Delayed Mode?')
     submit = SubmitField("Create")
 
-
 @app.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     user = db.User.find_one({'username': username})
-    deployments = db.Deployment.find({'user_id': user._id})
+    deployments = list(db.Deployment.find({'user_id': user._id}))
 
     kwargs = {}
     if current_user and current_user.is_active() and (current_user.is_admin() or current_user == user):
@@ -63,20 +70,20 @@ def list_user_deployments(username):
         kwargs['form'] = form
 
     for m in deployments:
-        if not os.path.exists(m.full_path):   # wat
+        if not os.path.exists(m.full_path):
             continue
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments,
-                         key=lambda a: a.updated)
+    deployments.sort(key=deployment_key_fn)
 
-    return render_template('user_deployments.html', username=username, deployments=deployments, **kwargs)
+    return render_template('user_deployments.html', username=username,
+                           deployments=deployments, **kwargs)
 
 
 @app.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
-    deployments = db.Deployment.find({'operator': str(operator)})
+    deployments = list(db.Deployment.find({'operator': str(operator)}))
 
     for m in deployments:
         if not os.path.exists(m.full_path):
@@ -84,8 +91,7 @@ def list_operator_deployments(operator):
 
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
-    deployments = sorted(deployments,
-                         key=lambda a: a.updated)
+    deployments.sort(key=deployment_key_fn)
 
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
@@ -103,7 +109,7 @@ def show_deployment(username, deployment_id):
             files.append((f, datetime.utcfromtimestamp(
                 os.path.getmtime(os.path.join(dirpath, f)))))
 
-    files = sorted(files, key=lambda a: a[1])
+    files.sort(key=lambda a: a[1])
 
     kwargs = {}
 
