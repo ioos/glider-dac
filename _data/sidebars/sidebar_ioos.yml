@@ -414,40 +414,28 @@ entries:
       url: /links-for-data-providers.html
       output: web
 
-    - title: Links
-      url: /links-for-data-providers.html#links
+    - title: Submitting Data
+      url: /links-for-data-providers.html#submitting-data
       output: web
 
-    - title: Interacting with the DAC
-      url: /links-for-data-providers.html#link-use-and-descriptions
+    - title: Data Access Links
+      url: /links-for-data-providers.html#data-access-links
       output: web
 
-    - title: Deployment Registration
-      url: /links-for-data-providers.html#deployment-registration
+    - title: Dataset Status
+      url: /links-for-data-providers.html#dataset-status
       output: web
 
-    - title: NetCDF-FTP-Server
-      url: /links-for-data-providers.html#netcdf-ftp-server
+    - title: APIs
+      url: /links-for-data-providers.html#apis
       output: web
 
-    - title: Data Set Status
-      url: /links-for-data-providers.html#data-set-status
+    - title: IOOS Resources
+      url: /links-for-data-providers.html#ioos-resources
       output: web
 
-    - title: ERDDAP Data Set Access
-      url: /links-for-data-providers.html#erddap-data-set-access
-      output: web
-
-    - title: THREDDS Data Set Access
-      url: /links-for-data-providers.html#thredds-data-set-access
-      output: web
-
-    - title: IOOS Gliders and the DAC
-      url: /links-for-data-providers.html#ioos-gliders-and-the-dac
-      output: web
-
-    - title: IOOS Catalog Map
-      url: /links-for-data-providers.html#ioos-catalog-map
+    - title: Discussion and Examples
+      url: /links-for-data-providers.html#discussion-and-examples
       output: web
 
   - title: Links for Data Consumers
@@ -456,18 +444,18 @@ entries:
     folderitems:
 
     - title: Data Access Links
-      url: /links-for-data-consumers.html
+      url: /links-for-data-consumers.html#data-access-links
       output: web
 
-    - title: Dataset Availability
-      url: /links-for-data-consumers.html#dataset-availability
+    - title: Dataset Status
+      url: /links-for-data-consumers.html#dataset-status
       output: web
 
     - title: APIs
       url: /links-for-data-consumers.html#apis
       output: web
 
-    - title: IOOS Resorces
+    - title: IOOS Resources
       url: /links-for-data-consumers.html#ioos-resources
       output: web
 

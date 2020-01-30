@@ -23,9 +23,9 @@ summary: This page provides a detailed description of the end-to-end process of 
 
 Following a **thorough** reading, all additional questions/concerns/suggestions should be directed to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ioos.glider.data.providers@noaa.gov`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    glider.dac.support@noaa.gov`
 
-A consolidated list of the links referenced below can be found [here](https://github.com/ioos/ioosngdac/wiki/Links-for-Data-Providers#links) or [here](/ioosngdac/links-for-data-providers#links).
+A consolidated list of the links referenced below can be found [here](/ioosngdac/links-for-data-providers#links).
 
 
 ## Data Provider Registration
@@ -45,7 +45,7 @@ and all user account requests should be emailed to:
 
 ## New Deployment Registration
 
-Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a [WMO id](http://www.wmo.int/pages/prog/amp/mmop/buoy-ids.html) id for the glider.  This ID must be referenced as a [global](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a [WMO id](http://www.wmo.int/pages/prog/amp/mmop/buoy-ids.html) id for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 The next step is to register the deployment with the **NGDAC**.
 
@@ -53,7 +53,7 @@ The next step is to register the deployment with the **NGDAC**.
 
 In order for the datasets to be released to the [Global Telecommunication System](http://www.wmo.int/pages/prog/www/TEM/index_en.html), the glider must be assigned a **WMO ID**.  All **WMO ID** requests should be sent to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    ioos.glider.data@noaa.gov`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    glider.dac.support@noaa.gov`
 
 The following information must be provided for each request:
 + Data provider
@@ -67,17 +67,17 @@ Once the request is received, it will be forwarded to the [National Data Buoy Ce
 
 ### Deployment Creation
 
-Deployments are registered and managed via a [web page](http://data.ioos.us/gliders/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
+Deployments are registered and managed via a [web page](https://gliders.ioos.us/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
 
 1. Log in using your data provider credentials.
 2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
 3. Specify a unique deployment name using the following convention:
     **GLIDER-YYYYmmddTHHMM**
 
-    Where **GLIDER** is the actual name of the glider and **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#trajectory) variable in each NetCDF file that is submitted to the DAC.  Enter the **WMO id** assigned to this glider for the new deployment in the form element.
+    Where **GLIDER** is the actual name of the glider and **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2.html#trajectory) variable in each NetCDF file that is submitted to the DAC.  Enter the **WMO id** assigned to this glider for the new deployment in the form element.
 
     **IMPORTANT**:
-    This WMO id must also be referenced as a [global](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    This WMO id must also be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 4. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
 
@@ -128,7 +128,7 @@ New NetCDF files should be uploaded to the directory [created above](#deployment
     ftp> mput *.nc
 ```
 
-Please remember to use the [proper](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2#file-naming-conventions) file naming convention.
+Please remember to use the [proper](ngdac-netcdf-file-format-version-2.html#file-naming-conventions) file naming convention.
 
 The resulting deployment directory structure will look something like this:
 
@@ -144,13 +144,13 @@ A generic [ftp script](https://github.com/ioos/ioosngdac/blob/master/util/ncFtp2
  + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
  + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
 
-**You must specify your credentials in the $USER and $PASS variables contained in the script**.  
+**You must specify your credentials in the $USER and $PASS variables contained in the script**.
 
 ## Dataset Status
 
-Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](https://github.com/ioos/ioosngdac/wiki/NGDAC-Architecture#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](http://data.ioos.us/gliders/erddap/tabledap/index.html) and [THREDDS](http://data.ioos.us/gliders/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
+Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](/ioosngdac/ngdac-architecture.html#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
 
-We've built a [dataset status](http://data.ioos.us/gliders/status/) page to provide administrators and users with the ability to track datasets through the end-to-end process.  The [home page](http://data.ioos.us/gliders/status/) displays a list of all data sets for which either/both the [ERDDAP](http://data.ioos.us/gliders/erddap/tabledap/index.html) and [THREDDS](http://data.ioos.us/gliders/thredds/catalog.html) are not yet available.  Please check this page before emailing the DAC administrators regarding data set availability.
+We've built a [dataset status](https://gliders.ioos.us/status/) page to provide administrators and users with the ability to track datasets through the end-to-end process.  The [home page](https://gliders.ioos.us/status/) displays a list of all data sets for which either/both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) are not yet available.  Please check this page before emailing the DAC administrators regarding data set availability.
 
 ## Dataset Archiving
 

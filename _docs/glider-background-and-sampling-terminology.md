@@ -15,7 +15,7 @@ summary: This page defines glider and sampling terminology used throughout the r
 
 + [Glider Types](#glider-types)
 + [Sampling Pattern Terminology](#sampling-pattern-terminology)
-+ [NetCDF File Format Description](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2)
++ [NetCDF File Format Description](ngdac-netcdf-file-format-version-2.html)
 -->
 
 ## Glider Types
@@ -36,4 +36,4 @@ The schematic and definitions below define the sampling terminology of a profili
  + **Segment**: The set of data collected between 2 gps fixes obtained while the glider is on the surface of the water.  The first gps fix is acquired prior to the beginning of a dive and the second gps fix is acquired following the completion of at least one dive.  Glider **segments** always consist of at least one, and possibly many **dives**.
  + **Trajectory** or **Deployment**: A series of one or more **segments** completed by a glider between the time of deployment and the time of recovery.
 
-A detailed description of the official NetCDF file format used by the **NGDAC** can be found [here](NGDAC-NetCDF-File-Format-Version-2).
+A detailed description of the official NetCDF file format used by the **NGDAC** can be found [here](ngdac-netcdf-file-format-version-2.html).
