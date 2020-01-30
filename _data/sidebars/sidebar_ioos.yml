@@ -414,40 +414,8 @@ entries:
       url: /links-for-data-providers.html
       output: web
 
-    - title: Links
+    - title: Useful DAC Links
       url: /links-for-data-providers.html#links
-      output: web
-
-    - title: Interacting with the DAC
-      url: /links-for-data-providers.html#link-use-and-descriptions
-      output: web
-
-    - title: Deployment Registration
-      url: /links-for-data-providers.html#deployment-registration
-      output: web
-
-    - title: NetCDF-FTP-Server
-      url: /links-for-data-providers.html#netcdf-ftp-server
-      output: web
-
-    - title: Data Set Status
-      url: /links-for-data-providers.html#data-set-status
-      output: web
-
-    - title: ERDDAP Data Set Access
-      url: /links-for-data-providers.html#erddap-data-set-access
-      output: web
-
-    - title: THREDDS Data Set Access
-      url: /links-for-data-providers.html#thredds-data-set-access
-      output: web
-
-    - title: IOOS Gliders and the DAC
-      url: /links-for-data-providers.html#ioos-gliders-and-the-dac
-      output: web
-
-    - title: IOOS Catalog Map
-      url: /links-for-data-providers.html#ioos-catalog-map
       output: web
 
   - title: Links for Data Consumers
