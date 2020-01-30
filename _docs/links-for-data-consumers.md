@@ -13,7 +13,7 @@ summary: A list of links for data consumers and web applications developers.
 > [Wiki](https://github.com/kerfoot/ioosngdac/wiki) ▸ **Data Consumer Links**
 -->
 
-The following is a list of links for data consumers and web applications developers that provide access to the submitted datasets, view data set status and programmatically interface with the DAC via a RESTful API.
+The following is a list of links for data consumers and web applications developers that provide access to the submitted datasets, view dataset status and programmatically interface with the DAC via a RESTful API.
 
 <!--
 
@@ -30,12 +30,12 @@ The following is a list of links for data consumers and web applications develop
 ## Data Access Links
 Access to the datasets submitted to the DAC is provided via [ERDDAP](http://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](http://www.unidata.ucar.edu/software/thredds/current/tds/).  The access points are:
 
- - [**ERDDAP Data Set Access**](https://gliders.ioos.us/erddap/tabledap/index.html)
- - [**THREDDS Data Set Access**](https://gliders.ioos.us/thredds/catalog.html)
+ - [**ERDDAP Dataset Access**](https://gliders.ioos.us/erddap/tabledap/index.html)
+ - [**THREDDS Dataset Access**](https://gliders.ioos.us/thredds/catalog.html)
 
-## Dataset Availability
+## Dataset Status
 
- - [**Data Set Status**](https://gliders.ioos.us/status)
+ - [**Dataset Status**](https://gliders.ioos.us/status)
 
 ## APIs
 

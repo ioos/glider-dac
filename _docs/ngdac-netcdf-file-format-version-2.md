@@ -61,7 +61,7 @@ summary: A description of the NetCDF file format specification
 
 ## Introduction
 
-This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Submission-Process) process.
+This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](/ioosngdac/ngdac-netcdf-file-submission-process.html) process.
 
 **Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/ioosngdac/tree/master/nc/template).
 

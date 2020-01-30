@@ -15,7 +15,7 @@ summary: This page defines glider and sampling terminology used throughout the r
 
 + [Glider Types](#glider-types)
 + [Sampling Pattern Terminology](#sampling-pattern-terminology)
-+ [NetCDF File Format Description](https://github.com/ioos/ioosngdac/wiki/NGDAC-NetCDF-File-Format-Version-2)
++ [NetCDF File Format Description](ngdac-netcdf-file-format-version-2.html)
 -->
 
 ## Glider Types
