@@ -30,8 +30,8 @@ The following is a list of links for data consumers and web applications develop
 ## Data Access Links
 Access to the datasets submitted to the DAC is provided via [ERDDAP](http://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](http://www.unidata.ucar.edu/software/thredds/current/tds/).  The access points are:
 
- - **ERDDAP Data Set Access**: http://data.ioos.us/gliders/erddap/tabledap/index.html
- - **THREDDS Data Set Access**: http://data.ioos.us/gliders/thredds/catalog.html
+ - **ERDDAP Data Set Access**: https://gliders.ioos.us/erddap/tabledap/index.html
+ - **THREDDS Data Set Access**: https://gliders.ioos.us/thredds/catalog.html
 
 ## Dataset Availability
 
@@ -39,7 +39,7 @@ Access to the datasets submitted to the DAC is provided via [ERDDAP](http://coas
 
 ## APIs
 
- - **DAC RESTful API**: https://data.ioos.us/gliders/providers/api/deployment
+ - **DAC RESTful API**: https://gliders.ioos.us/providers/api/deployment
 
 ## IOOS Resources
 
@@ -48,6 +48,3 @@ The following is a list of links to [U.S. IOOS]() projects related to the **DAC<
  - **IOOS Gliders and the DAC**: https://gliders.ioos.us/data
  - **IOOS Catalog Map**: https://gliders.ioos.us/map
 
-## Discussion and Examples
-
-Coming soon...

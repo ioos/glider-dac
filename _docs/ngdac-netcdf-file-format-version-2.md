@@ -42,6 +42,8 @@ summary: A description of the NetCDF file format specification
    - [profile_lat_qc](#profile_lat_qc)
    - [profile_lon](#profile_lon)
    - [profile_lon_qc](#profile_lon_qc)
+   - [salinity](#salinity)
+   - [salinity_qc](#salinity_qc)
    - [time_uv](#time_uv)
    - [time_uv_qc](#time_uv_qc)
    - [lat_uv](#lat_uv)
@@ -210,7 +212,7 @@ Example:
 
 #### _institution_
 
-Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [http://gliders.ioos.us](http://gliders.ioos.us) deployment page.
+Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [https://gliders.ioos.us](https://gliders.ioos.us) deployment page.
 
 Example:
 : "Rutgers University"
@@ -251,8 +253,11 @@ Example:
 
 Glider type.
 
-Examples:
-: "Seaglider", "Spray Glider", "Slocum Glider"
+Current accepted types are:
+
+: "Seaglider", "Spray", "Slocum"
+
+No other values will be accepted for this attribute.
 
 #### _processing_level_
 
@@ -904,7 +909,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **Data Type** | integer |
 | **Value Type** | Scalar |
 | **_FillValue** | -999 |
-| **Description** | Unique identifier for the profile. The numbering must begin at 1 and is incremented for each successive profile contained in the trajectory. The ordering of the numbering does not necessarily correspond to the profile's temporal position in the trajectory. |
+| **Description** | Unique identifier for the profile. The numbering can begin at 1 and be incremented for each successive profile contained in the trajectory or can contain the timestamp corresponding to the mid-point of the profile.
 
 [**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf/Data-Model.html) example with **REQUIRED** attributes:
 

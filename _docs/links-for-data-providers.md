@@ -38,35 +38,13 @@ The following is a list of useful scripts and utilities for registered and prosp
 
 The following is a list of links that will take you directly to the specified resource.
 
- - **Deployment Registration**: http://data.ioos.us/gliders/providers
- - **NetCDF FTP server**: ftp://data.ioos.us/
- - **Data Set Status**: https://gliders.ioos.us/status/
- - **DAC RESTful API**: http://data.ioos.us/gliders/providers/api/deployment
- - **ERDDAP Data Set Access**: http://data.ioos.us/gliders/erddap/tabledap/index.html
- - **THREDDS Data Set Access**: http://data.ioos.us/gliders/thredds/catalog.html
- - **IOOS Gliders and the DAC**: https://gliders.ioos.us/data
- - **IOOS Catalog Map**: https://gliders.ioos.us/map/
+ - [Deployment Registration](https://gliders.ioos.us/providers)
+ - [NetCDF FTP server](ftp://data.ioos.us/)
+ - [Dataset Status](https://gliders.ioos.us/status/)
+ - [DAC RESTful API](https://gliders.ioos.us/providers/api/deployment)
+ - [ERDDAP Data Set Access](https://gliders.ioos.us/erddap/tabledap/index.html)
+ - [THREDDS Data Set Access](https://gliders.ioos.us/thredds/catalog.html)
+ - [IOOS Gliders and the DAC](https://gliders.ioos.us/data)
+ - [IOOS Catalog Map](https://gliders.ioos.us/map/)
 
-## Link Use and Descriptions
- - [Deployment Registration](#deployment-registration)
- - [NetCDF FTP server](#netcdf-ftp-server)
- - [Data Set Status](#data-set-status)
- - [DAC RESTful API](#dac-restful-api)
- - [ERDDAP Data Set Access](#erddap-data-set-access)
- - [THREDDS Data Set Access](#thredds-data-set-access)
- - [IOOS Gliders and the DAC](#ioos-gliders-and-the-dac)
- - [IOOS Catalog Map](#ioos-catalog-map)
 
-### Deployment Registration
-
-### NetCDF-ftp-server
-
-### Data Set Status
-
-### ERDDAP Data Set Access
-
-### THREDDS Data Set Access
-
-### IOOS Gliders and the DAC
-
-### IOOS Catalog Map

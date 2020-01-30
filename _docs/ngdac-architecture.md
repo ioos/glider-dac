@@ -32,10 +32,10 @@ The primary role of the individual glider operators is to write and submit [comp
 
  1. Register as a data provider by providing a point of contact for the institution submitting data files.
  2. Request a WMO ID from the **NGDAC**.
- 3. Initialize a new deployment at the [**NGDAC**](http://gliders.ioos.us) website by completing a simple form describing the deployment.
+ 3. Initialize a new deployment at the [**NGDAC**](https://gliders.ioos.us) website by completing a simple form describing the deployment.
  4. Ftp new NetCDF files to the **NGDAC** as they become available.
 
-A [detailed description](/ioosngdac/NGDAC-NetCDF-File-Submission-Process) of these steps can be also found on the [NGDAC GitHub repo Wiki](https://github.com/kerfoot/ioosngdac/wiki).
+A detailed description of these steps can be also found on the [NGDAC GitHub repo Wiki](/ioosngdac/ngdac-netcdf-file-submission-process.html).
 
 ## NGDAC Responsibilities
 
