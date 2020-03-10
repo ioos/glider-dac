@@ -16,7 +16,7 @@ import asyncio
 
 from netCDF4 import Dataset
 
-from config import *
+from .config import *
 log = None
 
 ###
