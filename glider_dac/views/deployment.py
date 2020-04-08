@@ -283,8 +283,14 @@ def post_deployment_file(username, deployment_id):
 
         out_name = os.path.join(deployment.full_path, safe_filename)
 
-        with open(out_name, 'w') as of:
-            f.save(of)
+        try:
+            with open(out_name, 'wb') as of:
+                f.save(of)
+        # TODO: add logging
+        except OSError:
+            pass
+        except:
+            pass
 
         retval.append((safe_filename, datetime.utcnow()))
 
