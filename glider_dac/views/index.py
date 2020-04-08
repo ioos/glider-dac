@@ -42,7 +42,7 @@ def load_user(userid):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_active():
+    if current_user.is_active:
         flash("Already logged in", 'warning')
         return redirect(request.args.get("next") or url_for("index"))
 

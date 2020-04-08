@@ -25,13 +25,13 @@
           </a>
         </div>
         <ul class="navbar-nav nav">
-          {%- if current_user.is_active() %}
+          {%- if current_user.is_active %}
           <li><a href="{{ url_for('list_user_deployments', username=current_user.username) }}">Your Deployments</a></li>
           {%- endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          {%- if current_user.is_active() %}
-            {%- if current_user.is_admin() %}
+          {%- if current_user.is_active %}
+            {%- if current_user.is_admin %}
             <li><p class="navbar-text"><a href="{{url_for('admin')}}"><span class="label label-success">ADMIN</span></a></p></li>
             {%- endif %}
             <li class="dropdown">

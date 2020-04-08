@@ -31,11 +31,11 @@ def edit_user(username):
     app.logger.info("GET %s", username)
     app.logger.info("Request URL: %s", request.url)
     user = db.User.find_one({'username': username})
-    if user is None or (user is not None and not current_user.is_admin() and current_user != user):
+    if user is None or (user is not None and not current_user.is_admin and current_user != user):
         # No permission
         app.logger.error("Permission is denied")
         app.logger.error("User: %s", user)
-        app.logger.error("Admin?: %s", current_user.is_admin())
+        app.logger.error("Admin?: %s", current_user.is_admin)
         app.logger.error("Not current user?: %s", current_user != user)
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
@@ -56,7 +56,7 @@ def edit_user(username):
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
-    if not current_user.is_admin():
+    if not current_user.is_admin:
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
@@ -85,7 +85,7 @@ def admin():
 def admin_edit_user(user_id):
     user = db.User.find_one({'_id': user_id})
 
-    if not current_user.is_admin():
+    if not current_user.is_admin:
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
@@ -108,7 +108,7 @@ def admin_edit_user(user_id):
 def admin_delete_user(user_id):
     user = db.User.find_one({'_id': user_id})
 
-    if not current_user.is_admin():
+    if not current_user.is_admin:
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))

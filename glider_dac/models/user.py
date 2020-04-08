@@ -64,13 +64,13 @@ class User(Document):
         return self.username is not None
 
     def is_active(self):
-        return self.is_authenticated()
+        return self.is_authenticated
 
     def is_admin(self):
         return self.username in app.config.get("ADMINS")
 
     def is_anonymous(self):
-        return False == self.is_active()
+        return False == self.is_active
 
     def get_id(self):
         return str(self._id)

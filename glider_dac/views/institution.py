@@ -36,9 +36,9 @@ def admin_required(func):
     def wrapper(*args, **kwargs):
         if app.login_manager._login_disabled:
             return func(*args, **kwargs)
-        elif not current_user.is_authenticated():
+        elif not current_user.is_authenticated:
             return app.login_manager.unauthorized()
-        elif not current_user.is_admin():
+        elif not current_user.is_admin:
             flash("Permission denied", 'danger')
             return redirect(url_for('index'))
         return func(*args, **kwargs)
@@ -89,7 +89,7 @@ def new_institution():
 @admin_required
 @error_wrapper
 def delete_institution(institution_id):
-    if not current_user.is_admin():
+    if not current_user.is_admin:
         flash("Permission denied", 'danger')
         return redirect(url_for('index'))
     institution = db.Institution.find_one({"_id": institution_id})
