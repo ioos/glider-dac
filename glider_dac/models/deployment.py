@@ -219,7 +219,7 @@ class Deployment(Document):
                 mtime = os.path.getmtime(os.path.join(dirpath, f))
                 mtime = datetime.utcfromtimestamp(mtime)
 
-                md5.update(mtime.isoformat())
+                md5.update(mtime.isoformat().encode('utf-8'))
         self.checksum = md5.hexdigest()
 
     def sync(self):
