@@ -10,7 +10,7 @@ import os
 import json
 from itertools import chain, combinations
 import argparse
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from more_itertools import consecutive_groups
 from glider_dac import app, db
 from glider_dac.glider_emails import send_deployment_cchecker_email
@@ -21,6 +21,7 @@ parser = argparse.ArgumentParser()
 arg_group = parser.add_mutually_exclusive_group()
 arg_group.add_argument('-t', dest='data_type', choices=['realtime', 'delayed'])
 arg_group.add_argument('-d', dest='deployment_dir', type=str)
+arg_group.add_argument('-u', dest='username', type=str)
 
 parser.add_argument('-c', '--completed', dest='completed',
                        action='store_true')
@@ -59,9 +60,15 @@ def main():
             if not args.force:
                 q_dict["compliance_check_passed"] = {"$ne": True}
 
+        # TODO: combine username/deployment cases?
+        if args.username:
+            q_dict = {"username": args.username}
         # a particular deployment has been specified
-        else:
+        elif args.deployment:
             q_dict = {"deployment_dir": args.deployment_dir}
+        else:
+            q_dict = {}
+
         agg_pipeline = [{"$match": q_dict},
                         {"$group": {"_id": "$user_id",
                            "deployments": {"$push":
