@@ -17,7 +17,7 @@ feedparser==5.1.3
 sh==1.09
 requests>=2.20.0
 passlib>=1.7.1
--e git://github.com/asascience-open/thredds_crawler@c2164e3a805e423ff06e52986a8753038e9c00ce#egg=thredds_crawler-master
+thredds_crawler>=1.5.4
 Flask-KVSession==0.6.2
 pyyaml>=5.2
 rq==1.3.0
