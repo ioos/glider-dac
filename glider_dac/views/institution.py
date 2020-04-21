@@ -9,7 +9,7 @@ from flask import render_template, redirect, flash, url_for, jsonify, request
 from flask_cors import cross_origin
 from flask_login import current_user
 from glider_dac import app, db
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import TextField, SubmitField
 from functools import wraps
 import json
@@ -45,7 +45,7 @@ def admin_required(func):
     return wrapper
 
 
-class NewInstitutionForm(Form):
+class NewInstitutionForm(FlaskForm):
     name = TextField('Institution Name')
     submit = SubmitField('New Institution')
 

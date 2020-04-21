@@ -12,7 +12,7 @@ from glider_dac import app, db, queue
 from glider_dac.glider_emails import send_registration_email
 from glider_dac import tasks
 
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import TextField, SubmitField, BooleanField, validators
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
@@ -43,7 +43,7 @@ def deployment_key_fn(dep):
     default_dt = datetime(1970, 1, 1)
     return getattr(dep, 'updated', default_dt), dep.name
 
-class DeploymentForm(Form):
+class DeploymentForm(FlaskForm):
     operator = TextField('Operator')
     completed = BooleanField('Completed')
     archive_safe = BooleanField("Submit to NCEI on Completion")
@@ -51,7 +51,7 @@ class DeploymentForm(Form):
     submit = SubmitField('Submit')
 
 
-class NewDeploymentForm(Form):
+class NewDeploymentForm(FlaskForm):
     glider_name = TextField('Glider Name', [is_valid_glider_name])
     deployment_date = TextField('Deployment Date', [is_date_parseable])
     attribution = TextField('Attribution')
