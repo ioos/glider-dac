@@ -40,7 +40,7 @@ The following is a list of links that will take you directly to the specified re
 
 ## Submitting Data
  - [Deployment Registration](https://gliders.ioos.us/providers)
- - [NetCDF FTP server](ftp://data.ioos.us/)
+ - [NetCDF FTP server](ftp://gliders.ioos.us/)
 
 
 ## Data Access Links

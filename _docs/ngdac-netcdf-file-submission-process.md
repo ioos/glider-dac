@@ -83,21 +83,21 @@ Deployments are registered and managed via a [web page](https://gliders.ioos.us/
 
     **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
 
-5. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NODC](http://www.nodc.noaa.gov).
+5. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov).
 
 ## Submission of NetCDF Files
 
 The data provider user account provides ftp push access to the directories created under the user's home directory.  The ftp url is:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   ftp://data.ioos.us`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   ftp://gliders.ioos.us`
 
 Here's an example of the ftp login process and the resulting directory structure:
 
 ```
-    $ ftp -i data.ioos.us
-    Connected to data.ioos.us (54.204.42.247).
+    $ ftp -i gliders.ioos.us
+    Connected to gliders.ioos.us (54.204.42.247).
     220 Welcome to the IOOS Glider DAC FTP Server
-    Name (data.ioos.us:kerfoot): rutgers
+    Name (gliders.ioos.us:kerfoot): rutgers
     331 Please specify the password.
     Password:
     230 Login successful.
