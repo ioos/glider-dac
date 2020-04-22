@@ -97,7 +97,7 @@ Ideally, the <strong>glider_yyyymmddTHHMMSS_rt.nc</strong> files will be provide
 The following is the list of required global attributes that must be included in each NetCDF file submitted to the **NGDAC**. This list was created from a variety of sources with the goal of providing a complete metadata record of the data set. More information on these sources can be found at the following locations:
  - **CF1.6**: Section 2.6 of the current (v1.6) Climate and Forecast [conventions](http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.6/cf-conventions.html#description-of-file-contents)
  - **ACDD**: Attribute Conventions for Dataset Discovery [Home page](http://wiki.esipfed.org/index.php?title=Category:Attribute_Conventions_Dataset_Discovery) and [Current Standard](http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery_%28ACDD%29)
- - **NODC**: Guidance from NOAA's National Oceanographic Data Center on netCDF templates to promote good stewardship and archiving. [NODC Templates](http://www.nodc.noaa.gov/data/formats/netcdf/) and [global attribute suggestions](http://www.nodc.noaa.gov/data/formats/netcdf/#guidancetable).
+ - **NCEI**: Guidance from NOAA's National Centers for Environmental Information on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.nodc.noaa.gov/data/formats/netcdf/) and [global attribute suggestions](https://www.nodc.noaa.gov/data/formats/netcdf/#guidancetable).
  - **IMOS/ANFOG**: IMOS Data Management manual version [3.1](http://imos.org.au/fileadmin/user_upload/shared/ANFOG/ANFOG_data_management3_1.pdf)
  - **IOOS**: Internal discussion within the IOOS Glider Data Team.
 
