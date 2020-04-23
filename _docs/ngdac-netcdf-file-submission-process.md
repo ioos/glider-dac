@@ -67,10 +67,13 @@ Once the request is received, it will be forwarded to the [National Data Buoy Ce
 
 ### Deployment Creation
 
-Deployments are registered and managed via a [web page](https://gliders.ioos.us/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
+Deployments are registered and managed via the [GliderDAC providers page](https://gliders.ioos.us/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
 
-1. Log in using your data provider credentials.
+1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
 2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
+
+![GliderDAC - Deployments page](/ioosngdac/DAC_providers_your_deployments.png)
+
 3. Specify a unique deployment name using the following convention:
     **GLIDER-YYYYmmddTHHMM**
 
@@ -83,7 +86,7 @@ Deployments are registered and managed via a [web page](https://gliders.ioos.us/
 
     **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
 
-5. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov).
+5. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process.html#dataset-archiving) for more details on the NCEI archival process.
 
 ## Submission of NetCDF Files
 
@@ -154,4 +157,23 @@ We've built a [dataset status](https://gliders.ioos.us/status/) page to provide 
 
 ## Dataset Archiving
 
-Once a glider deployment is **completed** and marked for archival, the dataset is added to the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) national ocean archive.  **It is the responsibility of the individual data provider to mark the deployment as completed before NCEI begins**.  A deployment is marked as complete by checking the **Completed** checkbox on the individual deployment creation page.  Once this box has been checked, an [md5 checksum](http://en.wikipedia.org/wiki/MD5) is generated on the trajectory NetCDF file.  After marking a deployment as complete, a metadata checker is run to check for compliance with NCEI's metadata standards.  The report will notify providers via email of any potential issues in the deployment metadata.  The checkbox entitled "Submit to NCEI on Completion" can be checked when the deployment is desired and the dataset is added to the <NCEI> archive.  Marking a dataset for archival by NCEI does not guarantee that the dataset will be archived by NCEI, and any issues with the dataset in the aforementioned report should attempt to be fixed.
+Once a glider deployment is **completed** and marked for archival, the dataset is added to the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) national ocean archive.  **It is the responsibility of the data provider to mark the deployment as completed before the NCEI archival process begins**.
+
+Here's how to mark a deployment as complete:
+
+1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
+To get to the deployments page
+![GliderDAC - Deployments page](/ioosngdac/DAC_providers_your_deployments.png)
+
+2. Select the deployment of interest from the table of deployments by clicking on the deployment name.
+
+3. Under the **Edit** section on the right side of the deployment page, you'll see checkboxes for **Completed** and **Submit to NCEI on Completion**. Select both checkboxes and click the **Submit** button.
+![GliderDAC - Deployments page](/ioosngdac/DAC_complete_deployment.png)
+
+Once this box has been checked, an [md5 checksum](http://en.wikipedia.org/wiki/MD5) is generated on the aggregated trajectory NetCDF file.  Then, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with NCEI's authority tables for project, institution, platform, and instrument. The authority tables are available [here](https://gliders.ioos.us/ncei_authority_tables/). The results of these checks will be emailed to you on completion. If any of these checks have failed, NCEI will not archive the deployment.
+
+There are 2 options available if the deployment fails a check.
+
+1. The dataset needs to be fixed if there is indeed an error (this can be as simple as a typo).
+2. The NCEI tables need to be updated to include new project, institution, instruments, or platforms. If you feel this is the case please email glider.dac.support@noaa.gov to initiate that process.
+
