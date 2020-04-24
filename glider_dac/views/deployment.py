@@ -64,7 +64,8 @@ def list_user_deployments(username):
     deployments = list(db.Deployment.find({'user_id': user._id}))
 
     kwargs = {}
-    if current_user and current_user.is_active and (current_user.is_admin or current_user == user):
+    if current_user and current_user.is_active and (current_user.is_admin or
+                                                    current_user == user):
         # Permission to edit
         form = NewDeploymentForm()
         kwargs['form'] = form
@@ -115,7 +116,8 @@ def show_deployment(username, deployment_id):
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user and current_user.is_active and (current_user.is_admin or current_user == user):
+    if current_user and current_user.is_active and (current_user.is_admin or
+                                                    current_user == user):
         kwargs['editable'] = True
         if current_user.is_admin or current_user == user:
             kwargs['admin'] = True
@@ -134,7 +136,8 @@ def show_deployment_no_username(deployment_id):
 @login_required
 def new_deployment(username):
     user = db.User.find_one({'username': username})
-    if user is None or (user is not None and not current_user.is_admin and current_user != user):
+    if user is None or (user is not None and not current_user.is_admin and
+                        current_user != user):
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
@@ -196,7 +199,8 @@ def new_delayed_mode_deployment(username, deployment_id):
     :param ObjectId deployment_id: Id of the existing realtime deployment
     '''
     user = db.User.find_one({'username': username})
-    if user is None or (user is not None and not current_user.is_admin and current_user != user):
+    if user is None or (user is not None and not current_user.is_admin and
+                        current_user != user):
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for("index"))
@@ -241,7 +245,8 @@ def new_delayed_mode_deployment(username, deployment_id):
 def edit_deployment(username, deployment_id):
 
     user = db.User.find_one({'username': username})
-    if user is None or (user is not None and not current_user.is_admin and current_user != user):
+    if user is None or (user is not None and not current_user.is_admin and
+                        current_user != user):
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for('list_user_deployments', username=username))
@@ -271,7 +276,8 @@ def post_deployment_file(username, deployment_id):
     deployment = db.Deployment.find_one({'_id': deployment_id})
     user = db.User.find_one({'username': username})
 
-    if not (deployment and user and deployment.user_id == user._id and (current_user.is_admin or current_user == user)):
+    if not (deployment and user and deployment.user_id == user._id and
+            (current_user.is_admin or current_user == user)):
         raise Exception("Unauthorized")  # @TODO better response via ajax?
 
     retval = []
@@ -312,11 +318,14 @@ def delete_deployment_files(username, deployment_id):
     if user is None:
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
-    if not (current_user and current_user.is_active and (current_user.is_admin or current_user == user)):
+    if not (current_user and current_user.is_active and (current_user.is_admin
+                                                         or current_user ==
+                                                         user)):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
 
-    if not (deployment and user and (current_user.is_admin or user._id == deployment.user_id)):
+    if not (deployment and user and (current_user.is_admin or user._id ==
+                                     deployment.user_id)):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
 
@@ -339,7 +348,9 @@ def delete_deployment(username, deployment_id):
     if user is None:
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
-    if not (current_user and current_user.is_active and (current_user.is_admin or current_user == user)):
+    if not (current_user and current_user.is_active and (current_user.is_admin
+                                                         or current_user ==
+                                                         user)):
         flash("Permission denied", 'danger')
         return redirect(url_for("show_deployment", username=username, deployment_id=deployment_id))
 

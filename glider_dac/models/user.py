@@ -66,11 +66,15 @@ class User(Document):
     def is_active(self):
         return self.is_authenticated
 
-    def is_admin(self):
-        return self.username in app.config.get("ADMINS")
-
     def is_anonymous(self):
         return False == self.is_active
+
+    # This method is not provided by flask-login.  Make a property to bring it
+    # in line with the rest of the expected properties from flask-login, namely:
+    # is_active, is_authenticated, and is_anonymous.
+    @property
+    def is_admin(self):
+        return self.username in app.config.get("ADMINS")
 
     def get_id(self):
         return str(self._id)
