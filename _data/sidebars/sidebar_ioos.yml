@@ -60,13 +60,12 @@ entries:
       - title: Global Attributes
         url: /ngdac-netcdf-file-format-version-2.html#global-attributes
         output: web
-        subfolderitems:
-        - title: Caveats
-          url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-          output: web
+        # subfolderitems:
+        # - title: Caveats
+        #   url: /ngdac-netcdf-file-format-version-2.html#global-attributes
+        #   output: web
       - title: Variables
         output: web
-        subfolderitems:
 
   - title: Useful Links
     url: /useful-links.html
@@ -92,6 +91,13 @@ entries:
       output: web
     - title: Discussion and Examples
       url: /useful-links.html#discussion-and-examples
+      output: web
+
+  - title: FAQs
+    output: web
+    folderitems:
+    - title: Frequently Asked Questions
+      url: /faqs.html
       output: web
 
   - title: Glider Background and Sampling Terminology

@@ -38,8 +38,10 @@ The following is a list of links for data providers and web applications develop
 
 ## Submitting Data
  - [**Deployment Registration**](https://gliders.ioos.us/providers)
- This link will redirect you to the GliderDAC providers page. From there you can login and create deployments. See the wiki section on [New Deplyment Registration](/ngdac-netcdf-file-submission-process.html#new-deployment-registration) for more details.
+
+This link will redirect you to the GliderDAC providers page. From there you can login and create deployments. See the wiki section on [New Deplyment Registration](/ioosngdac/ngdac-netcdf-file-submission-process.html#new-deployment-registration) for more details.
  - [**FTP server**](ftp://gliders.ioos.us/)
+
 Use this FTP server to push new data to the DAC.
 
 ## Data Access Links
@@ -54,6 +56,7 @@ Status page for the GliderDAC
 
 ## API
  - [**DAC RESTful API**](https://gliders.ioos.us/providers/api/deployment)
+
 This endpoint provides a list of each of the glider deployments in the DAC.
 
 ## IOOS Resources
