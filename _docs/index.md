@@ -39,4 +39,4 @@ Transmission of the data sets via the [Global Telecommunication System](http://w
 
 Please read the documentation **thoroughly** before beginning the data submission process.  Additional questions and information requests should be directed to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   glider.dac.support@noaa.gov`
+[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)

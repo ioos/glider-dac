@@ -23,7 +23,7 @@ summary: This page provides a detailed description of the end-to-end process of 
 
 Following a **thorough** reading, all additional questions/concerns/suggestions should be directed to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    glider.dac.support@noaa.gov`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 A consolidated list of the links referenced below can be found [here](/ioosngdac/links-for-data-providers#links).
 
@@ -39,7 +39,7 @@ You must register as a data provider and receive a user account in order to cont
 
 and all user account requests should be emailed to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`   glider.dac.support@noaa.gov`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 **New user accounts are typically created the same day they are received**.
 
@@ -157,9 +157,9 @@ We've built a [dataset status](https://gliders.ioos.us/status/) page to provide 
 
 ## Dataset Archiving
 
-Once a glider deployment is **completed** and marked for archival, the dataset is added to the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) national ocean archive.  **It is the responsibility of the data provider to mark the deployment as completed before the NCEI archival process begins**.
+Once a glider deployment is **completed** the data provider has the option to archive the dataset with the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) national ocean archive.  **It is the responsibility of the data provider to mark the deployment as completed before the NCEI archival process begins**.
 
-Here's how to mark a deployment as complete:
+Here's how to mark a deployment as complete and submit the dataset to NCEI:
 
 1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
 To get to the deployments page
@@ -170,10 +170,16 @@ To get to the deployments page
 3. Under the **Edit** section on the right side of the deployment page, you'll see checkboxes for **Completed** and **Submit to NCEI on Completion**. Select both checkboxes and click the **Submit** button.
 ![GliderDAC - Deployments page](/ioosngdac/DAC_complete_deployment.png)
 
-Once this box has been checked, an [md5 checksum](http://en.wikipedia.org/wiki/MD5) is generated on the aggregated trajectory NetCDF file.  Then, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with NCEI's authority tables for project, institution, platform, and instrument. The authority tables are available [here](https://gliders.ioos.us/ncei_authority_tables/). The results of these checks will be emailed to you on completion. If any of these checks have failed, NCEI will not archive the deployment.
+Once both boxes have been checked, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with NCEI's authority tables for project, institution, platform, and instrument. The results of these checks will be emailed to you on completion. If any of these checks have failed, NCEI will not archive the deployment.
 
-There are 2 options available if the deployment fails a check.
+There are typically 2 options available if the deployment fails a check.
 
-1. The dataset needs to be fixed if there is indeed an error (this can be as simple as a typo).
-2. The NCEI tables need to be updated to include new project, institution, instruments, or platforms. If you feel this is the case please email glider.dac.support@noaa.gov to initiate that process.
+1. The dataset needs to be fixed if there is indeed an error (this can be as simple as a typo). Check the tables to see if there is an existing entry that can be used instead.
+**Note** ERDDAP uses the metadata from the latest file in a deployment to create an aggregation. So data providers only need to fix metadata on the latest file for the changes to be reflected in ERDDAP.
 
+2. The NCEI tables need to be updated to include your new project, institution, instruments, or platforms. If you feel this is the case please email [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=NCEI%20Authority%20Tables) to initiate that process.
+
+
+## NCEI Authority Tables
+The [National Centers for Environmental Information](https://www.ncei.noaa.gov/) authority tables are available here:
+[https://gliders.ioos.us/ncei_authority_tables/](https://gliders.ioos.us/ncei_authority_tables/).
