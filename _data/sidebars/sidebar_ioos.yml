@@ -46,6 +46,9 @@ entries:
     - title: Dataset Archiving
       url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
       output: web
+    - title: NCEI Authority Tables
+      url: /ngdac-netcdf-file-submission-process.html#ncei-authority-tables
+      output: web
 
   - title: NetCDF File Format Description
     output: web

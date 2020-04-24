@@ -31,7 +31,7 @@ The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b>:
  + Provide glider operators with a simple process for registering and submitting glider data sets to a centralized storage location.
  + Provide public access to glider data sets via existing web services and standards, in a variety of well-known formats.
  + Facilitate the distribution of glider data sets on the [Global Telecommunication System](http://www.wmo.int/pages/prog/www/TEM/GTS/index_en.html).
- + Work with the [National Ocean Data Center](http://www.nodc.noaa.gov/index.html) to create a permanent data archive.
+ + Work with the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) to create a permanent data archive.
 
 The **NGDAC** accepts a [simple NetCDF file](/ioosngdac/ngdac-netcdf-file-format-version-2.html) containing water column measurements collected by a glider during a single profile.  Groups of these NetCDF files, gathered during a deployment (also known as a **trajectory**), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**, the files are validated for compliance, aggregated into a single dataset representing the **deployment/trajectory** and distributed via [ERDDAP](http://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](http://www.unidata.ucar.edu/software/thredds/current/tds/TDS.html) end-points.  The data sets served by the **NGDAC** provide access to the **trajectory/deployment** data both as time-series and on a profile-by-profile basis.
 
