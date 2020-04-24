@@ -22,507 +22,97 @@ entries:
 
   - title: Wiki Homepage
     output: web
-
+    url: /index.html
     folderitems:
-
-# top-level menu item #1
     - title: Introduction
       url: /index.html
       output: web
 
-  - title: Glider Background and Sampling Terminology
+  - title: NetCDF File Submission Process
     output: web
-
     folderitems:
-
-    - title: Glider Types
-      url: /glider-background-and-sampling-terminology.html
-      output: web
-
-    - title: Sampling Pattern Terminology
-      url: /glider-background-and-sampling-terminology.html#sampling-pattern-terminology
-      output: web
-
-  - title: NGDAC Architecture
-    output: web
-
-    folderitems:
-
-    - title: Data Assembly Center Architecture
-      url: /ngdac-architecture.html
-      output: web
-
-    - title: Data Provider Responsibilities
-      url: /ngdac-architecture.html#data-provider-responsibilities
-      output: web
-
-    - title: NGDAC Responsibilities
-      url: /ngdac-architecture.html#ngdac-responsibilities
-      output: web
-
-  - title: NGDAC NetCDF File Format Description
-    output: web
-
-    folderitems:
-
-    - title: Introduction
-      url: /ngdac-netcdf-file-format-version-2.html
-      output: web
-
-    - title: File Naming Conventions
-      url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
-      output: web
-
-#    - title: Global Attributes
-#      url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-#      output: web
-
-      subfolders:
-
-#      - title: Caveats
-#        url: /ngdac-netcdf-file-format-version-2.html#caveats
-#        output: web
-
-#        subfolderitems:
-
-#        - title: Caveats
-#          url: /ngdac-netcdf-file-format-version-2.html#caveats
-#          output: web
-
-      - title: Global Attributes
-        url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-        output: web
-
-        subfolderitems:
-
-        - title: Caveats
-          url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-          output: web
-
-        - title: Conventions
-          url: /ngdac-netcdf-file-format-version-2.html#conventions
-          output: web
-
-        - title: Metadata_Conventions
-          url: /ngdac-netcdf-file-format-version-2.html#metadata_conventions
-          output: web
-
-        - title: acknowledgement
-          url: /ngdac-netcdf-file-format-version-2.html#acknowledgement
-          output: web
-
-        - title: comment
-          url: /ngdac-netcdf-file-format-version-2.html#comment
-          output: web
-
-        - title: contributor_name
-          url: /ngdac-netcdf-file-format-version-2.html#contributor_name
-          output: web
-
-        - title: contributor_role
-          url: /ngdac-netcdf-file-format-version-2.html#contributor_role
-          output: web
-
-        - title: creator_email
-          url: /ngdac-netcdf-file-format-version-2.html#creator_email
-          output: web
-
-        - title: creator_name
-          url: /ngdac-netcdf-file-format-version-2.html#creator_name
-          output: web
-
-        - title: creator_url
-          url: /ngdac-netcdf-file-format-version-2.html#creator_url
-          output: web
-
-        - title: date_created
-          url: /ngdac-netcdf-file-format-version-2.html#date_created
-          output: web
-
-        - title: date_issued
-          url: /ngdac-netcdf-file-format-version-2.html#date_issued
-          output: web
-
-        - title: date_modified
-          url: /ngdac-netcdf-file-format-version-2.html#date_modified
-          output: web
-
-        - title: format_version
-          url: /ngdac-netcdf-file-format-version-2.html#format_version
-          output: web
-
-        - title: history
-          url: /ngdac-netcdf-file-format-version-2.html#history
-          output: web
-
-        - title: id
-          url: /ngdac-netcdf-file-format-version-2.html#id
-          output: web
-
-        - title: institution
-          url: /ngdac-netcdf-file-format-version-2.html#institution
-          output: web
-
-        - title: keywords
-          url: /ngdac-netcdf-file-format-version-2.html#keywords
-          output: web
-
-        - title: keywords_vocabulary
-          url: /ngdac-netcdf-file-format-version-2.html#keywords_vocabulary
-          output: web
-
-        - title: license
-          url: /ngdac-netcdf-file-format-version-2.html#license
-          output: web
-
-        - title: metadata_link
-          url: /ngdac-netcdf-file-format-version-2.html#metadata_link
-          output: web
-
-        - title: naming_authority
-          url: /ngdac-netcdf-file-format-version-2.html#naming_authority
-          output: web
-
-        - title: platform_type
-          url: /ngdac-netcdf-file-format-version-2.html#platform_type
-          output: web
-
-        - title: processing_level
-          url: /ngdac-netcdf-file-format-version-2.html#processing_level
-          output: web
-
-        - title: project
-          url: /ngdac-netcdf-file-format-version-2.html#project
-          output: web
-
-        - title: publisher_email
-          url: /ngdac-netcdf-file-format-version-2.html#publisher_email
-          output: web
-
-        - title: publisher_name
-          url: /ngdac-netcdf-file-format-version-2.html#publisher_name
-          output: web
-
-        - title: publisher_url
-          url: /ngdac-netcdf-file-format-version-2.html#publisher_url
-          output: web
-
-        - title: references
-          url: /ngdac-netcdf-file-format-version-2.html#references
-          output: web
-
-        - title: sea_name
-          url: /ngdac-netcdf-file-format-version-2.html#sea_name
-          output: web
-
-        - title: source
-          url: /ngdac-netcdf-file-format-version-2.html#source
-          output: web
-
-        - title: standard_name_vocabulary
-          url: /ngdac-netcdf-file-format-version-2.html#standard_name_vocabulary
-          output: web
-
-        - title: summary
-          url: /ngdac-netcdf-file-format-version-2.html#summary
-          output: web
-
-        - title: title
-          url: /ngdac-netcdf-file-format-version-2.html#title
-          output: web
-
-        - title: wmo_id
-          url: /ngdac-netcdf-file-format-version-2.html#wmo_id
-          output: web
-
-#    - title: Variables
-#      url: /ngdac-netcdf-file-format-version-2.html#variables
-#      output: web
-
-#      subfolders:
-
-      - title: Variables
-        output: web
-
-        subfolderitems:
-
-        - title: trajectory
-          url: /ngdac-netcdf-file-format-version-2.html#trajectory
-          output: web
-
-#      - title: Time-Series Variables
-#        output: web
-
-#        subfolderitems:
-
-        - title: time
-          url: /ngdac-netcdf-file-format-version-2.html#time
-          output: web
-
-        - title: time_qc
-          url: /ngdac-netcdf-file-format-version-2.html#time_qc
-          output: web
-
-        - title: lat
-          url: /ngdac-netcdf-file-format-version-2.html#lat
-          output: web
-
-        - title: lat_qc
-          url: /ngdac-netcdf-file-format-version-2.html#lat_qc
-          output: web
-
-        - title: lon
-          url: /ngdac-netcdf-file-format-version-2.html#lon
-          output: web
-
-        - title: lon_qc
-          url: /ngdac-netcdf-file-format-version-2.html#lon_qc
-          output: web
-
-        - title: pressure
-          url: /ngdac-netcdf-file-format-version-2.html#pressure
-          output: web
-
-        - title: pressure_qc
-          url: /ngdac-netcdf-file-format-version-2.html#pressure_qc
-          output: web
-
-        - title: depth
-          url: /ngdac-netcdf-file-format-version-2.html#depth
-          output: web
-
-        - title: depth_qc
-          url: /ngdac-netcdf-file-format-version-2.html#depth_qc
-          output: web
-
-        - title: temperature
-          url: /ngdac-netcdf-file-format-version-2.html#temperature
-          output: web
-
-        - title: temperature_qc
-          url: /ngdac-netcdf-file-format-version-2.html#temperature_qc
-          output: web
-
-        - title: conductivity
-          url: /ngdac-netcdf-file-format-version-2.html#conductivity
-          output: web
-
-        - title: conductivity_qc
-          url: /ngdac-netcdf-file-format-version-2.html#conductivity_qc
-          output: web
-
-        - title: density
-          url: /ngdac-netcdf-file-format-version-2.html#density
-          output: web
-
-        - title: density_qc
-          url: /ngdac-netcdf-file-format-version-2.html#density_qc
-          output: web
-
-#      - title: Dimensionless Profile Variables
-#        output: web
-
-#        subfolderitems:
-
-        - title: profile_id
-          url: /ngdac-netcdf-file-format-version-2.html#profile_id
-          output: web
-
-        - title: profile_time
-          url: /ngdac-netcdf-file-format-version-2.html#profile_time
-          output: web
-
-        - title: profile_time_qc
-          url: /ngdac-netcdf-file-format-version-2.html#profile_time_qc
-          output: web
-
-        - title: profile_lat
-          url: /ngdac-netcdf-file-format-version-2.html#profile_lat
-          output: web
-
-        - title: profile_lat_qc
-          url: /ngdac-netcdf-file-format-version-2.html#profile_lat_qc
-          output: web
-
-        - title: profile_lon
-          url: /ngdac-netcdf-file-format-version-2.html#profile_lon
-          output: web
-
-        - title: profile_lon_qc
-          url: /ngdac-netcdf-file-format-version-2.html#profile_lon_qc
-          output: web
-
-        - title: time_uv
-          url: /ngdac-netcdf-file-format-version-2.html#time_uv
-          output: web
-
-        - title: time_uv_qc
-          url: /ngdac-netcdf-file-format-version-2.html#time_uv_qc
-          output: web
-
-        - title: lat_uv
-          url: /ngdac-netcdf-file-format-version-2.html#lat_uv
-          output: web
-
-        - title: lat_uv_qc
-          url: /ngdac-netcdf-file-format-version-2.html#lat_uv_qc
-          output: web
-
-        - title: lon_uv
-          url: /ngdac-netcdf-file-format-version-2.html#lon_uv
-          output: web
-
-        - title: lon_uv_qc
-          url: /ngdac-netcdf-file-format-version-2.html#lon_uv_qc
-          output: web
-
-        - title: u
-          url: /ngdac-netcdf-file-format-version-2.html#u
-          output: web
-
-        - title: u_qc
-          url: /ngdac-netcdf-file-format-version-2.html#u_qc
-          output: web
-
-        - title: v
-          url: /ngdac-netcdf-file-format-version-2.html#v
-          output: web
-
-        - title: v_qc
-          url: /ngdac-netcdf-file-format-version-2.html#v_qc
-          output: web
-
-#      - title: Dimensionless Container Variables
-#        output: web
-
-#        subfolderitems:
-
-        - title: platform
-          url: /ngdac-netcdf-file-format-version-2.html#platform
-          output: web
-
-        - title: instrument_ctd
-          url: /ngdac-netcdf-file-format-version-2.html#instrument_ctd
-          output: web
-
-  - title: Links for Data Providers
-    output: web
-
-    folderitems:
-
-    - title: Utilities and Resources for Data Providers
-      url: /links-for-data-providers.html
-      output: web
-
-    - title: Submitting Data
-      url: /links-for-data-providers.html#submitting-data
-      output: web
-
-    - title: Data Access Links
-      url: /links-for-data-providers.html#data-access-links
-      output: web
-
-    - title: Dataset Status
-      url: /links-for-data-providers.html#dataset-status
-      output: web
-
-    - title: APIs
-      url: /links-for-data-providers.html#apis
-      output: web
-
-    - title: IOOS Resources
-      url: /links-for-data-providers.html#ioos-resources
-      output: web
-
-    - title: Discussion and Examples
-      url: /links-for-data-providers.html#discussion-and-examples
-      output: web
-
-  - title: Links for Data Consumers
-    output: web
-
-    folderitems:
-
-    - title: Data Access Links
-      url: /links-for-data-consumers.html#data-access-links
-      output: web
-
-    - title: Dataset Status
-      url: /links-for-data-consumers.html#dataset-status
-      output: web
-
-    - title: APIs
-      url: /links-for-data-consumers.html#apis
-      output: web
-
-    - title: IOOS Resources
-      url: /links-for-data-consumers.html#ioos-resources
-      output: web
-
-    - title: Discussion and Examples
-      url: /links-for-data-consumers.html#discussion-and-examples
-      output: web
-
-  - title: Data Workflow
-    url: /data-workflow.html
-    output: web
-
-    folderitems:
-
-    - title: NDBC Glider Data Monitoring and GTS
-      url: /data-workflow.html
-      output: web
-
-#      subfolders:
-
-#      - title: NDBC Glider Data Monitoring and GTS
-#        url: /data-workflow.html
-#        output: web
-
-#        subfolderitems:
-
-#        - title: NDBC Glider Page
-#          url: /data-workflow.html#data-provider-responsibilities
-#          output: web
-
-#        - title: The Observing System Monitoring Center (OSMC)
-#          url: /data-workflow.html#ngdac-responsibilities
-#          output: web
-
-  - title: NGDAC NetCDF File Submission Process
-    output: web
-
-    folderitems:
-
     - title: Data Provider Registration
       url: /ngdac-netcdf-file-submission-process.html
       output: web
-
     - title: New Deployment Registration
       url: /ngdac-netcdf-file-submission-process.html#new-deployment-registration
       output: web
-
     - title: Submission of NetCDF Files
       url: /ngdac-netcdf-file-submission-process.html#submission-of-netcdf-files
       output: web
-
     - title: Dataset Status
       url: /ngdac-netcdf-file-submission-process.html#dataset-status
       output: web
-
     - title: Dataset Archiving
       url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
       output: web
 
-  - title: Data Backup and Recovery
+  - title: NetCDF File Format Description
     output: web
-
     folderitems:
+    - title: Introduction
+      url: /ngdac-netcdf-file-format-version-2.html
+      output: web
+    - title: File Naming Conventions
+      url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
+      output: web
+      subfolders:
+      - title: Global Attributes
+        url: /ngdac-netcdf-file-format-version-2.html#global-attributes
+        output: web
+        subfolderitems:
+        - title: Caveats
+          url: /ngdac-netcdf-file-format-version-2.html#global-attributes
+          output: web
+      - title: Variables
+        output: web
+        subfolderitems:
 
-    - title: Data Backup
-      url: /data-backup-recovery.html
+  - title: Useful Links
+    url: /useful-links.html
+    output: web
+    folderitems:
+    - title: Data Provider Utilities
+      url: /useful-links.html
+      output: web
+    - title: Submitting Data
+      url: /useful-links.html#submitting-data
+      output: web
+    - title: Data Access Links
+      url: /useful-links.html#data-access-links
+      output: web
+    - title: Dataset Status
+      url: /useful-links.html#dataset-status
+      output: web
+    - title: APIs
+      url: /useful-links.html#apis
+      output: web
+    - title: IOOS Resources
+      url: /useful-links.html#ioos-resources
+      output: web
+    - title: Discussion and Examples
+      url: /useful-links.html#discussion-and-examples
       output: web
 
-    - title: Data Recovery
-      url: /data-backup-recovery.html#data-recovery
+  - title: Glider Background and Sampling Terminology
+    output: web
+    folderitems:
+    - title: Glider Types
+      url: /glider-background-and-sampling-terminology.html
+      output: web
+    - title: Sampling Pattern Terminology
+      url: /glider-background-and-sampling-terminology.html#sampling-pattern-terminology
+      output: web
+
+  - title: Architecture
+    output: web
+    folderitems:
+    - title: Data Assembly Center Architecture
+      url: /ngdac-architecture.html
+      output: web
+    - title: Data Provider Responsibilities
+      url: /ngdac-architecture.html#data-provider-responsibilities
+      output: web
+    - title: NGDAC Responsibilities
+      url: /ngdac-architecture.html#ngdac-responsibilities
       output: web
