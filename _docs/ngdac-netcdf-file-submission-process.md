@@ -25,7 +25,7 @@ Following a **thorough** reading, all additional questions/concerns/suggestions 
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
-A consolidated list of the links referenced below can be found [here](/ioosngdac/links-for-data-providers#links).
+A consolidated list of the links referenced below can be found [here](/ioosngdac/useful-links).
 
 
 ## Data Provider Registration

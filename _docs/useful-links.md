@@ -1,6 +1,6 @@
 ---
-title: Links for Data Providers
-wikiPageName: Links-for-Data-Providers
+title: Useful Links
+wikiPageName: Useful Links
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
 toc: false

@@ -17,7 +17,7 @@ This wiki is a collection of documents and resources describing the NetCDF file 
 + [Introduction](#introduction)
 + [Glider Background and Sampling Terminology](/ioosngdac/glider-background-and-sampling-terminology.html)
 + [NetCDF file format description](ngdac-netcdf-file-format-version-2.html)
-+ [Links for Data Providers](/ioosngdac/links-for-data-providers)
++ [Links for Data Providers](/ioosngdac/useful-links.html)
 + [NGDAC Architecture](/ioosngdac/ngdac-architecture.html)
 + [NGDAC NetCDF File Submission Process](/ioosngdac/ngdac-netcdf-file-submission-process.html)
 + [Backup and Recovery](/ioosngdac/data-backup-recovery)
