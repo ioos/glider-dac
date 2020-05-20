@@ -131,6 +131,8 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
             all_messages = []
             failing_deployments = []
             for dep in res['deployments']:
+                root_logger.info("Running compliance check on glider "
+                                 "deployment: {}".format(dep))
                 try:
                     dep_passed, dep_messages = process_deployment(dep)
                     all_messages.append(dep_messages)
@@ -160,8 +162,9 @@ def process_deployment(dep):
                                       checker_names=['gliderdac'], verbose=True,
                                       criteria='normal', output_format='text',
                                       output_filename=outfile)
-    except:
-        pass
+    except Exception as e:
+        root_logger.exception(e)
+        errs = "Misceallaneous error - possibly can't read ERDDAP"
     else:
         with open(outfile, 'r') as f:
             errs = f.read()
