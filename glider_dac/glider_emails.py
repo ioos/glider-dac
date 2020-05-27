@@ -51,7 +51,7 @@ def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
         return
     # sender comes from MAIL_DEFAULT_SENDER in env
 
-    app.logger.info("Sending email about deployment complaince_checker to {}".format(user['username']))
+    app.logger.info("Sending email about deployment compliance checker to {}".format(user['username']))
     subject        = "Glider DAC Compliance Check on Deployments for user %s" % user['username']
     recipients     = [user['email']] #app.config.get('MAIL_DEFAULT_TO')]
     msg            = Message(subject, recipients=recipients)
