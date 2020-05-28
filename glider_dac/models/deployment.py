@@ -64,7 +64,13 @@ class Deployment(Document):
         self.updated = datetime.utcnow()
 
         self.sync()
-        Document.save(self)
+        update_vals = dict(self)
+        doc_id = update_vals.pop("_id")
+
+        # need to use update/upsert via Pymongo in case of queued job for
+        # compliance so that result does not get clobbered.
+        # use $set instead of replacing document
+        db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
 
     def delete(self):
         if os.path.exists(self.full_path):

@@ -169,17 +169,16 @@ def process_deployment(dep):
         with open(outfile, 'r') as f:
             errs = f.read()
 
-    dep_obj = db.Deployment.find_one({'_id': dep['_id']})
     # janky way of testing if passing -- consider using JSON format instead
     compliance_passed = "All tests passed!" in errs
-    dep_obj["compliance_check_passed"] = compliance_passed
 
+    update_fields = {"compliance_check_passed": compliance_passed}
     if compliance_passed:
         final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
     else:
         final_message = ("Deployment {} has issues:\n".format(dep['name']) +
                          errs)
-        dep_obj["compliance_check_report"] = errs
-    dep_obj["compliance_check_passed"] = compliance_passed
-    dep_obj.save()
+        update_fields["compliance_check_report"] = errs
+    # Set fields.  Don't use upsert as deployment ought to exist prior to write.
+    db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
     return compliance_passed, final_message
