@@ -160,7 +160,7 @@ def process_deployment(dep):
     try:
         failures, errors = ComplianceChecker.run_checker(ds_loc=url_path,
                                       checker_names=['gliderdac'], verbose=True,
-                                      criteria='normal', output_format='text',
+                                      criteria='lenient', output_format='text',
                                       output_filename=outfile)
     except Exception as e:
         root_logger.exception(e)
