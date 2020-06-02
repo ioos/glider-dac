@@ -164,7 +164,7 @@ def process_deployment(dep):
                                       output_filename=outfile)
     except Exception as e:
         root_logger.exception(e)
-        errs = "Misceallaneous error - possibly can't read ERDDAP"
+        errs = "Other error - possibly can't read ERDDAP"
     else:
         with open(outfile, 'r') as f:
             errs = f.read()
