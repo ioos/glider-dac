@@ -65,12 +65,18 @@ class Deployment(Document):
 
         self.sync()
         update_vals = dict(self)
-        doc_id = update_vals.pop("_id")
-
-        # need to use update/upsert via Pymongo in case of queued job for
+        try:
+            doc_id = update_vals.pop("_id")
+        # if we get a KeyError, this is a new deployment that hasn't been entered into the database yet
+        # so we need to save it.  This is when you add "New deployment" while logged in -- files must
+        # later be added
+        except KeyError:
+            Document.save(self)
+        # otherwise, need to use update/upsert via Pymongo in case of queued job for
         # compliance so that result does not get clobbered.
         # use $set instead of replacing document
-        db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
+        else:
+            db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
 
     def delete(self):
         if os.path.exists(self.full_path):
