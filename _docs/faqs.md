@@ -12,6 +12,7 @@ summary: A list of frequently asked questions
 
 - [Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?](#can-i-re-upload-files-to-the-dac-to-incorporate-more-metadata-based-on-compliance-checker-guidance)
 - [Can I submit variables other than the core CTD variables?](#can-i-submit-variables-other-than-the-core-ctd-variables)
+- [What is the current procedure for sending data to the Global Telecommunications System (GTS)?](#What-is-the-current-procedure-for-sending-data-to-the-Global-Telecommunications-System-(GTS))
 
 
 ## Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?
@@ -28,6 +29,10 @@ Either way works.
 
 Yes! The DAC now accepts any science variables that have a valid [CF Standard Name](http://cfconventions.org/standard-names.html). Any ancillary variables (as specifed in the variable attribute `ancillary_variables`) will also be ingested into ERDDAP.
 
+
+## What is the current procedure for sending data to the Global Telecommunications System (GTS)?
+
+The National Data Buoy Center harvests new profile observations from the DAC's ERDDAP server once per hour, encodes the profiles in to a modified drifting buoy BUFR format and releases the messages to the GTS.  The development of a glider specific BUFR format is currently being developed and finalized.
 
 
 <!-- 2. Can I submit raw glider files to the DAC? -->
