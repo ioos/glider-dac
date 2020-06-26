@@ -45,7 +45,7 @@ and all user account requests should be emailed to:
 
 ## New Deployment Registration
 
-Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a [WMO id](http://www.wmo.int/pages/prog/amp/mmop/buoy-ids.html) id for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a [WMO id](http://www.wmo.int/pages/prog/amp/mmop/buoy-ids.html) for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 The next step is to register the deployment with the **NGDAC**.
 
@@ -53,7 +53,7 @@ The next step is to register the deployment with the **NGDAC**.
 
 In order for the datasets to be released to the [Global Telecommunication System](http://www.wmo.int/pages/prog/www/TEM/index_en.html), the glider must be assigned a **WMO ID**.  All **WMO ID** requests should be sent to:
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`    glider.dac.support@noaa.gov`
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=WMO ID%20Request)
 
 The following information must be provided for each request:
 + Data provider
@@ -63,7 +63,7 @@ The following information must be provided for each request:
 
 Once the request is received, it will be forwarded to the [National Data Buoy Center](http://www.ndbc.noaa.gov/) and the assigned **WMO ID** will be sent to the requestor/data provider.
 
-**IMPORTANT**: WMO ids are assigned based on the [WMO region](http://en.wikipedia.org/wiki/Location_identifier#WMO_station_identifiers) in which the glider is deployed.  Once assigned, the WMO id may be used on successive deployments of the same glider provided it is deployed in the same WMO region.  **You do not need to acquire a different WMO id each time the glider is deployed, provided it's deployed in the same WMO region.**
+**IMPORTANT**: WMO ids are assigned based on the [WMO region](http://en.wikipedia.org/wiki/Location_identifier#WMO_station_identifiers) in which the glider is deployed.  Once assigned, the WMO id may be used on successive deployments of the same glider provided it is deployed in the same WMO region.  **You do not need to acquire a different WMO id each time the glider is deployed, provided it is deployed in the same WMO region.**
 
 ### Deployment Creation
 
