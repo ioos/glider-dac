@@ -15,8 +15,7 @@ summary: This page presents an in-depth description and discussion of the U.S. I
 # Contents
 
 + [Data Assembly Center Architecture](#data-assembly-center-architecture)
-+ [Data Provider Responsibilities](#data-provider-responsibilities)
-+ [NGDAC Responsibilities](#ngdac-responsibilities)
+
 -->
 
 ## Data Assembly Center Architecture
