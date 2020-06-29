@@ -75,8 +75,8 @@ entries:
           url: /ngdac-netcdf-file-format-version-2.html#caveats
           output: web
           
-        - title: Description & Examples of Required Global Attributes
-          url: /ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes
+        - title: Description and Examples of Required Global Attributes
+          url: /ngdac-netcdf-file-format-version-2.html#description-and-examples-of-required-global-attributes
           output: web
           
       - title: Variables
