@@ -72,7 +72,7 @@ entries:
         subfolderitems:
         
         - title: Caveats
-          url: /ngdac-netcdf-file-format-version-2.html#global-attributes
+          url: /ngdac-netcdf-file-format-version-2.html#caveats
           output: web
           
         - title: Description & Examples of Required Global Attributes
