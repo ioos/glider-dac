@@ -49,7 +49,7 @@ entries:
     - title: NCEI Authority Tables
       url: /ngdac-netcdf-file-submission-process.html#ncei-authority-tables
       output: web
-
+#
   - title: NetCDF File Format Description
     output: web
     folderitems:
@@ -72,7 +72,7 @@ entries:
     - title: Variables
         url: /ngdac-netcdf-file-format-version-2.html#variables
         output: web
-
+#
   - title: Useful Links
     url: /useful-links.html
     output: web
