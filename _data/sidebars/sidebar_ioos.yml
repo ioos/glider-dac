@@ -58,9 +58,8 @@ entries:
       output: web      
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
-      output: web      
-      subfolders:      
-      - title: Global Attributes
+      output: web           
+    - title: Global Attributes
         url: /ngdac-netcdf-file-format-version-2.html#global-attributes
         output: web        
         subfolderitems:       
@@ -70,7 +69,7 @@ entries:
          - title: Description and Examples of Required Global Attributes
            url: /ngdac-netcdf-file-format-version-2.html#description-and-examples-of-required-global-attributes
            output: web
-      - title: Variables
+    - title: Variables
         url: /ngdac-netcdf-file-format-version-2.html#variables
         output: web
 
