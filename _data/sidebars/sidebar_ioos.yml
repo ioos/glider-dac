@@ -59,11 +59,11 @@ entries:
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
       output: web
-      folderitems:
+      subfolderitems:
       - title: Global Attributes
         url: /ngdac-netcdf-file-format-version-2.html#global-attributes
         output: web
-        folderitems:
+        subfolderitems:
         - title: Caveats
           url: /ngdac-netcdf-file-format-version-2.html#global-attributes
           output: web
