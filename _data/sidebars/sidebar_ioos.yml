@@ -59,15 +59,19 @@ entries:
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
       output: web
-      subfolders:
+      folderitems:
       - title: Global Attributes
         url: /ngdac-netcdf-file-format-version-2.html#global-attributes
         output: web
-        # subfolderitems:
-        # - title: Caveats
-        #   url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-        #   output: web
+        folderitems:
+        - title: Caveats
+          url: /ngdac-netcdf-file-format-version-2.html#global-attributes
+          output: web
+        - title: Description & Examples of Required Global Attributes
+          url: /ngdac-netcdf-file-format-version-2.html#description-&-examples-of-required-global-attributes
+          output: web
       - title: Variables
+        url: /ngdac-netcdf-file-format-version-2.html#variables
         output: web
 
   - title: Useful Links
@@ -86,15 +90,15 @@ entries:
     - title: Dataset Status
       url: /useful-links.html#dataset-status
       output: web
-    - title: APIs
-      url: /useful-links.html#apis
+    - title: API
+      url: /useful-links.html#api
       output: web
     - title: IOOS Resources
       url: /useful-links.html#ioos-resources
       output: web
-    - title: Discussion and Examples
-      url: /useful-links.html#discussion-and-examples
-      output: web
+#    - title: Discussion and Examples
+#      url: /useful-links.html#discussion-and-examples
+#      output: web
 
   - title: FAQs
     output: web
@@ -119,9 +123,9 @@ entries:
     - title: Data Assembly Center Architecture
       url: /ngdac-architecture.html
       output: web
-    - title: Data Provider Responsibilities
-      url: /ngdac-architecture.html#data-provider-responsibilities
-      output: web
-    - title: NGDAC Responsibilities
-      url: /ngdac-architecture.html#ngdac-responsibilities
-      output: web
+#    - title: Data Provider Responsibilities
+#      url: /ngdac-architecture.html#data-provider-responsibilities
+#      output: web
+#    - title: NGDAC Responsibilities
+#      url: /ngdac-architecture.html#ngdac-responsibilities
+#      output: web
