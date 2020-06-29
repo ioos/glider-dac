@@ -59,25 +59,20 @@ entries:
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
       output: web      
-      subfolders:
-      
+      subfolders:      
       - title: Global Attributes
         url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-        output: web
-        
+        output: web        
         subfolderitems:       
          - title: Caveats
            url: /ngdac-netcdf-file-format-version-2.html#caveats
-           output: web
-          
+           output: web          
          - title: Description and Examples of Required Global Attributes
            url: /ngdac-netcdf-file-format-version-2.html#description-and-examples-of-required-global-attributes
            output: web
-
       - title: Variables
         url: /ngdac-netcdf-file-format-version-2.html#variables
         output: web
-
 
   - title: Useful Links
     url: /useful-links.html
