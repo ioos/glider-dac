@@ -78,10 +78,12 @@ entries:
         - title: Description and Examples of Required Global Attributes
           url: /ngdac-netcdf-file-format-version-2.html#description-and-examples-of-required-global-attributes
           output: web
-          
+
+
       - title: Variables
         url: /ngdac-netcdf-file-format-version-2.html#variables
         output: web
+
 
   - title: Useful Links
     url: /useful-links.html
