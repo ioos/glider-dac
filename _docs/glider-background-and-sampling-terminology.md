@@ -20,7 +20,7 @@ summary: This page defines glider and sampling terminology used throughout the r
 
 ## Glider Types
 As of this writing, there are 3 major buoyancy driven glider types that are currently utilized by IOOS Regional Associations:
- + [Seaglider](http://www.apl.washington.edu/projects/seaglider/summary.html): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](http://www.apl.washington.edu/) and [School of Oceanography](http://www.ocean.washington.edu/).  The Seaglider is now manufactured by [Kongsberg Maritime](http://www.km.kongsberg.com/ks/web/nokbg0240.nsf/AllWeb/EC2FF8B58CA491A4C1257B870048C78C?OpenDocument).
+ + [Seaglider](http://www.apl.washington.edu/project/project.php?id=seaglider#:~:text=The%20AUV%20Seaglider%20is%20the,time%20via%20satellite%20data%20telemetry.): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](http://www.apl.washington.edu/) and [School of Oceanography](http://www.ocean.washington.edu/).  The Seaglider is now manufactured by [Hydroid](https://www.hydroid.com/seaglider)
  + [Spray](http://spray.ucsd.edu/pub/rel/info/spray_description.php): originally designed by [Scripps Institution of Oceanography](https://scripps.ucsd.edu/) and [Woods Hole Oceangraphic Institution](http://www.whoi.edu/) with funding provided by the [Office of Naval Research](http://www.onr.navy.mil/), the Spray glider is now manufactured by [Bluefin Robotics](http://www.bluefinrobotics.com/products/spray-glider/).
  + [Slocum](http://www.webbresearch.com/slocumglider.aspx): designed and built by [Teledyne Webb Research Corporation](http://www.webbresearch.com/).
 
