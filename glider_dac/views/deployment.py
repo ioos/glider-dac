@@ -371,6 +371,7 @@ def get_deployments():
         d['id'] = d['_id']['$oid']
         del d['_id']
         del d['user_id']
+        d.pop('compliance_check_report', None)
         d['sos'] = deployment.sos
         d['iso'] = deployment.iso
         d['dap'] = deployment.dap
