@@ -20,6 +20,7 @@ def get_deployments():
     '''
     Returns an HTTP GET request for the API_URL
     '''
+    # Why is this using the API rather than hitting the database directly?
     global _DEP_CACHE
     if _DEP_CACHE is None:
         r = requests.get(API_URL)
@@ -31,14 +32,18 @@ def get_deployments():
 
 def get_active_deployments():
     '''
-    Returns a list of deployments that are safe for achival
+    Returns a list of deployments that are safe for archival.  Datasets for
+    archival must meet the following criteria:
+
+    - The dataset is completed
+    - The dataset is marked for archival by NCEI
+    - The dataset has passed the Glider DAC compliance check
     '''
     deployments = get_deployments()
-    filtered = [d for d in deployments['results'] if d['completed']]
-    for d in filtered:
-        if 'archive_safe' in d and d['archive_safe'] is False:
-            continue
-        yield d
+    return (d for d in deployments['results']
+            if d['completed'] and
+               d.get("archive_safe") and
+               d.get("compliance_check_passed"))
 
 
 def get_active_deployment_paths():
