@@ -26,14 +26,14 @@ COMMON: &common
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
 
-  PUBLIC_ERDDAP: data.ioos.us
-  THREDDS: data.ioos.us
+  PUBLIC_ERDDAP: gliders.ioos.us
+  THREDDS: gliders.ioos.us
   DATA_ROOT: data/data/priv_erddap
   PUBLIC_DATA_ROOT: data/data/pub_erddap
   THREDDS_DATA_ROOT: data/data/thredds
   ARCHIVE_PATH: data/ftp/archive
   DEV_CATALOG_ROOT: PATH_TO_CODE_ROOT/tds_catalogs
-  ADMINS: 
+  ADMINS:
    - admin
   USER_DB_FILE: users.db
 
