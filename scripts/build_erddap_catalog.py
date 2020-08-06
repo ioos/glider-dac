@@ -175,7 +175,8 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                            completed=completed,
                            reqd_qc_vars=required_qc_vars,
                            dest_var_remaps=dest_var_remaps,
-                           qc_var_types=qc_var_types)
+                           qc_var_types=qc_var_types,
+                           delayed_mode=delayed_mode)
     if not extra_atts and not standard_name_vars:
         return templ
 

@@ -122,6 +122,8 @@ def get_files(netcdf_files):
     '''
     file_paths = []
     for netcdf_dir in netcdf_files:
+        if netcdf_dir.endswith("-delayed"):
+            continue
         for (path, dirs, files) in os.walk(netcdf_dir):
             for filename in files:
                 if filename.endswith('.nc'):
