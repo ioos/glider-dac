@@ -113,12 +113,15 @@ def main(args):
 
         log.info( "Processing the following deployments")
         for deployment in deployments:
-            log.info( " - %s", deployment)
+            if not deployment.endswith("-delayed"):
+                log.info( " - %s", deployment)
         # limit to 8 simultaneous connections open for fetching data
-        sem = asyncio.Semaphore(8)
+        # badams (2020-07-30) limit to two concurrent processes to avoid bogging down server
+        sem = asyncio.Semaphore(2)
         loop = asyncio.get_event_loop()
         tasks = [loop.create_task(sync_deployment(d, sem, args.force))
-                                                  for d in deployments]
+                                                  for d in deployments
+                                                  if not d.endswith("-delayed")]
         wait_tasks = asyncio.wait(tasks)
         loop.run_until_complete(wait_tasks)
         loop.close()
