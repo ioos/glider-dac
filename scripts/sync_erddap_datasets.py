@@ -19,28 +19,33 @@ log = None
 
 
 def setup_logging(level=logging.DEBUG):
-    import logging
-    logger = logging.getLogger('replicate')
-    logger.setLevel(logging.DEBUG)
-    file_handler = logging.FileHandler('replciate.log')
+    logger = logging.getLogger('sync_erddap')
+    logger.setLevel(level)
+    file_handler = logging.FileHandler('sync_erddap.log')
     stream_handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
     stream_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(level)
     return logger
 
 
 def main(args):
     '''
+    This script loops through deployments checks for new data
+    and touches the flag file for ERDDAP to pick it up
+
+    TODO: Make this process event driven rather than reading the JSON
+    files for every deployment each time.
     '''
     acquire_lock(args.lock_file)
     try:
         global log
         if log is None:
-            log = setup_logging()
+            level = logging.DEBUG if args.verbose else logging.ERROR
+            log = setup_logging(level)
         if args.deployment is not None:
             deployments = [args.deployment]
         else:
@@ -81,9 +86,6 @@ async def sync_deployment(deployment, sem, force=False):
         with open(full_path, 'w') as f:
             pass  # Causes file creation (touch)
 
-    log.info( "--------------------------------------------------------------------------------")
-    log.info( "   Processing %s", deployment)
-    log.info( "--------------------------------------------------------------------------------")
     d = deployment
     # Get Current Epoch Time and how far back in time to search
     currentEpoch = time.time()
@@ -92,8 +94,11 @@ async def sync_deployment(deployment, sem, force=False):
     mTime = get_mod_time(d)
     deltaT = int(currentEpoch) - int(mTime)
 
-    log.info( "Synchronizing at %s", datetime.utcnow().isoformat())
     if force or deltaT < time_in_past:
+        log.info( "--------------------------------------------------------------------------------")
+        log.info( "   Processing %s", deployment)
+        log.info( "--------------------------------------------------------------------------------")
+        log.info( "Synchronizing at %s", datetime.utcnow().isoformat())
         deployment_name = deployment.split('/')[-1]
         # First sync up the private
         touch_erddap(deployment_name, flags_private)
@@ -102,8 +107,6 @@ async def sync_deployment(deployment, sem, force=False):
         if not await poll_erddap(deployment_name, erddap_private):
             log.error("Couldn't update deployment %s", deployment)
             return
-    else:
-        log.info("Everything is up to date")
 
 
 async def poll_erddap(deployment_name, host, proto='http', attempts=3):
@@ -163,7 +166,7 @@ def get_mod_time(name):
     if not os.path.exists(jsonFile):
         with open(jsonFile, 'w') as outfile:
             json.dump({'updated': ncTime * 1000}, outfile)
-        log.info("Initiated JSON file: {}".format(outfile))
+        log.info("Initiated mod time JSON file: {}".format(outfile))
 
     with open(jsonFile, 'r') as fid:
         dataset = json.load(fid)
@@ -207,8 +210,9 @@ def check_pid(pid):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Sync the ERDDAP datasets")
-    parser.add_argument('-l', '--lock-file', default='/tmp/replicate.lock', help='Lockfile to synchronize processes')
+    parser.add_argument('-l', '--lock-file', default='/tmp/sync_erddap_datasets.lock', help='Lockfile to synchronize processes')
     parser.add_argument('-f', '--force', action="store_true", help="Force the processing of all datasets")
     parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
+    parser.add_argument('-v', '--verbose', action="store_true", help="Sets log level to debug")
     args = parser.parse_args()
     main(args)
