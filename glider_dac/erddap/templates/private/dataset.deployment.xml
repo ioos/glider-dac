@@ -9,7 +9,7 @@
     <updateEveryNMillis>-1</updateEveryNMillis>
     {% else %}
     <reloadEveryNMinutes>1440</reloadEveryNMinutes>
-    <updateEveryNMillis>10000</updateEveryNMillis>
+    <updateEveryNMillis>-1</updateEveryNMillis>
     {% endif %}
     <!-- use datasetID as the directory name -->
     <fileDir>{{dataset_dir}}</fileDir>
@@ -18,8 +18,8 @@
     <metadataFrom>last</metadataFrom>
     <sortedColumnSourceName>time</sortedColumnSourceName>
     <sortFilesBySourceNames>trajectory time</sortFilesBySourceNames>
-    <fileTableInMemory>false</fileTableInMemory> 
-    
+    <fileTableInMemory>false</fileTableInMemory>
+
     <addAttributes>
         <att name="cdm_data_type">trajectoryProfile</att>
         <att name="featureType">trajectoryProfile</att>
@@ -32,7 +32,7 @@
         <att name="keywords_vocabulary">GCMD Science Keywords</att>
         <att name="Metadata_Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
         <att name="sourceUrl">(local files)</att>
-        <att name="infoUrl">http://data.ioos.us/gliders/erddap/</att>
+        <att name="infoUrl">https://gliders.ioos.us/erddap/</att>
         <!-- title=datasetID -->
         <att name="title">{{dataset_id}}</att>
         <att name="ioos_dac_checksum">{{checksum}}</att>
@@ -41,7 +41,7 @@
         <att name="institution">{{institution}}</att>
         -->
 
-    </addAttributes> 
+    </addAttributes>
 
     <dataVariable>
         <sourceName>trajectory</sourceName>

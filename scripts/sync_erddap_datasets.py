@@ -19,9 +19,9 @@ log = None
 
 
 def setup_logging(level=logging.DEBUG):
-    logger = logging.getLogger('replicate')
+    logger = logging.getLogger('sync_erddap')
     logger.setLevel(level)
-    file_handler = logging.FileHandler('replicate.log')
+    file_handler = logging.FileHandler('sync_erddap.log')
     stream_handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     file_handler.setFormatter(formatter)
@@ -34,10 +34,11 @@ def setup_logging(level=logging.DEBUG):
 
 def main(args):
     '''
-    This script loops through deployments and fetches a single .ncCF (public ERDDAP)
-    or .ncCFMA (THREDDS) file to serve via ERDDAP/THREDDS
+    This script loops through deployments checks for new data
+    and touches the flag file for ERDDAP to pick it up
 
-    This process can be VERY CPU intensive.
+    TODO: Make this process event driven rather than reading the JSON
+    files for every deployment each time.
     '''
     acquire_lock(args.lock_file)
     try:
@@ -52,15 +53,12 @@ def main(args):
 
         log.info( "Processing the following deployments")
         for deployment in deployments:
-            if not deployment.endswith("-delayed"):
-                log.info( " - %s", deployment)
-        # limit to 8 simultaneous connections open for fetching data
-        # badams (2020-07-30) limit to two concurrent processes to avoid bogging down server
-        sem = asyncio.Semaphore(2)
+            log.info( " - %s", deployment)
+        # limit to 4 simultaneous connections open for fetching data
+        sem = asyncio.Semaphore(4)
         loop = asyncio.get_event_loop()
         tasks = [loop.create_task(sync_deployment(d, sem, args.force))
-                 for d in deployments
-                 if not d.endswith("-delayed")]
+                 for d in deployments]
         wait_tasks = asyncio.wait(tasks)
         loop.run_until_complete(wait_tasks)
         loop.close()
@@ -71,8 +69,8 @@ def main(args):
 
 async def sync_deployment(deployment, sem, force=False):
     '''
-    For a given deployment (dataset), check if it's got new data and
-    fetch the aggregated dataset for ERDDAP/THREDDS
+    For a given deployment (dataset), if it's got new data, use the
+    ERDDAP flagging system to notify ERDDAP
     '''
     def touch_erddap(deployment_name, path):
         '''
@@ -86,13 +84,14 @@ async def sync_deployment(deployment, sem, force=False):
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
         with open(full_path, 'w') as f:
-            pass  # Causes file creation
+            pass  # Causes file creation (touch)
 
+    d = deployment
     # Get Current Epoch Time and how far back in time to search
     currentEpoch = time.time()
     # reload any datasets which have been updated in the last 24 hours
     time_in_past = 3600 * 24
-    mTime = get_mod_time(deployment)
+    mTime = get_mod_time(d)
     deltaT = int(currentEpoch) - int(mTime)
 
     if force or deltaT < time_in_past:
@@ -101,77 +100,47 @@ async def sync_deployment(deployment, sem, force=False):
         log.info( "--------------------------------------------------------------------------------")
         log.info( "Synchronizing at %s", datetime.utcnow().isoformat())
         deployment_name = deployment.split('/')[-1]
+        # First sync up the private
+        touch_erddap(deployment_name, flags_private)
+        log.info("Sleeping 10 seconds")
+        await asyncio.sleep(10)
+        if not await poll_erddap(deployment_name, erddap_private):
+            log.error("Couldn't update deployment %s", deployment)
+            return
 
-        # TODO deprecate this second ERDDAP!
-        await retrieve_data(path2pub, deployment, sem)
 
-        touch_erddap(deployment_name, flags_public)
-
-        await retrieve_data(path2thredds, deployment, sem)
-
-
-async def retrieve_data(where, deployment, sem, proto='http'):
-    '''
-    '''
-    publish_dir = os.path.join(where, deployment)
-    log.info("Publish Directory: %s", publish_dir)
-    deployment_name = publish_dir.split('/')[-1]
-    user_name = publish_dir.split('/')[-2]
-    if 'thredds' in publish_dir:
-        path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
-        url = '{}://{}/erddap/tabledap/{}.ncCFMA'.format(proto, erddap_private, deployment_name)
-    else:
-        path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
-        url = '{}://{}/erddap/tabledap/{}.ncCF'.format(proto, erddap_private, deployment_name)
-    log.info("Path Arg %s", path_arg)
-    log.info("Host Arg %s", url)
-
-    fail_counter = 5
-    # try to release semaphore before attempting to get the response
-    async with sem:
-        try:
-            async with aiohttp.ClientSession(raise_for_status=True) as session:
-                while True:
-                    try:
-                        # This causes timeouts even when the max simultaneous connection
-                        # lock isn't released
-                        async with session.get(url) as response:
-                            with open(path_arg + '.tmp', 'wb') as f_handle:
-                                while True:
-                                    chunk = await response.content.read(1024)
-                                    if not chunk:
-                                        break
-                                    f_handle.write(chunk)
-                            try:
-                                log.info(os.stat(path_arg + '.tmp'))
-                                # sanity check to ensure netCDF file is valid
-                                with Dataset(path_arg + '.tmp') as d:
-                                    pass
-                            except Exception:
-                                log.exception("Exception while attempting to open NetCDF dataset {}".format(path_arg + '.tmp'))
-                                os.unlink(path_arg + '.tmp')
-                            else:
-                                os.rename(path_arg + '.tmp', path_arg)
-
-                                # if the download succeeded and file isn't corrupt, replace the previous file
-                                log.info(("moved file {}".format(path_arg + '.tmp')))
-                            return await response.release()
-                    except Exception as e:
-                        fail_counter -= 1
-                        log.exception("Failed to get %s", deployment)
-                        log.info("Attempts remainging: %s", fail_counter)
-                        if fail_counter <= 0:
+async def poll_erddap(deployment_name, host, proto='http', attempts=3):
+    args = {}
+    args['host'] = host
+    args['deployment_name'] = deployment_name
+    args['proto'] = proto
+    url = '%(proto)s://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
+    log.info("Polling %s", url)
+    att_counter = attempts
+    try:
+        async with aiohttp.ClientSession() as session:
+            while att_counter > 0:
+                try:
+                    async with session.get(url) as response:
+                        if response.status != 200:
+                            log.warning("Failed to find deployment dataset: {}".format(url))
+                        else:
                             break
-
-        except Exception:
-            log.exception("HTTP issue occurred while fetching data for {}".format(deployment))
-            os.unlink(path_arg + '.tmp')
+                except Exception:
+                    log.exception("hit exception while processing for deployment {}".format(url))
+                log.info("sleeping 15 second(s)")
+                await asyncio.sleep(15)
+                att_counter -= 1
+            else:
+                return False
+            return True
+    except Exception:
+        log.exception("Error while fetching http for deployment {}".format(url))
+        return False
 
 
 def get_deployments():
-    '''
-    Loads deployment directories into a list
-    '''
+    """Returns a list of the deployment directories"""
     deployments = []
     for user in os.listdir(path2priv):
         if not os.path.isdir(os.path.join(path2priv, user)):
@@ -190,15 +159,14 @@ def get_mod_time(name):
 
     try:
         newest = max(glob.iglob(JSON_DIR + name + '/' + '*.nc') , key=os.path.getmtime)
-    # if there are no nc files, arbitrarily set time as 0
     except ValueError:
+        # if there are no nc files, arbitrarily set time as 0
         newest = 0
     ncTime = os.path.getmtime(newest)
     if not os.path.exists(jsonFile):
-        log.info( "JSON file does not exist.")
         with open(jsonFile, 'w') as outfile:
             json.dump({'updated': ncTime * 1000}, outfile)
-        log.info("Initiated JSON file")
+        log.info("Initiated mod time JSON file: {}".format(outfile))
 
     with open(jsonFile, 'r') as fid:
         dataset = json.load(fid)
@@ -241,11 +209,10 @@ def check_pid(pid):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="replicate files from private ERDDAP")
-    parser.add_argument('-l', '--lock-file', default='/tmp/replicate.lock', help='Lockfile to synchronize processes')
-    parser.add_argument('-f', '--force', action="store_true", help="Force the processing by ignoring the time logs")
-    parser.add_argument('-d', '--deployment', help="Load a specific deployment")
+    parser = argparse.ArgumentParser(description="Sync the ERDDAP datasets")
+    parser.add_argument('-l', '--lock-file', default='/tmp/sync_erddap_datasets.lock', help='Lockfile to synchronize processes')
+    parser.add_argument('-f', '--force', action="store_true", help="Force the processing of all datasets")
+    parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     parser.add_argument('-v', '--verbose', action="store_true", help="Sets log level to debug")
-
     args = parser.parse_args()
     main(args)
