@@ -37,6 +37,7 @@
         <att name="title">{{dataset_id}}</att>
         <att name="ioos_dac_checksum">{{checksum}}</att>
         <att name="ioos_dac_completed">{{completed}}</att>
+        <att name="gts_ingest">{{gts_ingest}}</att>
         <!-- Data Provider Institution from http://gliders.ioos.us
         <att name="institution">{{institution}}</att>
         -->
