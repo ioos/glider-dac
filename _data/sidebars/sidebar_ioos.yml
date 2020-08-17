@@ -85,8 +85,8 @@ entries:
     - title: Dataset Status
       url: /useful-links.html#dataset-status
       output: web
-    - title: APIS
-      url: /useful-links.html#apis
+    - title: API
+      url: /useful-links.html#api
       output: web
     - title: IOOS Resources
       url: /useful-links.html#ioos-resources
