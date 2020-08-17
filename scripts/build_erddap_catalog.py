@@ -294,6 +294,8 @@ def get_latest_nc_file(root):
     :param str root: Root of the directory to scan
     '''
     list_of_files = glob.glob('{}/*.nc'.format(root))
+    if not list_of_files:  # Check for no files
+        return None
     return max(list_of_files, key=os.path.getctime)
 
 
