@@ -95,6 +95,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
             wmo_id          = wmo_id.strip()
             checksum        = js.get('checksum', '').strip()
             completed       = js['completed']
+            delayed_mode    = js.get("delayed_mode", False)
     except (OSError, IOError, AssertionError, AttributeError) as e:
         print(("%s: %s" % (repr(e), e.message)))
         print(e)
