@@ -6,7 +6,7 @@ entries:
   levels: two
   version:
   folders:
-
+#
   - title:
     output: pdf
     type: frontmatter
@@ -19,7 +19,7 @@ entries:
       url: /tocpage
       output: pdf
       type: frontmatter
-
+#
   - title: Wiki Homepage
     output: web
     url: /index.html
@@ -27,7 +27,7 @@ entries:
     - title: Introduction
       url: /index.html
       output: web
-
+#
   - title: NetCDF File Submission Process
     output: web
     folderitems:
@@ -60,22 +60,14 @@ entries:
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
       output: web           
     - title: Global Attributes
-      url: /ngdac-netcdf-file-format-version-2.html#Global-Attributes
+      url: /ngdac-netcdf-file-format-version-2.html#global-attributes
       output: web        
-        subfolderitems:       
-        - title: Caveats
-          url: /ngdac-netcdf-file-format-version-2.html#caveats
-          output: web          
-        - title: Description and Examples of Required Global Attributes
-          url: /ngdac-netcdf-file-format-version-2.html#description-and-examples-of-required-global-attributes
-          output: web
     - title: Variables
       url: /ngdac-netcdf-file-format-version-2.html#variables
       output: web
     - title: Dimensions
       url: /ngdac-netcdf-file-format-version-2.html#dimensions
       output: web
-    
 #
   - title: Useful Links
     url: /useful-links.html
@@ -93,16 +85,13 @@ entries:
     - title: Dataset Status
       url: /useful-links.html#dataset-status
       output: web
-    - title: API
-      url: /useful-links.html#api
+    - title: APIs
+      url: /useful-links.html#apis
       output: web
     - title: IOOS Resources
       url: /useful-links.html#ioos-resources
       output: web
-#    - title: Discussion and Examples
-#      url: /useful-links.html#discussion-and-examples
-#      output: web
-
+#
   - title: FAQs
     output: web
     folderitems:
@@ -126,9 +115,3 @@ entries:
     - title: Data Assembly Center Architecture
       url: /ngdac-architecture.html
       output: web
-#    - title: Data Provider Responsibilities
-#      url: /ngdac-architecture.html#data-provider-responsibilities
-#      output: web
-#    - title: NGDAC Responsibilities
-#      url: /ngdac-architecture.html#ngdac-responsibilities
-#      output: web
