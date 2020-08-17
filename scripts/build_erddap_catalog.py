@@ -122,7 +122,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
     else:
         extra_atts = {}
 
-    nc_file = get_first_nc_file(dir_path)
+    nc_file = get_latest_nc_file(dir_path)
     if nc_file:
         qc_var_types = check_for_qc_vars(nc_file)
     else:
@@ -161,66 +161,66 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
     # need to pass None to constructor?  Why?
     standard_name_table = util.StandardNameTable(None)
 
-    ds = Dataset(nc_file)
-    standard_name_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars,
-                                                        standard_name=lambda n: n in standard_name_table)
-    used_extra_vars = set(standard_name_vars)
-
-
-
-    templ = template.render(dataset_id=deployment,
-                           dataset_dir=dir_path,
-                           institution=institution,
-                           checksum=checksum,
-                           completed=completed,
-                           reqd_qc_vars=required_qc_vars,
-                           dest_var_remaps=dest_var_remaps,
-                           qc_var_types=qc_var_types,
-                           delayed_mode=delayed_mode)
-    if not extra_atts and not standard_name_vars:
-        return templ
-
-    else:
-
-        try:
-            tree = etree.fromstring(templ)
-
-
-            for identifier, mod_attrs in extra_atts.items():
-                add_extra_attributes(tree, identifier, mod_attrs)
-
-            def maybe_add_extra_var(var):
-                """
-                Add variable definition to ERDDAP datasets.xml tree output
-                if the variable does not already exist in the existing and
-                blacklisted variables
-                """
-                if (var.name not in exclude_vars and
-                    var.name not in used_extra_vars and
-                    var.name in ds.variables):
-                    #anc_var = ds.variables[anc_var_name]
-                    used_extra_vars.add(var.name)
-                    tree.append(add_erddap_var_elem(var))
-
-            # append latest changes to etree
-
-            for var in standard_name_vars:
-                maybe_add_extra_var(var)
-                # pick up ancillary variables for things such as
-                # status flags, etc.
-                if hasattr(var, 'ancillary_variables'):
-                    for anc_var_name in var.ancillary_variables.split(' '):
-                        if anc_var_name in ds.variables:
-                            anc_var = ds.variables[anc_var_name]
-                            maybe_add_extra_var(anc_var)
-                        else:
-                            continue
-
-            return etree.tostring(tree)
-
-        except:
-            logger.exception("Exception occurred while generating dataset XML:")
+    with Dataset(nc_file, 'r') as ds:
+        standard_name_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars,
+                                                            standard_name=lambda n: n in standard_name_table)
+        used_extra_vars = set(standard_name_vars)
+        gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
+        templ = template.render(
+            dataset_id=deployment,
+            dataset_dir=dir_path,
+            checksum=checksum,
+            completed=completed,
+            reqd_qc_vars=required_qc_vars,
+            dest_var_remaps=dest_var_remaps,
+            qc_var_types=qc_var_types,
+            gts_ingest=gts_ingest
+        )
+        if not extra_atts and not standard_name_vars:
             return templ
+
+        else:
+
+            try:
+                tree = etree.fromstring(templ)
+
+
+                for identifier, mod_attrs in extra_atts.items():
+                    add_extra_attributes(tree, identifier, mod_attrs)
+
+                def maybe_add_extra_var(var):
+                    """
+                    Add variable definition to ERDDAP datasets.xml tree output
+                    if the variable does not already exist in the existing and
+                    blacklisted variables
+                    """
+                    if (var.name not in exclude_vars and
+                        var.name not in used_extra_vars and
+                        var.name in ds.variables):
+                        #anc_var = ds.variables[anc_var_name]
+                        used_extra_vars.add(var.name)
+                        tree.append(add_erddap_var_elem(var))
+
+                # append latest changes to etree
+
+                for var in standard_name_vars:
+                    maybe_add_extra_var(var)
+                    # pick up ancillary variables for things such as
+                    # status flags, etc.
+                    if hasattr(var, 'ancillary_variables'):
+                        for anc_var_name in var.ancillary_variables.split(' '):
+                            if anc_var_name in ds.variables:
+                                anc_var = ds.variables[anc_var_name]
+                                maybe_add_extra_var(anc_var)
+                            else:
+                                continue
+
+                return etree.tostring(tree)
+
+            except:
+                logger.exception("Exception occurred while generating dataset XML:")
+                return templ
+
 
 def add_erddap_var_elem(var):
     """
@@ -285,6 +285,18 @@ def get_first_nc_file(root):
     for content in os.listdir(root):
         if content.endswith('.nc'):
             return os.path.join(root, content)
+
+
+def get_latest_nc_file(root):
+    '''
+    Returns the lastest netCDF file found in the directory
+
+    :param str root: Root of the directory to scan
+    '''
+    list_of_files = glob.glob('{}/*.nc'.format(root))
+    if not list_of_files:  # Check for no files
+        return None
+    return max(list_of_files, key=os.path.getctime)
 
 
 def check_for_qc_vars(nc_file):
