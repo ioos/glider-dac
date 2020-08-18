@@ -216,7 +216,7 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                             else:
                                 continue
 
-                return etree.tostring(tree)
+                return etree.tostring(tree, encoding=str)
 
             except:
                 logger.exception("Exception occurred while generating dataset XML:")
