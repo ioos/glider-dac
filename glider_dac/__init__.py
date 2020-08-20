@@ -4,6 +4,7 @@ import datetime
 from flask import Flask
 from flask_kvsession import KVSessionExtension
 from flask_cors import CORS, cross_origin
+from flask_wtf import CsrfProtect
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
@@ -11,11 +12,14 @@ import redis
 import yaml
 import logging
 
+csrf = CsrfProtect()
 
 # Create application object
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+csrf.init_app(app)
 
 cur_dir = os.path.dirname(__file__)
 with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
