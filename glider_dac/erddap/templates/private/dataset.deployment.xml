@@ -19,7 +19,7 @@
     <sortedColumnSourceName>time</sortedColumnSourceName>
     <sortFilesBySourceNames>trajectory time</sortFilesBySourceNames>
     <fileTableInMemory>false</fileTableInMemory>
-
+    <accessibleViaFiles>true</accessibleViaFiles>
     <addAttributes>
         <att name="cdm_data_type">trajectoryProfile</att>
         <att name="featureType">trajectoryProfile</att>
