@@ -1,7 +1,7 @@
 FROM python:3.6-buster
 
 ARG glider_gid_uid=1000
-RUN apt-get update && apt-get -y install libxml2-dev libudunits2-dev && \
+RUN apt-get update && apt-get -y install rsync libxml2-dev libudunits2-dev && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
 COPY . /glider-dac
