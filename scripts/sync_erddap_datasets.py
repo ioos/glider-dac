@@ -4,7 +4,6 @@ import argparse
 import async_timeout
 import asyncio
 import calendar
-import datetime
 import glob
 import json
 import logging
@@ -159,10 +158,10 @@ def get_mod_time(name):
 
     try:
         newest = max(glob.iglob(JSON_DIR + name + '/' + '*.nc') , key=os.path.getmtime)
+        ncTime = os.path.getmtime(newest)
     except ValueError:
         # if there are no nc files, arbitrarily set time as 0
-        newest = 0
-    ncTime = os.path.getmtime(newest)
+        ncTime = 0
     if not os.path.exists(jsonFile):
         with open(jsonFile, 'w') as outfile:
             json.dump({'updated': ncTime * 1000}, outfile)
