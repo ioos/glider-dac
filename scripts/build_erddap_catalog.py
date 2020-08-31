@@ -374,7 +374,9 @@ def slugify(value):
     import unicodedata
     import re
     value = str(value)
-    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
+    # BWA: this appears to break the code under Py3 in the re.sub due to
+    # casting to bytes rather than str
+    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = str(re.sub('[^\w\s-]', '', value).strip())
     return str(re.sub('[-\s]+', '-', value))
 
