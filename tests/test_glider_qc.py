@@ -28,28 +28,28 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(STATIC_FILES['murphy'], 'r')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile)
+        qc = GliderQC(ncfile, 'data/qc_config.yml')
         variables = qc.find_geophysical_variables()
         assert len(variables) == 5
         assert 'temperature' in variables
         assert 'salinity' in variables
         assert 'pressure' in variables
 
-    def test_find_ancillary_variables(self):
+    def test_find_qc_flags(self):
         ncfile = Dataset(STATIC_FILES['murphy'], 'r')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile)
+        qc = GliderQC(ncfile, 'data/qc_config.yml')
         temperature = ncfile.variables['temperature']
-        ancillary_variables = qc.find_ancillary_variables(temperature)
-        assert ancillary_variables == []
+        ancillary_variables = qc.find_qc_flags(temperature)
+        assert ancillary_variables == ['temperature_qc', 'temperature_qc']
 
     def test_create_qc_variables(self):
         copypath = self.copy_ncfile(STATIC_FILES['murphy'])
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile)
+        qc = GliderQC(ncfile, 'data/qc_config.yml')
         temperature = ncfile.variables['temperature']
         qc.create_qc_variables(temperature)
 
@@ -70,7 +70,7 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile)
+        qc = GliderQC(ncfile, 'data/qc_config.yml')
         temperature = ncfile.variables['temperature']
         qc.create_qc_variables(temperature)
 
@@ -110,7 +110,7 @@ class TestGliderQC(TestCase):
         tempvar.units = 'deg_F'
         tempvar[np.array([0, 1, 2, 3, 4, 9])] = np.array([72.0, 72.1, 72.0, 1.0, 72.03, 72.1])
 
-        qc = GliderQC(nc)
+        qc = GliderQC(nc, 'data/qc_config.yml')
         for qcvarname in qc.create_qc_variables(nc.variables['temp']):
             qc.apply_qc(nc.variables[qcvarname])
 

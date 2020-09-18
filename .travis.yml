@@ -1,0 +1,27 @@
+os: linux
+dist: xenial
+language: python
+python:
+  - "3.6"
+jobs:
+  include:
+    - stage: docker
+      script: docker build . -t glider-dac
+      install: null
+      deploy:
+        - provider: script
+          script: bash "$TRAVIS_BUILD_DIR/scripts/docker_push.sh"
+          on:
+            repo: ioos/glider-dac
+            branch: master
+        - provider: script
+          script: bash "$TRAVIS_BUILD_DIR/scripts/docker_push.sh"
+          on:
+            repo: ioos/glider-dac
+            tags: true
+    - stage: test
+      install: null
+      script: docker build -f Dockerfile.tests . -t test
+stages:
+  - docker
+  - test

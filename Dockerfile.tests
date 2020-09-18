@@ -1,0 +1,17 @@
+FROM python:3.6-buster
+LABEL maintainer "RPS <devops@rpsgroup.com>"
+
+COPY . /glider-dac
+
+WORKDIR glider-dac
+
+RUN apt-get update && \
+    apt-get -y install rsync libxml2-dev libudunits2-dev && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache Cython && \
+    pip install --no-cache -r dev_requirements.txt && \
+    useradd tester && chown -R tester /glider-dac/
+
+USER tester
+
+RUN pytest tests/
