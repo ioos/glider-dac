@@ -4,22 +4,23 @@
 glider_dac/views/deployment.py
 View definition for Deployments
 '''
-from datetime import datetime
-from flask import render_template, redirect, jsonify, flash, url_for, request, Markup
-from flask_login import login_required, current_user
-from flask_cors import cross_origin
-from glider_dac import app, db, queue
-from glider_dac.glider_emails import send_registration_email
-from glider_dac import tasks
-
-from flask_wtf import FlaskForm
-from wtforms import TextField, SubmitField, BooleanField, validators
-from pymongo.errors import DuplicateKeyError
+from cf_units import Unit
+from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as dateparse
+from flask import render_template, redirect, jsonify, flash, url_for, request, Markup
+from flask_cors import cross_origin
+from flask_wtf import FlaskForm
+from flask_login import login_required, current_user
+from glider_dac import app, db, queue
+from glider_dac import tasks
+from glider_dac.glider_emails import send_registration_email
+from multidict import CIMultiDict
+from pymongo.errors import DuplicateKeyError
+from wtforms import TextField, SubmitField, BooleanField, validators
 import re
 import json
 import os
-import os.path
+
 
 
 def is_date_parseable(form, field):
@@ -364,7 +365,87 @@ def delete_deployment(username, deployment_id):
 @app.route('/api/deployment', methods=['GET'])
 @cross_origin()
 def get_deployments():
-    deployments = db.Deployment.find()
+    '''
+    API endpoint to fetch deployment info
+        ---
+    parameters:
+      - in: query
+        name: completed
+        required: false
+        schema:
+          type: string
+          enum: ['false', 'true']
+        description: >
+          Filter datasets by the completed attribute
+      - in: query
+        name: delayed_mode
+        required: false
+        schema:
+          type: string
+          enum: ['false', 'true']
+        description: >
+          Filter datasets by the delayed_mode attribute
+      - in: query
+        name: minTime
+        required: false
+        schema:
+          type: string
+        example: now-12hr
+        description: >
+          Minimum time.
+          Enter a datetime string (yyyy-MM-ddTHH:mm:ssZ)
+          Or specify 'now-nUnits' for example now-12hrs (integers only!)
+    responses:
+        200:
+          description: Success
+        400:
+          description: Bad Request
+        500:
+          description: Internal Server Error
+        501:
+          description: Not Implemented
+    '''
+    # Parse case insensitive query parameters
+    request_query = CIMultiDict(request.args)
+    query = {}  # Set up the mongo query
+
+    def parse_date(datestr):
+        '''
+        Parse the time query param
+        '''
+        try:
+            if 'now-' in datestr:
+                t = datestr.split('now-')[1]
+                val = int(re.search(r'\d+', t).group())
+                units = ''.join(i for i in t if not i.isdigit())
+                # If not valid units, exception will throw
+                unknown_unit = Unit(units)
+                hrs = Unit('hours')
+                # convert to hours
+                num_hrs = unknown_unit.convert(val, hrs)
+                dt_now = datetime.now(tz=timezone.utc)
+                return dt_now - timedelta(hours=num_hrs)
+
+            return dateparse(datestr)
+        except Exception:
+            return None
+
+    # Get the query values
+    completed = request_query.get('completed', None)
+    if completed and completed.lower() in ['true', 'false']:
+        query['completed'] = completed.lower() == 'true'
+
+    delayed_mode = request_query.get('delayed_mode', None)
+    if delayed_mode and delayed_mode.lower() in ['true', 'false']:
+        query['delayed_mode'] = delayed_mode.lower() == 'true'
+
+    min_time = request_query.get('minTime', None)
+    if min_time:
+        min_time_dt = parse_date(min_time)
+        if min_time_dt is not None:
+            query['latest_file_mtime'] = {'$gte': min_time_dt}
+
+    deployments = db.Deployment.find(query)
     results = []
     for deployment in deployments:
         d = json.loads(deployment.to_json())
