@@ -15,7 +15,6 @@ ftp_temp
 tds_temp
 tds_catalogs
 data/
-tests/data/*.nc
 
 # BerkeleyDB user database
 users.db
