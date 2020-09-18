@@ -16,4 +16,7 @@ export BERKELEYDB_DIR=/usr/local/Cellar/berkeley-db/5.3.21
 
 pip install -r requirements.txt
 ```
-
+## Updating the mongo schema
+1) Add the attribute to the appropriate model (e.g. glider_dac/models/deployment.py)
+2) Update `glider-dac/migrations/migration.py`
+3) Run `glider-dac/migrations/migration.py`.
