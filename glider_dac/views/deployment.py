@@ -373,16 +373,14 @@ def get_deployments():
         name: completed
         required: false
         schema:
-          type: string
-          enum: ['false', 'true']
+          type: boolean
         description: >
           Filter datasets by the completed attribute
       - in: query
         name: delayed_mode
         required: false
         schema:
-          type: string
-          enum: ['false', 'true']
+          type: boolean
         description: >
           Filter datasets by the delayed_mode attribute
       - in: query
@@ -392,7 +390,7 @@ def get_deployments():
           type: string
         example: now-12hr
         description: >
-          Minimum time.
+          Filter datasets with by last file's modtime being newer than minTime.
           Enter a datetime string (yyyy-MM-ddTHH:mm:ssZ)
           Or specify 'now-nUnits' for example now-12hrs (integers only!)
     responses:
