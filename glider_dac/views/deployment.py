@@ -412,7 +412,7 @@ def get_deployments():
         Parse the time query param
         '''
         try:
-            if 'now-' in datestr:
+            if datestr.startswith('now-'):
                 t = datestr.split('now-')[1]
                 val = int(re.search(r'\d+', t).group())
                 units = ''.join(i for i in t if not i.isdigit())
