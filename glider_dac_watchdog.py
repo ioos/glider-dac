@@ -5,24 +5,23 @@ import os.path
 import os
 import argparse
 import logging
-import smtplib
-import subprocess
-
 from datetime import datetime
-
+from glider_dac import app, db
 from watchdog.events import (FileSystemEventHandler, DirCreatedEvent,
                              DirDeletedEvent, FileCreatedEvent, FileMovedEvent)
 from watchdog.observers import Observer
 
-from glider_dac import app, db
 
-logging.basicConfig(level=logging.INFO,
-                    format='[%(asctime)s | %(levelname)s]  %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s | %(levelname)s]  %(message)s'
+)
 logger = logging.getLogger(__name__)
+
 
 class HandleDeploymentDB(FileSystemEventHandler):
     def __init__(self, base):
-        self.base     = base
+        self.base = base
 
     def file_moved_or_created(self, event):
         logger.info('%s %s', self.base, event.src_path)
@@ -36,7 +35,6 @@ class HandleDeploymentDB(FileSystemEventHandler):
         # ignore if a dotfile
         if path_parts[1].startswith('.'):
             return
-
 
         with app.app_context():
             deployment = db.Deployment.find_one({'deployment_dir' : path_parts[0]})
@@ -60,12 +58,12 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 fname, ext = os.path.splitext(path_parts[-1])
                 if ext not in ['.md5', '.txt']:
                     deployment.save()
+                    # TODO Touch ERDDAP flag
                     logger.info("Updated deployment %s", path_parts[0])
 
     def on_moved(self, event):
         if isinstance(event, FileMovedEvent):
             self.file_moved_or_created(event)
-
 
     def on_created(self, event):
         if isinstance(event, DirCreatedEvent):
@@ -117,9 +115,10 @@ class HandleDeploymentDB(FileSystemEventHandler):
             logger.info("Removed deployment directory: %s", rel_path)
 
             with app.app_context():
-                deployment = db.Deployment.find_one({'deployment_dir':event.src_path})
+                deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
                 if deployment:
                     deployment.delete()
+
 
 def main(handler):
     observer = Observer()
@@ -136,6 +135,7 @@ def main(handler):
 
     observer.join()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('basedir',
@@ -146,4 +146,3 @@ if __name__ == "__main__":
 
     base = os.path.realpath(args.basedir)
     main(HandleDeploymentDB(base))
-

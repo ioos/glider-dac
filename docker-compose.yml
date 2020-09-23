@@ -1,21 +1,30 @@
 version: '2.1'
 
 services:
-  providers_app: &provider_anchor
+  providers-app: &provider_anchor
     restart: always
     build: .
     ports:
       - 3000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
+      # - .:/glider-dac/  # For local development
     depends_on:
       - mongo
       - redis
 
-  worker:
+  glider-dac-worker:
     <<: *provider_anchor
     command: python glider_dac/worker.py
     ports: []
+
+  glider-dac-watchdog:
+    <<: *provider_anchor
+    command: python glider_dac_watchdog.py
+    ports: []
+    # Update DATA_ROOT to point to ERDDAP directory
+    environment:
+      - DATA_ROOT=./data/data/priv_erddap
 
   mongo:
     image: mongo

@@ -1,7 +1,8 @@
 import os
 import datetime
 
-from flask import Flask
+from flasgger import Swagger, LazyString, LazyJSONEncoder
+from flask import Flask, request
 from flask_kvsession import KVSessionExtension
 from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
@@ -12,6 +13,7 @@ import redis
 import yaml
 import logging
 
+
 csrf = CSRFProtect()
 
 # Create application object
@@ -20,6 +22,14 @@ app.url_map.strict_slashes = False
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 csrf.init_app(app)
+app.config['SWAGGER'] = {
+    'title': 'glider-dac',
+    'uiversion': 3,
+    'openapi': '3.0.2'
+}
+app.json_encoder = LazyJSONEncoder
+template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
+Swagger(app, template=template)
 
 cur_dir = os.path.dirname(__file__)
 with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:

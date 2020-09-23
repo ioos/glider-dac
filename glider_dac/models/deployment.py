@@ -12,6 +12,7 @@ from bson.objectid import ObjectId
 from rq import Queue, Connection, Worker
 from shutil import rmtree
 import os
+import glob
 import hashlib
 
 
@@ -39,7 +40,9 @@ class Deployment(Document):
         'archive_safe': bool,
         'checksum': str,
         'attribution': str,
-        'delayed_mode': bool
+        'delayed_mode': bool,
+        'latest_file': str,
+        'latest_file_mtime': datetime,
     }
 
     default_values = {
@@ -62,6 +65,15 @@ class Deployment(Document):
             self.username = user.username
 
         self.updated = datetime.utcnow()
+
+        # Update the stats on the latest profile file
+        modtime = None
+        latest_file = self.get_latest_nc_file()
+        if latest_file:  # if there are indeed files, get name and modtime
+            modtime = datetime.fromtimestamp(os.path.getmtime(latest_file))
+            latest_file = os.path.basename(latest_file)
+        self.latest_file = latest_file
+        self.latest_file_mtime = modtime
 
         self.sync()
         update_vals = dict(self)
@@ -228,7 +240,16 @@ class Deployment(Document):
                     if f.endswith(".md5"):
                         os.unlink(os.path.join(dirpath, f))
 
+    def get_latest_nc_file(self):
+        '''
+        Returns the lastest netCDF file found in the directory
 
+        :param str root: Root of the directory to scan
+        '''
+        list_of_files = glob.glob('{}/*.nc'.format(self.full_path))
+        if not list_of_files:  # Check for no files
+            return None
+        return max(list_of_files, key=os.path.getmtime)
 
     def calculate_checksum(self):
         '''
