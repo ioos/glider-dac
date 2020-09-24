@@ -1,7 +1,8 @@
 version: '2.1'
 
 services:
-  providers-app: &provider_anchor
+  glider-dac-providers-app: &provider_anchor
+    container_name: glider-dac-providers-app
     restart: always
     build: .
     ports:
@@ -15,18 +16,22 @@ services:
 
   glider-dac-worker:
     <<: *provider_anchor
+    container_name: glider-dac-worker
     command: python glider_dac/worker.py
     ports: []
 
   glider-dac-watchdog:
     <<: *provider_anchor
+    container_name: glider-dac-watchdog
     command: python glider_dac_watchdog.py
     ports: []
     # Update DATA_ROOT to point to ERDDAP directory
     environment:
-      - DATA_ROOT=./data/data/priv_erddap
+      - DATA_ROOT=/data/data/priv_erddap
+      - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
 
   mongo:
+    container_name: mongo
     image: mongo
     volumes:
       - mongo_storage:/data/db
@@ -34,16 +39,19 @@ services:
 
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
+    container_name: thredds
     image: unidata/thredds-docker:4.6.14
     ports:
       - 8082:8080
 
   erddap:
+    container_name: erddap
     image: axiom/docker-erddap
     ports:
       - 8080:8080
 
   redis:
+    container_name: redis
     restart: always
     image: redis
     volumes:
