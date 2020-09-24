@@ -60,7 +60,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 # so a checksum is calculated and a new deployment.json file
                 # is created
                 fname, ext = os.path.splitext(path_parts[-1])
-                if ext not in ['.md5', '.txt']:
+                if '.nc' in ext:
                     deployment.save()
                     logger.info("Updated deployment %s", path_parts[0])
                     # touch the ERDDAP flag (realtime data only)
