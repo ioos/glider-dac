@@ -293,14 +293,10 @@ def post_deployment_file(username, deployment_id):
         try:
             with open(out_name, 'wb') as of:
                 f.save(of)
-        # TODO: add logging
-        except OSError:
-            pass
-        except:
-            pass
+        except Exception:
+            app.logger.exception('Error uploading file: {}'.format(out_name))
 
         retval.append((safe_filename, datetime.utcnow()))
-
     editable = current_user and current_user.is_active and (
         current_user.is_admin or current_user == user)
 
