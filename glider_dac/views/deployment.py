@@ -106,10 +106,9 @@ def show_deployment(username, deployment_id):
     files = []
     for dirpath, dirnames, filenames in os.walk(deployment.full_path):
         for f in filenames:
-            if f in ["deployment.json", "wmoid.txt", "completed.txt"] or f.endswith(".md5"):
-                continue
-            files.append((f, datetime.utcfromtimestamp(
-                os.path.getmtime(os.path.join(dirpath, f)))))
+            if f.endswith('.nc'):
+                files.append((f, datetime.utcfromtimestamp(
+                    os.path.getmtime(os.path.join(dirpath, f)))))
 
     files.sort(key=lambda a: a[1])
 

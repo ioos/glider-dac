@@ -1,21 +1,56 @@
 #!/usr/bin/env python
-import os
-import time
-import json
+"""
+scripts/build_erddap_catalog.py
+
+This script generates dataset "chunks" for gliderDAC deployments and
+concatenates them into a single datasets.xml file for ERDDAP. This
+script is run on a schedule to help keep the gliderDAC datasets in
+sync with newly registered (or deleted) deployments
+
+Details:
+Only generates a new dataset chunk if the dataset has been updated since
+the last time the script ran. The chunk is saved as dataset.xml in the
+deployment directory.
+
+Use the -f CLI argument to create a dataset.xml chunk for ALL the datasets
+
+Optionally add/update metadata to a dataset by supplying a json file named extra_atts.json
+to the deployment directory.
+
+An example of extra_atts.json file which modifies the history global
+attribute and the depth variable's units attribute is below
+
+{
+    "_global_attrs": {
+        "history": "updated units"
+    },
+    "depth": {
+        "units": "m"
+    }
+}
+"""
+
 import argparse
-import logging
 import fileinput
 import glob
-import warnings
+import json
+import logging
+import numpy as np
+import os
+import redis
+import sys
+from collections import defaultdict
+from datetime import datetime, timezone
+from glider_dac import app, db
 from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
-from collections import defaultdict
-from compliance_checker.cf import util
-import numpy as np
+from pathlib import Path
 
-logging.basicConfig(level=logging.INFO,
-                    format='[%(asctime)s | %(levelname)s]  %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s | %(levelname)s]  %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 
@@ -25,110 +60,111 @@ erddap_mapping_dict = defaultdict(lambda: 'String',
                                     np.float32: 'float',
                                     np.float64: 'double' })
 
+# The directory where the XML templates exist
+template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
-def build_erddap_catalog(data_root, catalog_root, erddap_name, template_dir, root_dir=None):
+# Connect to redis to keep track of the last time this script ran
+redis_key = 'build_erddap_catalog_last_run'
+redis_host = app.config.get('REDIS_HOST', 'redis')
+redis_port = app.config.get('REDIS_PORT', 6379)
+redis_db = app.config.get('REDIS_DB', 0)
+_redis = redis.Redis(
+    host=redis_host,
+    port=redis_port,
+    db=redis_db
+)
+
+
+def build_datasets_xml(data_root, catalog_root, force):
     """
     Cats together the head, all fragments, and foot of a datasets.xml
     """
     head_path = os.path.join(template_dir, 'datasets.head.xml')
     tail_path = os.path.join(template_dir, 'datasets.tail.xml')
 
-    # discover all deployments in data directory
-    udeployments    = defaultdict(list)
-    pattern         = os.path.join(data_root, '*', '*')
-    deployment_dirs = glob.glob(pattern)
+    query = {}
+    if not force:
+        # Get datasets that have been updated since the last time this script ran
+        try:
+            last_run_ts = _redis.get(redis_key) or 0
+            last_run = datetime.utcfromtimestamp(int(last_run_ts))
+            query['updated'] = {'$gte': last_run}
+        except Exception:
+            logger.error("Error: Parsing last run from redis. Processing ALL Datasets")
 
-    for dd in deployment_dirs:
-        user, deployment = os.path.split(os.path.relpath(dd, data_root))
-        udeployments[user].append(deployment)
+    # Set the timestamp of this run in redis
+    dt_now = datetime.now(tz=timezone.utc)
+    _redis.set(redis_key, int(dt_now.timestamp()))
 
-    ds_path = os.path.join(catalog_root, erddap_name, 'datasets.xml')
+    # First update the chunks of datasets.xml that need updating
+    # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
+    deployments = db.Deployment.find(query)
+    for deployment in deployments:
+        deployment_dir = deployment.deployment_dir
+        dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
+        with open(dataset_chunk_path, 'w') as f:
+            try:
+                f.write(build_erddap_catalog_chunk(data_root, deployment))
+            except Exception:
+                logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+
+    # Now loop through all the deployments and construct datasets.xml
+    ds_path = os.path.join(catalog_root, 'datasets.xml')
+    deployments = db.Deployment.find()  # All deployments now
     with open(ds_path, 'w') as f:
         for line in fileinput.input([head_path]):
             f.write(line)
-        # for each user deployment, create a dataset fragment
-        for user in udeployments:
-            for deployment in udeployments[user]:
-                try:
-                    f.write(build_erddap_catalog_fragment(data_root, user, deployment, template_dir, root_dir, mode=erddap_name))
-                except Exception as e:
-                    logger.exception("Error: user: {}".format(user))
-        # if we have an "agg" file in our templates, fill one out per user
-        if os.path.exists(os.path.join(template_dir, 'dataset.agg.xml')):
-            for user in udeployments:
-                try:
-                    f.write(build_erddap_agg_fragment(data_root, user, template_dir))
-                except Exception as e:
-                    logger.exception("Error: user: {}".format(user))
+        # for each deployment, get the dataset chunk
+        for deployment in deployments:
+            # First check that a chunk exists
+            dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir, 'dataset.xml')
+            if os.path.isfile(dataset_chunk_path):
+                for line in fileinput.input([dataset_chunk_path]):
+                    f.write(line)
+
         for line in fileinput.input([tail_path]):
             f.write(line)
 
-    logger.info("Wrote %s from %d deployments", ds_path, len(deployment_dirs))
+    logger.info("Wrote {} from {} deployments".format(ds_path, deployments.count()))
 
-def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
-                                  root_dir=None, mode='pub_erddap'):
+
+def build_erddap_catalog_chunk(data_root, deployment):
     """
-    Builds an ERDDAP dataset xml fragment.
+    Builds an ERDDAP dataset xml chunk.
+
+    :param str data_root: The root directory where netCDF files are read from
+    :param mongo.Deployment deployment: Mongo deployment model
     """
-    logger.info("Building ERDDAP catalog fragment for %s/%s", user, deployment)
+    deployment_dir = deployment.deployment_dir
+    logger.info("Building ERDDAP catalog chunk for {}".format(deployment_dir))
 
     # grab template for dataset fragment
     template_path = os.path.join(template_dir, 'dataset.deployment.xml')
     with open(template_path) as f:
         template = Template("".join(f.readlines()))
 
-    # grab institution, if we can find one
-    institution     = user
-    deployment_name = deployment
-    dir_path        = os.path.join(data_root, user, deployment)
-    if root_dir:
-        deployment_file = os.path.join(root_dir, user, deployment, 'deployment.json')
-    else:
-        deployment_file = os.path.join(dir_path, "deployment.json")
+    dir_path = os.path.join(data_root, deployment_dir)
 
-    try:
-        with open(deployment_file) as f:
-            js              = json.load(f)
-            institution     = js.get('operator', js.get('username'))
-            deployment_name = js['name']
-            wmo_id          = js.get('wmo_id', '') or ''
-            wmo_id          = wmo_id.strip()
-            checksum        = js.get('checksum', '').strip()
-            completed       = js['completed']
-            delayed_mode    = js.get("delayed_mode", False)
-    except (OSError, IOError, AssertionError, AttributeError) as e:
-        print(("%s: %s" % (repr(e), e.message)))
-        print(e)
-        return ''
+    checksum = (deployment.checksum or '').strip()
+    completed = deployment.completed
+    delayed_mode = deployment.delayed_mode
 
     # look for a file named extra_atts.json that provides
     # variable and/or global attributes to add and/or modify
-    # an example of extra_atts.json file which modifies the history global
-    # attribute and the depth variable's units attribute is below
-    #
-    #  {
-    #      "_global_attrs":
-    #      { "history": "updated units"},
-    #      "depth":
-    #         { "units": "m" }
-    #  }
+    # An example of extra_atts.json file is in the module docstring
+    extra_atts = {"_global_attrs": {}}
     extra_atts_file = os.path.join(dir_path, "extra_atts.json")
-    if mode == 'priv_erddap' and os.path.isfile(extra_atts_file):
+    if os.path.isfile(extra_atts_file):
         try:
             with open(extra_atts_file) as f:
                 extra_atts = json.load(f)
-        except:
-            logger.exception("Error loading extra_atts.json file:")
-            extra_atts = {}
-    else:
-        extra_atts = {}
+        except Exception:
+            logger.error("Error loading file: {}".format(extra_atts_file))
 
-    nc_file = get_latest_nc_file(dir_path)
-    if nc_file:
-        qc_var_types = check_for_qc_vars(nc_file)
-    else:
-        qc_var_types = {'gen_qc': {}, 'qartod': {}}
-
+    # Get the latest file from the DB (and double check just in case)
+    latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
+    if latest_file is None:
+        raise IOError('No nc files found in deployment {}'.format(deployment_dir))
 
     # variables which need to have the variable {var_name}_qc present in the
     # template.  Right now these are all the same, so are hardcoded
@@ -148,7 +184,6 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
                        'time_qc': 'precise_time_qc',
                        'profile_time_qc': 'time_qc'}
 
-
     existing_varnames = {'trajectory', 'wmo_id', 'profile_id', 'profile_time',
                          'profile_lat', 'profile_lon', 'time', 'depth',
                          'pressure', 'temperature', 'conductivity', 'salinity',
@@ -159,68 +194,34 @@ def build_erddap_catalog_fragment(data_root, user, deployment, template_dir,
     exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
                     required_qc_vars | {'latitude', 'longitude'})
 
-    # need to pass None to constructor?  Why?
-    standard_name_table = util.StandardNameTable(None)
-
+    nc_file = os.path.join(data_root, deployment_dir, latest_file)
     with Dataset(nc_file, 'r') as ds:
-        standard_name_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars,
-                                                            standard_name=lambda n: n in standard_name_table)
-        used_extra_vars = set(standard_name_vars)
+        qc_var_types = check_for_qc_vars(ds)
+        all_other_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
         templ = template.render(
-            dataset_id=deployment,
+            dataset_id=deployment.name,
             dataset_dir=dir_path,
             checksum=checksum,
             completed=completed,
             reqd_qc_vars=required_qc_vars,
             dest_var_remaps=dest_var_remaps,
             qc_var_types=qc_var_types,
-            gts_ingest=gts_ingest
+            gts_ingest=gts_ingest,
+            delayed_mode=delayed_mode
         )
-        if not extra_atts and not standard_name_vars:
+        # Add any of the extra variables and attributes
+        try:
+            tree = etree.fromstring(templ)
+            for identifier, mod_attrs in extra_atts.items():
+                add_extra_attributes(tree, identifier, mod_attrs)
+            # append all the 'other' variables to etree
+            for var in all_other_vars:
+                tree.append(add_erddap_var_elem(var))
+            return etree.tostring(tree, encoding=str)
+        except Exception:
+            logger.exception("Exception occurred while adding atts to template: {}".format(deployment_dir))
             return templ
-
-        else:
-
-            try:
-                tree = etree.fromstring(templ)
-
-
-                for identifier, mod_attrs in extra_atts.items():
-                    add_extra_attributes(tree, identifier, mod_attrs)
-
-                def maybe_add_extra_var(var):
-                    """
-                    Add variable definition to ERDDAP datasets.xml tree output
-                    if the variable does not already exist in the existing and
-                    blacklisted variables
-                    """
-                    if (var.name not in exclude_vars and
-                        var.name not in used_extra_vars and
-                        var.name in ds.variables):
-                        #anc_var = ds.variables[anc_var_name]
-                        used_extra_vars.add(var.name)
-                        tree.append(add_erddap_var_elem(var))
-
-                # append latest changes to etree
-
-                for var in standard_name_vars:
-                    maybe_add_extra_var(var)
-                    # pick up ancillary variables for things such as
-                    # status flags, etc.
-                    if hasattr(var, 'ancillary_variables'):
-                        for anc_var_name in var.ancillary_variables.split(' '):
-                            if anc_var_name in ds.variables:
-                                anc_var = ds.variables[anc_var_name]
-                                maybe_add_extra_var(anc_var)
-                            else:
-                                continue
-
-                return etree.tostring(tree, encoding=str)
-
-            except:
-                logger.exception("Exception occurred while generating dataset XML:")
-                return templ
 
 
 def add_erddap_var_elem(var):
@@ -277,15 +278,19 @@ def add_extra_attributes(tree, identifier, mod_atts):
             add_atts_elem.append(new_elem)
 
 
-def get_first_nc_file(root):
-    '''
-    Returns the first netCDF file found in the directory
-
-    :param str root: Root of the directory to scan
-    '''
-    for content in os.listdir(root):
-        if content.endswith('.nc'):
-            return os.path.join(root, content)
+def check_for_qc_vars(nc):
+    """
+    Checks for general gc variables and QARTOD variables by naming conventions.
+    Returns a dict with both sets of variables as keys, and their attributes
+    as values.
+    """
+    qc_vars = {'gen_qc': {}, 'qartod': {}}
+    for var in nc.variables:
+        if var.endswith('_qc'):
+            qc_vars['gen_qc'][var] = nc.variables[var].ncattrs()
+        elif var.startswith('qartod'):
+            qc_vars['qartod'][var] = nc.variables[var].ncattrs()
+    return qc_vars
 
 
 def get_latest_nc_file(root):
@@ -300,115 +305,29 @@ def get_latest_nc_file(root):
     return max(list_of_files, key=os.path.getctime)
 
 
-def check_for_qc_vars(nc_file):
-    """
-    Checks for general gc variables and QARTOD variables by naming conventions.
-    Returns a dict with both sets of variables as keys, and their attributes
-    as values.
-    """
-    # STYLE: shouldn't this go at the top of the file?
-    from netCDF4 import Dataset
-    qc_vars = {'gen_qc': {}, 'qartod': {}}
-    with Dataset(nc_file, 'r') as nc:
-        for var in nc.variables:
-            if var.endswith('_qc'):
-                qc_vars['gen_qc'][var] = nc.variables[var].ncattrs()
-            elif var.startswith('qartod'):
-                qc_vars['qartod'][var] = nc.variables[var].ncattrs()
-    return qc_vars
+def main(data_dir, catalog_dir, force):
+    '''
+    Entrypoint for build ERDDAP catalog script.
+    '''
+    # ensure datasets.xml directory exists
+    os.makedirs(catalog_dir, exist_ok=True)
+    build_datasets_xml(data_dir, catalog_dir, force)
 
-
-def build_erddap_agg_fragment(data_root, user, template_dir):
-    """
-    Builds an aggregate dataset fragment entry.
-
-    For Glider DAC this is on the public ERDDAP instance.
-    """
-    logger.info("Building ERDDAP catalog aggregation fragment for %s", user)
-
-    # grab template for dataset fragment
-    template_path = os.path.join(template_dir, 'dataset.agg.xml')
-    with open(template_path) as f:
-        template = Template("".join(f.readlines()))
-
-    institution     = user
-    dir_path        = os.path.join(data_root, user)
-
-    # grab institution, if we can find from first deployment
-    pattern     = os.path.join(data_root, user, "*", "deployment.json")
-    deployments = glob.glob(pattern)
-
-    if len(deployments):
-        try:
-            with open(deployments[0]) as f:
-                js              = json.load(f)
-                institution     = js.get('operator', js.get('username'))
-        except (OSError, IOError, AssertionError, AttributeError):
-            pass
-
-    dataset_title   = "All %s Gliders" % institution
-    dataset_id      = "all%sGliders" % slugify(institution)
-
-    return template.render(dataset_id=dataset_id,
-                                    dataset_dir=dir_path,
-                                    dataset_title=dataset_title)
-
-def make_all_dirs(catalog_root, mode):
-    """
-    Ensures directory creation for a catalog.
-    """
-    d = os.path.join(catalog_root, mode)
-
-    if not os.path.exists(d):
-        logger.info("Creating %s", d)
-        try:
-            os.makedirs(d)
-        except OSError:
-            pass
-
-def slugify(value):
-    """
-    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
-    Pulled from Django
-    """
-    import unicodedata
-    import re
-    value = str(value)
-    # BWA: this appears to break the code under Py3 in the re.sub due to
-    # casting to bytes rather than str
-    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = str(re.sub('[^\w\s-]', '', value).strip())
-    return str(re.sub('[-\s]+', '-', value))
-
-def main(mode, data_root, catalog_root, templates, root_dir=None):
-
-    # ensure directories exist
-    make_all_dirs(catalog_root, mode)
-
-    if mode == "priv_erddap":
-        build_erddap_catalog(data_root, catalog_root, mode, templates, root_dir)
-    elif mode == "pub_erddap":
-        build_erddap_catalog(data_root, catalog_root, mode, templates, root_dir)
-    else:
-        raise NotImplementedError("Unknown mode %s" % mode)
 
 if __name__ == "__main__":
+    '''
+    build_erddap_catalog.py priv_erddap ./data/data/priv_erddap ./data/catalog ./glider_dac/erddap/templates/private
+    '''
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['priv_erddap', 'pub_erddap'], help='Which ERDDAP to build the catalog for')
     parser.add_argument('data_dir', help='The directory where netCDF files are read from')
-    parser.add_argument('catalog_dir', help='The directory where the datasets.xml will reside')
-    parser.add_argument('templates', help='The directory where the XML templates exist')
-    parser.add_argument('-r', '--root-dir', help='The directory where the root netCDF files are, and the deployment.json files')
+    parser.add_argument('catalog_dir', help='The full path to where the datasets.xml will reside')
+    parser.add_argument('-f', '--force', action="store_true", help="Force processing ALL deployments")
 
-    args      = parser.parse_args()
+    args = parser.parse_args()
 
-    catalog   = os.path.realpath(args.catalog_dir)
-    data_root = os.path.realpath(args.data_dir)
-    templates = os.path.realpath(args.templates)
+    catalog_dir = os.path.realpath(args.catalog_dir)
+    data_dir = os.path.realpath(args.data_dir)
+    force = args.force
 
-    root_dir  = None
-    if args.root_dir:
-        root_dir = os.path.realpath(args.root_dir)
-
-
-    main(args.mode, data_root, catalog, templates, root_dir)
+    with app.app_context():
+        sys.exit(main(data_dir, catalog_dir, force))
