@@ -7,8 +7,9 @@ import argparse
 import logging
 from datetime import datetime
 from glider_dac import app, db
-from watchdog.events import (FileSystemEventHandler, DirCreatedEvent,
-                             DirDeletedEvent, FileCreatedEvent, FileMovedEvent)
+from watchdog.events import (FileSystemEventHandler,
+                             DirCreatedEvent, DirDeletedEvent,
+                             FileCreatedEvent, FileMovedEvent, FileModifiedEvent)
 from watchdog.observers import Observer
 
 
@@ -20,8 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 class HandleDeploymentDB(FileSystemEventHandler):
-    def __init__(self, base):
+    def __init__(self, base, flagsdir):
         self.base = base
+        self.flagsdir = flagsdir  # path to ERDDAP flags folder
 
     def file_moved_or_created(self, event):
         logger.info('%s %s', self.base, event.src_path)
@@ -29,6 +31,8 @@ class HandleDeploymentDB(FileSystemEventHandler):
             return
 
         rel_path = os.path.relpath(event.src_path, self.base)
+        if isinstance(event, FileMovedEvent):
+            rel_path = os.path.relpath(event.dest_path, self.base)
         path_parts = os.path.split(rel_path)
         logger.info("%s %s", type(event), path_parts)
 
@@ -56,13 +60,33 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 # so a checksum is calculated and a new deployment.json file
                 # is created
                 fname, ext = os.path.splitext(path_parts[-1])
-                if ext not in ['.md5', '.txt']:
+                if '.nc' in ext:
                     deployment.save()
-                    # TODO Touch ERDDAP flag
                     logger.info("Updated deployment %s", path_parts[0])
+                    # touch the ERDDAP flag (realtime data only)
+                    if not deployment.delayed_mode:
+                        deployment_name = path_parts[0].split('/')[-1]
+                        self.touch_erddap(deployment_name)
+
+    def touch_erddap(self, deployment_name):
+        '''
+        Creates a flag file for erddap's file monitoring thread so that it reloads
+        the dataset
+
+        '''
+        full_path = os.path.join(self.flagsdir, deployment_name)
+        logger.info("Touching ERDDAP flag file at {}".format(full_path))
+        # technically could async this as it's I/O, but touching a file is pretty
+        # unlikely to be a bottleneck
+        with open(full_path, 'w') as f:
+            pass  # Causes file creation (touch)
 
     def on_moved(self, event):
         if isinstance(event, FileMovedEvent):
+            self.file_moved_or_created(event)
+
+    def on_modified(self, event):
+        if isinstance(event, FileModifiedEvent):
             self.file_moved_or_created(event)
 
     def on_created(self, event):
@@ -83,7 +107,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
             logger.info("New deployment directory: %s", rel_path)
 
             with app.app_context():
-                deployment = db.Deployment.find_one({'deployment_dir':event.src_path})
+                deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
                 if deployment is None:
                     deployment             = db.Deployment()
 
@@ -138,11 +162,18 @@ def main(handler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('basedir',
-                        default=os.environ.get('DATA_ROOT', '.'),
-                        nargs='?')
-
+    parser.add_argument(
+        'basedir',
+        default=os.environ.get('DATA_ROOT', '.'),
+        nargs='?'
+    )
+    parser.add_argument(
+        'flagsdir',
+        default=os.environ.get('FLAGS_DIR', '.'),
+        nargs='?'
+    )
     args = parser.parse_args()
 
     base = os.path.realpath(args.basedir)
-    main(HandleDeploymentDB(base))
+    flagsdir = os.path.realpath(args.flagsdir)
+    main(HandleDeploymentDB(base, flagsdir))

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+#
+# THIS SCRIPT IS DEPRECATED. SYNCING ERDDAP IS DONE IN glider_dac_watchdog.py
+#
 import aiohttp
 import argparse
 import async_timeout
