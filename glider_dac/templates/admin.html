@@ -35,6 +35,7 @@
         <td>
           <a href="{{ url_for('admin_edit_user', user_id=user._id) }}" class="btn btn-default btn-xs">Edit</a>
           <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}">
+            {{ form.hidden_tag() }}
             <button class="btn btn-danger btn-xs">Delete</button>
           </form>
         </td>

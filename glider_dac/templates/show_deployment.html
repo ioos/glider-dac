@@ -297,6 +297,7 @@
 
   <h3>Admin</h3>
   <form method="POST" action="{{ url_for('delete_deployment', username=username, deployment_id=deployment._id) }}">
+    {{ form.hidden_tag() }}
     <button class="btn btn-danger">Delete Deployment</button>
   </form>
 
