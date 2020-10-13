@@ -65,6 +65,7 @@ $(function() {
       <td>
         {% if form and not m.delayed_mode%}
           <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('new_delayed_mode_deployment', username=username, deployment_id=m._id) }}">
+            {{ form.hidden_tag() }}
             <button title="Submit delayed mode data for this deployment" class="btn btn-primary btn-xs" {{ disabled }}><span class="glyphicon glyphicon-plus"></span> Delayed Mode</button>
           </form>
         {% endif %}
