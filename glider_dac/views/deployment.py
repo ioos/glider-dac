@@ -152,17 +152,6 @@ def new_deployment(username):
         if delayed_mode:
             deployment_name += '-delayed'
 
-        deployment = db.Deployment()
-        # form.populate_obj(deployment)
-        deployment.user_id = user._id
-        deployment.username = username
-        deployment.deployment_dir = os.path.join(username, deployment_name)
-        deployment.updated = datetime.utcnow()
-        deployment.deployment_date = deployment_date
-        deployment.glider_name = form.glider_name.data
-        deployment.name = deployment_name
-        deployment.attribution = form.attribution.data
-        deployment.delayed_mode = delayed_mode
         try:
             existing_deployment = db.Deployment.find_one(
                 {'name': deployment_name})
@@ -171,14 +160,34 @@ def new_deployment(username):
             existing_deployment = db.Deployment.find_one(
                 {'glider_name': form.glider_name.data, 'deployment_date': deployment_date})
             if existing_deployment is not None:
-                raise DuplicateKeyError(
-                    "Duplicate Key Detected: glider_name and deployment_date")
+                # if there is a previous real-time deployment and the one
+                # to create is marked as delayed mode, act as if the delayed
+                # mode modification path had been followed
+                if not existing_deployment.delayed_mode and delayed_mode:
+                    return new_delayed_mode_deployment(username,
+                                                       existing_deployment._id)
+            # same combination of glider_name/date/delayed_or_rt_mode should
+            # have been caught by this point by the unique deployment name.
+            # If we reach this, point, the deployment should either not exist
+            # yet, or delayed_mode on the existing deployment should be true and the
+            # new one should be a real-time deployment, so just continue making
+            # the deployment normally.
+            deployment = db.Deployment()
+            deployment.user_id = user._id
+            deployment.username = username
+            deployment.deployment_dir = os.path.join(username, deployment_name)
+            deployment.updated = datetime.utcnow()
+            deployment.deployment_date = deployment_date
+            deployment.glider_name = form.glider_name.data
+            deployment.name = deployment_name
+            deployment.attribution = form.attribution.data
+            deployment.delayed_mode = delayed_mode
             deployment.save()
             flash("Deployment created", 'success')
             send_registration_email(username, deployment)
         except DuplicateKeyError:
             flash("Deployment names must be unique across Glider DAC: %s already used" %
-                  deployment.name, 'danger')
+                  deployment_name, 'danger')
 
     else:
         error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
@@ -188,7 +197,8 @@ def new_deployment(username):
     return redirect(url_for('list_user_deployments', username=username))
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/new', methods=['POST'])
+@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/new',
+           methods=['POST'])
 @login_required
 def new_delayed_mode_deployment(username, deployment_id):
     '''

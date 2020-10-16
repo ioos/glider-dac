@@ -9,7 +9,9 @@ services:
       - 3000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
-      # - .:/glider-dac/  # For local development
+    #  # - .:/glider-dac/  # For local development
+      - ./users.db:/glider-dac/users.db
+
     depends_on:
       - mongo
       - redis
