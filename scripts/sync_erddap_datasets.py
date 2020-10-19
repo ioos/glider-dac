@@ -1,37 +1,33 @@
 #!/usr/bin/env python
-#
-# THIS SCRIPT IS DEPRECATED. SYNCING ERDDAP IS DONE IN glider_dac_watchdog.py
-#
-import aiohttp
+'''
+This script alerts ERDDAP to recently updated delayed mode datasets
+'''
 import argparse
-import async_timeout
-import asyncio
-import calendar
-import glob
-import json
 import logging
 import os
+import redis
 import sys
-import time
-from datetime import datetime
-from netCDF4 import Dataset
+from datetime import datetime, timezone, timedelta
+from glider_dac import app, db
 
 from config import *
-log = None
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s | %(levelname)s]  %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-def setup_logging(level=logging.DEBUG):
-    logger = logging.getLogger('sync_erddap')
-    logger.setLevel(level)
-    file_handler = logging.FileHandler('sync_erddap.log')
-    stream_handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.addHandler(stream_handler)
-    logger.setLevel(level)
-    return logger
+# Connect to redis to keep track of the last time this script ran
+redis_key = 'sync_erddap_datasets_last_run'
+redis_host = app.config.get('REDIS_HOST', 'redis')
+redis_port = app.config.get('REDIS_PORT', 6379)
+redis_db = app.config.get('REDIS_DB', 0)
+_redis = redis.Redis(
+    host=redis_host,
+    port=redis_port,
+    db=redis_db
+)
 
 
 def main(args):
@@ -44,32 +40,28 @@ def main(args):
     '''
     acquire_lock(args.lock_file)
     try:
-        global log
-        if log is None:
-            level = logging.DEBUG if args.verbose else logging.ERROR
-            log = setup_logging(level)
         if args.deployment is not None:
             deployments = [args.deployment]
         else:
-            deployments = get_deployments()
+            deployments = get_delayed_mode_deployments(args.force)
+            # Set the timestamp of this run in redis
+            dt_now = datetime.now(tz=timezone.utc)
+            _redis.set(redis_key, int(dt_now.timestamp()))
 
-        log.info( "Processing the following deployments")
+        if len(deployments) == 0:
+            logger.info('No recently updated delayed mode datasets')
+            return 0
+
+        logger.info( "Processing the following deployments")
         for deployment in deployments:
-            log.info( " - %s", deployment)
-        # limit to 4 simultaneous connections open for fetching data
-        sem = asyncio.Semaphore(4)
-        loop = asyncio.get_event_loop()
-        tasks = [loop.create_task(sync_deployment(d, sem, args.force))
-                 for d in deployments]
-        wait_tasks = asyncio.wait(tasks)
-        loop.run_until_complete(wait_tasks)
-        loop.close()
+            logger.info( " - %s", deployment)
+            sync_deployment(deployment)
 
     finally:
         release_lock(args.lock_file)
 
 
-async def sync_deployment(deployment, sem, force=False):
+def sync_deployment(deployment):
     '''
     For a given deployment (dataset), if it's got new data, use the
     ERDDAP flagging system to notify ERDDAP
@@ -82,102 +74,43 @@ async def sync_deployment(deployment, sem, force=False):
         path should be from config either flags_private or flags_public
         '''
         full_path = os.path.join(path, deployment_name)
-        log.info("Touching flag file at %s", full_path)
+        logger.info("Touching flag file at %s", full_path)
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
         with open(full_path, 'w') as f:
             pass  # Causes file creation (touch)
 
-    d = deployment
-    # Get Current Epoch Time and how far back in time to search
-    currentEpoch = time.time()
-    # reload any datasets which have been updated in the last 24 hours
-    time_in_past = 3600 * 24
-    mTime = get_mod_time(d)
-    deltaT = int(currentEpoch) - int(mTime)
+    logger.info( "--------------------------------------------------------------------------------")
+    logger.info( "   Processing %s", deployment)
+    logger.info( "--------------------------------------------------------------------------------")
+    logger.info( "Synchronizing at %s", datetime.utcnow().isoformat())
+    deployment_name = deployment.split('/')[-1]
 
-    if force or deltaT < time_in_past:
-        log.info( "--------------------------------------------------------------------------------")
-        log.info( "   Processing %s", deployment)
-        log.info( "--------------------------------------------------------------------------------")
-        log.info( "Synchronizing at %s", datetime.utcnow().isoformat())
-        deployment_name = deployment.split('/')[-1]
-        # First sync up the private
-        touch_erddap(deployment_name, flags_private)
-        log.info("Sleeping 10 seconds")
-        await asyncio.sleep(10)
-        if not await poll_erddap(deployment_name, erddap_private):
-            log.error("Couldn't update deployment %s", deployment)
-            return
+    touch_erddap(deployment_name, flags_private)
 
 
-async def poll_erddap(deployment_name, host, proto='http', attempts=3):
-    args = {}
-    args['host'] = host
-    args['deployment_name'] = deployment_name
-    args['proto'] = proto
-    url = '%(proto)s://%(host)s/erddap/tabledap/%(deployment_name)s.das' % args
-    log.info("Polling %s", url)
-    att_counter = attempts
-    try:
-        async with aiohttp.ClientSession() as session:
-            while att_counter > 0:
-                try:
-                    async with session.get(url) as response:
-                        if response.status != 200:
-                            log.warning("Failed to find deployment dataset: {}".format(url))
-                        else:
-                            break
-                except Exception:
-                    log.exception("hit exception while processing for deployment {}".format(url))
-                log.info("sleeping 15 second(s)")
-                await asyncio.sleep(15)
-                att_counter -= 1
-            else:
-                return False
-            return True
-    except Exception:
-        log.exception("Error while fetching http for deployment {}".format(url))
-        return False
+def get_delayed_mode_deployments(force=False):
+    """
+    Returns a list of the paths of delayed mode deployments to process.
+    Filters deployments by ones updated since the last time this script ran,
+    with a default or fallback to 24 hrs previously
+    """
+    query = {}
+    query['delayed_mode'] = True  # Only return delayed mode datasets
+    if not force:
+        # Get datasets that have been updated since the last time this script ran
+        try:
+            dt_yesterday = datetime.now(tz=timezone.utc) - timedelta(days=1)
+            last_run_ts = _redis.get(redis_key) or dt_yesterday.timestamp()
+            last_run = datetime.utcfromtimestamp(int(last_run_ts))
+            query['updated'] = {'$gte': last_run}
+        except Exception:
+            logger.error("Error: Parsing last run from redis. Processing Datasets from last 24 hrs")
+            query['updated'] = {'$gte': dt_yesterday}
 
+    deployments = db.Deployment.find(query)
 
-def get_deployments():
-    """Returns a list of the deployment directories"""
-    deployments = []
-    for user in os.listdir(path2priv):
-        if not os.path.isdir(os.path.join(path2priv, user)):
-            continue
-        for deployment_name in os.listdir(os.path.join(path2priv, user)):
-            deployment_path = os.path.join(path2priv, user, deployment_name)
-            if os.path.isdir(deployment_path):
-                deployments.append(os.path.join(user, deployment_name))
-    return deployments
-
-
-def get_mod_time(name):
-
-    jsonFile = os.path.join(JSON_DIR, name + '/deployment.json')
-    log.info("Inspecting %s", jsonFile)
-
-    try:
-        newest = max(glob.iglob(JSON_DIR + name + '/' + '*.nc') , key=os.path.getmtime)
-        ncTime = os.path.getmtime(newest)
-    except ValueError:
-        # if there are no nc files, arbitrarily set time as 0
-        ncTime = 0
-    if not os.path.exists(jsonFile):
-        with open(jsonFile, 'w') as outfile:
-            json.dump({'updated': ncTime * 1000}, outfile)
-        log.info("Initiated mod time JSON file: {}".format(outfile))
-
-    with open(jsonFile, 'r') as fid:
-        dataset = json.load(fid)
-    # get the max time reported between the netCDF files and the update time
-    # in the deployments json file
-    update_time = max(ncTime * 1000, dataset['updated'])
-    update_timestring = datetime.fromtimestamp(update_time / 1000).isoformat()
-    log.info("Dataset {} last updated {}".format(name, update_timestring))
-    return update_time / 1000
+    return [d.deployment_dir for d in deployments]
 
 
 def acquire_lock(path):
@@ -217,4 +150,5 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     parser.add_argument('-v', '--verbose', action="store_true", help="Sets log level to debug")
     args = parser.parse_args()
-    main(args)
+    with app.app_context():
+        sys.exit(main(args))
