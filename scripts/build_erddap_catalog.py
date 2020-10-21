@@ -46,6 +46,8 @@ from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
+import requests
+from sync_erddap_datasets import sync_deployment
 
 logging.basicConfig(
     level=logging.INFO,
@@ -74,6 +76,17 @@ _redis = redis.Redis(
     db=redis_db
 )
 
+def inactive_datasets(deployments_set):
+    try:
+        resp = requests.get("{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+                            timeout=10)
+        resp.raise_for_status()
+        # contents of erddap datasets
+        erddap_contents_set = set(resp.text.splitlines()[4:])
+    except (requests.Timeout, requests.HTTPError, IndexError):
+        erddap_contents_set = set()
+
+    return erddap_contents_set - deployments_set
 
 def build_datasets_xml(data_root, catalog_root, force):
     """
@@ -110,22 +123,34 @@ def build_datasets_xml(data_root, catalog_root, force):
 
     # Now loop through all the deployments and construct datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
+    deployments_name_set = set()
     deployments = db.Deployment.find()  # All deployments now
     with open(ds_path, 'w') as f:
         for line in fileinput.input([head_path]):
             f.write(line)
         # for each deployment, get the dataset chunk
         for deployment in deployments:
+            deployments_name_set.add(deployment.name)
             # First check that a chunk exists
             dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir, 'dataset.xml')
             if os.path.isfile(dataset_chunk_path):
                 for line in fileinput.input([dataset_chunk_path]):
                     f.write(line)
 
+        inactive_deployment_names = inactive_datasets(deployments_name_set)
+
+        for inactive_deployment in inactive_deployment_names:
+            f.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
+                         inactive_deployment))
+
         for line in fileinput.input([tail_path]):
             f.write(line)
 
     logger.info("Wrote {} from {} deployments".format(ds_path, deployments.count()))
+    # issue flag refresh to remove inactive deployments after datasets.xml written
+    for inactive_deployment_name in inactive_deployment_names:
+        sync_deployment(inactive_deployment_name)
+
 
 
 def build_erddap_catalog_chunk(data_root, deployment):
