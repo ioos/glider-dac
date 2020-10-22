@@ -82,7 +82,7 @@ def inactive_datasets(deployments_set):
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
-        erddap_contents_set = set(resp.text.splitlines()[4:])
+        erddap_contents_set = set(resp.text.splitlines()[3:])
     except (requests.Timeout, requests.HTTPError, IndexError):
         erddap_contents_set = set()
 
