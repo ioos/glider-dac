@@ -6,7 +6,7 @@ python:
 jobs:
   include:
     - stage: docker
-      script: docker build . -t glider-dac
+      script: docker build --build-arg glider_gid_uid=501 . -t glider-dac
       install: null
       deploy:
         - provider: script
