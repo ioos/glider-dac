@@ -397,7 +397,7 @@ def get_deployments():
         description: >
           Filter datasets with by last file's modtime being newer than minTime.
           Enter a datetime string (yyyy-MM-ddTHH:mm:ssZ)
-          Or specify 'now-nUnits' for example now-12hrs (integers only!)
+          Or specify 'now-nUnits' for example now-12hr (integers only!)
     responses:
         200:
           description: Success
