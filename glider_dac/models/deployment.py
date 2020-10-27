@@ -297,7 +297,7 @@ class Deployment(Document):
             wmo_id_file = os.path.join(self.full_path, "wmoid.txt")
             if os.path.exists(wmo_id_file):
                 # Read the wmo_id from file
-                with open(wmo_id_file, 'w') as f:
+                with open(wmo_id_file, 'r') as f:
                     wmo_id = str(f.readline().strip())
 
             if wmo_id != self.wmo_id:
