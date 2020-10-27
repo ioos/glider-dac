@@ -83,7 +83,8 @@ def inactive_datasets(deployments_set):
         resp.raise_for_status()
         # contents of erddap datasets
         erddap_contents_set = set(resp.text.splitlines()[3:])
-    except (requests.Timeout, requests.HTTPError, IndexError):
+    except:
+        logger.exception("Exception occurred while attempting to detect orphaned ERDDAP datasets")
         erddap_contents_set = set()
 
     return erddap_contents_set - deployments_set
