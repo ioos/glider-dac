@@ -280,13 +280,8 @@ class Deployment(Document):
             except OSError:
                 pass
 
-        # Keep the WMO file updated if it is edited via the web form
-        if self.wmo_id is not None and self.wmo_id != "":
-            wmo_id_file = os.path.join(self.full_path, "wmoid.txt")
-            with open(wmo_id_file, 'w') as f:
-                f.write(self.wmo_id)
-
         # trigger any completed tasks if necessary
+        self.update_wmoid_file()
         self.on_complete()
         self.calculate_checksum()
 
@@ -295,6 +290,20 @@ class Deployment(Document):
         with open(json_file, 'w') as f:
             f.write(self.to_json())
 
+    def update_wmoid_file(self):
+        # Keep the WMO file updated if it is edited via the web form
+        wmo_id = ""
+        if self.wmo_id is not None and self.wmo_id != "":
+            wmo_id_file = os.path.join(self.full_path, "wmoid.txt")
+            if os.path.exists(wmo_id_file):
+                # Read the wmo_id from file
+                with open(wmo_id_file, 'r') as f:
+                    wmo_id = str(f.readline().strip())
+
+            if wmo_id != self.wmo_id:
+                # Write the new wmo_id to file if new
+                with open(wmo_id_file, 'w') as f:
+                    f.write(self.wmo_id)
     @classmethod
     def get_deployment_count_by_operator(cls):
         return [count for count in db.deployments.aggregate({'$group': {'_id': '$operator', 'count': {'$sum': 1}}}, cursor={})]
