@@ -216,13 +216,13 @@ def build_erddap_catalog_chunk(data_root, deployment):
                          'density', 'lat', 'lon', 'time_uv', 'lat_uv',
                          'lon_uv', 'u', 'v', 'platform', 'instrument_ctd'}
 
-    # need to explicitly cast keys to set in Python 2
-    exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
-                    required_qc_vars | {'latitude', 'longitude'})
-
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
     with Dataset(nc_file, 'r') as ds:
         qc_var_types = check_for_qc_vars(ds)
+        # need to explicitly cast keys to set in Python 2
+        exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
+                        required_qc_vars | {'latitude', 'longitude'} |
+                        qc_var_types['gen_qc'].keys() | qc_var_types['qartod'].keys())
         all_other_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
         templ = template.render(
