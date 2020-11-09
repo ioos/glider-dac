@@ -125,7 +125,7 @@ def remove_archive(deployment):
     :param str deployment: Deployment name
     '''
     filename = '{}.ncCF.nc3.nc'.format(deployment)
-    path = os.path.join(NCEI_DIR, filename)
+    path = os.path.join(app.config["NCEI_DIR"], filename)
     logger.info("Removing archive: %s", deployment)
     if os.path.exists(path + '.md5'):
         os.unlink(path + '.md5')
@@ -142,7 +142,7 @@ def mark_do_not_archive(deployment):
     :param str deployment: Deployment name
     '''
     filename = '{}.ncCF.nc3.nc'.format(deployment)
-    path = os.path.join(NCEI_DIR, filename)
+    path = os.path.join(app.config["NCEI_DIR"], filename)
     logger.info("Marking deployment %s as DO NOT ARCHIVE", deployment)
     updated_filename = path + DNA_SUFFIX
     if os.path.exists(path):
