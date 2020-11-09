@@ -2,7 +2,6 @@
 '''
 Script to create symlinks of archivable datasets and generate an MD5 sum
 '''
-from config import API_URL, NCEI_DIR, path2pub
 import requests
 import argparse
 import sys
@@ -10,6 +9,7 @@ import os
 import hashlib
 import logging
 import shutil
+from glider_dac import app
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
@@ -23,7 +23,7 @@ def get_deployments():
     # Why is this using the API rather than hitting the database directly?
     global _DEP_CACHE
     if _DEP_CACHE is None:
-        r = requests.get(API_URL)
+        r = requests.get(app.config["API_URL"])
         if r.status_code != 200:
             raise IOError("Failed to get deployments from API")
         _DEP_CACHE = r.json()
@@ -51,7 +51,7 @@ def get_active_deployment_paths():
     Yields a filepath for each deployment marked completed by the API
     '''
     for d in get_active_deployments():
-        filedir = os.path.join(path2pub, d['deployment_dir'])
+        filedir = os.path.join(app.config["path2pub"], d['deployment_dir'])
         filename = os.path.basename(d['deployment_dir']) + '.ncCF.nc3.nc'
         filepath = os.path.join(filedir, filename)
         yield filepath
@@ -64,7 +64,7 @@ def make_copy(filepath):
     :param str filepath: Path to the source of the symbolic link
     '''
     filename = os.path.basename(filepath)
-    target = os.path.join(NCEI_DIR, filename)
+    target = os.path.join(app.config["NCEI_DIR"], filename)
     do_not_archive_filename = target + DNA_SUFFIX
     source = filepath
     if not os.path.exists(target):
@@ -172,7 +172,7 @@ def main(args):
         make_copy(filepath)
 
     active_deployments = [d['name'] for d in get_active_deployments()]
-    for filename in os.listdir(NCEI_DIR):
+    for filename in os.listdir(app.config["NCEI_DIR"]):
         if filename.endswith('.ncCF.nc3.nc'):
             deployment = filename.split('.')[0]
             if deployment not in active_deployments:

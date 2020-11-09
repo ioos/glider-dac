@@ -7,7 +7,6 @@ from glider_dac import app, db
 import argparse
 import sys
 import os
-from config import PUBLIC_CATALOG, PRIVATE_CATALOG, path2priv, path2pub, path2thredds
 import shutil
 
 def main(args):
@@ -15,11 +14,11 @@ def main(args):
     dest = args.dest
 
     update_db(src, dest)
-    update_catalog(PUBLIC_CATALOG, src, dest)
-    update_catalog(PRIVATE_CATALOG, src, dest)
-    update_filesystem(path2priv, src, dest)
-    update_filesystem(path2pub, src, dest)
-    update_filesystem(path2thredds, src, dest)
+    update_catalog(app.config["PUBLIC_CATALOG"], src, dest)
+    update_catalog(app.config["PRIVATE_CATALOG"], src, dest)
+    update_filesystem(app.config["path2priv"], src, dest)
+    update_filesystem(app.config["path2pub"], src, dest)
+    update_filesystem(app.config["path2thredds"], src, dest)
 
 def update_db(src, dest):
     with app.app_context():
