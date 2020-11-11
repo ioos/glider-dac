@@ -171,20 +171,6 @@ class Deployment(Document):
     def thredds_path(self):
         return os.path.join(app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
 
-    def _hash_file(self, fname):
-        """
-        Calculates an md5sum of the passed in file (absolute path).
-
-        Based on http://stackoverflow.com/a/4213255/84732
-        """
-        md5 = hashlib.md5()
-
-        with open(fname, 'rb') as f:
-            for chunk in iter(lambda: f.read(1024 * 2048), b''):
-                md5.update(chunk)
-
-        return md5.hexdigest()
-
     def on_complete(self):
         """
         sync calls here to trigger any completion tasks.
@@ -212,17 +198,6 @@ class Deployment(Document):
                         continue
 
                     full_file = os.path.join(dirpath, f)
-                    md5_file = full_file + ".md5"
-
-                    # only calc md5 if it does not exist, this is expensive!
-                    if os.path.exists(md5_file):
-                        continue
-
-                    md5_value = self._hash_file(full_file)
-
-                    md5_file = full_file + ".md5"
-                    with open(md5_file, 'w') as mf:
-                        mf.write(md5_value)
             # schedule the checker job to kick off the compliance checker email
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
@@ -306,4 +281,9 @@ class Deployment(Document):
                     f.write(self.wmo_id)
     @classmethod
     def get_deployment_count_by_operator(cls):
-        return [count for count in db.deployments.aggregate({'$group': {'_id': '$operator', 'count': {'$sum': 1}}}, cursor={})]
+        return [count for count in db.deployments.aggregate({'$group': {'_id':
+                                                                        '$operator',
+                                                                        'count':
+                                                                        {'$sum':
+                                                                         1}}},
+                                                            cursor={})]
