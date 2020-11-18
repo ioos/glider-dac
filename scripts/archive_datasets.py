@@ -41,9 +41,7 @@ def get_active_deployments():
     '''
     deployments = get_deployments()
     return (d for d in deployments['results']
-            if d['completed'] and
-               d.get("archive_safe") and
-               d.get("compliance_check_passed"))
+            if d['completed'] and d.get("archive_safe"))
 
 
 def get_active_deployment_paths():
