@@ -86,6 +86,8 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
                             deployment_dir=None, username=None):
     """
     """
+    # TODO: move this functionality to another module as compliance checks
+    #       no longer send emails.
     cs = CheckSuite()
     cs.load_all_available_checkers()
     with app.app_context():
@@ -142,8 +144,9 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
                     root_logger.exception(
                         "Exception occurred while processing deployment {}".format(dep['name']))
                     text_body = ''
-            send_deployment_cchecker_email(user, failing_deployments,
-                                           "\n".join(all_messages))
+            # currently unused
+            #send_deployment_cchecker_email(user, failing_deployments,
+            #                               "\n".join(all_messages))
 
 def process_deployment(dep):
     deployment_issues = "Deployment {}".format(os.path.basename(dep['name']))
