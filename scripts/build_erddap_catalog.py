@@ -264,17 +264,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     </dataVariable>
 
     <dataVariable>
-        <sourceName>time</sourceName>
-        <destinationName>precise_time</destinationName>
-        <dataType>double</dataType>
-        <addAttributes>
-            <att name="ioos_category">Time</att>
-            <att name="long_name">Precise Time</att>
-            <att name="comment">Timestamp at each point in the time-series</att>
-        </addAttributes>
-    </dataVariable>
-
-    <dataVariable>
         <sourceName>depth</sourceName>
         <destinationName>depth</destinationName>
         <dataType>float</dataType>
@@ -376,6 +365,17 @@ def build_erddap_catalog_chunk(data_root, deployment):
             <att name="ioos_category">Location</att>
             <att name="long_name">Precise Longitude</att>
             <att name="comment">Interpolated longitude at each point in the time-series</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time</sourceName>
+        <destinationName>precise_time</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ioos_category">Time</att>
+            <att name="long_name">Precise Time</att>
+            <att name="comment">Timestamp at each point in the time-series</att>
         </addAttributes>
     </dataVariable>
 
