@@ -37,7 +37,6 @@ def get_active_deployments():
 
     - The dataset is completed
     - The dataset is marked for archival by NCEI
-    - The dataset has passed the Glider DAC compliance check
     '''
     deployments = get_deployments()
     return (d for d in deployments['results']
