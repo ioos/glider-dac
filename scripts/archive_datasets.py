@@ -37,13 +37,10 @@ def get_active_deployments():
 
     - The dataset is completed
     - The dataset is marked for archival by NCEI
-    - The dataset has passed the Glider DAC compliance check
     '''
     deployments = get_deployments()
     return (d for d in deployments['results']
-            if d['completed'] and
-               d.get("archive_safe") and
-               d.get("compliance_check_passed"))
+            if d['completed'] and d.get("archive_safe"))
 
 
 def get_active_deployment_paths():
