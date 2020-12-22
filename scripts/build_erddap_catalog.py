@@ -566,7 +566,9 @@ def build_erddap_catalog_chunk(data_root, deployment):
 def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
     var_list = []
     for req_var in required_vars:
-        if req_var in qc_var_types['gen_qc']:
+        # If the required non-QARTOD QC variable isn't already defined,
+        # then supply a set of default attributes.
+        if req_var not in qc_var_types['gen_qc']:
             flag_atts = """
                 <att name="flag_values" type="byteList">0 1 2 3 4 5 6 7 8 9</att>
                 <att name="flag_meanings">no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed interpolated_value missing_value</att>
