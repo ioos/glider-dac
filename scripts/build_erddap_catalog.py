@@ -153,6 +153,13 @@ def build_datasets_xml(data_root, catalog_root, force):
         sync_deployment(inactive_deployment_name)
 
 
+def variable_sort_function(element):
+    """
+    Sorts by ERDDAP variable destinationName, or by
+    sourceName if the former is not available.
+    """
+    return (element.xpath("destinationName/text()") or
+            element.xpath("sourceName/text()"))
 
 def build_erddap_catalog_chunk(data_root, deployment):
     """
@@ -463,8 +470,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     </test>
     """).findall("dataVariable")
 
-    #sorted_base_variable_list = sorted(common_variables,
-    #                                    key=lambda dv: dv.xpath("destinationName/text()"))
 
     # variables which need to have the variable {var_name}_qc present in the
     # template.  Right now these are all the same, so are hardcoded
@@ -506,7 +511,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         vars_sorted = sorted(common_variables +
                              qc_vars_snippet + all_other_vars,
-                             key=lambda e: e.xpath("destinationName/text()"))
+                             key=variable_sort_function)
         variable_order = core_variables + vars_sorted
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
