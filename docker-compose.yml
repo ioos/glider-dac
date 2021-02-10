@@ -4,22 +4,14 @@ services:
   glider-dac-providers-app: &provider_anchor
     container_name: glider-dac-providers-app
     restart: always
-    image: ioos/glider-dac:latest
-    #build:
-    #  context: .
-    #  args:
-    #    glider_gid_uid: 501
+    build: .
     ports:
       - 3000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
-      - /data:/data
-      - /scratch/:/scratch/
-      - ./logs/:/glider-dac/logs/
-      - /home/glider/glider-dac/users.db:/glider-dac/users.db
-      - ./scripts/config.py:/glider-dac/scripts/config.py
-        #- .:/glider-dac/  # For local development
-    #command: flask run
+    #  # - .:/glider-dac/  # For local development
+      - ./users.db:/glider-dac/users.db
+
     depends_on:
       - mongo
       - redis
@@ -37,8 +29,7 @@ services:
     ports: []
     # Update DATA_ROOT to point to ERDDAP directory
     environment:
-      #- DATA_ROOT=/data/data/priv_erddap
-      - DATA_ROOT=/data/submission
+      - DATA_ROOT=/data/data/priv_erddap
       - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
 
   mongo:
@@ -60,11 +51,6 @@ services:
     image: axiom/docker-erddap
     ports:
       - 8080:8080
-    volumes:
-      - /var/tomcats/tomcat-erddap-private/content/erddap/setup.xml:/usr/local/tomcat/content/erddap/setup.xml
-      - /var/tomcats/tomcat-erddap-private/content/erddap/datasets.xml:/usr/local/tomcat/content/erddap/datasets.xml
-      - /data:/data
-      - /scratch/:/scratch/
 
   redis:
     container_name: redis
