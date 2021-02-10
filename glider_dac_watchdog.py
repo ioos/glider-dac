@@ -13,20 +13,13 @@ from watchdog.events import (FileSystemEventHandler,
 from watchdog.observers import Observer
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s | %(levelname)s]  %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-
 class HandleDeploymentDB(FileSystemEventHandler):
     def __init__(self, base, flagsdir):
         self.base = base
         self.flagsdir = flagsdir  # path to ERDDAP flags folder
 
     def file_moved_or_created(self, event):
-        logger.info('%s %s', self.base, event.src_path)
+        app.logger.info('%s %s', self.base, event.src_path)
         if self.base not in event.src_path:
             return
 
@@ -34,7 +27,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
         if isinstance(event, FileMovedEvent):
             rel_path = os.path.relpath(event.dest_path, self.base)
         path_parts = os.path.split(rel_path)
-        logger.info("%s %s", type(event), path_parts)
+        app.logger.info("%s %s", type(event), path_parts)
 
         # ignore if a dotfile
         if path_parts[1].startswith('.'):
@@ -43,18 +36,18 @@ class HandleDeploymentDB(FileSystemEventHandler):
         with app.app_context():
             deployment = db.Deployment.find_one({'deployment_dir' : path_parts[0]})
             if deployment is None:
-                logger.error("Cannot find deployment for %s", path_parts[0])
+                app.logger.error("Cannot find deployment for %s", path_parts[0])
                 return
 
             if path_parts[-1] == "wmoid.txt":
                 rel_path = os.path.relpath(event.src_path, self.base)
-                logger.info("New wmoid.txt in %s", rel_path)
+                app.logger.info("New wmoid.txt in %s", rel_path)
                 if deployment.wmo_id:
-                    logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
+                    app.logger.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
                 with open(event.src_path) as wf:
                     deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
-                logger.info("Updated deployment %s", path_parts[0])
+                app.logger.info("Updated deployment %s", path_parts[0])
             else:
                 # Always save the Deployment when a new dive file is added
                 # so a checksum is calculated and a new deployment.json file
@@ -62,7 +55,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 fname, ext = os.path.splitext(path_parts[-1])
                 if '.nc' in ext:
                     deployment.save()
-                    logger.info("Updated deployment %s", path_parts[0])
+                    app.logger.info("Updated deployment %s", path_parts[0])
                     # touch the ERDDAP flag (realtime data only)
                     if not deployment.delayed_mode:
                         deployment_name = path_parts[0].split('/')[-1]
@@ -75,7 +68,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
         '''
         full_path = os.path.join(self.flagsdir, deployment_name)
-        logger.info("Touching ERDDAP flag file at {}".format(full_path))
+        app.logger.info("Touching ERDDAP flag file at {}".format(full_path))
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
         with open(full_path, 'w') as f:
@@ -104,7 +97,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
             if len(path_parts) != 3:
                 return
 
-            logger.info("New deployment directory: %s", rel_path)
+            app.logger.info("New deployment directory: %s", rel_path)
 
             with app.app_context():
                 deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
@@ -136,7 +129,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
             if len(path_parts) != 3:
                 return
 
-            logger.info("Removed deployment directory: %s", rel_path)
+            app.logger.info("Removed deployment directory: %s", rel_path)
 
             with app.app_context():
                 deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
@@ -149,7 +142,7 @@ def main(handler):
     observer.schedule(handler, path=handler.base, recursive=True)
     observer.start()
 
-    logger.info("Watching user directories in %s", handler.base)
+    app.logger.info("Watching user directories in %s", handler.base)
 
     try:
         while True:

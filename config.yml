@@ -2,6 +2,7 @@ COMMON: &common
   HOST: localhost
   PORT: 5000
   DEBUG: False
+  #DEBUG: True
   MONGODB_HOST: localhost
   MONGODB_PORT: 27017
   MONGODB_DATABASE: gliderdac
