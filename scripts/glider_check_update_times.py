@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 import datetime
 from pathlib import Path
+from influxdb_client import InfluxDBClient, Point, WriteOptions
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 """
@@ -48,7 +50,7 @@ def get_nc_time(nc_filepath):
 
 def get_last_nc_file(root_folder, subdir):
     """
-    Try to find the last netCDF file and time based on sorted filename and 
+    Try to find the last netCDF file and time based on sorted filename and
     file modification time.  If the two don't match, read the netCDF file
     and find the file with the last time.  Return a 2-tuple with the filename
     and the last time variable value contained in the netCDF file
@@ -63,7 +65,7 @@ def get_last_nc_file(root_folder, subdir):
         return None
 
     # if both files names are the same, return them both
-    if last_name == last_mod_time: 
+    if last_name == last_mod_time:
         return last_name, get_nc_time(last_name)
     # otherwise find the file with the last time
     else:
@@ -87,7 +89,7 @@ def check_times(t1, t2, label, check_thresh=pd.Timedelta(hours=12)):
     except Exception as e:
         logger.exception()
 
-def process_deployment(dep_subdir): 
+def process_deployment(dep_subdir):
     """
     Processes deployments, comparing submissions to ERDDAP private
     and ERDDAP private to ERDDAP public
@@ -108,7 +110,7 @@ def fetch_dataframe():
                                      os.getenv("MONGO_PORT", "27017")))
     db = client.gliderdac
     comparison_df = pd.read_csv("https://gliders.ioos.us/erddap/tabledap/allDatasets.csv?datasetID%2CmaxTime",
-                                index_col=0, header=0, 
+                                index_col=0, header=0,
                                 skiprows=[1, 2], names=["erddap_time"], parse_dates=[0])
     comparison_df.index.name = "dataset_name"
 
@@ -139,13 +141,31 @@ def fetch_dataframe():
 
     return comparison_df
 
+def write_to_influxdb(df):
+    """Writes the time data to InfluxDB"""
+    try:
+        client = InfluxDBClient(url=os.environ["INFLUXDB_URL"],
+                                token="{}:{}".format(
+                                        os.environ["INFLUX_USER"],
+                                        os.environ["INFLUX_PASS"]),
+                                org="GliderDAC", dbname="influx")
+        _write_client = client.write_api(write_options=SYNCHRONOUS)
+        df["_timestamp"] = pd.Timestamp.now(tz="utc")
+        df = df.reset_index().set_index("_timestamp")
+        # InfluxDB really doesn't like the timedelta columns, and claims
+        # invalid timestamp
+        del df["priv_diff"]
+        del df["sub_diff"]
+        _write_client.write(bucket="influx", record=df,
+                            data_frame_measurement_name='erddap_nc_comparison',
+                            data_frame_tag_columns=['dataset_name'],
+                            time_precision="ns", protocol="line")
+    except:
+        logger.exception("Could not write values to InfluxDB")
 
 
-def main(): 
+def main():
     df = fetch_dataframe()
-    # write CSV for times
-    # TODO: Write metrics to InfluxDB or other DB for metrics storage
-    df.to_csv("/tmp/comparison_times.csv")
 
     erddap_file_diff_time = df["priv_diff"]
     # get files which need to be updated, namely any dataset in ERDDAP
@@ -165,6 +185,8 @@ def main():
             logger.info("Created flag file for outdated deployment %s",
                         ds_name)
 
+    # write metrics to InfluxDB
+    write_to_influxdb(df)
+
 if __name__ == '__main__':
     main()
-
