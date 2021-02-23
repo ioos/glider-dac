@@ -613,7 +613,7 @@ def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
            <destinationName>{qartod_var}</destinationName>
            <dataType>byte</dataType>
            <addAttributes>
-               <att name="ioos_category">Quality</att>
+              <att name="ioos_category">Quality</att>
               <att name="flag_values" type="byteList">1 2 3 4 9</att>
               <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
               <att name="valid_min" type="byte">1</att>
@@ -623,6 +623,19 @@ def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
        </dataVariable>
        """
        var_list.append(etree.fromstring(qartod_snip))
+
+    for gen_qc_var in qc_var_types["gen_qc"]:
+        # assume byte for data type as it is required
+        gen_qc_snip = f"""
+            <dataVariable>
+               <sourceName>{gen_qc_var}</sourceName>
+               <dataType>byte</dataType>
+               <addAttributes>
+                  <att name="ioos_category">Quality</att>
+               </addAttributes>
+            </dataVariable>
+            """
+        var_list.append(etree.fromstring(gen_qc_snip))
 
     return var_list
 
