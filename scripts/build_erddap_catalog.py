@@ -158,8 +158,16 @@ def variable_sort_function(element):
     Sorts by ERDDAP variable destinationName, or by
     sourceName if the former is not available.
     """
-    return (element.xpath("destinationName/text()") or
-            element.xpath("sourceName/text()"))
+    elem_list = (element.xpath("destinationName/text()") or
+                 element.xpath("sourceName/text()"))
+    # sort case insensitive
+    try:
+        return elem_list[0].lower()
+    # If there's no source or destination name, or type is not a string,
+    # assume a blank string.
+    # This is probably not valid in datasets.xml, but we have to do something.
+    except (IndexError, AttributeError):
+        return ""
 
 def build_erddap_catalog_chunk(data_root, deployment):
     """
