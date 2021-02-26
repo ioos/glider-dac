@@ -633,6 +633,10 @@ def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
        var_list.append(etree.fromstring(qartod_snip))
 
     for gen_qc_var in qc_var_types["gen_qc"]:
+        # if we already have this variable as part of required QC variables,
+        # skip it.
+        if gen_qc_var in required_vars:
+            continue
         # assume byte for data type as it is required
         gen_qc_snip = f"""
             <dataVariable>
