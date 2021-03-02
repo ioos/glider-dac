@@ -67,6 +67,7 @@ queue = Queue('default', connection=redis_connection)
 import sys
 
 from flask_mongokit import MongoKit
+import os
 db = MongoKit(app)
 
 # Mailer
@@ -88,7 +89,8 @@ if not os.path.exists(app.config.get('USER_DB_FILE')):
 if app.config.get('LOG_FILE') == True:
     import logging
     from logging import FileHandler
-    file_handler = FileHandler('logs/glider_dac.txt')
+    file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
+                                            '../logs/glider_dac.txt'))
     formatter = logging.Formatter('%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
