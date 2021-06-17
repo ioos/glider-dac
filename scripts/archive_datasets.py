@@ -66,11 +66,18 @@ def make_copy(filepath):
     source = filepath
     if not os.path.exists(target):
         logger.info("Creating archive dataset")
-        shutil.copyfile(source, target)
+        try:
+            shutil.copyfile(source, target)
+        except IOError:
+            logger.exception("Could not copy file {}".format(source))
+            return
     generate_hash(target)
     if os.path.exists(do_not_archive_filename):
-        os.unlink(do_not_archive_filename)
-        logger.info("Removing DO NOT ARCHIVE File")
+        try:
+            logger.info("Removing DO NOT ARCHIVE File")
+            os.unlink(do_not_archive_filename)
+        except OSError:
+            logger.exception("Could not remove {}".format(do_not_archive_filename))
 
 
 def generate_hash(filepath):
