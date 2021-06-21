@@ -78,7 +78,7 @@ _redis = redis.Redis(
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
@@ -659,7 +659,10 @@ def add_erddap_var_elem(var):
     source_name = etree.SubElement(dvar_elem, 'sourceName')
     source_name.text = var.name
     data_type = etree.SubElement(dvar_elem, 'dataType')
-    data_type.text = erddap_mapping_dict[var.dtype.type]
+    if var.dtype == str:
+        data_type.text = "String"
+    else:
+        data_type.text = erddap_mapping_dict[var.dtype.type]
     add_atts = etree.SubElement(dvar_elem, 'addAttributes')
     ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
     ioos_category.text = "Other"
