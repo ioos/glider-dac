@@ -124,4 +124,3 @@ class TestGliderQC(TestCase):
 
         converted = GliderQC.normalize_variable(values, units, standard_name)
         np.testing.assert_almost_equal(np.array([0, 18.3333, 37.777778]), converted, 2)
-
