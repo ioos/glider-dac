@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timezone, timedelta
 from glider_dac import app, db
 
+
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s | %(levelname)s]  %(message)s'

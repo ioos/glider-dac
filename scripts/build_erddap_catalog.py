@@ -47,7 +47,7 @@ from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
-from sync_erddap_datasets import sync_deployment
+from .sync_erddap_datasets import sync_deployment
 
 logging.basicConfig(
     level=logging.INFO,
@@ -78,7 +78,7 @@ _redis = redis.Redis(
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
@@ -153,6 +153,21 @@ def build_datasets_xml(data_root, catalog_root, force):
         sync_deployment(inactive_deployment_name)
 
 
+def variable_sort_function(element):
+    """
+    Sorts by ERDDAP variable destinationName, or by
+    sourceName if the former is not available.
+    """
+    elem_list = (element.xpath("destinationName/text()") or
+                 element.xpath("sourceName/text()"))
+    # sort case insensitive
+    try:
+        return elem_list[0].lower()
+    # If there's no source or destination name, or type is not a string,
+    # assume a blank string.
+    # This is probably not valid in datasets.xml, but we have to do something.
+    except (IndexError, AttributeError):
+        return ""
 
 def build_erddap_catalog_chunk(data_root, deployment):
     """
@@ -163,11 +178,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     """
     deployment_dir = deployment.deployment_dir
     logger.info("Building ERDDAP catalog chunk for {}".format(deployment_dir))
-
-    # grab template for dataset fragment
-    template_path = os.path.join(template_dir, 'dataset.deployment.xml')
-    with open(template_path) as f:
-        template = Template("".join(f.readlines()))
 
     dir_path = os.path.join(data_root, deployment_dir)
 
@@ -191,6 +201,283 @@ def build_erddap_catalog_chunk(data_root, deployment):
     latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
     if latest_file is None:
         raise IOError('No nc files found in deployment {}'.format(deployment_dir))
+
+    core_variables = etree.fromstring("""
+    <test>
+    <dataVariable>
+        <sourceName>trajectory</sourceName>
+        <destinationName>trajectory</destinationName>
+        <dataType>String</dataType>
+        <addAttributes>
+            <att name="comment">A trajectory is one deployment of a glider.</att>
+            <att name="ioos_category">Identifier</att>
+            <att name="long_name">Trajectory Name</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>global:wmo_id</sourceName>
+        <destinationName>wmo_id</destinationName>
+        <dataType>String</dataType>
+        <addAttributes>
+            <att name="ioos_category">Identifier</att>
+            <att name="long_name">WMO ID</att>
+            <att name="missing_value" type="string">none specified</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>profile_id</sourceName>
+        <destinationName>profile_id</destinationName>
+        <dataType>int</dataType>
+        <addAttributes>
+            <att name="cf_role">profile_id</att>
+            <att name="ioos_category">Identifier</att>
+            <att name="long_name">Profile ID</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>profile_time</sourceName>
+        <destinationName>time</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ioos_category">Time</att>
+            <att name="long_name">Profile Time</att>
+            <att name="comment">Timestamp corresponding to the mid-point of the profile.</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>profile_lat</sourceName>
+        <destinationName>latitude</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">90.0</att>
+            <att name="colorBarMinimum" type="double">-90.0</att>
+            <att name="valid_max" type="double">90.0</att>
+            <att name="valid_min" type="double">-90.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Profile Latitude</att>
+            <att name="comment">Value is interpolated to provide an estimate of the latitude at the mid-point of the profile.</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>profile_lon</sourceName>
+        <destinationName>longitude</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">180.0</att>
+            <att name="colorBarMinimum" type="double">-180.0</att>
+            <att name="valid_max" type="double">180.0</att>
+            <att name="valid_min" type="double">-180.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Profile Longitude</att>
+            <att name="comment">Value is interpolated to provide an estimate of the longitude at the mid-point of the profile.</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>depth</sourceName>
+        <destinationName>depth</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">2000.0</att>
+            <att name="colorBarMinimum" type="double">0.0</att>
+            <att name="colorBarPalette">OceanDepth</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Depth</att>
+        </addAttributes>
+    </dataVariable>
+    </test>
+    """).findall("dataVariable")
+
+    common_variables = etree.fromstring(f"""
+    <test>
+    <dataVariable>
+        <sourceName>pressure</sourceName>
+        <destinationName>pressure</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">2000.0</att>
+            <att name="colorBarMinimum" type="double">0.0</att>
+            <att name="ioos_category">Pressure</att>
+            <att name="long_name">Sea Water Pressure</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>temperature</sourceName>
+        <destinationName>temperature</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">32.0</att>
+            <att name="colorBarMinimum" type="double">0.0</att>
+            <att name="ioos_category">Temperature</att>
+            <att name="long_name">Sea Water Temperature</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>conductivity</sourceName>
+        <destinationName>conductivity</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">9.0</att>
+            <att name="colorBarMinimum" type="double">0.0</att>
+            <att name="ioos_category">Salinity</att>
+            <att name="long_name">Sea Water Electrical Conductivity</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>salinity</sourceName>
+        <destinationName>salinity</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">37.0</att>
+            <att name="colorBarMinimum" type="double">30.0</att>
+            <att name="ioos_category">Salinity</att>
+            <att name="long_name">Sea Water Practical Salinity</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>density</sourceName>
+        <destinationName>density</destinationName>
+        <dataType>float</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">1032.0</att>
+            <att name="colorBarMinimum" type="double">1020.0</att>
+            <att name="ioos_category">Other</att>
+            <att name="long_name">Sea Water Density</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lat</sourceName>
+        <destinationName>precise_lat</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ancillary_varibles">precise_lat_qc</att>
+            <att name="colorBarMaximum" type="double">90.0</att>
+            <att name="colorBarMinimum" type="double">-90.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Precise Latitude</att>
+            <att name="comment">Interpolated latitude at each point in the time-series</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lon</sourceName>
+        <destinationName>precise_lon</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ancillary_varibles">precise_lon_qc</att>
+            <att name="colorBarMaximum" type="double">180.0</att>
+            <att name="colorBarMinimum" type="double">-180.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Precise Longitude</att>
+            <att name="comment">Interpolated longitude at each point in the time-series</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time</sourceName>
+        <destinationName>precise_time</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ioos_category">Time</att>
+            <att name="long_name">Precise Time</att>
+            <att name="comment">Timestamp at each point in the time-series</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>time_uv</sourceName>
+        <destinationName>time_uv</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="ioos_category">Time</att>
+            <att name="long_name">Depth-averaged Time</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lat_uv</sourceName>
+        <destinationName>lat_uv</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">90.0</att>
+            <att name="colorBarMinimum" type="double">-90.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Depth-averaged Latitude </att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>lon_uv</sourceName>
+        <destinationName>lon_uv</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">180.0</att>
+            <att name="colorBarMinimum" type="double">-180.0</att>
+            <att name="ioos_category">Location</att>
+            <att name="long_name">Depth-averaged Longitude</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>u</sourceName>
+        <destinationName>u</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">0.5</att>
+            <att name="colorBarMinimum" type="double">-0.5</att>
+            <att name="coordinates">lon_uv lat_uv time_uv</att>
+            <att name="ioos_category">Currents</att>
+            <att name="long_name">Depth-averaged Eastward Sea Water Velocity</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>v</sourceName>
+        <destinationName>v</destinationName>
+        <dataType>double</dataType>
+        <addAttributes>
+            <att name="colorBarMaximum" type="double">0.5</att>
+            <att name="colorBarMinimum" type="double">-0.5</att>
+            <att name="coordinates">lon_uv lat_uv time_uv</att>
+            <att name="ioos_category">Currents</att>
+            <att name="long_name">Depth-averaged Northward Sea Water Velocity</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>platform</sourceName>
+        <destinationName>platform_meta</destinationName>
+        <dataType>byte</dataType>
+        <addAttributes>
+            <att name="ioos_category">Identifier</att>
+            <att name="long_name">Platform Metadata</att>
+            <att name="units">1</att>
+        </addAttributes>
+    </dataVariable>
+
+    <dataVariable>
+        <sourceName>instrument_ctd</sourceName>
+        <destinationName>instrument_ctd</destinationName>
+        <dataType>byte</dataType>
+        <addAttributes>
+            <att name="ioos_category">Identifier</att>
+            <att name="long_name">CTD Metadata</att>
+            <att name="units">1</att>
+        </addAttributes>
+    </dataVariable>
+    </test>
+    """).findall("dataVariable")
+
 
     # variables which need to have the variable {var_name}_qc present in the
     # template.  Right now these are all the same, so are hardcoded
@@ -216,39 +503,153 @@ def build_erddap_catalog_chunk(data_root, deployment):
                          'density', 'lat', 'lon', 'time_uv', 'lat_uv',
                          'lon_uv', 'u', 'v', 'platform', 'instrument_ctd'}
 
+
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
     with Dataset(nc_file, 'r') as ds:
         qc_var_types = check_for_qc_vars(ds)
+        #qc_vars = qc_var_snippets(required_qc_vars, qc_var_types)
         # need to explicitly cast keys to set in Python 2
         exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
                         required_qc_vars | {'latitude', 'longitude'} |
                         qc_var_types['gen_qc'].keys() | qc_var_types['qartod'].keys())
-        all_other_vars = ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)
+        all_other_vars = [add_erddap_var_elem(var) for var in
+                          ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)]
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
-        templ = template.render(
-            dataset_id=deployment.name,
-            dataset_dir=dir_path,
-            checksum=checksum,
-            completed=completed,
-            reqd_qc_vars=required_qc_vars,
-            dest_var_remaps=dest_var_remaps,
-            qc_var_types=qc_var_types,
-            gts_ingest=gts_ingest,
-            delayed_mode=delayed_mode
-        )
+        qc_vars_snippet = qc_var_snippets(required_qc_vars, qc_var_types, dest_var_remaps)
+
+        vars_sorted = sorted(common_variables +
+                             qc_vars_snippet + all_other_vars,
+                             key=variable_sort_function)
+        variable_order = core_variables + vars_sorted
         # Add any of the extra variables and attributes
+        reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
+        if completed or delayed_mode:
+            reload_settings = reload_template.format(10080)
+        else:
+            reload_settings = reload_template.format(1440)
         try:
-            tree = etree.fromstring(templ)
+            tree = etree.fromstring(f"""
+                <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
+                    <!-- defaultDataQuery uses datasetID -->
+                    <!--
+                    <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
+                    <defaultGraphQuery>longitude,latitude,time&amp;.draw=markers&amp;.marker=2|5&.color=0xFFFFFF&.colorBar=|||||</defaultGraphQuery>
+                    -->
+                    {reload_settings}
+                    <updateEveryNMillis>-1</updateEveryNMillis>
+                    <!-- use datasetID as the directory name -->
+                    <fileDir>{dir_path}</fileDir>
+                    <recursive>false</recursive>
+                    <fileNameRegex>.*\.nc</fileNameRegex>
+                    <metadataFrom>last</metadataFrom>
+                    <sortedColumnSourceName>time</sortedColumnSourceName>
+                    <sortFilesBySourceNames>trajectory time</sortFilesBySourceNames>
+                    <fileTableInMemory>false</fileTableInMemory>
+                    <accessibleViaFiles>true</accessibleViaFiles>
+                    <addAttributes>
+                        <att name="cdm_data_type">trajectoryProfile</att>
+                        <att name="featureType">trajectoryProfile</att>
+                        <att name="cdm_trajectory_variables">trajectory,wmo_id</att>
+                        <att name="cdm_profile_variables">time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
+                        <att name="subsetVariables">trajectory,wmo_id,time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
+
+                        <att name="Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
+                        <att name="keywords">AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity, glider, In Situ Ocean-based platforms > Seaglider, Spray, Slocum, trajectory, underwater glider, water, wmo</att>
+                        <att name="keywords_vocabulary">GCMD Science Keywords</att>
+                        <att name="Metadata_Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
+                        <att name="sourceUrl">(local files)</att>
+                        <att name="infoUrl">https://gliders.ioos.us/erddap/</att>
+                        <!-- title=datasetID -->
+                        <att name="title">{deployment.name}</att>
+                        <att name="ioos_dac_checksum">{checksum}</att>
+                        <att name="ioos_dac_completed">{completed}</att>
+                        <att name="gts_ingest">{gts_ingest}</att>
+                    </addAttributes>
+                </dataset>
+                """)
+            for var in variable_order:
+                tree.append(var)
             for identifier, mod_attrs in extra_atts.items():
                 add_extra_attributes(tree, identifier, mod_attrs)
-            # append all the 'other' variables to etree
-            for var in all_other_vars:
-                tree.append(add_erddap_var_elem(var))
-            return etree.tostring(tree, encoding=str)
         except Exception:
             logger.exception("Exception occurred while adding atts to template: {}".format(deployment_dir))
-            return templ
+        finally:
+            return etree.tostring(tree, encoding=str)
 
+def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
+    var_list = []
+    for req_var in required_vars:
+        # If the required non-QARTOD QC variable isn't already defined,
+        # then supply a set of default attributes.
+        if req_var not in qc_var_types['gen_qc']:
+            flag_atts = """
+                <att name="flag_values" type="byteList">0 1 2 3 4 5 6 7 8 9</att>
+                <att name="flag_meanings">no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed interpolated_value missing_value</att>
+                <att name="_FillValue" type="byte">-127</att>
+                <att name="valid_min" type="byte">0</att>
+                <att name="valid_max" type="byte">9</att>
+            """
+        else:
+            flag_atts = ""
+
+        var_str = f"""
+        <dataVariable>
+            <sourceName>{req_var}</sourceName>
+            <destinationName>{dest_var_remaps.get(req_var, req_var)}</destinationName>
+            <dataType>byte</dataType>
+            <addAttributes>
+                <att name="ioos_category">Quality</att>
+                <att name="long_name">{dest_var_remaps.get(req_var, req_var).replace('_qc', '')} Variable Quality Flag</att>
+                {flag_atts}
+            </addAttributes>
+        </dataVariable>"""
+        var_list.append(etree.fromstring(var_str))
+
+    for qartod_var in qc_var_types["qartod"]:
+    # if there are QARTOD variables defined, populate them
+
+       if "_FillValue" not in qc_var_types['qartod'][qartod_var]:
+           fill_value_snippet = '<att name="_FillValue" type="byte">-127</att>'
+       else:
+           fill_value_snippet = ""
+        # all qartod variables should have _FillValue, missing_value,
+        # flag_values, and flag_meanings defined
+
+       qartod_snip = f"""
+       <dataVariable>
+           <sourceName>{qartod_var}</sourceName>
+           <destinationName>{qartod_var}</destinationName>
+           <dataType>byte</dataType>
+           <addAttributes>
+              <att name="ioos_category">Quality</att>
+              <att name="flag_values" type="byteList">1 2 3 4 9</att>
+              <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
+              <att name="valid_min" type="byte">1</att>
+              <att name="valid_max" type="byte">9</att>
+              {fill_value_snippet}
+           </addAttributes>
+       </dataVariable>
+       """
+       var_list.append(etree.fromstring(qartod_snip))
+
+    for gen_qc_var in qc_var_types["gen_qc"]:
+        # if we already have this variable as part of required QC variables,
+        # skip it.
+        if gen_qc_var in required_vars:
+            continue
+        # assume byte for data type as it is required
+        gen_qc_snip = f"""
+            <dataVariable>
+               <sourceName>{gen_qc_var}</sourceName>
+               <dataType>byte</dataType>
+               <addAttributes>
+                  <att name="ioos_category">Quality</att>
+               </addAttributes>
+            </dataVariable>
+            """
+        var_list.append(etree.fromstring(gen_qc_snip))
+
+    return var_list
 
 def add_erddap_var_elem(var):
     """
@@ -258,7 +659,10 @@ def add_erddap_var_elem(var):
     source_name = etree.SubElement(dvar_elem, 'sourceName')
     source_name.text = var.name
     data_type = etree.SubElement(dvar_elem, 'dataType')
-    data_type.text = erddap_mapping_dict[var.dtype.type]
+    if var.dtype == str:
+        data_type.text = "String"
+    else:
+        data_type.text = erddap_mapping_dict[var.dtype.type]
     add_atts = etree.SubElement(dvar_elem, 'addAttributes')
     ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
     ioos_category.text = "Other"
