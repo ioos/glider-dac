@@ -10,6 +10,7 @@ import os
 import hashlib
 import logging
 import shutil
+from glider_dac.common import log_formatter
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
@@ -116,8 +117,7 @@ def set_verbose():
     '''
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
+    ch.setFormatter(log_formatter)
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
 
@@ -186,7 +186,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('-v', '--verbose', action='store_true', help='Turn on verbose output')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Turn on verbose output')
     args = parser.parse_args()
     sys.exit(main(args))
-

@@ -11,6 +11,7 @@ import logging
 import hashlib
 import pwd
 import argparse
+from glider_dac.common import log_formatter
 
 logger = logging.getLogger('back_to_s3')
 
@@ -89,14 +90,13 @@ def main():
     if args.verbose:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
+        ch.setFormatter(log_formatter)
         logger.addHandler(ch)
         logger.setLevel(logging.DEBUG)
 
     backup_directory(args.directory)
     return 0
 
-    
+
 if __name__ == "__main__":
     sys.exit(main())
