@@ -14,7 +14,7 @@ from datetime import datetime
 from netCDF4 import Dataset
 
 from config import *
-from glider_dac.common import log_formatter
+from .common import log_formatter
 log = None
 
 

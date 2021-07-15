@@ -11,7 +11,7 @@ from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
 import redis
 import yaml
-from glider_dac.common import log_formatter
+from .common import log_formatter
 
 
 csrf = CSRFProtect()

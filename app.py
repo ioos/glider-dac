@@ -1,5 +1,5 @@
 from glider_dac import app
-from glider_dac.common import log_formatter
+from .common import log_formatter
 import os
 
 def initialize_logs(app):
