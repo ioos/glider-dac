@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Script to create symlinks of archivable datasets and generate an MD5 sum
+Script to create hard links of archivable datasets and generate an MD5 sum
 '''
 from config import API_URL, NCEI_DIR, path2pub
 import requests
@@ -167,7 +167,7 @@ def touch_file(filepath):
 
 def main(args):
     '''
-    Script to create symlinks of archivable datasets and generate an MD5 sum
+    Script to create hard links of archivable datasets and generate an MD5 sum
     '''
     if args.verbose:
         set_verbose()
