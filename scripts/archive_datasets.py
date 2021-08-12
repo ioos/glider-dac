@@ -68,7 +68,7 @@ def make_copy(filepath):
         logger.info("Creating archive dataset")
         try:
             os.link(source, target)
-        except IOError:
+        except (IOError, OSError):
             logger.exception("Could not hard link to file {}".format(source))
             return
     generate_hash(target)
