@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Script to create symlinks of archivable datasets and generate an MD5 sum
+Script to create hard links of archivable datasets and generate an MD5 sum
 '''
 from config import API_URL, NCEI_DIR, path2pub
 import requests
@@ -56,9 +56,9 @@ def get_active_deployment_paths():
 
 def make_copy(filepath):
     '''
-    Creates a copy of the file specified in the new NCEI_DIR
+    Creates a copy via hard link of the file specified in the new NCEI_DIR
 
-    :param str filepath: Path to the source of the symbolic link
+    :param str filepath: Path to the source of the hard link
     '''
     filename = os.path.basename(filepath)
     target = os.path.join(NCEI_DIR, filename)
@@ -67,9 +67,9 @@ def make_copy(filepath):
     if not os.path.exists(target):
         logger.info("Creating archive dataset")
         try:
-            shutil.copyfile(source, target)
-        except IOError:
-            logger.exception("Could not copy file {}".format(source))
+            os.link(source, target)
+        except (IOError, OSError):
+            logger.exception("Could not hard link to file {}".format(source))
             return
     generate_hash(target)
     if os.path.exists(do_not_archive_filename):
@@ -167,7 +167,7 @@ def touch_file(filepath):
 
 def main(args):
     '''
-    Script to create symlinks of archivable datasets and generate an MD5 sum
+    Script to create hard links of archivable datasets and generate an MD5 sum
     '''
     if args.verbose:
         set_verbose()
