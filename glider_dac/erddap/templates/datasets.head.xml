@@ -55,4 +55,9 @@ into a public sourceUrl (http://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite
 <convertToPublicSourceUrl from="http://192.168.31.18/" to="http://oceanwatch.pfeg.noaa.gov/" />
 <convertToPublicSourceUrl from="http://192.168.31.27/" to="http://thredds1.pfeg.noaa.gov/"   />
 -->
+<ipAddressMaxRequests></ipAddressMaxRequests>  <!-- current default=7 -->
+<ipAddressMaxRequestsActive></ipAddressMaxRequestsActive>  <!-- current default=2 -->
+<!-- 2021-08-20 Allow Axiom and OOI servers to make many requests without
+                rate limiting -->
+<ipAddressUnlimited>216.218.248.32,216.218.248.33,216.218.248.34,216.218.248.35,216.218.248.36,216.218.248.37,216.218.248.38,216.218.248.39,216.218.248.40,216.218.248.41,216.218.248.42,216.218.248.43,216.218.248.44,216.218.248.45,216.218.248.46,216.218.248.47,216.218.248.48,216.218.248.49,216.218.248.50,216.218.248.51,216.218.248.52,216.218.248.53,216.218.248.54,216.218.248.55,216.218.248.56,216.218.248.57,216.218.248.58,216.218.248.59,216.218.248.60,216.218.248.61,216.218.248.62,128.193.196.63,128.193.196.62</ipAddressUnlimited>  <!-- default=empty -->
 
