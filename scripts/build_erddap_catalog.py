@@ -47,7 +47,7 @@ from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
-from .sync_erddap_datasets import sync_deployment
+from scripts.sync_erddap_datasets import sync_deployment
 
 logging.basicConfig(
     level=logging.INFO,
