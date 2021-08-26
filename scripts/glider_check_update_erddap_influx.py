@@ -7,14 +7,11 @@ from glider_dac import app
 from netCDF4 import Dataset
 # netcdftime was moving from main netCDF module
 # try both here
-try:
-    from cftime import utime
-except ImportError:
-    from netcdftime.netcdftime import utime
+from cftime import utime
 import numpy as np
 import pandas as pd
 from glider_dac import app
-from datetime import datetime
+from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
 
 
@@ -40,7 +37,7 @@ def get_nc_time(nc_filepath):
             time_calendar = getattr(time_var, 'calendar', 'gregorian')
         time_conv = utime(time_units, time_calendar)
 
-        return pd.to_datetime(time_conv.num2date(time_raw))
+        return time_conv.num2date(time_raw)._to_real_datetime()
     except Exception as e:
         print(str(e))
         return pd.NaT
@@ -76,18 +73,16 @@ def get_last_nc_file(root_folder, subdir):
             max_label = tiebreaker.idxmax()
             return max_label, tiebreaker[max_label]
 
-
-def check_times(t1, t2, label, check_thresh=pd.Timedelta(hours=12)):
+def get_erddap_server_time(deployment):
+    erddap_loc = (f"https://{app.config['SERVER_NAME']}/erddap/"
+                  f"tabledap/{deployment.split('/')[-1]}.csv"
+                   "?precise_time&precise_time=max(precise_time)")
     try:
-        td = t1[1] - t2[1]
-        if td > check_thresh:
-            print("FAILED: Comparison for '{}' {} vs {} not within {}".format(label,
-                                                                            t1[0],
-                                                                            t2[0],
-                                                                            check_thresh))
-            print(t1[1], t2[1])
+        df = pd.read_csv(erddap_loc, skiprows=1, parse_dates=[0])
+        return df.iloc[0, 0].timestamp()
     except Exception as e:
         print(str(e))
+        return None
 
 def process_deployment(dep_subdir):
     """
@@ -96,41 +91,45 @@ def process_deployment(dep_subdir):
     """
     print(dep_subdir)
     last_sub_time = get_last_nc_file(app.config["DATA_ROOT"], dep_subdir)
-    last_priv_time = get_last_nc_file(app.config["PRIV_ERDDAP_ROOT"],
+    last_priv_time = get_last_nc_file(app.config["PRIV_DATA_ROOT"],
                                       dep_subdir)
     last_pub_time = get_last_nc_file(app.config["PUBLIC_DATA_ROOT"], dep_subdir)
-    check_times(last_sub_time, last_priv_time, 'sub vs priv')
-    check_times(last_priv_time, last_pub_time, 'priv vs pub')
+    erddap_server_time = get_erddap_server_time(dep_subdir)
+    data = {"measurement": "erddap_nc_comparison",
+            "tags": {
+                    "deployment": dep_subdir.rsplit("/", 1)[-1]
+                    },
+                "time": current_time.isoformat(),
+                # TODO: Can't find way to pass in empty measurements according to docs,
+                #       so this dummy field is require
+                "fields": {"dummy": ""}
+            }
+    if last_pub_time is not None:
+        data["fields"]["erddap_time"] = last_pub_time[1].timestamp()
+    if last_priv_time is not None:
+        data["fields"]["priv_erddap_time"] = last_priv_time[1].timestamp()
+    if last_sub_time is not None:
+        data["fields"]["submission_time"] = last_sub_time[1].timestamp()
+    if erddap_server_time is not None:
+        data["fields"]["erddap_server_time"] = erddap_server_time
+
     try:
-        # TODO: Batch writes, but add better error protection so that issues don't cause whole
-        #       write to fail.
-        data = {"measurement": "erddap_nc_comparison",
-                "tags": {
-                        "deployment": dep_subdir.rsplit("/", 1)[-1]
-                        },
-                    "time": current_time.isoformat(),
-                    "fields": {
-                        "erddap_time": int(last_pub_time[1].to_pydatetime().strftime("%s")),
-                        "priv_erddap_time": int(last_priv_time[1].to_pydatetime().strftime("%s")),
-                        "submission_time": int(last_sub_time[1].to_pydatetime().strftime("%s"))
-                    }
-                }
-        influx_client.write_points([data], database='influx')
+        influx_client.write_points([data], database='influx', protocol="json")
     except Exception as e:
         print(str(e))
 
-
+current_time = datetime.utcnow()
 
 if __name__ == '__main__':
     client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
                                                 app.config["MONGODB_PORT"]))
     db = client.gliderdac
+    dt_filt = current_time - timedelta(days=270)
     dep_list = [d['deployment_dir'] for d in
-                db.deployments.find({}, {'deployment_dir': True})]
-    #influx_client = InfluxDBClient(host=app.config.get("INFLUXDB_HOST", "localhost"),
-    #                        port=8086)
+                db.deployments.find({'completed': False,
+                                     'updated': {"$gt": dt_filt}},
+                                     {'deployment_dir': True})]
     influx_client = InfluxDBClient(host=app.config["INFLUXDB_HOST"],
                                    port=app.config["INFLUXDB_PORT"])
-    current_time = datetime.utcnow()
     pool = multiprocessing.Pool()
     pool.map(process_deployment, dep_list)
