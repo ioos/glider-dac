@@ -10,6 +10,8 @@ import logging
 import os
 import time
 
+from glider_dac.common import log_format_str
+
 
 def acquire_master_lock():
     '''
@@ -138,7 +140,7 @@ def setup_logging(
 ):
     """Setup logging configuration
     """
-    logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=default_level)
+    logging.basicConfig(format=log_format_str, level=default_level)
 
 if __name__ == '__main__':
     main()

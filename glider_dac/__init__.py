@@ -11,7 +11,7 @@ from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
 import redis
 import yaml
-import logging
+from glider_dac.common import log_formatter
 
 
 csrf = CSRFProtect()
@@ -91,8 +91,7 @@ if app.config.get('LOG_FILE') == True:
     from logging import FileHandler
     file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
                                             '../logs/glider_dac.txt'))
-    formatter = logging.Formatter('%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
+    file_handler.setFormatter(log_formatter)
     file_handler.setLevel(logging.INFO)
     app.logger.addHandler(file_handler)
     app.logger.info('Application Process Started')
