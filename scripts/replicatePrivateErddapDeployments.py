@@ -14,6 +14,7 @@ from datetime import datetime
 from netCDF4 import Dataset
 
 from config import *
+from glider_dac.common import log_formatter
 log = None
 
 
@@ -22,9 +23,8 @@ def setup_logging(level=logging.DEBUG):
     logger.setLevel(level)
     file_handler = logging.FileHandler('replicate.log')
     stream_handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
+    file_handler.setFormatter(log_formatter)
+    stream_handler.setFormatter(log_formatter)
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
     logger.setLevel(level)
