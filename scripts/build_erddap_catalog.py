@@ -50,6 +50,7 @@ import requests
 from scripts.sync_erddap_datasets import sync_deployment
 from glider_dac.common import log_formatter
 
+
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)

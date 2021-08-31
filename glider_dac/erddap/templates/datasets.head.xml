@@ -55,4 +55,7 @@ into a public sourceUrl (http://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite
 <convertToPublicSourceUrl from="http://192.168.31.18/" to="http://oceanwatch.pfeg.noaa.gov/" />
 <convertToPublicSourceUrl from="http://192.168.31.27/" to="http://thredds1.pfeg.noaa.gov/"   />
 -->
+<ipAddressMaxRequests></ipAddressMaxRequests>  <!-- current default=7 -->
+<ipAddressMaxRequestsActive></ipAddressMaxRequestsActive>  <!-- current default=2 -->
+<ipAddressUnlimited></ipAddressUnlimited>  <!-- default=empty -->
 
