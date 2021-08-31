@@ -9,14 +9,16 @@ import redis
 import sys
 from datetime import datetime, timezone, timedelta
 from glider_dac import app, db
+from glider_dac.common import log_formatter
 
 from config import *
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s | %(levelname)s]  %(message)s'
-)
 logger = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(log_formatter)
+logger.addHandler(ch)
+logger.setLevel(logging.INFO)
 
 # Connect to redis to keep track of the last time this script ran
 redis_key = 'sync_erddap_datasets_last_run'
