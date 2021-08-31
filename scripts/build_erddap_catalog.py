@@ -47,13 +47,15 @@ from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
-from .sync_erddap_datasets import sync_deployment
+from scripts.sync_erddap_datasets import sync_deployment
+from glider_dac.common import log_formatter
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s | %(levelname)s]  %(message)s'
-)
 logger = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(log_formatter)
+logger.addHandler(ch)
+logger.setLevel(logging.INFO)
 
 
 erddap_mapping_dict = defaultdict(lambda: 'String',

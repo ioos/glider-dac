@@ -11,7 +11,7 @@ import logging
 import hashlib
 import pwd
 import argparse
-from .common import log_formatter
+from glider_dac.common import log_formatter
 
 logger = logging.getLogger('back_to_s3')
 

@@ -10,7 +10,7 @@ import logging
 import os
 import time
 
-from .common import log_format_str
+from glider_dac.common import log_format_str
 
 
 def acquire_master_lock():

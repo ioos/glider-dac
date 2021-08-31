@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timezone, timedelta
 from glider_dac import app, db
 
-from .config import *
+from config import *
 
 logging.basicConfig(
     level=logging.INFO,
