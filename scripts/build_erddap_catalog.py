@@ -69,7 +69,7 @@ erddap_mapping_dict = defaultdict(lambda: 'String',
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
-redis_key = 'build_erddap_catalog_last_run'
+redis_key = 'build_erddap_catalog_last_run_deployment'
 redis_host = app.config.get('REDIS_HOST', 'redis')
 redis_port = app.config.get('REDIS_PORT', 6379)
 redis_db = app.config.get('REDIS_DB', 0)
@@ -99,31 +99,46 @@ def build_datasets_xml(data_root, catalog_root, force):
     head_path = os.path.join(template_dir, 'datasets.head.xml')
     tail_path = os.path.join(template_dir, 'datasets.tail.xml')
 
-    query = {}
-    if not force:
-        # Get datasets that have been updated since the last time this script ran
-        try:
-            last_run_ts = _redis.get(redis_key) or 0
-            last_run = datetime.utcfromtimestamp(int(last_run_ts))
-            query['updated'] = {'$gte': last_run}
-        except Exception:
-            logger.error("Error: Parsing last run from redis. Processing ALL Datasets")
-
-    # Set the timestamp of this run in redis
-    dt_now = datetime.now(tz=timezone.utc)
-    _redis.set(redis_key, int(dt_now.timestamp()))
-
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    deployments = db.Deployment.find(query)
-    for deployment in deployments:
+    deployment_names = (dep["name"] for dep in
+                         db.Deployment.find({}, {'name': True}))
+    for deployment_name in deployment_names:
+        query = ({"name": deployment_name})
+        if not force:
+            # Get datasets that have been updated since the last time this script ran
+            try:
+                last_run_ts = _redis.hget(redis_key, deployment_name) or 0
+                last_run = datetime.utcfromtimestamp(int(last_run_ts))
+            except Exception:
+                logger.error("Error: Parsing last run for {}. ".format(deployment.name),
+                                "Processing dataset anyway.")
+            else:
+                query['updated'] = {'$gte': last_run}
+        deployment = db.Deployment.find_one(query)
+        # if we couldn't find the deployment, usually due to update time not
+        # being recent, skip this deployment
+        if not deployment:
+            continue
+
         deployment_dir = deployment.deployment_dir
         dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
-        with open(dataset_chunk_path, 'w') as f:
+        try:
+            chunk_contents = build_erddap_catalog_chunk(data_root, deployment)
+        except Exception:
+            logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+        # only attempt to write file if we were able to generate an XML snippet
+        # successfully
+        else:
             try:
-                f.write(build_erddap_catalog_chunk(data_root, deployment))
-            except Exception:
-                logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+                with open(dataset_chunk_path, 'w') as f:
+                    f.write(chunk_contents)
+                    # Set the timestamp of this deployment run in redis
+                dt_now = datetime.now(tz=timezone.utc)
+                _redis.hset(redis_key, deployment_name, int(dt_now.timestamp()))
+            except:
+                logger.exception("Could not write ERDDAP dataset snippet XML file {}".format(dataset_chunk_path))
+
 
     # Now loop through all the deployments and construct datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
