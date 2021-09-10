@@ -6,7 +6,7 @@
 
 <form class="form-horizontal" method="POST" action="{{ url_for('login') }}">
   {{ form.csrf_token }}
-  {% if form.csrf_token.errors %}
+  {% if form.csrf_token and form.csrf_token.errors %}
       <div class="warning">You have submitted an invalid CSRF token</div>
   {% endif %}
 
