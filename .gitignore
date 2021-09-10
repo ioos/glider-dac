@@ -18,3 +18,5 @@ data/
 
 # BerkeleyDB user database
 users.db
+.venv/
+activate
