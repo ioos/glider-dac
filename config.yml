@@ -26,6 +26,10 @@ COMMON: &common
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
 
+  # Google Analytics
+  GA_ENABLED: True
+  GA_TAG_ID: G-999999AAAA
+
   PUBLIC_ERDDAP: gliders.ioos.us
   THREDDS: gliders.ioos.us
   DATA_ROOT: /data/submission
