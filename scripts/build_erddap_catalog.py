@@ -101,19 +101,28 @@ def build_datasets_xml(data_root, catalog_root, force):
 
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    deployment_names = (dep["name"] for dep in
-                         db.Deployment.find({}, {'name': True}))
-    for deployment_name in deployment_names:
+    deployment_names = ((dep["name"], dep["deployment_dir"]) for dep in
+                         db.Deployment.find({}, {'name': True,
+                                                 'deployment_dir': True}))
+    for deployment_name, deployment_dir in deployment_names:
+        dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
+        # base query to which we may add filtering to see if previously run
         query = ({"name": deployment_name})
-        if not force:
+
+        # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
+        # we want to run the "caching" logic only if force flag isn't set and
+        # we are aren't missing the dataset.xml snippet file for this deployment
+        if not (force and os.path.exists(dataset_chunk_path)):
             # Get datasets that have been updated since the last time this script ran
             try:
                 last_run_ts = _redis.hget(redis_key, deployment_name) or 0
                 last_run = datetime.utcfromtimestamp(int(last_run_ts))
             except Exception:
                 logger.error("Error: Parsing last run for {}. ".format(deployment.name),
-                                "Processing dataset anyway.")
+                             "Processing dataset anyway.")
             else:
+                # there is a chance that the updated field won't be set if
+                # model.save() has not files
                 query['updated'] = {'$gte': last_run}
         deployment = db.Deployment.find_one(query)
         # if we couldn't find the deployment, usually due to update time not
@@ -121,8 +130,7 @@ def build_datasets_xml(data_root, catalog_root, force):
         if not deployment:
             continue
 
-        deployment_dir = deployment.deployment_dir
-        dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
+
         try:
             chunk_contents = build_erddap_catalog_chunk(data_root, deployment)
         except Exception:
