@@ -3,14 +3,25 @@
   <head>
     <title>Glider DAC - {% block title %}{% endblock %}</title>
     {%- block javascript %}
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}" /></script>
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}" /></script>
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/moment.min.js') }}" /></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/moment.min.js') }}"></script>
     {%- endblock %}
     {%- block css %}
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}"></link>
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}"></link>
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap-sortable.css') }}"></link>
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap-sortable.css') }}">
+    {% if config.GA_ENABLED -%}
+      <!-- Global site tag (gtag.js) - Google Analytics -->
+
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ config.GA_TAG_ID }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ config.GA_TAG_ID }}');
+      </script>
+    {% endif %}
     {%- endblock %}
   </head>
   <body>
@@ -64,6 +75,6 @@
 
     </div>
 
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap-sortable.js') }}" /></script>
+    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap-sortable.js') }}"></script>
   </body>
 </html>

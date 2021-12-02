@@ -16,7 +16,7 @@ from glider_dac import tasks
 from glider_dac.glider_emails import send_registration_email
 from multidict import CIMultiDict
 from pymongo.errors import DuplicateKeyError
-from wtforms import TextField, SubmitField, BooleanField, validators
+from wtforms import StringField, SubmitField, BooleanField, validators
 import re
 import json
 import os
@@ -45,17 +45,17 @@ def deployment_key_fn(dep):
     return getattr(dep, 'updated', default_dt), dep.name
 
 class DeploymentForm(FlaskForm):
-    operator = TextField('Operator')
+    operator = StringField('Operator')
     completed = BooleanField('Completed')
     archive_safe = BooleanField("Submit to NCEI on Completion")
-    attribution = TextField('Attribution')
+    attribution = StringField('Attribution')
     submit = SubmitField('Submit')
 
 
 class NewDeploymentForm(FlaskForm):
-    glider_name = TextField('Glider Name', [is_valid_glider_name])
-    deployment_date = TextField('Deployment Date', [is_date_parseable])
-    attribution = TextField('Attribution')
+    glider_name = StringField('Glider Name', [is_valid_glider_name])
+    deployment_date = StringField('Deployment Date', [is_date_parseable])
+    attribution = StringField('Attribution')
     delayed_mode = BooleanField('Delayed Mode?')
     submit = SubmitField("Create")
 
