@@ -91,10 +91,9 @@ def process(file_paths, config, sync=False):
 
         try:
             glider_qc.log.info("Inspecting %s", nc_path)
-            with Dataset(nc_path, 'r') as nc:
 
-                if not glider_qc.check_needs_qc(nc):
-                    continue
+            if not glider_qc.check_needs_qc(nc_path):
+                continue
 
             glider_qc.log.info("Applying QC to dataset %s", nc_path)
 

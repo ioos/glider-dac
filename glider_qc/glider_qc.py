@@ -432,18 +432,19 @@ def run_qc(config, ncfile):
     os.setxattr(ncfile, "user.qc_run", "true")
 
 
-def check_needs_qc(ncfile):
+def check_needs_qc(nc_path):
     '''
     Returns True if the netCDF file needs GliderQC
     '''
     # quick check to see if QC has already been run on these files
-    if os.getxattr(ncfile, "user.qc_run"):
+    if os.getxattr(nc_path, "user.qc_run"):
         return False
-    qc = GliderQC(ncfile, None)
-    for varname in qc.find_geophysical_variables():
-        ncvar = ncfile.variables[varname]
-        if qc.needs_qc(ncvar):
-            return True
+    with Dataset(nc_path, 'r') as nc:
+        qc = GliderQC(nc, None)
+        for varname in qc.find_geophysical_variables():
+            ncvar = nc.variables[varname]
+            if qc.needs_qc(ncvar):
+                return True
     # if this section was reached, QC has been run, but xattr remains unset
-    os.setxattr(ncfile, "user.qc_run", "true")
+    os.setxattr(nc_path, "user.qc_run", "true")
     return False
