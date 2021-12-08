@@ -437,7 +437,7 @@ def check_needs_qc(ncfile):
     Returns True if the netCDF file needs GliderQC
     '''
     # quick check to see if QC has already been run on these files
-    if os.getxattr(filepath, "user.qc_run"):
+    if os.getxattr(ncfile, "user.qc_run"):
         return False
     qc = GliderQC(ncfile, None)
     for varname in qc.find_geophysical_variables():
