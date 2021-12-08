@@ -77,7 +77,7 @@ def make_copy(filepath):
         md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
     # yet, so start processing the hash
-    except IOError:
+    except OSError:
         generate_hash(target)
     else:
         with open("{}.md5".format(target), "rb") as f:
