@@ -14,7 +14,6 @@ import logging
 import redis
 import os
 import hashlib
-
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -430,16 +429,21 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
+    os.setxattr(ncfile, "user.qc_run", "true")
+
 
 def check_needs_qc(ncfile):
     '''
     Returns True if the netCDF file needs GliderQC
     '''
+    # quick check to see if QC has already been run on these files
+    if os.getxattr(filepath, "user.qc_run"):
+        return False
     qc = GliderQC(ncfile, None)
     for varname in qc.find_geophysical_variables():
         ncvar = ncfile.variables[varname]
         if qc.needs_qc(ncvar):
             return True
+    # if this section was reached, QC has been run, but xattr remains unset
+    os.setxattr(ncfile, "user.qc_run", "true")
     return False
-
-
