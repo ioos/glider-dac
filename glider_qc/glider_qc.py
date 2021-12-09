@@ -429,7 +429,7 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
-    os.setxattr(ncfile.filepath, "user.qc_run", b"true")
+    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
 
 
 def check_needs_qc(nc_path):
