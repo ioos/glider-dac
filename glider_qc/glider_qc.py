@@ -202,7 +202,7 @@ class GliderQC(object):
         path = path or 'data/qc_config.yml'
         log.info("Loading config from %s", path)
         with open(path, 'r') as f:
-            self.config = yaml.load(f.read())
+            self.config = yaml.load(f.read(), yaml.FullLoader)
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
@@ -383,7 +383,7 @@ def lock_file(path):
     Acquires a file lock or raises an exception
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path).hexdigest()
+    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
     key = 'gliderdac:%s' % digest
     lock = rc.lock(key, blocking_timeout=60)
     return lock
