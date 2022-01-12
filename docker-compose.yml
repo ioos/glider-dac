@@ -33,6 +33,7 @@ services:
       - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
 
   qartod_worker_1: &qartod
+    build: .
     container_name: qartod_worker_1
     command: python glider-dac/scripts/glider_qartod.py -w
     volumes:
