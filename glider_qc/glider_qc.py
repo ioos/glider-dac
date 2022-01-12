@@ -14,7 +14,6 @@ import logging
 import redis
 import os
 import hashlib
-
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -203,7 +202,7 @@ class GliderQC(object):
         path = path or 'data/qc_config.yml'
         log.info("Loading config from %s", path)
         with open(path, 'r') as f:
-            self.config = yaml.load(f.read())
+            self.config = yaml.safe_load(f.read())
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
@@ -384,7 +383,7 @@ def lock_file(path):
     Acquires a file lock or raises an exception
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path).hexdigest()
+    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
     key = 'gliderdac:%s' % digest
     lock = rc.lock(key, blocking_timeout=60)
     return lock
@@ -430,16 +429,25 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
+    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
 
-def check_needs_qc(ncfile):
+
+def check_needs_qc(nc_path):
     '''
     Returns True if the netCDF file needs GliderQC
     '''
-    qc = GliderQC(ncfile, None)
-    for varname in qc.find_geophysical_variables():
-        ncvar = ncfile.variables[varname]
-        if qc.needs_qc(ncvar):
-            return True
+    # quick check to see if QC has already been run on these files
+    try:
+        if os.getxattr(nc_path, "user.qc_run"):
+            return False
+    except OSError:
+        pass
+    with Dataset(nc_path, 'r') as nc:
+        qc = GliderQC(nc, None)
+        for varname in qc.find_geophysical_variables():
+            ncvar = nc.variables[varname]
+            if qc.needs_qc(ncvar):
+                return True
+    # if this section was reached, QC has been run, but xattr remains unset
+    os.setxattr(nc_path, "user.qc_run", b"true")
     return False
-
-

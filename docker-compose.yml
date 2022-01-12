@@ -32,6 +32,17 @@ services:
       - DATA_ROOT=/data/data/priv_erddap
       - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
 
+  qartod_worker_1: &qartod
+    container_name: qartod_worker_1
+    command: python glider-dac/scripts/glider_qartod.py -w
+    volumes:
+      - /data/:/data
+    # stdout_logfile=/home/glider/logs/qartod_qorker%(process_num)02d.log
+
+  qartod_worker_2:
+    << *qartod
+    container_name: qartod_worker_2
+
   mongo:
     container_name: mongo
     image: mongo

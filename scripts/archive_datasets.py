@@ -11,7 +11,6 @@ import hashlib
 import logging
 import shutil
 from glider_dac.common import log_formatter
-import xattr
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
@@ -75,10 +74,10 @@ def make_copy(filepath):
             logger.exception("Could not hard link to file {}".format(source))
             return
     try:
-        md5sum_xattr = xattr.getxattr(filepath, "user.md5sum")
+        md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
     # yet, so start processing the hash
-    except IOError:
+    except OSError:
         generate_hash(target)
     else:
         with open("{}.md5".format(target), "rb") as f:
@@ -114,7 +113,7 @@ def generate_hash(filepath):
     with open(md5sum, 'w') as f:
         f.write(hash_value)
     # must write xattr value as bytes
-    xattr.setxattr(filepath, "user.md5sum", bytes(hash_value, "utf-8"))
+    os.setxattr(filepath, "user.md5sum", bytes(hash_value, "utf-8"))
     logger.info("Hash generated")
 
 

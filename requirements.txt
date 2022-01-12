@@ -33,5 +33,4 @@ compliance-checker>=4.3.3
 cc-plugin-glider>=2.0.3
 flasgger==0.9.5
 multidict
-xattr>=0.9.7
 influxdb>=5.3.1
