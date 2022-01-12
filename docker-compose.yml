@@ -37,7 +37,6 @@ services:
     command: python glider-dac/scripts/glider_qartod.py -w
     volumes:
       - /data/:/data
-    # stdout_logfile=/home/glider/logs/qartod_qorker%(process_num)02d.log
 
   qartod_worker_2:
     <<: *qartod
