@@ -202,7 +202,7 @@ class GliderQC(object):
         path = path or 'data/qc_config.yml'
         log.info("Loading config from %s", path)
         with open(path, 'r') as f:
-            self.config = yaml.load(f.read(), yaml.FullLoader)
+            self.config = yaml.safe_load(f.read())
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
