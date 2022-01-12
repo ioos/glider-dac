@@ -40,7 +40,7 @@ services:
     # stdout_logfile=/home/glider/logs/qartod_qorker%(process_num)02d.log
 
   qartod_worker_2:
-    << *qartod
+    <<: *qartod
     container_name: qartod_worker_2
 
   mongo:
