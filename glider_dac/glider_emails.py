@@ -161,27 +161,37 @@ def process_deployment(dep):
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
     try:
-        failures, errors = ComplianceChecker.run_checker(ds_loc=url_path,
+
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
                                       checker_names=['gliderdac'], verbose=True,
-                                      criteria='lenient', output_format='text',
+                                      criteria='lenient', output_format='json',
                                       output_filename=outfile)
     except Exception as e:
         root_logger.exception(e)
         errs = "Other error - possibly can't read ERDDAP"
     else:
         with open(outfile, 'r') as f:
-            errs = f.read()
+            errs = json.load(f)["gliderdac"]
 
     # janky way of testing if passing -- consider using JSON format instead
     compliance_passed = "All tests passed!" in errs
+    compliance_passed = errs['scored_points'] == errs['possible_points']
 
     update_fields = {"compliance_check_passed": compliance_passed}
     if compliance_passed:
         final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
     else:
-        final_message = ("Deployment {} has issues:\n".format(dep['name']) +
-                         errs)
+        error_list = [err_msg for err_severity in ("high_priorities",
+            "medium_priorities", "low_priorities") for err_section in
+            errs[err_severity] for err_msg in err_section["msgs"]]
+        final_message = ("Deployment {} has issues:\n".format(dep['name'])
+                         "\n".join(error_list))
         update_fields["compliance_check_report"] = errs
+
+        for err in errs["high_priorities"]:
+            if err["name"] == "Standard Names":
+                print(err["msgs"])
+
     # Set fields.  Don't use upsert as deployment ought to exist prior to write.
     db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
     return compliance_passed, final_message
