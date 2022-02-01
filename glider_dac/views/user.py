@@ -63,7 +63,10 @@ def admin():
 
     form = UserForm()
 
-    if form.is_submitted() and BaseForm.validate(form, extra_validators={'password': [validators.Required()]}):
+    if (form.is_submitted() and
+        BaseForm.validate(form,
+                          extra_validators={'password':
+                                            [validators.InputRequired()]})):
         user = db.User()
         form.populate_obj(user)
         user.save()
