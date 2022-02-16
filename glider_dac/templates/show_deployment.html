@@ -230,6 +230,29 @@
 
   {% endif %}
 
+  <h3>Compliance Check Report</h3>
+  {% set report_passed = deployment.compliance_check_passed %}
+  {% if report_passed is undefined %}
+    <p>Compliance check report has not run yet</p>
+  {% else %}
+    {% set standard_name_errors = [] %}
+    {% for err in deployment.compliance_check_report.high_priorities %}
+       {% if err.name == "Standard Names" %}
+       {# Hack.  Move to models or elsewher if logic becomes more complicated #}
+       {{ standard_name_errors.extend(err["msgs"]) or "" }}
+       {% endif %}
+    {% endfor %}
+    {% if not standard_name_errors %}
+    <p>CF standard name checks passed</p>
+    {% else %}
+    <p>CF standard name errors must be fixed prior to NCEI archival:</p>
+    <ul>
+    {% for standard_name_message in standard_name_errors %}
+      <li>{{standard_name_message}}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+  {% endif %}
   <h3>
     {%- if editable %}
     <button id="delete-files" class="pull-right btn btn-danger btn-xs" disabled="disabled" data-loading-text="Deleting...">Delete Selected</button>
