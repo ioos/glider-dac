@@ -10,7 +10,9 @@ import os
 import hashlib
 import logging
 import shutil
+import pymongo
 from glider_dac.common import log_formatter
+from glider_dac import app
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
@@ -36,12 +38,19 @@ def get_active_deployments():
     Returns a list of deployments that are safe for archival.  Datasets for
     archival must meet the following criteria:
 
-    - The dataset is completed
-    - The dataset is marked for archival by NCEI
+     - The dataset is completed
+     - The dataset is marked for archival by NCEI
+     - The dataset has no standard name errors in the glider compliance checker report
     '''
+    client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
+                                                app.config["MONGODB_PORT"]))
+    db = client.gliderdac
     deployments = get_deployments()
-    return (d for d in deployments['results']
-            if d['completed'] and d.get("archive_safe"))
+    return db.deployments.find({'completed': True, "archive_safe": True,
+                                "$and": [{"compliance_check_report": {"$exists": True}},
+                                         {"compliance_check_report.high_priorities":
+                                          {"$elemMatch": {"name": "Standard Names",
+                                              "msgs": {"$eq": []}}}}]},
 
 
 def get_active_deployment_paths():

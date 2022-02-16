@@ -29,7 +29,7 @@ cf-units>=2
 # newer functions
 cftime==1.4.1
 flask-cors==3.0.9
-compliance-checker>=4.3.3
+compliance-checker>=5.0.0
 cc-plugin-glider>=2.0.3
 flasgger==0.9.5
 multidict

@@ -202,7 +202,7 @@ class Deployment(Document):
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
-            if getattr(self, "compliance_check_passed", None) is None:
+            if getattr(self, "compliance_check_passed", None) in (None, False):
                 # eliminate force/always re-run?
                 app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))

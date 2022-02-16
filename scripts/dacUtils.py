@@ -18,27 +18,27 @@ import sys
 import argparse
 
 def dacv2tov1(oldNc, newNc):
-    
+
     # NetCDF4 compression level (1 seems to be optimal, in terms of effort and
     # result)
     COMP_LEVEL = 1
-    
+
     # Depth-averaged current variables
     uvVars = ('time_uv', 'lat_uv', 'lon_uv', 'u', 'v', 'u_qc', 'v_qc',)
     # Dimensionless container variables
     containerVars = ('platform', 'instrument_ctd')
-    
+
     # Open up the old file
     inFid = Dataset(oldNc, 'r')
-    
+
     # Make sure we have a time variable
     if 'time' not in inFid.variables.keys():
         inFid.close()
         return ''
-    
+
     # Open up the new file for writing
     outFid = Dataset(newNc, mode='w', clobber=True, format='NETCDF4_CLASSIC')
-        
+
     # Copy all of the global attributes from inFid to outFid
     for attName in inFid.ncattrs():
         attValue = inFid.getncattr(attName)
@@ -48,35 +48,35 @@ def dacv2tov1(oldNc, newNc):
             attValue = time.strftime('%Y-%m-%dT%H:%MZ', time.gmtime())
         elif attName == 'format_version':
             attValue = 'IOOS_Glider_NetCDF_v1.0.nc'
-                
+
         outFid.setncattr(attName, attValue)
-        
+
     # Get the length of the time data array
     tLength = len(inFid.variables['time'])
     uvLength = 1
     trajLength = 1
-    
+
     # Create the dimensions of the 1.0 file
     outFid.createDimension('time', tLength)
     outFid.createDimension('trajectory', trajLength)
     outFid.createDimension('time_uv', uvLength)
-    
+
     # Create the trajectory variable
     trajVar = outFid.createVariable('trajectory', inFid.variables['trajectory'].datatype, ('trajectory',))
     # Add the attributes
     for trajAtt in inFid.variables['trajectory'].ncattrs():
         if trajAtt == '_FillValue':
             continue
-            
+
         trajVar.setncattr(trajAtt, inFid.variables['trajectory'].getncattr(trajAtt))
-        
+
     # Add the data
     trajVar[:] = np.ones(1)
-    
+
     # Loop through each of the variables in oldNc and create new variables in outNc
     # all variables that have 'time' as the dimension
     for varName, inVar in inFid.variables.items():
-        
+
         # Must have 'time' as the dimension and the length of the variable data
         # array must be equal to tLength
         if 'time' not in inVar.dimensions:
@@ -84,54 +84,54 @@ def dacv2tov1(oldNc, newNc):
         elif len(inVar) != tLength:
             print('time length error:', varName)
             continue
-        
+
         # Create the variable
         outVar = outFid.createVariable(varName, inVar.datatype, inVar.dimensions)
-        
+
         # Add the variable attributes
         for att in inVar.ncattrs():
             outVar.setncattr(att, inVar.getncattr(att))
-            
+
         # Add the data
         outVar[:] = inVar[:]
-        
+
     # Loop through each of the variables in uvVars and create the corresponding
     # variable, with attributes, in the new .nc file
     for varName in uvVars:
-        
+
         if varName not in inFid.variables.keys():
             continue
-        
+
         inVar = inFid.variables[varName]
-        
+
         # Create the variable
         outVar = outFid.createVariable(varName, inVar.datatype, ('time_uv',))
-        
+
         # Add the variable attributes
         for att in inVar.ncattrs():
             outVar.setncattr(att, inVar.getncattr(att))
-            
+
         print(outVar.shape)
         print(inVar.shape)
         # Add the data
         outVar[:] = inVar[:]
-        
+
     # Loop through each of the variables in uvVars and create the corresponding
     # variable, with attributes, in the new .nc file
     for varName in containerVars:
-        
+
         if varName not in inFid.variables.keys():
             continue
-        
+
         inVar = inFid.variables[varName]
-        
+
         # Create the variable
         outVar = outFid.createVariable(varName, inVar.datatype)
-        
+
         # Add the variable attributes
         for att in inVar.ncattrs():
             outVar.setncattr(att, inVar.getncattr(att))
-     
+
     # PROFILE_ID
     # profile_id: 2 byte integer
     # kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
@@ -154,10 +154,10 @@ def dacv2tov1(oldNc, newNc):
     }
     for k in sorted(atts.keys()):
         profileId.setncattr(k, atts[k])
-    
+
     # Add the data (array of np.ones with the same length as tLength)
     profileId[:] = np.ones(tLength)
-       
+
     # SEGMENT_ID
     # segment_id: 2 byte integer
     # kerfoot@marine.rutgers.edu: explicitly specify fill_value when creating
@@ -180,7 +180,7 @@ def dacv2tov1(oldNc, newNc):
 
     inFid.close()
     outFid.close()
-    
+
     return newNc
 
 def main(args):
