@@ -57,13 +57,14 @@ def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
     msg            = Message(subject, recipients=recipients)
     if len(failing_deployments) > 0:
         message = ("The following glider deployments failed compliance check:"
-                   "\n{}\n\nPlease see attached file for more details."
+                   "\n{}\n\nPlease see attached file for more details. "
+                   "Valid CF standard names are required for NCEI archival."
                    .format("\n".join(d['name'] for d in failing_deployments)))
         date_str_today = datetime.today().strftime("%Y-%m-%d")
         attachment_filename = "failing_glider_md_{}".format(date_str_today)
         msg.attach(attachment_filename, 'text/plain', data=attachment_msgs)
     else:
-        message = "All glider deployments passed compliance check"
+        return
     msg.body       = message
 
     mail.send(msg)
@@ -144,9 +145,9 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
                     root_logger.exception(
                         "Exception occurred while processing deployment {}".format(dep['name']))
                     text_body = ''
-            # currently unused
-            #send_deployment_cchecker_email(user, failing_deployments,
-            #                               "\n".join(all_messages))
+        # disable email for time being
+        #send_deployment_cchecker_email(user, failing_deployments,
+        #                               "\n".join(all_messages))
 
 def process_deployment(dep):
     deployment_issues = "Deployment {}".format(os.path.basename(dep['name']))
@@ -160,38 +161,36 @@ def process_deployment(dep):
                          erddap_fmt_string.format(dep["name"])])
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
-    try:
+    failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                  checker_names=['gliderdac'], verbose=True,
+                                  criteria='lenient', output_format='json',
+                                  output_filename=outfile)
+    with open(outfile, 'r') as f:
+        errs = json.load(f)["gliderdac"]
 
-        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
-                                      checker_names=['gliderdac'], verbose=True,
-                                      criteria='lenient', output_format='json',
-                                      output_filename=outfile)
-    except Exception as e:
-        root_logger.exception(e)
-        errs = "Other error - possibly can't read ERDDAP"
-    else:
-        with open(outfile, 'r') as f:
-            errs = json.load(f)["gliderdac"]
-
-    # janky way of testing if passing -- consider using JSON format instead
-    compliance_passed = "All tests passed!" in errs
     compliance_passed = errs['scored_points'] == errs['possible_points']
 
     update_fields = {"compliance_check_passed": compliance_passed}
+    standard_name_errs = []
     if compliance_passed:
         final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
     else:
         error_list = [err_msg for err_severity in ("high_priorities",
             "medium_priorities", "low_priorities") for err_section in
             errs[err_severity] for err_msg in err_section["msgs"]]
-        final_message = ("Deployment {} has issues:\n".format(dep['name'])
-                         "\n".join(error_list))
         update_fields["compliance_check_report"] = errs
 
         for err in errs["high_priorities"]:
             if err["name"] == "Standard Names":
-                print(err["msgs"])
+                standard_name_errs.extend(err["msgs"])
+
+        if not standard_name_errs:
+            final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
+        else:
+            root_logger.info(standard_name_errs)
+            final_message = ("Deployment {} has issues:\n{}".format(dep['name'],
+                             "\n".join(standard_name_errs)))
 
     # Set fields.  Don't use upsert as deployment ought to exist prior to write.
     db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
-    return compliance_passed, final_message
+    return final_message.startswith("All files passed"), final_message
