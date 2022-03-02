@@ -64,7 +64,6 @@ class Deployment(Document):
             user = db.User.find_one({'_id': self.user_id})
             self.username = user.username
 
-        self.updated = datetime.utcnow()
 
         # Update the stats on the latest profile file
         modtime = None
@@ -77,6 +76,7 @@ class Deployment(Document):
 
         self.sync()
         update_vals = dict(self)
+        self.updated = datetime.utcnow()
         try:
             doc_id = update_vals.pop("_id")
         # if we get a KeyError, this is a new deployment that hasn't been entered into the database yet
@@ -202,13 +202,17 @@ class Deployment(Document):
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
-            if getattr(self, "compliance_check_passed", None) in (None, False):
+            if getattr(self, "compliance_check_passed", None) is False:
+                last_update = getattr(self, "updated", None)
+                if last_update is not None and (datetime.now - last_update).total_seconds() > 1800:
+                    app.logger.info("Deployment {} was last updated".format(self.deployment_dir))
                 # eliminate force/always re-run?
-                app.logger.info("Scheduling compliance check for completed "
-                                "deployment {}".format(self.deployment_dir))
-                queue.enqueue(glider_deployment_check,
-                              kwargs={"deployment_dir": self.deployment_dir},
-                              job_timeout=800)
+                else:
+                    app.logger.info("Scheduling compliance check for completed "
+                                    "deployment {}".format(self.deployment_dir))
+                    queue.enqueue(glider_deployment_check,
+                                  kwargs={"deployment_dir": self.deployment_dir},
+                                  job_timeout=800)
         else:
             for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
