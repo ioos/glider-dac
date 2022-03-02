@@ -21,11 +21,8 @@ log = None
 def setup_logging(level=logging.DEBUG):
     logger = logging.getLogger('replicate')
     logger.setLevel(level)
-    file_handler = logging.FileHandler('replicate.log')
     stream_handler = logging.StreamHandler()
-    file_handler.setFormatter(log_formatter)
     stream_handler.setFormatter(log_formatter)
-    logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
     logger.setLevel(level)
     return logger
