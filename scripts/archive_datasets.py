@@ -45,12 +45,11 @@ def get_active_deployments():
     client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
                                                 app.config["MONGODB_PORT"]))
     db = client.gliderdac
-    deployments = get_deployments()
     return db.deployments.find({'completed': True, "archive_safe": True,
                                 "$and": [{"compliance_check_report": {"$exists": True}},
                                          {"compliance_check_report.high_priorities":
                                           {"$elemMatch": {"name": "Standard Names",
-                                              "msgs": {"$eq": []}}}}]},
+                                              "msgs": {"$eq": []}}}}]})
 
 
 def get_active_deployment_paths():
