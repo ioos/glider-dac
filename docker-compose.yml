@@ -56,6 +56,13 @@ services:
     image: unidata/thredds-docker:5.3
     ports:
       - 8082:8080
+    volumes:
+      - /data:/data
+      - ./docker_contrib/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml
+      - ./docker_contrib/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml
+      - thredds_cache:/usr/local/tomcat/content/thredds/cache
+      - thredds_logs:/usr/local/tomcat/content/thredds/logs
+
 
   erddap:
     container_name: erddap
@@ -71,6 +78,8 @@ services:
       - redis_data:/data
 
 volumes:
+  thredds_cache:
+  thredds_logs:
   mongo_storage:
   mongo_config:
   redis_data:
