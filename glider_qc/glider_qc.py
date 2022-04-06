@@ -111,7 +111,7 @@ class GliderQC(object):
             'flat_line': {
                 'name': 'qartod_%(name)s_flat_line_flag',
                 'long_name': 'QARTOD Flat Line Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'flat_line_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -121,7 +121,7 @@ class GliderQC(object):
             'gross_range': {
                 'name': 'qartod_%(name)s_gross_range_flag',
                 'long_name': 'QARTOD Gross Range Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'gross_range_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -131,7 +131,7 @@ class GliderQC(object):
             'rate_of_change': {
                 'name': 'qartod_%(name)s_rate_of_change_flag',
                 'long_name': 'QARTOD Rate of Change Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'rate_of_change_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -141,7 +141,7 @@ class GliderQC(object):
             'spike': {
                 'name': 'qartod_%(name)s_spike_flag',
                 'long_name': 'QARTOD Spike Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': "spike_test_quality_flag",
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -151,7 +151,7 @@ class GliderQC(object):
             'pressure': {
                 'name': 'qartod_monotonic_pressure_flag',
                 'long_name': 'QARTOD Pressure Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -161,7 +161,7 @@ class GliderQC(object):
             'primary': {
                 'name': 'qartod_%(name)s_primary_flag',
                 'long_name': 'QARTOD Primary Flag for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'aggregate_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
