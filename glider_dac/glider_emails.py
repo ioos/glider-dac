@@ -14,6 +14,7 @@ import json
 import argparse
 from collections import OrderedDict
 import logging
+import functools
 
 
 root_logger = logging.getLogger()
@@ -23,6 +24,17 @@ handler = logging.StreamHandler(sys.stderr)
 handler.setLevel(logging.INFO)
 root_logger.addHandler(handler)
 
+def email_exception_logging_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except:
+            root_logger.exception("Exception occurred while attempting to send "
+                                  "email: ")
+    return wrapper
+
+@email_exception_logging_wrapper
 def send_registration_email(username, deployment):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
@@ -45,6 +57,7 @@ def send_registration_email(username, deployment):
 
     mail.send(msg)
 
+@email_exception_logging_wrapper
 def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
