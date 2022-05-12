@@ -4,21 +4,24 @@
 glider_dac/views/index.py
 '''
 from bson.objectid import ObjectId
-from flask import render_template, make_response, redirect, flash, url_for, request
-from glider_dac import app, login_manager, db
+from flask import (render_template, make_response, redirect, flash, url_for,
+                   request, current_app, Blueprint)
+#from flask import current_app
+#from glider_dac import login_manager, db
 from glider_dac.models.user import User
 from flask_login import login_user, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 import pymongo
 
+index_bp = Blueprint("index", __name__)
 
 class LoginForm(FlaskForm):
     username = StringField('Name')
     password = PasswordField('Password')
 
 
-@app.route('/', methods=['GET'])
+@index_bp.route('/', methods=['GET'])
 def index():
     deployments = list(db.Deployment.find(
         sort=[("created", pymongo.DESCENDING)], limit=20))
@@ -35,12 +38,7 @@ def index():
                            operator_deployments=operator_deployments)
 
 
-@login_manager.user_loader
-def load_user(userid):
-    return db.User.find_one({"_id": ObjectId(userid)})
-
-
-@app.route('/login', methods=['GET', 'POST'])
+@index_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_active:
         flash("Already logged in", 'warning')
@@ -60,7 +58,7 @@ def login():
     return response
 
 
-@app.route('/logout', methods=['GET'])
+@index_bp.route('/logout', methods=['GET'])
 def logout():
     logout_user()
     return redirect(url_for("index"))
@@ -71,7 +69,23 @@ def serialize_date(date):
         return date.isoformat()
 
 
-@app.route('/crossdomain.xml', methods=['GET'])
+@index_bp.route('/site-map')
+def site_map():
+    '''
+    Returns a json structure for the site routes and handlers
+    '''
+    links = []
+    for rule in current_app.url_map.iter_rules():
+        # Filter out rules we can't navigate to in a browser
+        # and rules that require parameters
+        if "GET" in rule.methods and has_no_empty_params(rule):
+            url = url_for(rule.endpoint)
+            links.append((url, rule.endpoint))
+    # links is now a list of url, endpoint tuples
+    return jsonify(rules=links)
+
+
+@index_bp.route('/crossdomain.xml', methods=['GET'])
 def crossdomain():
     domain = """
     <cross-domain-policy>

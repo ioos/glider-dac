@@ -1,7 +1,9 @@
 import os
 from flask_mail import Message
 from flask import render_template
-from glider_dac import app, mail, db
+#from glider_dac import app, mail, db
+#from glider_dac import mail, db
+from flask import current_app
 from datetime import datetime
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
@@ -14,6 +16,7 @@ import json
 import argparse
 from collections import OrderedDict
 import logging
+import functools
 
 
 root_logger = logging.getLogger()
@@ -24,17 +27,17 @@ handler.setLevel(logging.INFO)
 root_logger.addHandler(handler)
 
 
-def send_email_wrapper(message):
-    """
-    Email sending function with exceptions to catch and log exceptions
-    """
-    try:
-        mail.send(message)
-    except:
-        app.logger.exception("Exception occurred while attempting to send "
-                             "email: ")
+def email_exception_logging_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except:
+            root_logger.exception("Exception occurred while attempting to send "
+                                  "email: ")
+    return wrapper
 
-
+@email_exception_logging_wrapper
 def send_registration_email(username, deployment):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
@@ -55,8 +58,9 @@ def send_registration_email(username, deployment):
                         thredds_url=get_thredds_catalog_url(),
                         erddap_url=get_erddap_catalog_url())
 
-    send_email_wrapper(msg)
+    current_app.mail.send(msg)
 
+@email_exception_logging_wrapper
 def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
@@ -79,7 +83,7 @@ def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
         return
     msg.body       = message
 
-    send_email_wrapper(msg)
+    current_app.mail.send(msg)
 
 def get_thredds_catalog_url():
     args = {

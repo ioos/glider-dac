@@ -2,6 +2,7 @@
 
 from IPython import embed
 from glider_dac import app, db
+from glider_dac.extensions import db
 from bson import ObjectId
 
 with app.app_context():

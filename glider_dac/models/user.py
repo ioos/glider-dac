@@ -1,28 +1,18 @@
 import os
 import os.path
 from datetime import datetime
-from glider_dac import app, db
+from glider_dac import db
+from flask import current_app
 from glider_util.bdb import UserDB
 from flask_mongokit import Document
 
-@db.register
-class User(Document):
-    __collection__ = 'users'
-    use_dot_notation = True
-    use_schemaless = True
-
-    structure = {
-        'username'                  : str,
-        'name'                      : str,
-        'email'                     : str,
-        'organization'              : str,
-        'created'                   : datetime,
-        'updated'                   : datetime
-    }
-
-    default_values = {
-        'created': datetime.utcnow
-    }
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String)
+    organization = db.Column(db.String)
+    created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    updated = db.Column(db.DateTime(timezone=True))
 
     indexes = [
         {
@@ -33,7 +23,7 @@ class User(Document):
 
     @classmethod
     def _check_login(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
+        u = UserDB(current_app.config.get('USER_DB_FILE'))
         return u.check(username.encode(), password.encode())
 
     @classmethod
@@ -50,12 +40,12 @@ class User(Document):
 
     @classmethod
     def update(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
+        u = UserDB(current_app.config.get('USER_DB_FILE'))
         return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):
-        data_root = app.config.get('DATA_ROOT')
+        data_root = current_app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
 
     def save(self):
@@ -82,7 +72,7 @@ class User(Document):
     # is_active, is_authenticated, and is_anonymous.
     @property
     def is_admin(self):
-        return self.username in app.config.get("ADMINS")
+        return self.username in current_app.config.get("ADMINS")
 
     def get_id(self):
         return str(self._id)

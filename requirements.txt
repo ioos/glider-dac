@@ -3,33 +3,33 @@ async-timeout<5.0
 awscli
 asyncio==3.4.3
 Flask<2.4
-Flask-Login>=0.2.7
-gunicorn>=19.5.0
-Flask-WTF>=1.0
+Flask-Login>=0.5.0
+gunicorn>=20.1.0
+Flask-WTF>=1.0.1
+Flask-SQLAlchemy>=2.5.1
+GeoAlchemy2>=0.11.1 
 watchdog>=0.9.0
-lxml>=4.6.2
+lxml==4.8.0
 pymongo==2.8
 mongokit-py3>=0.9.1.1
 Flask-MongoKit==0.6
-bsddb3>=6.2.6
+bsddb3==6.2.7
 Flask-Mail==0.9.0
 Flask-Script==2.0.5
 feedparser==5.1.3
 sh==1.09
-passlib>=1.7.1
-requests>=2.20.0
+passlib>=1.7.4
+requests>=2.20.1
 simplekv
 Werkzeug<3.0.0
 thredds_crawler>=1.5.4
 -e git+https://github.com/pallets-eco/flask-session@a9d001ae9b40268c9189c468bb136e535d3358e1#egg=flask-session
-pyyaml>=5.2
+pyyaml>=6.0
 rq==1.3.0
 rq-dashboard==0.3.4
-# ioos_qartod is no longer in use
-# -e git+https://github.com/ioos/qartod@12301185bb874fb8193e54822b9ea7da4a34bc9a#egg=ioos_qartod
 -e git+https://github.com/ioos/ioos_qc@0b1406b52872e564885ccff5808315cf88ae28ee#egg=ioos_qc
-netCDF4>=1.4.0
-cf-units>=2
+netCDF4>=1.5.8
+cf-units>=2.1.5
 # cftime needs to be frozen for utime.  Some scripts could be rewritten to use
 # newer functions
 cftime==1.4.1
