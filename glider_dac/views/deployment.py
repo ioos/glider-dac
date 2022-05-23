@@ -11,16 +11,18 @@ from flask import render_template, redirect, jsonify, flash, url_for, request, M
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
-from glider_dac import app, db, queue
-from glider_dac import tasks
+from glider_dac import app, db, tasks
+from glider_dac.worker import queue
 from glider_dac.glider_emails import send_registration_email
 from multidict import CIMultiDict
 from pymongo.errors import DuplicateKeyError
 from wtforms import StringField, SubmitField, BooleanField, validators
+from flask import Blueprint
 import re
 import json
 import os
 
+bp = Blueprint(__name__)
 
 
 def is_date_parseable(form, field):

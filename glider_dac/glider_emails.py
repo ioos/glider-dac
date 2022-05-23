@@ -1,7 +1,9 @@
 import os
 from flask_mail import Message
 from flask import render_template
-from glider_dac import app, mail, db
+#from glider_dac import app, mail, db
+#from glider_dac import mail, db
+from flask import current_app
 from datetime import datetime
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
@@ -55,7 +57,7 @@ def send_registration_email(username, deployment):
                         thredds_url=get_thredds_catalog_url(),
                         erddap_url=get_erddap_catalog_url())
 
-    mail.send(msg)
+    current_app.mail.send(msg)
 
 @email_exception_logging_wrapper
 def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
@@ -80,7 +82,7 @@ def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
         return
     msg.body       = message
 
-    mail.send(msg)
+    current_app.mail.send(msg)
 
 def get_thredds_catalog_url():
     args = {

@@ -3,7 +3,6 @@ import datetime
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
-from flask_kvsession import KVSessionExtension
 from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
 from simplekv.memory.redisstore import RedisStore
@@ -15,86 +14,100 @@ from glider_dac.common import log_formatter
 
 
 csrf = CSRFProtect()
-
-# Create application object
-app = Flask(__name__)
-app.url_map.strict_slashes = False
-app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-csrf.init_app(app)
-app.config['SWAGGER'] = {
-    'title': 'glider-dac',
-    'uiversion': 3,
-    'openapi': '3.0.2'
-}
-app.json_encoder = LazyJSONEncoder
-template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
-Swagger(app, template=template)
-
-cur_dir = os.path.dirname(__file__)
-with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
-    config_dict = yaml.load(base_config, Loader=yaml.Loader)
-
-extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
-# merge in settings from config.local.yml, if it exists
-if os.path.exists(extra_config_path):
-    with open(extra_config_path) as extra_config:
-        config_dict = {**config_dict, **yaml.load(extra_config,
-                                                  Loader=yaml.Loader)}
-
-if app.config["ENV"].upper() == "PRODUCTION":
-    try:
-        app.config.update(config_dict["PRODUCTION"])
-    except KeyError:
-        app.config.update(config_dict["DEVELOPMENT"])
-else:
-    app.config.update(config_dict["DEVELOPMENT"])
-
-import redis
-redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
-                                  port=app.config.get('REDIS_PORT'),
-                                  db=app.config.get('REDIS_DB'))
-redis_connection = redis.Redis(connection_pool=redis_pool)
-strict_redis = redis.StrictRedis(connection_pool=redis_pool)
-
-store = RedisStore(strict_redis)
-
-KVSessionExtension(store, app)
-
-from rq import Queue
-queue = Queue('default', connection=redis_connection)
-
-import sys
-
-from flask_mongokit import MongoKit
-import os
-db = MongoKit(app)
-
-# Mailer
-from flask_mail import Mail
-mail = Mail(app)
-
 # Login manager for frontend
 login_manager = LoginManager()
-login_manager.init_app(app)
 login_manager.login_view = "login"
+global db
+
+# Create application object
+def create_app():
+    app = Flask(__name__)
+
+    app.url_map.strict_slashes = False
+    app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+    csrf.init_app(app)
+    app.config['SWAGGER'] = {
+        'title': 'glider-dac',
+        'uiversion': 3,
+        'openapi': '3.0.2'
+    }
+    app.json_encoder = LazyJSONEncoder
+    template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
+    Swagger(app, template=template)
+
+    cur_dir = os.path.dirname(__file__)
+    with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
+        config_dict = yaml.load(base_config, Loader=yaml.Loader)
+
+    extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
+    # merge in settings from config.local.yml, if it exists
+    if os.path.exists(extra_config_path):
+        with open(extra_config_path) as extra_config:
+            config_dict = {**config_dict, **yaml.load(extra_config,
+                                                    Loader=yaml.Loader)}
 
 
-# User Auth DB file - create if not existing
-if not os.path.exists(app.config.get('USER_DB_FILE')):
-    from glider_util.bdb import UserDB
-    UserDB.init_db(app.config.get('USER_DB_FILE'))
+    if "ENV" in app.config:
+        try:
+            app.config.update(config_dict[app.config["ENV"].upper()])
+        except KeyError:
+            logger.error(f"Cannot find config for {app.config['ENV']}, "
+                          "falling back to DEVELOPMENT")
+    else:
+        app.config.update(config_dict["DEVELOPMENT"])
 
-# Create logging
-if app.config.get('LOG_FILE') == True:
-    import logging
-    from logging import FileHandler
-    file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
-                                            '../logs/glider_dac.txt'))
-    file_handler.setFormatter(log_formatter)
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.info('Application Process Started')
+    redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
+                                      port=app.config.get('REDIS_PORT'),
+                                      db=app.config.get('REDIS_DB'))
+    redis_connection = redis.Redis(connection_pool=redis_pool)
+    strict_redis = redis.StrictRedis(connection_pool=redis_pool)
+
+    store = RedisStore(strict_redis)
+
+    KVSessionExtension(store, app)
+
+    app.queue = Queue('default', connection=redis_connection)
+    with Connection(redis_connection):
+        app.worker = Worker(list(map(Queue, listen)))
+        app.worker.work()
+
+
+    import sys
+
+    from flask_mongokit import MongoKit
+    import os
+    db = MongoKit(app)
+
+    # Mailer
+    from flask_mail import Mail
+    app.mail = Mail(app)
+
+    login_manager.init_app(app)
+
+    app.jinja_env.filters['datetimeformat'] = datetimeformat
+    app.jinja_env.filters['timedeltaformat'] = timedeltaformat
+    app.jinja_env.filters['prettydate'] = prettydate
+    app.jinja_env.filters['pluralize'] = pluralize
+    app.jinja_env.filters['padfit'] = padfit
+
+    # User Auth DB file - create if not existing
+    if not os.path.exists(app.config.get('USER_DB_FILE')):
+        from glider_util.bdb import UserDB
+        UserDB.init_db(app.config.get('USER_DB_FILE'))
+
+    # Create logging
+    if app.config.get('LOG_FILE') == True:
+        import logging
+        from logging import FileHandler
+        file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
+                                                '../logs/glider_dac.txt'))
+        file_handler.setFormatter(log_formatter)
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+        app.logger.info('Application Process Started')
+
+    return app
 
 # Create datetime jinja2 filter
 def datetimeformat(value, format='%a, %b %d %Y at %I:%M%p'):
@@ -111,8 +124,6 @@ def prettydate(d):
     if d is None:
         return "never"
     utc_dt = datetime.datetime.utcnow()
-    #app.logger.info(utc_dt)
-    #app.logger.info(d)
     if utc_dt > d:
         return prettypastdate(d, utc_dt - d)
     else:
@@ -167,6 +178,7 @@ def pluralize(number, singular = '', plural = 's'):
     else:
         return plural
 
+# TODO: move to CSS `text-overflow: ellipsis;`
 # pad/truncate filter (for making text tables)
 def padfit(value, size):
     if len(value) <= size:

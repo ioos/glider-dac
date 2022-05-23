@@ -4,7 +4,10 @@
 glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
-from glider_dac import app, db, slugify, queue
+#from glider_dac import app, db, slugify, queue
+from flask import current_app
+from glider_dac import db, slugify
+#from glider_dac.worker import queue
 from glider_dac.glider_emails import glider_deployment_check
 from datetime import datetime
 from flask_mongokit import Document
@@ -16,7 +19,7 @@ import glob
 import hashlib
 
 
-@db.register
+@current_app.db.register
 class Deployment(Document):
     __collection__ = 'deployments'
     use_dot_notation = True
@@ -105,7 +108,7 @@ class Deployment(Document):
         Returns the THREDDS DAP URL to this deployment
         '''
         args = {
-            'host': app.config['THREDDS'],
+            'host': current_app.config['THREDDS'],
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
@@ -118,7 +121,7 @@ class Deployment(Document):
         Returns the URL to the NcSOS endpoint
         '''
         args = {
-            'host': app.config['THREDDS'],
+            'host': current_app.config['THREDDS'],
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
@@ -129,13 +132,13 @@ class Deployment(Document):
     def iso(self):
         name = slugify(self.name)
         iso_url = 'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
-            'host': app.config['PUBLIC_ERDDAP'], 'name': name}
+            'host': current_app.config['PUBLIC_ERDDAP'], 'name': name}
         return iso_url
 
     @property
     def thredds(self):
         args = {
-            'host': app.config['THREDDS'],
+            'host': current_app.config['THREDDS'],
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
@@ -145,7 +148,7 @@ class Deployment(Document):
     @property
     def erddap(self):
         args = {
-            'host': app.config['PUBLIC_ERDDAP'],
+            'host': current_app.config['PUBLIC_ERDDAP'],
             'user': slugify(self.username),
             'deployment': slugify(self.name)
         }
@@ -161,15 +164,15 @@ class Deployment(Document):
 
     @property
     def full_path(self):
-        return os.path.join(app.config.get('DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('DATA_ROOT'), self.deployment_dir)
 
     @property
     def public_erddap_path(self):
-        return os.path.join(app.config.get('PUBLIC_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('PUBLIC_DATA_ROOT'), self.deployment_dir)
 
     @property
     def thredds_path(self):
-        return os.path.join(app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
 
     def on_complete(self):
         """
@@ -205,12 +208,12 @@ class Deployment(Document):
             if getattr(self, "compliance_check_passed", None) is False:
                 last_update = getattr(self, "updated", None)
                 if last_update is not None and (datetime.now - last_update).total_seconds() > 1800:
-                    app.logger.info("Deployment {} was last updated".format(self.deployment_dir))
+                    current_app.logger.info("Deployment {} was last updated".format(self.deployment_dir))
                 # eliminate force/always re-run?
                 else:
-                    app.logger.info("Scheduling compliance check for completed "
+                    current_app.logger.info("Scheduling compliance check for completed "
                                     "deployment {}".format(self.deployment_dir))
-                    queue.enqueue(glider_deployment_check,
+                    current_app.queue.enqueue(glider_deployment_check,
                                   kwargs={"deployment_dir": self.deployment_dir},
                                   job_timeout=800)
         else:
@@ -251,7 +254,7 @@ class Deployment(Document):
         self.checksum = md5.hexdigest()
 
     def sync(self):
-        if app.config.get('NODATA'):
+        if current_app.config.get('NODATA'):
             return
         if not os.path.exists(self.full_path):
             try:

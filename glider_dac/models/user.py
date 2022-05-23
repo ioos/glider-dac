@@ -3,13 +3,15 @@ import os.path
 import glob
 import sys
 from datetime import datetime
-from glider_dac import app, db
+#from glider_dac import current_app, db
+from glider_dac import db
+from flask import current_app
 from flask_login import UserMixin
 from glider_util.bdb import UserDB
 from flask_mongokit import Document
 from bson import ObjectId
 
-@db.register
+@current_app.db.register
 class User(Document):
     __collection__ = 'users'
     use_dot_notation = True
@@ -30,7 +32,7 @@ class User(Document):
 
     @classmethod
     def _check_login(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
+        u = UserDB(current_app.config.get('USER_DB_FILE'))
         return u.check(username.encode(), password.encode())
 
     @classmethod
@@ -47,12 +49,12 @@ class User(Document):
 
     @classmethod
     def update(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
+        u = UserDB(current_app.config.get('USER_DB_FILE'))
         return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):
-        data_root = app.config.get('DATA_ROOT')
+        data_root = current_app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
 
     def ensure_dir(self, dir_name):
@@ -74,7 +76,7 @@ class User(Document):
     # is_active, is_authenticated, and is_anonymous.
     @property
     def is_admin(self):
-        return self.username in app.config.get("ADMINS")
+        return self.username in current_app.config.get("ADMINS")
 
     def get_id(self):
         return str(self._id)

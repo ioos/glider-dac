@@ -5,7 +5,8 @@ glider_dac/views/index.py
 '''
 from bson.objectid import ObjectId
 from flask import render_template, make_response, redirect, flash, url_for, request
-from glider_dac import app, login_manager, db
+from flask import current_app
+from glider_dac import login_manager, db
 from glider_dac.models.user import User
 from flask_login import login_user, logout_user, current_user
 from flask_wtf import FlaskForm

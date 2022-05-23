@@ -35,7 +35,7 @@ services:
   qartod_worker_1: &qartod
     build: .
     container_name: qartod_worker_1
-    command: python glider-dac/scripts/glider_qartod.py -w
+    command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
       - /data/:/data
 

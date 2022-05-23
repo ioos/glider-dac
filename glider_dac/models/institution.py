@@ -5,11 +5,12 @@ glider_dac/models/institution.py
 Model definition for Institution
 '''
 from datetime import datetime
+from flask import current_app
 from glider_dac import db
 from flask_mongokit import Document
 
 
-@db.register
+@current_app.db.register
 class Institution(Document):
     __collection__ = 'institutions'
     use_dot_notation = True
