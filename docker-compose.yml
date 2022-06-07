@@ -6,15 +6,16 @@ services:
     restart: always
     build: .
     ports:
-      - 3000:5000
+      #- 3000:5000
+      - 5000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
-    #  # - .:/glider-dac/  # For local development
+      - /home/badams/devel/glider-dac/:/glider-dac
       - ./users.db:/glider-dac/users.db
-
     depends_on:
       - mongo
       - redis
+    command: sleep 9999999999999999
 
   glider-dac-worker:
     <<: *provider_anchor

@@ -4,9 +4,11 @@
 glider_dac/views/user.py
 View definitions for Users
 '''
-from flask import render_template, redirect, flash, url_for, request
+from flask import (render_template, redirect, flash, url_for, request,
+                   Blueprint)
 from flask_login import login_required, current_user
-from glider_dac import app, db
+#from glider_dac import app, db
+from glider_dac import db
 from glider_dac.models.user import User
 from flask_wtf import FlaskForm
 from wtforms import validators, StringField, PasswordField, SubmitField
@@ -25,7 +27,10 @@ class UserForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-@app.route('/users/<string:username>', methods=['GET', 'POST'])
+user_bp = Blueprint("user", __name__)
+
+
+@user_bp.route('/users/<string:username>', methods=['GET', 'POST'])
 @login_required
 def edit_user(username):
     app.logger.info("GET %s", username)
@@ -53,7 +58,7 @@ def edit_user(username):
     return render_template('edit_user.html', form=form, user=user)
 
 
-@app.route('/admin', methods=['GET', 'POST'])
+@user_bp.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin():
     if not current_user.is_admin:
@@ -83,7 +88,7 @@ def admin():
     return render_template('admin.html', form=form, users=users, deployment_counts=deployment_counts)
 
 
-@app.route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])
+@user_bp.route('/admin/<ObjectId:user_id>', methods=['GET', 'POST'])
 @login_required
 def admin_edit_user(user_id):
     user = db.User.find_one({'_id': user_id})
@@ -106,7 +111,7 @@ def admin_edit_user(user_id):
     return render_template('edit_user.html', form=form, user=user)
 
 
-@app.route('/admin/<ObjectId:user_id>/delete', methods=['POST'])
+@user_bp.route('/admin/<ObjectId:user_id>/delete', methods=['POST'])
 @login_required
 def admin_delete_user(user_id):
     user = db.User.find_one({'_id': user_id})

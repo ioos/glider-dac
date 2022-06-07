@@ -11,8 +11,9 @@ from flask import render_template, redirect, jsonify, flash, url_for, request, M
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
-from glider_dac import app, db, tasks
-from glider_dac.worker import queue
+#from glider_dac import app, db, tasks
+from glider_dac import db, tasks
+#from glider_dac.worker import queue
 from glider_dac.glider_emails import send_registration_email
 from multidict import CIMultiDict
 from pymongo.errors import DuplicateKeyError
@@ -22,7 +23,7 @@ import re
 import json
 import os
 
-bp = Blueprint(__name__)
+deployment_bp = Blueprint("deployment", __name__)
 
 
 def is_date_parseable(form, field):
@@ -61,7 +62,7 @@ class NewDeploymentForm(FlaskForm):
     delayed_mode = BooleanField('Delayed Mode?')
     submit = SubmitField("Create")
 
-@app.route('/users/<string:username>/deployments')
+@deployment_bp.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     user = db.User.find_one({'username': username})
     deployments = list(db.Deployment.find({'user_id': user._id}))
@@ -85,7 +86,7 @@ def list_user_deployments(username):
                            deployments=deployments, **kwargs)
 
 
-@app.route('/operators/<path:operator>/deployments')
+@deployment_bp.route('/operators/<path:operator>/deployments')
 def list_operator_deployments(operator):
     deployments = list(db.Deployment.find({'operator': str(operator)}))
 
@@ -100,7 +101,7 @@ def list_operator_deployments(operator):
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
 def show_deployment(username, deployment_id):
     user = db.User.find_one({'username': username})
     deployment = db.Deployment.find_one({'_id': deployment_id})
@@ -127,14 +128,14 @@ def show_deployment(username, deployment_id):
     return render_template('show_deployment.html', username=username, form=form, deployment=deployment, files=files, **kwargs)
 
 
-@app.route('/deployment/<ObjectId:deployment_id>')
+@deployment_bp.route('/deployment/<ObjectId:deployment_id>')
 def show_deployment_no_username(deployment_id):
     deployment = db.Deployment.find_one({'_id': deployment_id})
     username = db.User.find_one({'_id': deployment.user_id}).username
     return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
 
 
-@app.route('/users/<string:username>/deployment/new', methods=['POST'])
+@deployment_bp.route('/users/<string:username>/deployment/new', methods=['POST'])
 @login_required
 def new_deployment(username):
     user = db.User.find_one({'username': username})
@@ -199,7 +200,7 @@ def new_deployment(username):
     return redirect(url_for('list_user_deployments', username=username))
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/new',
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/new',
            methods=['POST'])
 @login_required
 def new_delayed_mode_deployment(username, deployment_id):
@@ -252,7 +253,7 @@ def new_delayed_mode_deployment(username, deployment_id):
 
     return redirect(url_for('list_user_deployments', username=username))
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/edit', methods=['POST'])
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/edit', methods=['POST'])
 @login_required
 def edit_deployment(username, deployment_id):
 
@@ -281,7 +282,7 @@ def edit_deployment(username, deployment_id):
     return render_template('edit_deployment.html', username=username, form=form, deployment=deployment)
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/files', methods=['POST'])
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/files', methods=['POST'])
 @login_required
 def post_deployment_file(username, deployment_id):
 
@@ -314,7 +315,7 @@ def post_deployment_file(username, deployment_id):
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete_files', methods=['POST'])
 @login_required
 def delete_deployment_files(username, deployment_id):
 
@@ -344,7 +345,7 @@ def delete_deployment_files(username, deployment_id):
     return ""
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete', methods=['POST'])
+@deployment_bp.route('/users/<string:username>/deployment/<ObjectId:deployment_id>/delete', methods=['POST'])
 @login_required
 def delete_deployment(username, deployment_id):
 
@@ -369,7 +370,7 @@ def delete_deployment(username, deployment_id):
     return redirect(url_for("list_user_deployments", username=username))
 
 
-@app.route('/api/deployment', methods=['GET'])
+@deployment_bp.route('/api/deployment', methods=['GET'])
 @cross_origin()
 def get_deployments():
     '''
@@ -470,7 +471,7 @@ def get_deployments():
     return jsonify(results=results, num_results=len(results))
 
 
-@app.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
+@deployment_bp.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
 @cross_origin()
 def get_deployment(username, deployment_name):
     deployment = db.Deployment.find_one(

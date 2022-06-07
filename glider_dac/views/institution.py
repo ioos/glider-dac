@@ -5,15 +5,19 @@ glider_dac/views/institution.py
 View definition for institutions
 '''
 
-from flask import render_template, redirect, flash, url_for, jsonify, request
+from flask import (render_template, redirect, flash, url_for, jsonify, request,
+                   Blueprint)
 from flask_cors import cross_origin
 from flask_login import current_user
-from glider_dac import app, db
+#from glider_dac import app, db
+from glider_dac import db
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from functools import wraps
 import json
 
+
+institution_bp = Blueprint("institution", __name__)
 
 def error_wrapper(func):
     '''
@@ -50,7 +54,7 @@ class NewInstitutionForm(FlaskForm):
     submit = SubmitField('New Institution')
 
 
-@app.route('/institutions/', methods=['GET', 'POST'])
+@institution_bp.route('/institutions/', methods=['GET', 'POST'])
 @admin_required
 def show_institutions():
     institutions = list(db.Institution.find())
@@ -66,14 +70,14 @@ def show_institutions():
                            institutions=institutions)
 
 
-@app.route('/api/institution', methods=['GET'])
+@institution_bp.route('/api/institution', methods=['GET'])
 @cross_origin()
 def get_institutions():
     institutions = [json.loads(inst.to_json()) for inst in db.Institution.find()]
     return jsonify(results=institutions)
 
 
-@app.route('/api/institution', methods=['POST'])
+@institution_bp.route('/api/institution', methods=['POST'])
 @admin_required
 @error_wrapper
 def new_institution():
@@ -85,7 +89,8 @@ def new_institution():
     return institution.to_json()
 
 
-@app.route('/api/institution/<ObjectId:institution_id>', methods=['DELETE'])
+@institution_bp.route('/api/institution/<ObjectId:institution_id>',
+                      methods=['DELETE'])
 @admin_required
 @error_wrapper
 def delete_institution(institution_id):
@@ -98,4 +103,3 @@ def delete_institution(institution_id):
     app.logger.info("Deleting institution")
     institution.delete()
     return jsonify({}), 204
-

@@ -6,9 +6,10 @@ import json
 import shutil
 import re
 
-from flask import render_template, make_response, redirect, jsonify, flash, url_for, request
+from flask import (render_template, make_response, redirect, jsonify, flash, url_for, request,
+                   current_app)
 from flask_login import login_required, login_user, logout_user, current_user
-from glider_dac import app, db, datetimeformat
+from glider_dac import db, datetimeformat
 from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
 import re
@@ -18,7 +19,7 @@ from bson.objectid import ObjectId
 def with_app_ctxt(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
-        with app.app_context():
+        with current_app.app_context():
             return f(*args, **kwargs)
     return wrapper
 

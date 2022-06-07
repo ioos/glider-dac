@@ -11,24 +11,13 @@ from glider_util.bdb import UserDB
 from flask_mongokit import Document
 from bson import ObjectId
 
-@current_app.db.register
-class User(Document):
-    __collection__ = 'users'
-    use_dot_notation = True
-    use_schemaless = True
-
-    structure = {
-        'username'                  : str,
-        'name'                      : str,
-        'email'                     : str,
-        'organization'              : str,
-        'created'                   : datetime,
-        'updated'                   : datetime
-    }
-
-    default_values = {
-        'created': datetime.utcnow
-    }
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    email = db.Column(db.String)
+    organization = db.Column(db.String)
+    created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    updated = db.Column(db.DateTime(timezone=True))
 
     @classmethod
     def _check_login(cls, username, password):

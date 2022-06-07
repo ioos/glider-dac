@@ -5,19 +5,32 @@ from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
 from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
+from flask_sqlalchemy import SQLAlchemy
+from flask_kvsession import KVSessionExtension
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
+import os
+import os.path
 import redis
 import yaml
+from rq import Queue, Connection, Worker
 from glider_dac.common import log_formatter
+from glider_dac.views.deployment import deployment_bp
+from glider_dac.views.index import index_bp
+from glider_dac.views.institution import institution_bp
+from glider_dac.views.user import user_bp
 
 
+db = SQLAlchemy()
 csrf = CSRFProtect()
 # Login manager for frontend
 login_manager = LoginManager()
 login_manager.login_view = "login"
-global db
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.User.find_one({"_id": ObjectId(user_id)})
 
 # Create application object
 def create_app():
@@ -36,6 +49,8 @@ def create_app():
     template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
     Swagger(app, template=template)
 
+    # TODO: Why does this not recognize top-level import when run in gunicorn?
+    import os.path
     cur_dir = os.path.dirname(__file__)
     with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
         config_dict = yaml.load(base_config, Loader=yaml.Loader)
@@ -52,11 +67,12 @@ def create_app():
         try:
             app.config.update(config_dict[app.config["ENV"].upper()])
         except KeyError:
-            logger.error(f"Cannot find config for {app.config['ENV']}, "
-                          "falling back to DEVELOPMENT")
+            app.logger.error(f"Cannot find config for {app.config['ENV']}, "
+                              "falling back to DEVELOPMENT")
     else:
         app.config.update(config_dict["DEVELOPMENT"])
 
+    app.logger.info(app.config)
     redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
                                       port=app.config.get('REDIS_PORT'),
                                       db=app.config.get('REDIS_DB'))
@@ -69,7 +85,7 @@ def create_app():
 
     app.queue = Queue('default', connection=redis_connection)
     with Connection(redis_connection):
-        app.worker = Worker(list(map(Queue, listen)))
+        app.worker = Worker(list(map(Queue, ["default"])))
         app.worker.work()
 
 
@@ -77,7 +93,9 @@ def create_app():
 
     from flask_mongokit import MongoKit
     import os
-    db = MongoKit(app)
+    #db = MongoKit(app)
+    db.init_app(app)
+    db.create_all()
 
     # Mailer
     from flask_mail import Mail
@@ -106,6 +124,12 @@ def create_app():
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
         app.logger.info('Application Process Started')
+
+    app.register_blueprint(index_bp)
+    app.register_blueprint(deployment_bp)
+    app.register_blueprint(institution_bp)
+    app.register_blueprint(user_bp)
+
 
     return app
 
@@ -186,21 +210,12 @@ def padfit(value, size):
 
     return value[0:(size-3)] + "..."
 
-app.jinja_env.filters['datetimeformat'] = datetimeformat
-app.jinja_env.filters['timedeltaformat'] = timedeltaformat
-app.jinja_env.filters['prettydate'] = prettydate
-app.jinja_env.filters['pluralize'] = pluralize
-app.jinja_env.filters['padfit'] = padfit
 
 def slugify(value):
     """
     Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
     Pulled from Django
     """
-    import unicodedata
-    import re
-    #value = str(value)
-    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
     value = re.sub(r'[^\w\s-]', '', value).strip()
     return re.sub(r'[-\s]+', '-', value)
 

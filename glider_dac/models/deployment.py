@@ -4,13 +4,15 @@
 glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
-#from glider_dac import app, db, slugify, queue
 from flask import current_app
 from glider_dac import db, slugify
+from geoalchemy2.types import Geometry
+#from sqlalchemy import event
+from flask_sqlalchemy import models_committed
 #from glider_dac.worker import queue
 from glider_dac.glider_emails import glider_deployment_check
 from datetime import datetime
-from flask_mongokit import Document
+#from flask_mongokit import Document
 from bson.objectid import ObjectId
 from rq import Queue, Connection, Worker
 from shutil import rmtree
@@ -19,48 +21,36 @@ import glob
 import hashlib
 
 
-@current_app.db.register
-class Deployment(Document):
-    __collection__ = 'deployments'
-    use_dot_notation = True
-    use_schemaless = True
 
-    structure = {
-        'name': str,
-        'user_id': ObjectId,
-        'username': str,  # The cached username to lightly DB load
-        # The operator of this Glider. Shows up in TDS as the title.
-        'operator': str,
-        'deployment_dir': str,
-        'estimated_deploy_date': datetime,
-        'estimated_deploy_location': str,  # WKT text
-        'wmo_id': str,
-        'completed': bool,
-        'created': datetime,
-        'updated': datetime,
-        'glider_name': str,
-        'deployment_date': datetime,
-        'archive_safe': bool,
-        'checksum': str,
-        'attribution': str,
-        'delayed_mode': bool,
-        'latest_file': str,
-        'latest_file_mtime': datetime,
-    }
+class Deployment(db.Model):
+    deployment_id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))
+    #'username': str,  # The cached username to lightly DB load
+    # The operator of this Glider. Shows up in TDS as the title.
+    operator = db.Column(db.String, nullable=False)
+    deployment_dir = db.Column(db.String, unique=True, nullable=False)
+    #estimated_deploy_date: datetime,
+    estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
+                                                   srid=4326))
+    # TODO: Add constraints for WMO IDs??
+    wmo_id = db.Column(db.String)
+    completed = db.Column(db.Boolean, nullable=False, default=False)
+    created = db.Column(db.DateTime(timezone=True), nullable=False,
+                        default=datetime.utcnow)
+    updated = db.Column(db.DateTime(timezone=True), nullable=False)
+    glider_name = db.Column(db.String, nullable=False)
+    deployment_date = db.Column(db.DateTime(timezone=True), nullable=False)
+    archive_safe = db.Column(db.Boolean, nullable=False, default=True)
+    checksum = db.Column(db.String)
+    attribution = db.Column(db.String)
+    delayed_mode = db.Column(db.Boolean, nullable=False, default=False)
+    latest_file = db.Column(db.String)
+    latest_file_mtime = db.Column(db.DateTime(timezone=True))
+    compliance_check_passed = db.Column(db.Boolean, nullable=False,
+                                        default=False)
+    compliance_check_report = db.Column(db.JSON)
 
-    default_values = {
-        'created': datetime.utcnow,
-        'completed': False,
-        'archive_safe': True,
-        'delayed_mode': False,
-    }
-
-    indexes = [
-        {
-            'fields': 'name',
-            'unique': True,
-        },
-    ]
 
     def save(self):
         if self.username is None or self.username == '':
@@ -100,8 +90,6 @@ class Deployment(Document):
             rmtree(self.public_erddap_path)
         if os.path.exists(self.thredds_path):
             rmtree(self.thredds_path)
-        Document.delete(self)
-
     @property
     def dap(self):
         '''
@@ -294,3 +282,14 @@ class Deployment(Document):
                                                                         {'$sum':
                                                                          1}}},
                                                             cursor={})]
+
+def on_models_committed(sender, changes):
+    for model, operation in changes:
+        if isinstance(model, Deployment):
+            if operation == "insert" or operation == "update":
+                model.save()
+            elif operation == "delete":
+                model.delete()
+
+#with current_app.app_context():
+#    models_committed.connect(on_models_committed, sender=current_app)

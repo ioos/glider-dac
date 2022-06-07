@@ -25,6 +25,11 @@ COMMON: &common
   MAILER_DEBUG: 1
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
+  #
+  
+  # IMPORTANT: Modification tracking must be set to True for certain parts of
+  # deployment lifecyle to work properly!
+  SQLALCHEMY_TRACK_MODIFICATIONS: True
 
   # Google Analytics
   GA_ENABLED: True
@@ -48,7 +53,13 @@ COMMON: &common
   REDIS_PORT: 6379
   REDIS_DB: 8
 
+  SQLALCHEMY_DATABASE_URI: 'sqlite:////tmp/test.db'
+
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
 
+TESTING:
+  <<: *common
+  DEBUG: True
+  TESTING: True
