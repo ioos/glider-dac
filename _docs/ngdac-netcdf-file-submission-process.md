@@ -74,19 +74,21 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 
 ![GliderDAC - Deployments page](/ioosngdac/DAC_providers_your_deployments.png)
 
-3. Specify a unique deployment name using the following convention:
-    **GLIDER-YYYYmmddTHHMM**
+3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
+    **YYYYmmddTHHMM**
 
-    Where **GLIDER** is the actual name of the glider and **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2.html#trajectory) variable in each NetCDF file that is submitted to the DAC.  Enter the **WMO id** assigned to this glider for the new deployment in the form element.
+    Where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2.html#trajectory) variable in each NetCDF file that is submitted to the DAC.  
 
     **IMPORTANT**:
-    This WMO id must also be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    This WMO id must be included as th [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute wmo_id as well as an attribute (wmo_id) of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    
+4. An additional field, attribution, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 
-4. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
+5. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
 
     **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
 
-5. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process.html#dataset-archiving) for more details on the NCEI archival process.
+6. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process.html#dataset-archiving) for more details on the NCEI archival process.
 
 ## Submission of NetCDF Files
 
