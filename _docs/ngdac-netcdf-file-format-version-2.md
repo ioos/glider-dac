@@ -17,7 +17,6 @@ summary: A description of the NetCDF file format specification.
  + [Introduction](#introduction)
  + [File Naming Conventions](#file-naming-conventions)
  + [Global Attributes](#global-attributes)
- + [Variables](#variables)
    - [trajectory](#trajectory)
    - [time](#time)
    - [time_qc](#time_qc)
@@ -56,7 +55,7 @@ summary: A description of the NetCDF file format specification.
    - [v_qc](#v_qc)
    - [platform](#platform)
    - [instrument_ctd](#instrument_ctd)
-
+ + [Variables](#variables)
 -->
 
 ## Introduction
@@ -111,7 +110,7 @@ There are a few **important** points to mention with regards to global attribute
  4. You may or may not notice the absence of a number of global attributes, particularly related to temporal and spatial extent (i.e.: **geospatial_lat_min**, **geospatial_vertical_min**, **time_coverage_start**, etc.), from this list. The **NGDAC** will add these global attributes and assign appropriate values to them prior to making the aggregated data sets available to the public.
  5. The name and a description of each attribute are listed below. An example is given where the selection of an appropriate value may be unclear. Please use the specified **Value** listed under the attribute name for the following attributes: **Conventions**, **Metadata_Conventions**, **format_version**, **standard_name_vocabulary**.
 
-### Description & Examples of Required Global Attributes
+### Description and Examples of Required Global Attributes
 
 #### _Conventions_
 
