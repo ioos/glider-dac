@@ -52,7 +52,7 @@ Access to the datasets submitted to the DAC is provided via [ERDDAP](http://coas
 
 ## Dataset Status
 Status page for the GliderDAC
- - [**Dataset Status**](https://gliders.ioos.us/status)
+ - [**Dataset Status**](https://marine.rutgers.edu/cool/data/gliders/dac/status/)
 
 ## API
  - [**DAC RESTful API**](https://gliders.ioos.us/providers/api/deployment)
