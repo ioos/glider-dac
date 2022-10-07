@@ -577,7 +577,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="featureType">trajectoryProfile</att>
                         <att name="cdm_trajectory_variables">trajectory,wmo_id</att>
                         <att name="cdm_profile_variables">time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
-                        <att name="subsetVariables">profile_id,time,latitude,longitude</att>
+                        <att name="subsetVariables">wmo_id,trajectory,profile_id,time,latitude,longitude</att>
 
                         <att name="Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
                         <att name="keywords">AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity, glider, In Situ Ocean-based platforms > Seaglider, Spray, Slocum, trajectory, underwater glider, water, wmo</att>
