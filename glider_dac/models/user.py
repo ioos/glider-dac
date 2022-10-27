@@ -55,6 +55,10 @@ class User(Document):
         data_root = app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
 
+    def save(self):
+        # on creation of user, ensure that a directory with user name is present
+        self.ensure_dir("")
+
     def ensure_dir(self, dir_name):
         user_upload_dir = os.path.join(self.data_root, dir_name)
         if not os.path.exists(user_upload_dir):
