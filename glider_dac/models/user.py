@@ -56,6 +56,7 @@ class User(Document):
         return os.path.join(data_root, self.username)
 
     def save(self):
+        super().save()
         # on creation of user, ensure that a directory with user name is present
         self.ensure_dir("")
 
