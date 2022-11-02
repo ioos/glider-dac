@@ -1,13 +1,9 @@
 import os
 import os.path
-import glob
-import sys
 from datetime import datetime
 from glider_dac import app, db
-from flask_login import UserMixin
 from glider_util.bdb import UserDB
 from flask_mongokit import Document
-from bson import ObjectId
 
 @db.register
 class User(Document):
