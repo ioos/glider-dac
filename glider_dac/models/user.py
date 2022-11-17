@@ -24,6 +24,13 @@ class User(Document):
         'created': datetime.utcnow
     }
 
+    indexes = [
+        {
+            'fields': 'username',
+            'unique': True,
+        },
+    ]
+
     @classmethod
     def _check_login(cls, username, password):
         u = UserDB(app.config.get('USER_DB_FILE'))
