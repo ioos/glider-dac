@@ -3,15 +3,15 @@
 <!-- GENERAL INFORMATION
 The information in this file specifies which datasets your ERDDAP will serve.
 The initial version of this file has a few examples which should work for you.
-But after your initial experiments with ERDDAP, 
+But after your initial experiments with ERDDAP,
 you should replace them with information for your datasets.
 
-You can change this document (e.g., add datasets, change metadata) while ERDDAP is running. 
+You can change this document (e.g., add datasets, change metadata) while ERDDAP is running.
 The changes will be detected the next time this document is read
 (as often as setup.xml loadDatasetsMinMinutes).
 
 Each dataset has a reloadEveryNMinutes value (default = 10080 (one week)).
-When this document is reread, datasets that haven't been been reloaded in 
+When this document is reread, datasets that haven't been been reloaded in
 their reloadEveryNMinutes will be reloaded.
 You only need to specify a reloadEveryNMinutes value if you anticipate that
 the dataset will change periodically.
@@ -19,37 +19,37 @@ the dataset will change periodically.
 If this document has an xml error, processing will stop and an email
 will be sent to emailEverythingTo as specified in setup.xml.
 
-If you want to remove a dataset while ERDDAP is running, add 
+If you want to remove a dataset while ERDDAP is running, add
     active="false"
 to the dataset tag.  For example,
     <dataset type="EDDGridFromDap" datasetID="erdMHchla8day" active="false">
 
-For more information, see 
+For more information, see
 http://coastwatch.pfel.noaa.gov/erddap/download/setupDatasetsXml.html
 -->
 
 <!-- If you want to refuse requests from certain clients
-  (e.g., to fend off a Denial of Service attack or an overly zealous web robot), 
-  add their numeric IP address (e.g., 123.45.67.89) to this comma-separated list. 
+  (e.g., to fend off a Denial of Service attack or an overly zealous web robot),
+  add their numeric IP address (e.g., 123.45.67.89) to this comma-separated list.
   You can also replace the last number in an IP address with * to block 0-255 (e.g., 123.45.67.*).
   See your ERDDAP daily report for a list/tally of the most active requesters. -->
 <requestBlacklist></requestBlacklist>
 
 <!-- If you want to prevent specific people from using the email/URL subscription
-     system, uncomment the following tag and add their email addresses to the comma-separated list. 
+     system, uncomment the following tag and add their email addresses to the comma-separated list.
 <subscriptionEmailBlacklist>some.name@company.com, another.name@company.com</subscriptionEmailBlacklist>
 -->
 
-<!-- These convert the local sourceUrl (used in dataset tags) 
+<!-- These convert the local sourceUrl (used in dataset tags)
 into the public sourceUrl (which appears in a dataset's globalAttributes).
 This is only needed if some datasets use non-public sourceUrl's
-(usually because their computer is in your DMZ or a local LAN). 
+(usually because their computer is in your DMZ or a local LAN).
 'from' and 'to' are the start of the URLs and are case sensitive.
-'from' must be '[something]//[something]/' . 
+'from' must be '[something]//[something]/' .
 For example,
 <convertToPublicSourceUrl from="http://192.168.31.18/" to="http://oceanwatch.pfeg.noaa.gov/" />
 will cause a matching local sourceUrl (such as http://192.168.31.18/thredds/dodsC/satellite/BA/ssta/5day)
-into a public sourceUrl (http://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/BA/ssta/5day). 
+into a public sourceUrl (http://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite/BA/ssta/5day).
 -->
 <!--
 <convertToPublicSourceUrl from="http://192.168.31.18/" to="http://oceanwatch.pfeg.noaa.gov/" />
@@ -59,3 +59,33 @@ into a public sourceUrl (http://oceanwatch.pfeg.noaa.gov/thredds/dodsC/satellite
 <ipAddressMaxRequestsActive></ipAddressMaxRequestsActive>  <!-- current default=2 -->
 <ipAddressUnlimited></ipAddressUnlimited>  <!-- default=empty -->
 
+<!-- bugfix to vulnerability -->
+<startBodyHtml5><![CDATA[
+<body>
+<table class="compact nowrap" style="width:100%; background-color:#128CB5;">
+  <tr>
+    <td style="text-align:center; width:80px;"><a rel="bookmark"
+      href="https://www.noaa.gov/"><img
+      title="National Oceanic and Atmospheric Administration"
+      src="&erddapUrl;/images/noaab.png" alt="NOAA"
+      style="vertical-align:middle;"></a></td>
+    <td style="text-align:left; font-size:x-large; color:#FFFFFF; ">
+      <strong>ERDDAP</strong>
+      <br><small><small><small>&EasierAccessToScientificData;</small></small></small>
+      </td>
+    <td style="text-align:right; font-size:small;">
+      &loginInfo;
+      <br>&BroughtToYouBy;
+      <a title="National Oceanic and Atmospheric Administration" rel="bookmark"
+      href="https://www.noaa.gov">NOAA</a>
+      <a title="National Marine Fisheries Service" rel="bookmark"
+      href="https://www.fisheries.noaa.gov">NMFS</a>
+      <a title="Southwest Fisheries Science Center" rel="bookmark"
+      href="https://www.fisheries.noaa.gov/about/southwest-fisheries-science-center">SWFSC</a>
+      <a title="Environmental Research Division" rel="bookmark"
+      href="https://www.fisheries.noaa.gov/about/environmental-research-division-southwest-fisheries-science-center">ERD</a>
+      &nbsp; &nbsp;
+      </td>
+  </tr>
+</table>
+]]></startBodyHtml5>
