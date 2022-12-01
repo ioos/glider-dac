@@ -48,6 +48,12 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
                 app.logger.info("Updated deployment %s", path_parts[0])
+            # extra_atts.json will contain metadata modifications to
+            # datasets.xml which should require a reload/regeneration of that
+            # file.
+            elif path_parts[-1] == "extra_atts.json":
+                app.logger.info("extra_atts.json detected in %s", rel_path)
+                deployment.save()
             else:
                 # Always save the Deployment when a new dive file is added
                 # so a checksum is calculated and a new deployment.json file
