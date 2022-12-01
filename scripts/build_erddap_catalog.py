@@ -122,7 +122,7 @@ def build_datasets_xml(data_root, catalog_root, force):
                              "Processing dataset anyway.")
             else:
                 # there is a chance that the updated field won't be set if
-                # model.save() has not files
+                # model.save() has no files
                 query['updated'] = {'$gte': last_run}
         deployment = db.Deployment.find_one(query)
         # if we couldn't find the deployment, usually due to update time not
