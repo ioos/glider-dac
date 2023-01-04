@@ -67,7 +67,7 @@ class GliderQC(object):
                 continue
             if varname.endswith('_qc'):
                 valid_variables.append(varname)
-            if 'status_flag' in getattr(self.ncfile.variables[varname], 'standard_name', ''):
+            if 'quality_flag' in getattr(self.ncfile.variables[varname], 'standard_name', ''):
                 valid_variables.append(varname)
 
         return valid_variables
@@ -226,7 +226,7 @@ class GliderQC(object):
             raise
         return converted
 
-    def apply_qc(self, ncvariable):
+    def apply_qc(self, ncvariable, parent):
         '''
         Applies QC to a qartod variable
 
@@ -243,8 +243,7 @@ class GliderQC(object):
         qartod_test = getattr(ncvariable, 'qartod_test', None)
         if not qartod_test:
             return
-        standard_name = getattr(ncvariable, 'standard_name').split(' ')[0]
-        parent = self.ncfile.get_variables_by_attributes(standard_name=standard_name)[0]
+        standard_name = parent.standard_name
 
         times, values, mask = self.get_unmasked(parent)
         # There's no data to QC
@@ -425,7 +424,7 @@ def run_qc(config, ncfile):
             qcvar = ncfile.variables[qcvarname]
 
             log.info("Applying QC for %s", qcvar.name)
-            qc.apply_qc(qcvar)
+            qc.apply_qc(qcvar, ncvar)
 
         qc.apply_primary_qc(ncvar)
 
