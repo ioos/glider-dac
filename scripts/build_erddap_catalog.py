@@ -558,9 +558,9 @@ def build_erddap_catalog_chunk(data_root, deployment):
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
         if completed or delayed_mode:
-            reload_settings = reload_template.format(10080)
+            reload_settings = reload_template.format(720)
         else:
-            reload_settings = reload_template.format(1440)
+            reload_settings = reload_template.format(10)
         try:
             tree = etree.fromstring(f"""
                 <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
