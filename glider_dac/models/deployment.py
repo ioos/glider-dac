@@ -203,17 +203,13 @@ class Deployment(Document):
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
-            if getattr(self, "compliance_check_passed", None) is False:
-                last_update = getattr(self, "updated", None)
-                if last_update is not None and (datetime.now - last_update).total_seconds() > 1800:
-                    app.logger.info("Deployment {} was last updated".format(self.deployment_dir))
-                # eliminate force/always re-run?
-                else:
-                    app.logger.info("Scheduling compliance check for completed "
-                                    "deployment {}".format(self.deployment_dir))
-                    queue.enqueue(glider_deployment_check,
-                                  kwargs={"deployment_dir": self.deployment_dir},
-                                  job_timeout=800)
+            # if compliance check failed or has not yet been run, go ahead to next section
+            if not getattr(self, "compliance_check_passed", None):
+                app.logger.info("Scheduling compliance check for completed "
+                                "deployment {}".format(self.deployment_dir))
+                queue.enqueue(glider_deployment_check,
+                              kwargs={"deployment_dir": self.deployment_dir},
+                              job_timeout=800)
         else:
             for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
