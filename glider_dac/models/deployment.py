@@ -75,8 +75,9 @@ class Deployment(Document):
         self.latest_file_mtime = modtime
 
         self.sync()
-        update_vals = dict(self)
         self.updated = datetime.utcnow()
+        app.logger.info("Update time is %s", self.updated)
+        update_vals = dict(self)
         try:
             doc_id = update_vals.pop("_id")
         # if we get a KeyError, this is a new deployment that hasn't been entered into the database yet
