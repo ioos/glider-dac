@@ -62,12 +62,15 @@ class GliderQC(object):
         else:
             return []
         for varname in ancillary_variables:
+            anc_standard_name = getattr(self.ncfile.variables[varname],
+                                        'standard_name', '')
             if varname not in self.ncfile.variables:
                 log.warning("%s defined as ancillary variable but doesn't exist", varname)
                 continue
             if varname.endswith('_qc'):
                 valid_variables.append(varname)
-            if 'quality_flag' in getattr(self.ncfile.variables[varname], 'standard_name', ''):
+            elif ("status_flag" in anc_standard_name or
+                  anc_standard_name.endswith("quality_flag")):
                 valid_variables.append(varname)
 
         return valid_variables
