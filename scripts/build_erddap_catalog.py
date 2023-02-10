@@ -224,11 +224,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
     extra_atts = {"_global_attrs": {}}
     extra_atts_file = os.path.join(dir_path, "extra_atts.json")
     if os.path.isfile(extra_atts_file):
+        logger.info("extra_atts.json file found in {}".format(deployment_dir))
         try:
             with open(extra_atts_file) as f:
                 extra_atts = json.load(f)
         except Exception:
-            logger.error("Error loading file: {}".format(extra_atts_file))
+            logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
     latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
@@ -557,9 +558,9 @@ def build_erddap_catalog_chunk(data_root, deployment):
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
         if completed or delayed_mode:
-            reload_settings = reload_template.format(10080)
+            reload_settings = reload_template.format(720)
         else:
-            reload_settings = reload_template.format(1440)
+            reload_settings = reload_template.format(10)
         try:
             tree = etree.fromstring(f"""
                 <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
