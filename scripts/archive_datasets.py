@@ -49,7 +49,7 @@ def get_active_deployments():
                                 "$and": [{"compliance_check_report": {"$exists": True}},
                                          {"compliance_check_report.high_priorities":
                                           {"$elemMatch": {"name": "Standard Names",
-                                              "msgs": {"$eq": []}}}}]})
+                                                          "msgs": {"$not": {"$elemMatch": {"$regex": "^standard_name .* is not defined in Standard Name Table"}}}}}}]})
 
 
 def get_active_deployment_paths():
