@@ -1,0 +1,40 @@
+name: sync theme submodules
+
+on:
+  push:
+    branches: gh-pages
+
+  schedule:
+     - cron: "00 14 * * *"
+
+  workflow_dispatch:
+
+
+jobs:
+  sync_theme_submodules:
+    if: github.repository_owner == 'ioos' # only run if ioos owns repo
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: submodule checkout
+      run: |
+           git submodule update --init
+    - name: check submodule status
+      run: |
+          git submodule status
+    - name: Update theme from submodules
+      run: |
+           git submodule update --remote --merge
+    - name: check submodule status 2
+      run: |
+           git submodule status
+    - name: Commit and push if it changed
+      run: |
+           git config user.name "Automated"
+           git config user.email "actions@users.noreply.github.com"
+           git add -A
+           timestamp=$(date -u)
+           git commit -m "Update theme on: ${timestamp}" || exit 0
+           git push
