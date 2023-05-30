@@ -10,7 +10,6 @@
   <div class="col-lg-6">
   <form name="user_edit" id="user_edit" method="POST" action="{{ action_path }}">
     {{ form.hidden_tag() }}
-    {{ render_field(form.username) }}
     {{ render_field(form.name) }}
     {{ render_field(form.email) }}
     {{ render_field(form.organization) }}

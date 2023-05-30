@@ -47,13 +47,16 @@ from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
-from .sync_erddap_datasets import sync_deployment
+from scripts.sync_erddap_datasets import sync_deployment
+from glider_dac.common import log_formatter
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s | %(levelname)s]  %(message)s'
-)
+
 logger = logging.getLogger(__name__)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(log_formatter)
+logger.addHandler(ch)
+logger.setLevel(logging.INFO)
 
 
 erddap_mapping_dict = defaultdict(lambda: 'String',
@@ -66,7 +69,7 @@ erddap_mapping_dict = defaultdict(lambda: 'String',
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
-redis_key = 'build_erddap_catalog_last_run'
+redis_key = 'build_erddap_catalog_last_run_deployment'
 redis_host = app.config.get('REDIS_HOST', 'redis')
 redis_port = app.config.get('REDIS_PORT', 6379)
 redis_db = app.config.get('REDIS_DB', 0)
@@ -96,56 +99,86 @@ def build_datasets_xml(data_root, catalog_root, force):
     head_path = os.path.join(template_dir, 'datasets.head.xml')
     tail_path = os.path.join(template_dir, 'datasets.tail.xml')
 
-    query = {}
-    if not force:
-        # Get datasets that have been updated since the last time this script ran
-        try:
-            last_run_ts = _redis.get(redis_key) or 0
-            last_run = datetime.utcfromtimestamp(int(last_run_ts))
-            query['updated'] = {'$gte': last_run}
-        except Exception:
-            logger.error("Error: Parsing last run from redis. Processing ALL Datasets")
-
-    # Set the timestamp of this run in redis
-    dt_now = datetime.now(tz=timezone.utc)
-    _redis.set(redis_key, int(dt_now.timestamp()))
-
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    deployments = db.Deployment.find(query)
-    for deployment in deployments:
-        deployment_dir = deployment.deployment_dir
+    deployment_names = ((dep["name"], dep["deployment_dir"]) for dep in
+                         db.Deployment.find({}, {'name': True,
+                                                 'deployment_dir': True}))
+    for deployment_name, deployment_dir in deployment_names:
         dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
-        with open(dataset_chunk_path, 'w') as f:
+        # base query to which we may add filtering to see if previously run
+        query = ({"name": deployment_name})
+
+        # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
+        # we want to run the "caching" logic only if force flag isn't set and
+        # we are aren't missing the dataset.xml snippet file for this deployment
+        if not (force and os.path.exists(dataset_chunk_path)):
+            # Get datasets that have been updated since the last time this script ran
             try:
-                f.write(build_erddap_catalog_chunk(data_root, deployment))
+                last_run_ts = _redis.hget(redis_key, deployment_name) or 0
+                last_run = datetime.utcfromtimestamp(int(last_run_ts))
             except Exception:
-                logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+                logger.error("Error: Parsing last run for {}. ".format(deployment.name),
+                             "Processing dataset anyway.")
+            else:
+                # there is a chance that the updated field won't be set if
+                # model.save() has no files
+                query['updated'] = {'$gte': last_run}
+        deployment = db.Deployment.find_one(query)
+        # if we couldn't find the deployment, usually due to update time not
+        # being recent, skip this deployment
+        if not deployment:
+            continue
+
+
+        try:
+            chunk_contents = build_erddap_catalog_chunk(data_root, deployment)
+        except Exception:
+            logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+        # only attempt to write file if we were able to generate an XML snippet
+        # successfully
+        else:
+            try:
+                with open(dataset_chunk_path, 'w') as f:
+                    f.write(chunk_contents)
+                    # Set the timestamp of this deployment run in redis
+                dt_now = datetime.now(tz=timezone.utc)
+                _redis.hset(redis_key, deployment_name, int(dt_now.timestamp()))
+            except:
+                logger.exception("Could not write ERDDAP dataset snippet XML file {}".format(dataset_chunk_path))
+
 
     # Now loop through all the deployments and construct datasets.xml
+    # store in temporary file first
+    ds_tmp_path = os.path.join(catalog_root, 'datasets.xml.tmp')
     ds_path = os.path.join(catalog_root, 'datasets.xml')
     deployments_name_set = set()
     deployments = db.Deployment.find()  # All deployments now
-    with open(ds_path, 'w') as f:
-        for line in fileinput.input([head_path]):
-            f.write(line)
-        # for each deployment, get the dataset chunk
-        for deployment in deployments:
-            deployments_name_set.add(deployment.name)
-            # First check that a chunk exists
-            dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir, 'dataset.xml')
-            if os.path.isfile(dataset_chunk_path):
-                for line in fileinput.input([dataset_chunk_path]):
-                    f.write(line)
+    try:
+        with open(ds_tmp_path, 'w') as f:
+            for line in fileinput.input([head_path]):
+                f.write(line)
+            # for each deployment, get the dataset chunk
+            for deployment in deployments:
+                deployments_name_set.add(deployment.name)
+                # First check that a chunk exists
+                dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir, 'dataset.xml')
+                if os.path.isfile(dataset_chunk_path):
+                    for line in fileinput.input([dataset_chunk_path]):
+                        f.write(line)
 
-        inactive_deployment_names = inactive_datasets(deployments_name_set)
+            inactive_deployment_names = inactive_datasets(deployments_name_set)
 
-        for inactive_deployment in inactive_deployment_names:
-            f.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
-                         inactive_deployment))
+            for inactive_deployment in inactive_deployment_names:
+                f.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
+                            inactive_deployment))
 
-        for line in fileinput.input([tail_path]):
-            f.write(line)
+            for line in fileinput.input([tail_path]):
+                f.write(line)
+        # now try moving the file to update datasets.xml
+        os.rename(ds_tmp_path, ds_path)
+    except OSError:
+        logger.exception("Could not write to datasets.xml")
 
     logger.info("Wrote {} from {} deployments".format(ds_path, deployments.count()))
     # issue flag refresh to remove inactive deployments after datasets.xml written
@@ -191,11 +224,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
     extra_atts = {"_global_attrs": {}}
     extra_atts_file = os.path.join(dir_path, "extra_atts.json")
     if os.path.isfile(extra_atts_file):
+        logger.info("extra_atts.json file found in {}".format(deployment_dir))
         try:
             with open(extra_atts_file) as f:
                 extra_atts = json.load(f)
         except Exception:
-            logger.error("Error loading file: {}".format(extra_atts_file))
+            logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
     latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
@@ -524,9 +558,9 @@ def build_erddap_catalog_chunk(data_root, deployment):
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
         if completed or delayed_mode:
-            reload_settings = reload_template.format(10080)
+            reload_settings = reload_template.format(720)
         else:
-            reload_settings = reload_template.format(1440)
+            reload_settings = reload_template.format(10)
         try:
             tree = etree.fromstring(f"""
                 <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
@@ -551,7 +585,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="featureType">trajectoryProfile</att>
                         <att name="cdm_trajectory_variables">trajectory,wmo_id</att>
                         <att name="cdm_profile_variables">time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
-                        <att name="subsetVariables">trajectory,wmo_id,time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
+                        <att name="subsetVariables">wmo_id,trajectory,profile_id,time,latitude,longitude</att>
 
                         <att name="Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
                         <att name="keywords">AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity, glider, In Situ Ocean-based platforms > Seaglider, Spray, Slocum, trajectory, underwater glider, water, wmo</att>

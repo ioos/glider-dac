@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Script to create symlinks of archivable datasets and generate an MD5 sum
+Script to create hard links of archivable datasets and generate an MD5 sum
 '''
 import requests
 import argparse
@@ -9,6 +9,8 @@ import os
 import hashlib
 import logging
 import shutil
+import pymongo
+from glider_dac.common import log_formatter
 from glider_dac import app
 
 logger = logging.getLogger('archive_datasets')
@@ -35,12 +37,18 @@ def get_active_deployments():
     Returns a list of deployments that are safe for archival.  Datasets for
     archival must meet the following criteria:
 
-    - The dataset is completed
-    - The dataset is marked for archival by NCEI
+     - The dataset is completed
+     - The dataset is marked for archival by NCEI
+     - The dataset has no standard name errors in the glider compliance checker report
     '''
-    deployments = get_deployments()
-    return (d for d in deployments['results']
-            if d['completed'] and d.get("archive_safe"))
+    client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
+                                                app.config["MONGODB_PORT"]))
+    db = client.gliderdac
+    return db.deployments.find({'completed': True, "archive_safe": True,
+                                "$and": [{"compliance_check_report": {"$exists": True}},
+                                         {"compliance_check_report.high_priorities":
+                                          {"$elemMatch": {"name": "Standard Names",
+                                                          "msgs": {"$not": {"$elemMatch": {"$regex": "^standard_name .* is not defined in Standard Name Table"}}}}}}]})
 
 
 def get_active_deployment_paths():
@@ -56,10 +64,11 @@ def get_active_deployment_paths():
 
 def make_copy(filepath):
     '''
-    Creates a copy of the file specified in the new NCEI_DIR
+    Creates a copy via hard link of the file specified in the new NCEI_DIR
 
-    :param str filepath: Path to the source of the symbolic link
+    :param str filepath: Path to the source of the hard link
     '''
+    logger.info("Running archival for {}".format(filepath))
     filename = os.path.basename(filepath)
     target = os.path.join(app.config["NCEI_DIR"], filename)
     do_not_archive_filename = target + DNA_SUFFIX
@@ -67,11 +76,29 @@ def make_copy(filepath):
     if not os.path.exists(target):
         logger.info("Creating archive dataset")
         try:
-            shutil.copyfile(source, target)
-        except IOError:
-            logger.exception("Could not copy file {}".format(source))
+            os.link(source, target)
+        except (IOError, OSError):
+            logger.exception("Could not hard link to file {}".format(source))
             return
-    generate_hash(target)
+    try:
+        md5sum_xattr = os.getxattr(filepath, "user.md5sum")
+    # IOError here indicates that the xattr for the md5sum hasn't been written
+    # yet, so start processing the hash
+    except OSError:
+        generate_hash(target)
+    else:
+        with open("{}.md5".format(target), "rb") as f:
+            md5sum_file_contents = f.read()
+        # Does the md5sum in the dedicated file match the xattr value?
+        # If yes, we already have this file.
+        # If no, we need to process this file as the contents have likely
+        # changed.
+        if md5sum_file_contents != md5sum_xattr:
+            generate_hash(target)
+        else:
+            logger.info("MD5 hash contents for {} already exist and are "
+                        "unchanged, skipping...".format(target))
+
     if os.path.exists(do_not_archive_filename):
         try:
             logger.info("Removing DO NOT ARCHIVE File")
@@ -89,9 +116,13 @@ def generate_hash(filepath):
     hasher = hashlib.md5()
     hashfile(filepath, hasher)
     md5sum = filepath + '.md5'
+    hash_value = hasher.hexdigest()
     with open(md5sum, 'w') as f:
-        f.write(hasher.hexdigest())
+        f.write(hash_value)
+    # must write xattr value as bytes
+    os.setxattr(filepath, "user.md5sum", bytes(hash_value, "utf-8"))
     logger.info("Hash generated")
+
 
 
 def hashfile(filepath, hasher, blocksize=65536):
@@ -102,7 +133,7 @@ def hashfile(filepath, hasher, blocksize=65536):
     :param hashlib.algorithm hasher: The hasher to use
     :param int blocksize: Size in bytes of the memory segment
     '''
-    with open(filepath, 'r') as f:
+    with open(filepath, 'rb') as f:
         buf = f.read(blocksize)
         while len(buf) > 0:
             hasher.update(buf)
@@ -116,8 +147,7 @@ def set_verbose():
     '''
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
+    ch.setFormatter(log_formatter)
     logger.addHandler(ch)
     logger.setLevel(logging.DEBUG)
 
@@ -167,13 +197,16 @@ def touch_file(filepath):
 
 def main(args):
     '''
-    Script to create symlinks of archivable datasets and generate an MD5 sum
+    Script to create hard links of archivable datasets and generate an MD5 sum
     '''
     if args.verbose:
         set_verbose()
     for filepath in get_active_deployment_paths():
         logger.info("Archiving %s", filepath)
-        make_copy(filepath)
+        try:
+            make_copy(filepath)
+        except:
+            logger.exception("Failed processing for file path {}".format(filepath))
 
     active_deployments = [d['name'] for d in get_active_deployments()]
     for filename in os.listdir(app.config["NCEI_DIR"]):
@@ -186,7 +219,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('-v', '--verbose', action='store_true', help='Turn on verbose output')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='Turn on verbose output')
     args = parser.parse_args()
     sys.exit(main(args))
-

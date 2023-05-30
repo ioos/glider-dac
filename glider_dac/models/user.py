@@ -1,13 +1,9 @@
 import os
 import os.path
-import glob
-import sys
 from datetime import datetime
 from glider_dac import app, db
-from flask_login import UserMixin
 from glider_util.bdb import UserDB
 from flask_mongokit import Document
-from bson import ObjectId
 
 @db.register
 class User(Document):
@@ -27,6 +23,13 @@ class User(Document):
     default_values = {
         'created': datetime.utcnow
     }
+
+    indexes = [
+        {
+            'fields': 'username',
+            'unique': True,
+        },
+    ]
 
     @classmethod
     def _check_login(cls, username, password):
@@ -54,6 +57,11 @@ class User(Document):
     def data_root(self):
         data_root = app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
+
+    def save(self):
+        super().save()
+        # on creation of user, ensure that a directory with user name is present
+        self.ensure_dir("")
 
     def ensure_dir(self, dir_name):
         user_upload_dir = os.path.join(self.data_root, dir_name)

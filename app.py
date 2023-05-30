@@ -1,11 +1,11 @@
 from glider_dac import app
+from glider_dac.common import log_formatter
 import os
 
 def initialize_logs(app):
     '''
     Initializes the Application Logger
     '''
-    print("INITIALIZING LOGGING")
     import logging
     log_path = app.config.get('LOG_DIR', 'logs')
     if not os.path.exists(log_path):
@@ -13,9 +13,8 @@ def initialize_logs(app):
 
     file_handler = logging.FileHandler(os.path.join(log_path, 'application.log'))
     stream_handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
+    file_handler.setFormatter(log_formatter)
+    stream_handler.setFormatter(log_formatter)
     app.logger.addHandler(file_handler)
     app.logger.addHandler(stream_handler)
     app.logger.setLevel(logging.DEBUG)

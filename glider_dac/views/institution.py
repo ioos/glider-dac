@@ -10,7 +10,7 @@ from flask_cors import cross_origin
 from flask_login import current_user
 from glider_dac import app, db
 from flask_wtf import FlaskForm
-from wtforms import TextField, SubmitField
+from wtforms import StringField, SubmitField
 from functools import wraps
 import json
 
@@ -46,7 +46,7 @@ def admin_required(func):
 
 
 class NewInstitutionForm(FlaskForm):
-    name = TextField('Institution Name')
+    name = StringField('Institution Name')
     submit = SubmitField('New Institution')
 
 

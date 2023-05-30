@@ -9,12 +9,12 @@ from glider_dac import app, login_manager, db
 from glider_dac.models.user import User
 from flask_login import login_user, logout_user, current_user
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField
+from wtforms import StringField, PasswordField
 import pymongo
 
 
 class LoginForm(FlaskForm):
-    username = TextField('Name')
+    username = StringField('Name')
     password = PasswordField('Password')
 
 

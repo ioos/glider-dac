@@ -64,7 +64,6 @@ class Deployment(Document):
             user = db.User.find_one({'_id': self.user_id})
             self.username = user.username
 
-        self.updated = datetime.utcnow()
 
         # Update the stats on the latest profile file
         modtime = None
@@ -76,6 +75,8 @@ class Deployment(Document):
         self.latest_file_mtime = modtime
 
         self.sync()
+        self.updated = datetime.utcnow()
+        app.logger.info("Update time is %s", self.updated)
         update_vals = dict(self)
         try:
             doc_id = update_vals.pop("_id")
@@ -202,8 +203,8 @@ class Deployment(Document):
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
-            if getattr(self, "compliance_check_passed", None) is None:
-                # eliminate force/always re-run?
+            # if compliance check failed or has not yet been run, go ahead to next section
+            if not getattr(self, "compliance_check_passed", None):
                 app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))
                 queue.enqueue(glider_deployment_check,

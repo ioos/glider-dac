@@ -9,19 +9,19 @@ from flask_login import login_required, current_user
 from glider_dac import app, db
 from glider_dac.models.user import User
 from flask_wtf import FlaskForm
-from wtforms import validators, TextField, PasswordField, SubmitField
+from wtforms import validators, StringField, PasswordField, SubmitField
 from wtforms.form import BaseForm
 
 
 class UserForm(FlaskForm):
-    username = TextField('Username')
-    name = TextField('Name')
+    username = StringField('Username')
+    name = StringField('Name')
     password = PasswordField('Password', [
         validators.EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Confirm Password')
-    organization = TextField('Organization')
-    email = TextField('Email')
+    organization = StringField('Organization')
+    email = StringField('Email')
     submit = SubmitField("Submit")
 
 
@@ -63,7 +63,10 @@ def admin():
 
     form = UserForm()
 
-    if form.is_submitted() and BaseForm.validate(form, extra_validators={'password': [validators.Required()]}):
+    if (form.is_submitted() and
+        BaseForm.validate(form,
+                          extra_validators={'password':
+                                            [validators.InputRequired()]})):
         user = db.User()
         form.populate_obj(user)
         user.save()

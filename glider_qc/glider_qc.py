@@ -14,7 +14,6 @@ import logging
 import redis
 import os
 import hashlib
-
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -63,12 +62,15 @@ class GliderQC(object):
         else:
             return []
         for varname in ancillary_variables:
+            anc_standard_name = getattr(self.ncfile.variables[varname],
+                                        'standard_name', '')
             if varname not in self.ncfile.variables:
                 log.warning("%s defined as ancillary variable but doesn't exist", varname)
                 continue
             if varname.endswith('_qc'):
                 valid_variables.append(varname)
-            if 'status_flag' in getattr(self.ncfile.variables[varname], 'standard_name', ''):
+            elif ("status_flag" in anc_standard_name or
+                  anc_standard_name.endswith("quality_flag")):
                 valid_variables.append(varname)
 
         return valid_variables
@@ -112,7 +114,7 @@ class GliderQC(object):
             'flat_line': {
                 'name': 'qartod_%(name)s_flat_line_flag',
                 'long_name': 'QARTOD Flat Line Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'flat_line_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -122,7 +124,7 @@ class GliderQC(object):
             'gross_range': {
                 'name': 'qartod_%(name)s_gross_range_flag',
                 'long_name': 'QARTOD Gross Range Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'gross_range_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -132,7 +134,7 @@ class GliderQC(object):
             'rate_of_change': {
                 'name': 'qartod_%(name)s_rate_of_change_flag',
                 'long_name': 'QARTOD Rate of Change Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'rate_of_change_test_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -142,7 +144,7 @@ class GliderQC(object):
             'spike': {
                 'name': 'qartod_%(name)s_spike_flag',
                 'long_name': 'QARTOD Spike Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': "spike_test_quality_flag",
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -152,7 +154,7 @@ class GliderQC(object):
             'pressure': {
                 'name': 'qartod_monotonic_pressure_flag',
                 'long_name': 'QARTOD Pressure Test for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -162,7 +164,7 @@ class GliderQC(object):
             'primary': {
                 'name': 'qartod_%(name)s_primary_flag',
                 'long_name': 'QARTOD Primary Flag for %(standard_name)s',
-                'standard_name': '%(standard_name)s status_flag',
+                'standard_name': 'aggregate_quality_flag',
                 'flag_values': np.array([1, 2, 3, 4, 9], dtype=np.int8),
                 'flag_meanings': 'GOOD NOT_EVALUATED SUSPECT BAD MISSING',
                 'references': 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
@@ -203,7 +205,7 @@ class GliderQC(object):
         path = path or 'data/qc_config.yml'
         log.info("Loading config from %s", path)
         with open(path, 'r') as f:
-            self.config = yaml.load(f.read())
+            self.config = yaml.safe_load(f.read())
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
@@ -227,7 +229,7 @@ class GliderQC(object):
             raise
         return converted
 
-    def apply_qc(self, ncvariable):
+    def apply_qc(self, ncvariable, parent):
         '''
         Applies QC to a qartod variable
 
@@ -244,8 +246,7 @@ class GliderQC(object):
         qartod_test = getattr(ncvariable, 'qartod_test', None)
         if not qartod_test:
             return
-        standard_name = getattr(ncvariable, 'standard_name').split(' ')[0]
-        parent = self.ncfile.get_variables_by_attributes(standard_name=standard_name)[0]
+        standard_name = parent.standard_name
 
         times, values, mask = self.get_unmasked(parent)
         # There's no data to QC
@@ -384,7 +385,7 @@ def lock_file(path):
     Acquires a file lock or raises an exception
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path).hexdigest()
+    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
     key = 'gliderdac:%s' % digest
     lock = rc.lock(key, blocking_timeout=60)
     return lock
@@ -426,20 +427,29 @@ def run_qc(config, ncfile):
             qcvar = ncfile.variables[qcvarname]
 
             log.info("Applying QC for %s", qcvar.name)
-            qc.apply_qc(qcvar)
+            qc.apply_qc(qcvar, ncvar)
 
         qc.apply_primary_qc(ncvar)
 
+    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
 
-def check_needs_qc(ncfile):
+
+def check_needs_qc(nc_path):
     '''
     Returns True if the netCDF file needs GliderQC
     '''
-    qc = GliderQC(ncfile, None)
-    for varname in qc.find_geophysical_variables():
-        ncvar = ncfile.variables[varname]
-        if qc.needs_qc(ncvar):
-            return True
+    # quick check to see if QC has already been run on these files
+    try:
+        if os.getxattr(nc_path, "user.qc_run"):
+            return False
+    except OSError:
+        pass
+    with Dataset(nc_path, 'r') as nc:
+        qc = GliderQC(nc, None)
+        for varname in qc.find_geophysical_variables():
+            ncvar = nc.variables[varname]
+            if qc.needs_qc(ncvar):
+                return True
+    # if this section was reached, QC has been run, but xattr remains unset
+    os.setxattr(nc_path, "user.qc_run", b"true")
     return False
-
-
