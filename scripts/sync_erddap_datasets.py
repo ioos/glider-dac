@@ -11,8 +11,6 @@ from datetime import datetime, timezone, timedelta
 from glider_dac import app, db
 from glider_dac.common import log_formatter
 
-from config import *
-
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
@@ -88,7 +86,7 @@ def sync_deployment(deployment):
     logger.info( "Synchronizing at %s", datetime.utcnow().isoformat())
     deployment_name = deployment.split('/')[-1]
 
-    touch_erddap(deployment_name, flags_private)
+    touch_erddap(deployment_name, app.config["flags_private"])
 
 
 def get_delayed_mode_deployments(force=False):
