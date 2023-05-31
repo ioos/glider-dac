@@ -431,7 +431,12 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
-    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
+    try:
+        ncfile.sync()
+        ncfile.close()
+        os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
+    except OSError:
+        log.exception(f"Exception occurred trying to save QC to file on {ncfile.filepath()}:")
 
 
 def check_needs_qc(nc_path):
@@ -451,5 +456,8 @@ def check_needs_qc(nc_path):
             if qc.needs_qc(ncvar):
                 return True
     # if this section was reached, QC has been run, but xattr remains unset
-    os.setxattr(nc_path, "user.qc_run", b"true")
+    try:
+        os.setxattr(nc_path, "user.qc_run", b"true")
+    except OSError:
+        log.exception(f"Exception occurred trying to set xattr on already QCed file at {ncfile.filepath()}:")
     return False
