@@ -376,6 +376,9 @@ def qc_task(nc_path, config):
     try:
         with Dataset(nc_path, 'r+') as nc:
             run_qc(config, nc)
+        os.setxattr(nc_path, "user.qc_run", b"true")
+    except OSError:
+        log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
     finally:
         lock.release()
 
@@ -431,9 +434,9 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
+    # maybe unnecessary with calling context handler, but had some files
+    # which had xattr set, but not updated with QC
     ncfile.sync()
-    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
-
 
 def check_needs_qc(nc_path):
     '''
