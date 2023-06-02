@@ -431,14 +431,8 @@ def run_qc(config, ncfile):
 
         qc.apply_primary_qc(ncvar)
 
-    try:
-        ncfile.sync()
-        # can't fetch filepath after closing?
-        file_loc = ncfile.filepath()
-        ncfile.close()
-        os.setxattr(file_loc, "user.qc_run", b"true")
-    except OSError:
-        log.exception(f"Exception occurred trying to save QC to file on {ncfile.filepath()}:")
+    ncfile.sync()
+    os.setxattr(ncfile.filepath(), "user.qc_run", b"true")
 
 
 def check_needs_qc(nc_path):
