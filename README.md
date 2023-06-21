@@ -4,7 +4,7 @@ Glider DAC
 
 This is the main repository for the IOOS Glider DAC site, scripts, and tools
 
-Please do not file issues here,  all GliderDAC related issues should be filed in the [IOOS National Glider Data Assembly Center (V2)](OOS National Glider Data Assembly Center (V2)) repository.
+Please do not file issues here,  all GliderDAC related issues should be filed in the [IOOS National Glider Data Assembly Center (V2)](https://github.com/ioos/ioosngdac) repository.
 
 ### Install Notes
 
