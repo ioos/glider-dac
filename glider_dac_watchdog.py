@@ -4,6 +4,7 @@ import time
 import os.path
 import os
 import argparse
+import glob
 import logging
 from datetime import datetime
 from glider_dac import app, db
@@ -34,6 +35,45 @@ class HandleDeploymentDB(FileSystemEventHandler):
             return
 
         with app.app_context():
+            # navoceano unsorted deployments
+            if path_parts[0] == "navoceano/hurricanes-20230601T0000":
+                if not path_parts[-1].endswith(".nc"):
+                    return
+                deployment_name_raw, extension = os.path.splitext(path_parts[-1])
+                try:
+                    # NAVOCEANO uses underscore instead of dash for separating deployment name, this is fixed later
+                    # when sylinking the deployment
+                    glider_callsign, date_str_tz = deployment_name_raw.split("_", 1)
+                except ValueError:
+                    app.logger.exception("Cannot split NAVOCEANO hurricane glider filename into callsign and timestamp components: ")
+                date_str = (date_str_tz[:-1] if date_str_tz.endswith("Z") else
+                            date_str_tz)
+                # remove trailing Z from deployment name
+                navo_directory = os.path.join(self.base, "navoceano")
+                navo_deployment_directory = None
+                possible_existing_dirs = list(glob.iglob(os.path.join(navo_directory, f"{glider_callsign}*")))
+                # Use an already existing directory if there is one for the the deployment
+                # TODO: handle for mulitple possible existing callsigns if new deployment is made?
+                for maybe_dir in possible_existing_dirs:
+                    if os.path.isdir(maybe_dir):
+                        navo_deployment_directory = maybe_dir
+                # TODO: handle for mulitple possible existing callsigns if new deployment is made?
+                        break
+                # otherwise specify a dir to be created
+                if not navo_deployment_directory:
+                    navo_deployment_directory = os.path.join(self.base, f"navoceano/{glider_callsign}-{date_str}")
+                # Directory could exist, but no deployment in DB!
+                self.create_deployment_if_nonexistent(os.path.split(navo_deployment_directory))
+                try:
+                    os.makedirs(navo_deployment_directory,
+                                exist_ok=True)
+                    # should now fire another inotify filesystem event upon symlink creation
+                    os.symlink(os.path.join(self.base, rel_path),
+                               os.path.join(navo_deployment_directory, f"{glider_callsign}_{date_str}{extension}"))
+                except OSError:
+                    app.logger.exception("Could not create new deployment file for NAVOCEANO: ")
+                return
+
             deployment = db.Deployment.find_one({'deployment_dir' : path_parts[0]})
             if deployment is None:
                 app.logger.error("Cannot find deployment for %s", path_parts[0])
@@ -106,20 +146,27 @@ class HandleDeploymentDB(FileSystemEventHandler):
             app.logger.info("New deployment directory: %s", rel_path)
 
             with app.app_context():
-                deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
-                if deployment is None:
-                    deployment             = db.Deployment()
-
-                    usr = db.User.find_one( { 'username' : str(path_parts[0]) } )
-                    if hasattr(usr, '_id'):
-                        deployment.user_id     = usr._id
-                        deployment.name        = str(path_parts[2])
-                        deployment.deployment_dir = str(event.src_path)
-                        deployment.updated     = datetime.utcnow()
-                        deployment.save()
+                self.create_deployment_if_nonexistent(path_parts)
 
         elif isinstance(event, FileCreatedEvent):
             self.file_moved_or_created(event)
+
+    def create_deployment_if_nonexistent(self, path_parts):
+        deployment_name = path_parts[1]
+        username = os.path.split(path_parts[0])[-1]
+        deployment = db.Deployment.find_one({'name': deployment_name})
+        if deployment is None:
+            app.logger.info(locals())
+            deployment = db.Deployment()
+            user = db.User.find_one({'username': username})
+            app.logger.info("User is %s", user)
+            if hasattr(user, '_id'):
+                deployment.user_id = user._id
+                deployment.name = deployment_name
+                deployment.deployment_dir = os.path.join(username, deployment_name)
+                deployment.updated = datetime.utcnow()
+                deployment.save()
+                app.logger.info(f"Created previously nonexistent deployment {deployment_name} for user {username}")
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):
