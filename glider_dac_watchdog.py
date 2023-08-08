@@ -164,8 +164,12 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 deployment.user_id = user._id
                 deployment.name = deployment_name
                 deployment.deployment_dir = os.path.join(username, deployment_name)
+                deployment.glider_name = deployment_name.split("-", 1)[0]
                 deployment.updated = datetime.utcnow()
                 deployment.save()
+                deployment.delayed_mode = deployment_name.endswith("-delayed")
+                # TODO: Hook into main GDAC codebase for model creation
+                # TODO: Add deployment date field
                 app.logger.info(f"Created previously nonexistent deployment {deployment_name} for user {username}")
 
     def on_deleted(self, event):
