@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.3'
 
 services:
   glider-dac-providers-app: &provider_anchor
@@ -11,6 +11,9 @@ services:
       - ./config.local.yml:/glider-dac/config.local.yml
     #  # - .:/glider-dac/  # For local development
       - ./users.db:/glider-dac/users.db
+    deploy:
+      restart_policy:
+        condition: always
 
     depends_on:
       - mongo
@@ -38,6 +41,9 @@ services:
     command: python glider-dac/scripts/glider_qartod.py -w
     volumes:
       - /data/:/data
+    deploy:
+      restart_policy:
+        condition: always
 
   qartod_worker_2:
     <<: *qartod
@@ -49,6 +55,9 @@ services:
     volumes:
       - mongo_storage:/data/db
       - mongo_config:/data/configdb
+    deploy:
+      restart_policy:
+        condition: always
 
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
@@ -62,6 +71,9 @@ services:
       - ./docker_contrib/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml
       - thredds_cache:/usr/local/tomcat/content/thredds/cache
       - thredds_logs:/usr/local/tomcat/content/thredds/logs
+    deploy:
+      restart_policy:
+        condition: always
 
 
   erddap:
@@ -69,6 +81,9 @@ services:
     image: axiom/docker-erddap
     ports:
       - 8080:8080
+    deploy:
+      restart_policy:
+        condition: always
 
   redis:
     container_name: redis
@@ -76,6 +91,9 @@ services:
     image: redis
     volumes:
       - redis_data:/data
+    deploy:
+      restart_policy:
+        condition: always
 
 volumes:
   thredds_cache:
