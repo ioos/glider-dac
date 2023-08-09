@@ -59,6 +59,22 @@ services:
       restart_policy:
         condition: always
 
+  # For John Kerfoot's new status page application -- move elsewhere if needed
+  mysql:
+    restart: unless-stopped
+    image: mysql:8
+    container_name: mysql
+    environment:
+        - MYSQL_RANDOM_ROOT_PASSWORD=yes
+        - MYSQL_ONETIME_PASSWORD=yes
+    ports:
+        - 3306:3306
+    volumes:
+      - status_mysql:/var/lib/mysql
+    deploy:
+      restart_policy:
+        condition: always
+
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
     container_name: thredds
@@ -101,3 +117,4 @@ volumes:
   mongo_storage:
   mongo_config:
   redis_data:
+  status_mysql:
