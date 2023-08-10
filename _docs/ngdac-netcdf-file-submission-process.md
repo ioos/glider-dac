@@ -21,7 +21,7 @@ summary: This page provides a detailed description of the end-to-end process of 
 + [Dataset Archiving](#dataset-archiving)
 -->
 
-Following a **thorough** reading, all additional questions/concerns/suggestions should be directed to:
+All additional questions or feedback should be directed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
@@ -45,25 +45,33 @@ and all user account requests should be emailed to:
 
 ## New Deployment Registration
 
-Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a [WMO id](http://www.wmo.int/pages/prog/amp/mmop/buoy-ids.html) for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a WMO ID for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 The next step is to register the deployment with the **NGDAC**.
 
 ### Requesting a WMO ID
 
-In order for the datasets to be released to the [Global Telecommunication System](http://www.wmo.int/pages/prog/www/TEM/index_en.html), the glider must be assigned a **WMO ID**.  All **WMO ID** requests should be sent to:
+A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). WMO IDs that have previously been assigned to a glider for one deployment region can now be used regardless of the new deployment location. So, if a glider has been assigned a WMO ID, it may continue to be used for that glider deployed anywhere in the world.  
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=WMO ID%20Request)
+**Submit new WMO ID requests to:**
 
-The following information must be provided for each request:
-+ Data provider
-+ Glider name
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;glider.dac.support@noaa.gov
+
+Please provide the following **required** information:
++ Program (typically the provider's institution; NOT the project, as a glider can be used for multiple different projects over its lifetime)
++ Glider Model (e.g. Slocum G2, Spray, Seaglider, etc)
++ Glider Name 
++ Glider Serial # (if not available, then the Glider Call Sign will be used)
+
+We also recommend providing:
++ Glider Call Sign
 + Approximate deployment date
 + Approximate deployment location (GPS coordinates)
++ Provider name
 
-Once the request is received, it will be forwarded to the [National Data Buoy Center](http://www.ndbc.noaa.gov/) and the assigned **WMO ID** will be sent to the requestor/data provider.
+Once the request is received, it will be promptly submitted by the GDAC Team to the [OceanOPS](https://www.ocean-ops.org/) / [OceanGliders Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders). The assigned WMO ID will be sent to the requestor/data provider, typically in 1 business day.  
 
-**IMPORTANT**: WMO ids are assigned based on the [WMO region](http://en.wikipedia.org/wiki/Location_identifier#WMO_station_identifiers) in which the glider is deployed.  Once assigned, the WMO id may be used on successive deployments of the same glider provided it is deployed in the same WMO region.  **You do not need to acquire a different WMO id each time the glider is deployed, provided it is deployed in the same WMO region.**
+**Note:** OceanOPS enables providers to submit a WMO ID request directly through the OceanGliders Request Identifiers Interface, following the [OceanOPS guidelines](https://www.ocean-ops.org/metadata/#howtorequestids); however, this practice is discouraged, as it requires a user to be declared as a contact point of the US Glider DAC program and the GDAC already provides this WMO ID assignment as a centralized service. IOOS **highly recommends** that users request new WMO IDs via the GDAC rather than directly through OceanOPS.
 
 ### Deployment Creation
 
@@ -80,7 +88,7 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
     Where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2.html#trajectory) variable in each NetCDF file that is submitted to the DAC.  
 
     **IMPORTANT**:
-    This WMO id must be included as th [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute wmo_id as well as an attribute (wmo_id) of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    This WMO ID must be included as th [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute wmo_id as well as an attribute (wmo_id) of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
     
 4. An additional field, attribution, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 
