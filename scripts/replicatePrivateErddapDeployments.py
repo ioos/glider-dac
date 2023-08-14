@@ -160,7 +160,7 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                     except Exception as e:
                         fail_counter -= 1
                         log.exception("Failed to get %s", deployment)
-                        log.info("Attempts remainging: %s", fail_counter)
+                        log.info("Attempts remaining: %s", fail_counter)
                         if fail_counter <= 0:
                             break
 
@@ -221,7 +221,7 @@ def acquire_lock(path):
             str_pid = f.read()
         pid = int(str_pid)
         if check_pid(pid):
-            raise IOError("Lock is already aquired")
+            raise IOError("Lock is already acquired")
 
     with open(path, 'w') as f:
         f.write("{}\n".format(os.getpid()))

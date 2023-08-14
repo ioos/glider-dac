@@ -53,11 +53,11 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 navo_deployment_directory = None
                 possible_existing_dirs = list(glob.iglob(os.path.join(navo_directory, f"{glider_callsign}*")))
                 # Use an already existing directory if there is one for the the deployment
-                # TODO: handle for mulitple possible existing callsigns if new deployment is made?
+                # TODO: handle for multiple possible existing callsigns if new deployment is made?
                 for maybe_dir in possible_existing_dirs:
                     if os.path.isdir(maybe_dir):
                         navo_deployment_directory = maybe_dir
-                # TODO: handle for mulitple possible existing callsigns if new deployment is made?
+                # TODO: handle for multiple possible existing callsigns if new deployment is made?
                         break
                 # otherwise specify a dir to be created
                 if not navo_deployment_directory:
