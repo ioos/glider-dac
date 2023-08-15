@@ -132,11 +132,11 @@ description: "Intended as a documentation theme based on Jekyll for technical wr
 # EDIT HERE! Added settings for IOOS (replace 'ioos-documentation-jekyll-skeleton' with your GitHub repo name):
 url                      : "https://ioos.github.io"
 
-baseurl                  : "/ioosngdac"
+baseurl                  : "/glider-dac"
 
-repository               : "ioos/ioosngdac"
+repository               : "ioos/glider-dac"
 
-github_editme_path       : "ioos/ioosngdac/blob/gh-pages/_docs"
+github_editme_path       : "ioos/glider-dac/blob/gh-pages/_docs"
 # if you're using Github, provide the basepath to the branch you've created for reviews, following the sample here. if not, leave this value blank.
 
 #Setup/config for 'ioos_jekyll_theme' git submodule:
