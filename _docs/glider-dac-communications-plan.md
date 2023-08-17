@@ -53,7 +53,7 @@ gliders.ioos.us (Main landing page for all things related to glider data.  I don
  +--> *Operators* (gliders.ioos.us/operators which is simply a migration of gliders.ioos.us)
     |
     +--> *Documentation* (gliders.ioos.us/operators/documentation that points to the relevant github repos/wikis such as github.com/ioos/ioosngdac/wiki Link to the SINGLE page for technical docs relevant to providers.  Please note, this wiki can easily be turned in to a web page residing at ioos.github.io/ioosngdac using tools like Pelican or Hugo.  See ioos.github.io/sos-guidelines for an example)  NOTE: The technical documentation at ioosngdac should refer to the  other github repos as well.
- +--> *Monitoring* (gliders.ioos.us/monitoring TBD stats and GTS tracking if possible.  Probably the most uncertain but lots of possiblities for integration of tools, esp those maps/summaries based on ERDDAP and developed by John K)
+ +--> *Monitoring* (gliders.ioos.us/monitoring TBD stats and GTS tracking if possible.  Probably the most uncertain but lots of possibilities for integration of tools, esp those maps/summaries based on ERDDAP and developed by John K)
  +--> *Access* (gliders.ioos.us/access description of the various ways to get data and metadata including examples of using the ERDDAP/TDS)
     |
     +--> links to WAF, TDS, ERDDAP, Catalog and or other maps, CS/W queries of Geoportal, ultimately NCEI Archive packages.

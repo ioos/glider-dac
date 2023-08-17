@@ -12,7 +12,7 @@ summary: A list of frequently asked questions
 
 - [Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?](#can-i-re-upload-files-to-the-dac-to-incorporate-more-metadata-based-on-compliance-checker-guidance)
 - [Can I submit variables other than the core CTD variables?](#can-i-submit-variables-other-than-the-core-ctd-variables)
-- [What is the current procedure for sending data to the Global Telecommunications System (GTS)?](#What-is-the-current-procedure-for-sending-data-to-the-Global-Telecommunications-System-(GTS))
+- [What is the current procedure for sending data to the Global Telecommunications System (GTS)?](#what-is-the-current-procedure-for-sending-data-to-the-global-telecommunications-system-gts)
 
 
 ## Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?
@@ -27,7 +27,7 @@ Either way works.
 
 ## Can I submit variables other than the core CTD variables?
 
-Yes! The DAC now accepts any science variables that have a valid [CF Standard Name](http://cfconventions.org/standard-names.html). Any ancillary variables (as specifed in the variable attribute `ancillary_variables`) will also be ingested into ERDDAP.
+Yes! The DAC now accepts any science variables that have a valid [CF Standard Name](http://cfconventions.org/standard-names.html). Any ancillary variables (as specified in the variable attribute `ancillary_variables`) will also be ingested into ERDDAP.
 
 
 ## What is the current procedure for sending data to the Global Telecommunications System (GTS)?

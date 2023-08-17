@@ -24,7 +24,7 @@ Active and historical glider deployments are posted to an [NDBC glider page](htt
 
 ### The Observing System Monitoring Center (OSMC)
 
-[OSMC](www.osmc.info) is a monitoring tool that attempts to harvest and track all ocean observations on the GTS.  This tool is comprehensive but not perfect so if discrepencies are found we encourage users to contact OSMC directly OSMC.Webmaster-AT-noaa-DOT-gov.
+[OSMC](www.osmc.info) is a monitoring tool that attempts to harvest and track all ocean observations on the GTS.  This tool is comprehensive but not perfect so if discrepancies are found we encourage users to contact OSMC directly OSMC.Webmaster-AT-noaa-DOT-gov.
 
  1. **It doesn't appear that everything in the active or historical columns goes to OSMC, so what does OSMC track?**
  All glider data that we release to the GTS should be in OSMC.  Be sure to search the OSMC using the 7 digit WMO ID if the data were released in BUFR.  Our website only shows the last 5 digits of a 7 digit ID since the website processing code was designed to only accept IDs with 5 digits.  You can go to a glider's home page to find the full 7 digit ID.
