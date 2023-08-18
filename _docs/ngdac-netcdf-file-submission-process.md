@@ -69,7 +69,7 @@ We also recommend providing:
 + Approximate deployment location (GPS coordinates)
 + Provider name
 
-Once the request is received, it will be promptly submitted by the GDAC Team to the [OceanOPS](https://www.ocean-ops.org/) / [OceanGliders Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders). The assigned WMO ID will be sent to the requestor/data provider, typically in 1 business day.  
+Once the request is received, it will be promptly submitted by the GDAC Team to the [OceanOPS](https://www.ocean-ops.org/) / [OceanGliders Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders). The assigned WMO ID will be sent to the requester/data provider, typically in 1 business day.  
 
 **Note:** OceanOPS enables providers to submit a WMO ID request directly through the OceanGliders Request Identifiers Interface, following the [OceanOPS guidelines](https://www.ocean-ops.org/metadata/#howtorequestids); however, this practice is discouraged, as it requires a user to be declared as a contact point of the US Glider DAC program and the GDAC already provides this WMO ID assignment as a centralized service. IOOS **highly recommends** that users request new WMO IDs via the GDAC rather than directly through OceanOPS.
 
