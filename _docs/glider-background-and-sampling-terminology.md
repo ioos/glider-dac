@@ -20,9 +20,9 @@ summary: This page defines glider and sampling terminology used throughout the r
 
 ## Glider Types
 As of this writing, there are 3 major buoyancy driven glider types that are currently utilized by IOOS Regional Associations:
- + [Seaglider](http://www.apl.washington.edu/project/project.php?id=seaglider#:~:text=The%20AUV%20Seaglider%20is%20the,time%20via%20satellite%20data%20telemetry.): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](http://www.apl.washington.edu/) and [School of Oceanography](http://www.ocean.washington.edu/).  The Seaglider is now manufactured by [Hydroid](https://www.hydroid.com/seaglider)
- + [Spray](http://spray.ucsd.edu/pub/rel/info/spray_description.php): originally designed by [Scripps Institution of Oceanography](https://scripps.ucsd.edu/) and [Woods Hole Oceangraphic Institution](http://www.whoi.edu/) with funding provided by the [Office of Naval Research](http://www.onr.navy.mil/), the Spray glider is now manufactured by [Bluefin Robotics](http://www.bluefinrobotics.com/products/spray-glider/).
- + [Slocum](http://www.webbresearch.com/slocumglider.aspx): designed and built by [Teledyne Webb Research Corporation](http://www.webbresearch.com/).
+ + [Seaglider](https://apl.uw.edu/project/project.php?id=seaglider#:~:text=The AUV Seaglider is the,time via satellite data telemetry.): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](https://apl.uw.edu/) and [School of Oceanography](http://www.ocean.washington.edu/).  The Seaglider is now manufactured by [Hydroid](https://www.hydroid.com/seaglider)
+ + [Spray](https://spray.ucsd.edu/pub/rel/info/spray_description.php): originally designed by [Scripps Institution of Oceanography](https://scripps.ucsd.edu/) and [Woods Hole Oceangraphic Institution](http://www.whoi.edu/) with funding provided by the [Office of Naval Research](https://www.nre.navy.mil/), the Spray glider is now manufactured by [Bluefin Robotics](http://www.bluefinrobotics.com/products/spray-glider/).
+ + [Slocum](https://www.teledynemarine.com/en-us/products/product-line/Pages/Autonomous-Underwater-Glider.aspx): designed and built by [Teledyne Webb Research Corporation](https://www.teledynemarine.com/brands/webb-research/).
 
 ## Sampling Pattern Terminology
 
