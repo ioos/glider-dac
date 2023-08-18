@@ -22,5 +22,5 @@ summary: This page presents an in-depth description and discussion of the U.S. I
 
 The following diagram illustrates the architecture of the <b>U.S. IOOS National Glider Data Assembly Center</b> and end-to-end data flow pathway.
 
-![NGDAC Architecture](/ioosngdac/IOOS-DAC-architecture.png)
+![NGDAC Architecture](/glider-dac/IOOS-DAC-architecture.png)
 

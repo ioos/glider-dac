@@ -80,7 +80,7 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
 2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
 
-![GliderDAC - Deployments page](/ioosngdac/DAC_providers_your_deployments.png)
+![GliderDAC - Deployments page](/glider-dac/DAC_providers_your_deployments.png)
 
 3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
     **YYYYmmddTHHMM**
@@ -175,13 +175,13 @@ Here's how to mark a deployment as complete and submit the dataset to NCEI:
 
 2.Once logged
 
-![GliderDAC - Deployments page](/ioosngdac/DAC_providers_your_deployments.png)
+![GliderDAC - Deployments page](/glider-dac/DAC_providers_your_deployments.png)
 
 2. Select the deployment of interest from the table of deployments by clicking on the deployment name.
 
 4. Under the **Edit** section on the right side of the deployment page, you'll see checkboxes for **Completed** and **Submit to NCEI on Completion**. Select both checkboxes and click the **Submit** button.
 
-![GliderDAC - Deployments page](/ioosngdac/DAC_complete_deployment.png)
+![GliderDAC - Deployments page](/glider-dac/DAC_complete_deployment.png)
 
 Once submitted, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with NCEI's authority tables for project, institution, platform, and instrument. The results of these checks will be emailed on completion. If any of these checks have failed, NCEI will not archive the deployment.
 
