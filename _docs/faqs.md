@@ -27,7 +27,7 @@ Either way works.
 
 ## Can I submit variables other than the core CTD variables?
 
-Yes! The DAC now accepts any science variables that have a valid [CF Standard Name](http://cfconventions.org/standard-names.html). Any ancillary variables (as specified in the variable attribute `ancillary_variables`) will also be ingested into ERDDAP.
+Yes! The DAC now accepts any science variables that have a valid [CF Standard Name](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html). Any ancillary variables (as specified in the variable attribute `ancillary_variables`) will also be ingested into ERDDAP.
 
 
 ## What is the current procedure for sending data to the Global Telecommunications System (GTS)?
@@ -37,4 +37,4 @@ The National Data Buoy Center harvests new profile observations from the [DAC's 
 
 <!-- 2. Can I submit raw glider files to the DAC? -->
 
-<!-- At the moment no, you must convert the raw files to netCDF following the DAC [metadata conventions](/ioosngdac/ngdac-netcdf-file-format-version-2.html). But we're in the process of developing a raw data upload tool that will enable users to  -->
+<!-- At the moment no, you must convert the raw files to netCDF following the DAC [metadata conventions](/glider-dac/ngdac-netcdf-file-format-version-2.html). But we're in the process of developing a raw data upload tool that will enable users to  -->

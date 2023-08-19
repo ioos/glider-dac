@@ -10,7 +10,7 @@ summary: This page presents an in-depth description and discussion of the U.S. I
 ---
 
 <!--
-> [Wiki](https://github.com/kerfoot/ioosngdac/wiki) ▸ **NGDAC Architecture**
+> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **NGDAC Architecture**
 
 # Contents
 

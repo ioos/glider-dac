@@ -10,7 +10,7 @@ summary: This page provides a detailed description of the end-to-end process of 
 ---
 
 <!--
-> [Wiki](https://github.com/kerfoot/ioosngdac/wiki) ▸ **NGDAC File Submission Process**
+> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **NGDAC File Submission Process**
 
 # Contents
 
@@ -25,7 +25,7 @@ All additional questions or feedback should be directed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
-A consolidated list of the links referenced below can be found [here](/ioosngdac/useful-links).
+A consolidated list of the links referenced below can be found [here](/glider-dac/useful-links).
 
 
 ## Data Provider Registration
@@ -153,7 +153,7 @@ The resulting deployment directory structure will look something like this:
         ...
 ```
 
-A generic [ftp script](https://github.com/ioos/ioosngdac/blob/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
+A generic [ftp script](https://github.com/ioos/glider-dac/blob/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
  + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
  + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
 
@@ -161,7 +161,7 @@ A generic [ftp script](https://github.com/ioos/ioosngdac/blob/master/util/ncFtp2
 
 ## Dataset Status
 
-Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](/ioosngdac/ngdac-architecture.html#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
+Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](/glider-dac/ngdac-architecture.html#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
 
 We've built a [dataset status](https://gliders.ioos.us/status/) page to provide administrators and users with the ability to track datasets through the end-to-end process.  The [home page](https://gliders.ioos.us/status/) displays a list of all data sets for which either/both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) are not yet available.  Please check this page before emailing the DAC administrators regarding data set availability.
 
