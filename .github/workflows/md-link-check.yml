@@ -2,11 +2,8 @@ name: Check Markdown links
 
 on:
   pull_request:
-    branches:
-      - gh-pages
   push:
-    branches:
-      - gh-pages
+    branches: [main]
 
 jobs:
   markdown-link-check:
@@ -18,3 +15,4 @@ jobs:
         use-quiet-mode: 'yes'
         use-verbose-mode: 'yes'
         folder-path: '_docs/'
+        file-path: './README.md
