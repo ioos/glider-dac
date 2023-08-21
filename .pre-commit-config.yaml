@@ -10,7 +10,7 @@ repos:
     rev: v3.11.2
     hooks:
       - id: markdown-link-check
-        args: [-q]
+        args: [--quiet,--verbose]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.5
