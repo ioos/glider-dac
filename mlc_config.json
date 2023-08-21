@@ -8,10 +8,14 @@
     }
   ],
   "replacementPatterns": [
-    {
-      "pattern": "^/",
-      "replacement": "/github/workspace/"
-  }
+      {
+        "pattern": "^/(.*)",
+        "replacement": "https://ioos.github.io/$1"
+      },
+      {
+        "pattern": "^\\s*{{\\s*site.baseurl\\s*}}\\s*/(.*)",
+        "replacement": "https://ioos.github.io/$1"
+      }
   ],
   "timeout": "20s",
   "retryOn429": "true",
