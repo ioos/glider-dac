@@ -3,7 +3,7 @@
 scripts/download_waf.py
 
 A script to scrape ISO 19115 Documents from a running ERDDAP instance. In the
-case of Glider DAC, this should download from the public ERDDAP isntance. The
+case of Glider DAC, this should download from the public ERDDAP instance. The
 documents should be in a directory with no other contents and served as a
 static directory.
 '''

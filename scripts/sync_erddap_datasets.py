@@ -119,7 +119,7 @@ def acquire_lock(path):
             str_pid = f.read()
         pid = int(str_pid)
         if check_pid(pid):
-            raise IOError("Lock is already aquired")
+            raise IOError("Lock is already acquired")
 
     with open(path, 'w') as f:
         f.write("{}\n".format(os.getpid()))

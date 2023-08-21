@@ -759,7 +759,7 @@ def check_for_qc_vars(nc):
 
 def get_latest_nc_file(root):
     '''
-    Returns the lastest netCDF file found in the directory
+    Returns the latest netCDF file found in the directory
 
     :param str root: Root of the directory to scan
     '''
