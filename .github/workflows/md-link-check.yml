@@ -31,4 +31,5 @@ jobs:
       with:
         use-quiet-mode: 'yes'
         use-verbose-mode: 'yes'
+        config-file: 'mlc_config.json'
         file-path: './README.md'

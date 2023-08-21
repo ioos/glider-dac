@@ -12,10 +12,11 @@ repos:
       - id: codespell
         exclude: >
             (?x)^(
-                .*\.yaml
+                .*\.yaml|
+                .*\.yml|
             )$
         args:
-          - --ignore-words-list=nd,ot
+          - --ignore-words-list=nd,ot,adn,redict
 
 
 ci:
