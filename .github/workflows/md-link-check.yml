@@ -1,0 +1,20 @@
+name: Check Markdown links
+
+on:
+  pull_request:
+    branches:
+      - gh-pages
+  push:
+    branches:
+      - gh-pages
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        folder-path: '_docs/'
