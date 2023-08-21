@@ -6,12 +6,6 @@ repos:
       # - id: end-of-file-fixer
       - id: check-added-large-files
 
-  - repo: https://github.com/tcort/markdown-link-check
-    rev: v3.11.2
-    hooks:
-      - id: markdown-link-check
-        args: [--quiet,--verbose]
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.5
     hooks:
