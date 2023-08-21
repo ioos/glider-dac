@@ -10,8 +10,8 @@
   "replacementPatterns": [
     {
       "pattern": "^/",
-      "replacement": "{{BASEURL}}/"
-    }
+      "replacement": "/github/workspace/"
+  }
   ],
   "timeout": "20s",
   "retryOn429": "true",
