@@ -1,7 +1,7 @@
 output: web
 # this property is useful for conditional filtering of content that is separate from the PDF.
 
-topnav_title: IOOS NGDAC
+topnav_title: IOOS National Glider DAC
 # this appears on the top navigation bar next to the home button; replace the value with your site name
 
 site_title: IOOS National Glider DAC
