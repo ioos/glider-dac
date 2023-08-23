@@ -1,10 +1,10 @@
 output: web
 # this property is useful for conditional filtering of content that is separate from the PDF.
 
-topnav_title: IOOS National Glider Data Assembly Center Wiki
+topnav_title: IOOS National Glider DAC
 # this appears on the top navigation bar next to the home button; replace the value with your site name
 
-site_title: IOOS National Glider DAC Wiki
+site_title: IOOS National Glider DAC
 # this appears in the html browser tab for the site title (seen mostly by search engines, not users)
 
 company_name: US IOOS
