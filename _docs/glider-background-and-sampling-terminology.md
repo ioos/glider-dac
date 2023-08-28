@@ -20,7 +20,7 @@ summary: This page defines glider and sampling terminology used throughout the r
 
 ## Glider Types
 As of this writing, there are 3 major buoyancy driven glider types that are currently utilized by IOOS Regional Associations:
- + [Seaglider](https://apl.uw.edu/project/project.php?id=seaglider#:~:text=The AUV Seaglider is the,time via satellite data telemetry.): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](https://apl.uw.edu/) and [School of Oceanography](https://www.ocean.washington.edu/).  The Seaglider is now manufactured by [Hydroid](https://hii.com/what-we-do/capabilities/unmanned-systems/)
+ + [Seaglider](https://apl.uw.edu/project/project.php?id=seaglider): originally designed and built through a collaboration with the University of Washington's [Applied Physics Lab](https://apl.uw.edu/) and [School of Oceanography](https://www.ocean.washington.edu/).
  + [Spray](https://spray.ucsd.edu/pub/rel/info/spray_description.php): originally designed by [Scripps Institution of Oceanography](https://scripps.ucsd.edu/) and [Woods Hole Oceanographic Institution](http://www.whoi.edu/) with funding provided by the [Office of Naval Research](https://www.nre.navy.mil/), the Spray glider is now manufactured by [Bluefin Robotics](https://gdmissionsystems.com/underwater-vehicles/bluefin-robotics/).
  + [Slocum](https://www.teledynemarine.com/en-us/products/product-line/Pages/Autonomous-Underwater-Glider.aspx): designed and built by [Teledyne Webb Research Corporation](https://www.teledynemarine.com/brands/webb-research/).
 
