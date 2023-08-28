@@ -37,6 +37,6 @@ The **NGDAC** accepts a [simple NetCDF file](/glider-dac/ngdac-netcdf-file-forma
 
 Transmission of the data sets via the [Global Telecommunication System](https://public.wmo.int/en/programmes/global-telecommunication-system) is made possible by the [National Data Buoy Center](http://www.ndbc.noaa.gov/), which accesses the data sets from the **ERDDAP** and/or **THREDDS** end-points. After performing some internal quality checks, the profiles are encoded into [BUFR](http://en.wikipedia.org/wiki/BUFR) format and released on the [Global Telecommunication System](https://public.wmo.int/en/programmes/global-telecommunication-system), making them available for assimilation by regional and global scale ocean forecasting models.
 
-Please read the documentation **thoroughly** before beginning the data submission process.  Additional questions and information requests should be directed to:
+Additional questions and information requests should be directed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
