@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<netcdf xmlns="http://www.unidata.ucar.edu/namespaces/netcdf/ncml-2.2" location="IOOS_Glider_NetCDF_v3.0-noqartod.nc">
+  <dimension name="time" length="0" isUnlimited="true" />
+  <dimension name="traj_strlen" length="20" />
+  <attribute name="Conventions" value="CF-1.6, Unidata Dataset Discovery v1.0" />
+  <attribute name="Metadata_Conventions" value="CF-1.6, Unidata Dataset Discovery v1.0" />
+  <attribute name="acknowledgment" value="This deployment supported by ..." />
+  <attribute name="comment" value=" " />
+  <attribute name="contributor_name" value=" " />
+  <attribute name="contributor_role" value=" " />
+  <attribute name="creator_email" value=" " />
+  <attribute name="creator_name" value=" " />
+  <attribute name="creator_url" value=" " />
+  <attribute name="date_created" value=" " />
+  <attribute name="date_issued" value=" " />
+  <attribute name="date_modified" value=" " />
+  <attribute name="format_version" value="IOOS_Glider_NetCDF_v3.0-noqartod.nc" />
+  <attribute name="history" value=" " />
+  <attribute name="id" value=" " />
+  <attribute name="institution" value=" " />
+  <attribute name="ioos_regional_association" value=" " />
+  <attribute name="keywords" value="AUVS &gt; Autonomous Underwater Vehicles, Oceans &gt; Ocean Pressure &gt; Water Pressure, Oceans &gt; Ocean Temperature &gt; Water Temperature, Oceans &gt; Salinity/Density &gt; Conductivity, Oceans &gt; Salinity/Density &gt; Density, Oceans &gt; Salinity/Density &gt; Salinity" />
+  <attribute name="keywords_vocabulary" value="GCMD Science Keywords" />
+  <attribute name="license" value="This data may be redistributed and used without restriction.  Data provided as is with no expressed or implied assurance of quality assurance or quality control" />
+  <attribute name="metadata_link" value=" " />
+  <attribute name="naming_authority" value="edu.rutgers.marine" />
+  <attribute name="platform_type" value="Slocum Glider" />
+  <attribute name="processing_level" value=" " />
+  <attribute name="project" value=" " />
+  <attribute name="publisher_email" value=" " />
+  <attribute name="publisher_name" value=" " />
+  <attribute name="publisher_url" value=" " />
+  <attribute name="references" value=" " />
+  <attribute name="sea_name" value=" " />
+  <attribute name="source" value="Observational data from a profiling glider" />
+  <attribute name="standard_name_vocabulary" value="CF-v25" />
+  <attribute name="summary" value="The Rutgers University Coastal Ocean Observation Lab has deployed autonomous underwater gliders around the world since 1990.  Gliders are small, free-swimming, unmanned vehicles that use changes in buoyancy to move vertically and horizontally through the water column in a saw-tooth pattern. They are deployed for days to several months and gather detailed information about the physical, chemical and biological processes of the world's The Slocum glider was designed and oceans. built by Teledyne Webb Research Corporation, Falmouth, MA, USA.  This dataset contains observational sub-surface profile data of the water-column." />
+  <attribute name="title" value=" " />
+  <attribute name="wmo_id" value=" " />
+  <variable name="conductivity" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Conductivity" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="platform" value="platform" />
+    <attribute name="precision" value=" " />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="sea_water_electrical_conductivity" />
+    <attribute name="units" value="S m-1" />
+    <attribute name="valid_max" type="double" value="10." />
+    <attribute name="valid_min" type="double" value="0." />
+  </variable>
+  <variable name="density" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Density" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="precision" value=" " />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="sea_water_density" />
+    <attribute name="units" value="kg m-3" />
+    <attribute name="valid_max" type="double" value="1040." />
+    <attribute name="valid_min" type="double" value="1015." />
+  </variable>
+  <variable name="depth" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="comment" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Depth" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="positive" value="down" />
+    <attribute name="precision" value=" " />
+    <attribute name="reference_datum" value="sea-surface" />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="depth" />
+    <attribute name="units" value="m" />
+    <attribute name="valid_max" type="int" value="2000" />
+    <attribute name="valid_min" type="int" value="0" />
+  </variable>
+  <variable name="instrument_ctd" type="int">
+    <attribute name="_FillValue" type="int" value="-999" />
+    <attribute name="calibration_date" value=" " />
+    <attribute name="calibration_report" value=" " />
+    <attribute name="comment" value="pumped CTD" />
+    <attribute name="factory_calibrated" value=" " />
+    <attribute name="long_name" value="Seabird Glider Payload CTD" />
+    <attribute name="make_model" value="Seabird GPCTD" />
+    <attribute name="platform" value="platform" />
+    <attribute name="serial_number" value=" " />
+    <attribute name="type" value="platform" />
+  </variable>
+  <variable name="lat" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="comment" value="Interpolated latitude at each point in the time-series" />
+    <attribute name="coordinate_reference_frame" value="urn:ogc:crs:EPSG::4326" />
+    <attribute name="long_name" value="Latitude" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="platform" value="platform" />
+    <attribute name="reference" value="WGS84" />
+    <attribute name="standard_name" value="latitude" />
+    <attribute name="units" value="degrees_north" />
+    <attribute name="valid_max" type="double" value="90." />
+    <attribute name="valid_min" type="double" value="-90." />
+  </variable>
+  <variable name="lat_uv" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." />
+    <attribute name="long_name" value="Depth-Averaged Latitude" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="latitude" />
+    <attribute name="units" value="degrees_north" />
+    <attribute name="valid_max" type="double" value="90." />
+    <attribute name="valid_min" type="double" value="-90." />
+  </variable>
+  <variable name="lon" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="comment" value="Interpolated longitude at each point in the time-series." />
+    <attribute name="coordinate_reference_frame" value="urn:ogc:crs:EPSG::4326" />
+    <attribute name="long_name" value="Longitude" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="platform" value="platform" />
+    <attribute name="reference" value="WGS84" />
+    <attribute name="standard_name" value="longitude" />
+    <attribute name="units" value="degrees_east" />
+    <attribute name="valid_max" type="double" value="180." />
+    <attribute name="valid_min" type="double" value="-180." />
+  </variable>
+  <variable name="lon_uv" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." />
+    <attribute name="long_name" value="Depth-Averaged Longitude" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="longitude" />
+    <attribute name="units" value="degrees_east" />
+    <attribute name="valid_max" type="double" value="180." />
+    <attribute name="valid_min" type="double" value="-180." />
+  </variable>
+  <variable name="platform" type="int">
+    <attribute name="_FillValue" type="int" value="-999" />
+    <attribute name="comment" value=" " />
+    <attribute name="id" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value=" " />
+    <attribute name="type" value="platform" />
+    <attribute name="wmo_id" value=" " />
+  </variable>
+  <variable name="pressure" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="comment" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Pressure" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="platform" value="platform" />
+    <attribute name="positive" value="down" />
+    <attribute name="precision" value=" " />
+    <attribute name="reference_datum" value="sea-surface" />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="sea_water_pressure" />
+    <attribute name="units" value="dbar" />
+    <attribute name="valid_max" type="int" value="2000" />
+    <attribute name="valid_min" type="int" value="0" />
+  </variable>
+  <variable name="profile_id" type="int">
+    <attribute name="_FillValue" type="int" value="-999" />
+    <attribute name="comment" value="Sequential profile number within the trajectory.  This value is unique in each file that is part of a single trajectory/deployment." />
+    <attribute name="long_name" value="Profile ID" />
+    <attribute name="valid_max" type="int" value="2147483647" />
+    <attribute name="valid_min" type="int" value="1" />
+  </variable>
+  <variable name="profile_lat" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="Value is interpolated to provide an estimate of the latitude at the mid-point of the profile" />
+    <attribute name="long_name" value="Profile Center Latitude" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="latitude" />
+    <attribute name="units" value="degrees_north" />
+    <attribute name="valid_max" type="double" value="90." />
+    <attribute name="valid_min" type="double" value="-90." />
+  </variable>
+  <variable name="profile_lon" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="Value is interpolated to provide an estimate of the longitude at the mid-point of the profile" />
+    <attribute name="long_name" value="Profile Center Longitude" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="longitude" />
+    <attribute name="units" value="degrees_east" />
+    <attribute name="valid_max" type="double" value="180." />
+    <attribute name="valid_min" type="double" value="-180." />
+  </variable>
+  <variable name="profile_time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="calendar" value="gregorian" />
+    <attribute name="comment" value="Timestamp corresponding to the mid-point of the profile" />
+    <attribute name="long_name" value="Profile Center Time" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="time" />
+    <attribute name="units" value="seconds since 1970-01-01T00:00:00Z" />
+  </variable>
+  <variable name="salinity" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Salinity" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="precision" value=" " />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="sea_water_practical_salinity" />
+    <attribute name="units" type="int" value="1" />
+    <attribute name="valid_max" type="double" value="40." />
+    <attribute name="valid_min" type="double" value="0." />
+  </variable>
+  <variable name="temperature" shape="time" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="accuracy" value=" " />
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="instrument" value="instrument_ctd" />
+    <attribute name="long_name" value="Temperature" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="platform" value="platform" />
+    <attribute name="precision" value=" " />
+    <attribute name="resolution" value=" " />
+    <attribute name="standard_name" value="sea_water_temperature" />
+    <attribute name="units" value="Celsius" />
+    <attribute name="valid_max" type="double" value="40." />
+    <attribute name="valid_min" type="double" value="-5." />
+  </variable>
+  <variable name="time" shape="time" type="double">
+    <attribute name="ancillary_variables" value=" " />
+    <attribute name="calendar" value="gregorian" />
+    <attribute name="comment" value="Measured or calculated time at each point in the time-series" />
+    <attribute name="long_name" value="Time" />
+    <attribute name="observation_type" value="measured" />
+    <attribute name="standard_name" value="time" />
+    <attribute name="units" value="seconds since 1970-01-01T00:00:00Z" />
+  </variable>
+  <variable name="time_uv" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="calendar" value="gregorian" />
+    <attribute name="comment" value="The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." />
+    <attribute name="long_name" value="Depth-Averaged Time" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="standard_name" value="time" />
+    <attribute name="units" value="seconds since 1970-01-01T00:00:00Z" />
+  </variable>
+  <variable name="trajectory" shape="traj_strlen" type="char">
+    <attribute name="cf_role" value="trajectory_id" />
+    <attribute name="comment" value="A trajectory is a single deployment of a glider and may span multiple data files." />
+    <attribute name="long_name" value="Trajectory/Deployment Name" />
+  </variable>
+  <variable name="u" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." />
+    <attribute name="long_name" value="Depth-Averaged Eastward Sea Water Velocity" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="eastward_sea_water_velocity" />
+    <attribute name="units" value="m s-1" />
+    <attribute name="valid_max" type="double" value="10." />
+    <attribute name="valid_min" type="double" value="-10." />
+  </variable>
+  <variable name="v" type="double">
+    <attribute name="_FillValue" type="double" value="-999." />
+    <attribute name="comment" value="The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." />
+    <attribute name="long_name" value="Depth-Averaged Northward Sea Water Velocity" />
+    <attribute name="observation_type" value="calculated" />
+    <attribute name="platform" value="platform" />
+    <attribute name="standard_name" value="northward_sea_water_velocity" />
+    <attribute name="units" value="m s-1" />
+    <attribute name="valid_max" type="double" value="10." />
+    <attribute name="valid_min" type="double" value="-10." />
+  </variable>
+</netcdf>
