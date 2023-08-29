@@ -22,6 +22,8 @@ The following is a list of links for data providers and web applications develop
 
  - [**Deployment Registration**](https://gliders.ioos.us/providers)
 
+See the section on [New Deployment Registration](https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process.html#new-deployment-registration) for more details.
+
 ## Data Access Links
 
 Access to the datasets submitted to the DAC is provided via [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](https://www.unidata.ucar.edu/software/tds/).  The access points are:
@@ -33,7 +35,7 @@ Access to the datasets submitted to the DAC is provided via [ERDDAP](https://coa
 ## Dataset Status
 
 Status page for the GliderDAC
- - [**Dataset Status**](https://marine.rutgers.edu/cool/data/gliders/dac/status/)
+ - [**Dataset Status**](https://gliders.ioos.us/status/)
 
 
 ## API
