@@ -1,0 +1,11 @@
+	int instrument_variable ;
+		instrument_variable:_FillValue = -999 ;
+		instrument_variable:calibration_date = " " ;
+		instrument_variable:calibration_report = " " ;
+		instrument_variable:comment = " " ;
+		instrument_variable:factory_calibrated = " " ;
+		instrument_variable:long_name = " " ;
+		instrument_variable:make_model = " " ;
+		instrument_variable:platform = "platform" ;
+		instrument_variable:serial_number = " " ;
+		instrument_variable:type = "platform" ;

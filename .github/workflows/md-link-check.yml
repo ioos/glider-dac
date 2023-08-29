@@ -1,0 +1,35 @@
+name: Check Markdown links
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  markdown-link-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Check gh-pages
+      if: github.ref == 'refs/heads/gh-pages'
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: 'mlc_config.json'
+        file-path: './README.md'
+        folder-path: '_docs/'
+
+    - name: Check main
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: 'mlc_config.json'
+        file-path: './README.md'

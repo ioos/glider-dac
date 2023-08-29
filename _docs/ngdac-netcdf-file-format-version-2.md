@@ -9,67 +9,18 @@ toc: false
 summary: A description of the NetCDF file format specification.
 ---
 
-<!--
-
-> [Wiki](https://github.com/ioos/ioosngdac/wiki) ▸ **NetCDF File Format Description**
-
-# Contents
- + [Introduction](#introduction)
- + [File Naming Conventions](#file-naming-conventions)
- + [Global Attributes](#global-attributes)
-   - [trajectory](#trajectory)
-   - [time](#time)
-   - [time_qc](#time_qc)
-   - [lat](#lat)
-   - [lat_qc](#lat_qc)
-   - [lon](#lon)
-   - [lon_qc](#lon_qc)
-   - [pressure](#pressure)
-   - [pressure_qc](#pressure_qc)
-   - [depth](#depth)
-   - [depth_qc](#depth_qc)
-   - [temperature](#temperature)
-   - [temperature_qc](#temperature_qc)
-   - [conductivity](#conductivity)
-   - [conductivity_qc](#conductivity_qc)
-   - [density](#density)
-   - [density_qc](#density_qc)
-   - [profile_id](#profile_id)
-   - [profile_time](#profile_time)
-   - [profile_time_qc](#profile_time_qc)
-   - [profile_lat](#profile_lat)
-   - [profile_lat_qc](#profile_lat_qc)
-   - [profile_lon](#profile_lon)
-   - [profile_lon_qc](#profile_lon_qc)
-   - [salinity](#salinity)
-   - [salinity_qc](#salinity_qc)
-   - [time_uv](#time_uv)
-   - [time_uv_qc](#time_uv_qc)
-   - [lat_uv](#lat_uv)
-   - [lat_uv_qc](#lat_uv_qc)
-   - [lon_uv](#lon_uv)
-   - [lon_uv_qc](#lon_uv_qc)
-   - [u](#u)
-   - [u_qc](#u_qc)
-   - [v](#v)
-   - [v_qc](#v_qc)
-   - [platform](#platform)
-   - [instrument_ctd](#instrument_ctd)
- + [Variables](#variables)
--->
-
 ## Introduction
 
-This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](/ioosngdac/ngdac-netcdf-file-submission-process.html) process.
+This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](/glider-dac/ngdac-netcdf-file-submission-process.html) process.
 
-**Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/ioosngdac/tree/master/nc/template).
+**Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/glider-dac/tree/master/nc/template).
 
 The NetCDF file specification detailed below serves 2 primary purposes:
  + Provide a complete metadata record for all glider data submitted to the **NGDAC** that can be harvested and stored by existing catalogs and registries.
  + Provide a simple file format that is easily created by glider operators and data managers. The flexibility provided by this specification allows for the creation of compound data products that result in easier, more intuitive methods of access by a wide range of end-users and in a variety of formats (i.e.: [**csv**](http://en.wikipedia.org/wiki/Comma-separated_values), [**tsv**](http://en.wikipedia.org/wiki/Tab-separated_values), [**json**](http://en.wikipedia.org/wiki/JSON), [**geoJson**](http://en.wikipedia.org/wiki/GeoJSON), etc.).
  + Preserve the original resolution of the data sets.
 
-Once the files have been uploaded by the individual glider operators, they are aggregated into a single data set (via [**ERDDAP**](http://coastwatch.pfeg.noaa.gov/erddap/information.html)) representing the entire **deployment/trajectory**. These **deployment/trajectory** datasets are publicly accessible via [**ERDDAP**](http://coastwatch.pfeg.noaa.gov/erddap/information.html) and [**THREDDS**](http://www.unidata.ucar.edu/software/thredds/current/tds/TDS.html) end-points. The files submitted by glider operators are archived by the **NGDAC**, but are **not** available for public access in their original form. The **NGDAC** uses a private [**ERDDAP**](http://coastwatch.pfeg.noaa.gov/erddap/information.html) server to aggregate the individual files into a single file representing the **trajectory**, in which all original metadata and sampling resolution is preserved.
+Once the files have been uploaded by the individual glider operators, they are aggregated into a single data set (via [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html)) representing the entire **deployment/trajectory**. These **deployment/trajectory** datasets are publicly accessible via [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [**THREDDS**](https://www.unidata.ucar.edu/software/tds/) end-points. The files submitted by glider operators are archived by the **NGDAC**, but are **not** available for public access in their original form. The **NGDAC** uses a private [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html) server to aggregate the individual files into a single file representing the **trajectory**, in which all original metadata and sampling resolution is preserved.
 
 ## File Naming Conventions
 
@@ -94,10 +45,10 @@ Ideally, the <strong>glider_yyyymmddTHHMMSS.nc</strong> files will be provided b
 ## Global Attributes
 
 The following is the list of required global attributes that must be included in each NetCDF file submitted to the **NGDAC**. This list was created from a variety of sources with the goal of providing a complete metadata record of the data set. More information on these sources can be found at the following locations:
- - **CF1.6**: Section 2.6 of v1.6 Climate and Forecast [conventions](http://cfconventions.org/cf-conventions/v1.6.0/cf-conventions.html)
- - **ACDD**: Attribute Conventions for Dataset Discovery [Home page](http://wiki.esipfed.org/index.php?title=Category:Attribute_Conventions_Dataset_Discovery) and [Current Standard](http://wiki.esipfed.org/index.php/Attribute_Convention_for_Data_Discovery_%28ACDD%29)
- - **NCEI**: Guidance from NOAA's National Centers for Environmental Information on netCDF templates to promote good stewardship and archiving. [NCEI Templates](http://www.nodc.noaa.gov/data/formats/netcdf/) and [global attribute suggestions](http://www.nodc.noaa.gov/data/formats/netcdf/#guidancetable).
- - **IMOS/ANFOG**: IMOS Data Management manual version [5.1](http://imos.org.au/fileadmin/user_upload/shared/ANFOG/ANFOG_DataManagement_UsersManual_v5.1_21Aug2018.pdf)
+ - [**Climate and Forecast (CF)**](https://cfconventions.org/): Especially the section on Attributes (section 2.6, as of CF v1.10)
+ - **[Attribute Convention for Data Discovery](http://wiki.esipfed.org/index.php?title=Attribute_Convention_for_Data_Discovery) (ACDD)**
+ - **NOAA National Centers for Environmental Information (NCEI) netCDF Templates**: Guidance from NCEI on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.ncei.noaa.gov/netcdf-templates) and [global attribute suggestions](https://www.ncei.noaa.gov/netcdf-templates#guidancetable).
+ - **Integrated Marine Observing System (IMOS)/Australian National Facility for Ocean Gliders (ANFOG)**: [Data Management User's Manual v5.1](http://imos.org.au/fileadmin/user_upload/shared/ANFOG/ANFOG_DataManagement_UsersManual_v5.1_21Aug2018.pdf)
  - **IOOS**: Internal discussion within the IOOS Glider Data Team.
 
 ### Caveats
@@ -114,7 +65,7 @@ There are a few **important** points to mention with regards to global attribute
 
 #### _Conventions_
 
-Version of the [Climate and Forecast metadata conventions](http://cfconventions.org/) followed by the file format specification.
+Version of the [Climate and Forecast metadata conventions](https://cfconventions.org/) followed by the file format specification.
 
 Value:
 : "CF-1.6"
@@ -301,7 +252,7 @@ Example:
 
 #### _standard_name_vocabulary_
 
-Version of CF standard names used for variables. [Current standard name table](http://cfconventions.org/standard-names.html) (e.g. "Standard Name Table (v73, 23 June 2020)")
+Version of CF standard names used for variables. [Current standard name table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html) (e.g. "Standard Name Table (v73, 23 June 2020)")
 
 #### _summary_
 
@@ -328,7 +279,7 @@ Example:
 
 #### _wmo_id_
 
-String specifying the [WMO ID](http://www.wmo.int/pages/prog/amp/mmop/wmo-number-rules.html) used to identify this platform. Must be specified as a string attribute. Each [WMO ID](http://www.wmo.int/pages/prog/amp/mmop/wmo-number-rules.html) is unique to an individual glider deployed in a specific location and must be requested from the **NGDAC** administrator.
+String specifying the [WMO ID](https://community.wmo.int/en/rules-allocating-wmo-numbers) used to identify this platform. Must be specified as a string attribute. Each [WMO ID](https://community.wmo.int/en/rules-allocating-wmo-numbers) is unique to an individual glider deployed in a specific location and must be requested from the **NGDAC** administrator.
 
 Example:
 : "4801518"
@@ -344,7 +295,7 @@ The NetCDF file specification contains 3 core variable types which relate to how
 
 Most of the **time-series** variables and many of the **profile** variables have corresponding data quality variables, which are referenced via the **ancillary_variables** variable attribute. The dimensions of these variables are the same as the variables they convey quality information about.
 
-While no CF standard names exist for these flags, CF conventions allow the use of a [standard_name modifier](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) to be appended to the corresponding variable's standard name to create the standard name for the quality control flag. For example, the **temperature** variable has a corresponding data quality variable (**temperature_qc**). The **standard_name** attribute contains the CF standard name of the variable it references with **status_flag** appended, i.e.: **temperature** **status_flag**
+While no CF standard names exist for these flags, CF conventions allow the use of a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) to be appended to the corresponding variable's standard name to create the standard name for the quality control flag. For example, the **temperature** variable has a corresponding data quality variable (**temperature_qc**). The **standard_name** attribute contains the CF standard name of the variable it references with **status_flag** appended, i.e.: **temperature** **status_flag**
 
 The following is a list and description of all variables and corresponding variable attributes that are **REQUIRED** for the file to be accepted by the **NGDAC**. A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following attributes:
 
@@ -359,7 +310,7 @@ The following is a list and description of all variables and corresponding varia
  + **platform:long_name**
  + All **instrument_ctd** attributes except **instrument_ctd:platform**
 
-**Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/ioosngdac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [**here**](https://github.com/ioos/ioosngdac/tree/master/nc/template).
+**Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [**here**](https://github.com/ioos/glider-dac/tree/master/nc/template).
 
 ### Dimensions
 
@@ -368,7 +319,7 @@ NetCDF files submitted by the individual glider operators contain 2 dimension va
  + **time**: time when the individual sensor record was recorded.
  + **traj_strlen**: string specifying the trajectory name.
 
-According to [CF Conventions](http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch02s05.html), dimension variables are not allowed to have missing values (i.e.: _FillValue).
+According to [CF Conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch02s05.html), dimension variables are not allowed to have missing values (i.e.: _FillValue).
 
 The aggregated data sets created by the **NGDAC** contain the following additional dimensions to increase the data access methods and are **NOT** included in the individual profile NetCDF files submitted by the glider operators:
 
