@@ -9,20 +9,6 @@ toc: false
 summary: This wiki is a collection of documents and resources describing the NetCDF file specification, data provider registration and data set submission processes for contributing real-time and delayed-mode glider data sets to the U.S. IOOS National Glider Data Assembly Center (NGDAC).
 ---
 
-<!--
-This wiki is a collection of documents and resources describing the NetCDF file specification, data provider registration and data set submission processes for contributing real-time and delayed-mode glider data sets to the U.S. IOOS <b>N</b>ational <b>G</b>lider <b>D</b>ata <b>A</b>ssembly <b>C</b>enter (__NGDAC__).
-
-## Wiki Contents
-
-+ [Introduction](#introduction)
-+ [Glider Background and Sampling Terminology](/glider-dac/glider-background-and-sampling-terminology.html)
-+ [NetCDF file format description](ngdac-netcdf-file-format-version-2.html)
-+ [Links for Data Providers](/glider-dac/useful-links.html)
-+ [NGDAC Architecture](/glider-dac/ngdac-architecture.html)
-+ [NGDAC NetCDF File Submission Process](/glider-dac/ngdac-netcdf-file-submission-process.html)
-+ [Backup and Recovery](/glider-dac/data-backup-recovery)
--->
-
 ## Introduction
 
 The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b>:

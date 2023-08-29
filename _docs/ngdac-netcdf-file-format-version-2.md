@@ -9,55 +9,6 @@ toc: false
 summary: A description of the NetCDF file format specification.
 ---
 
-<!--
-
-> [Wiki](https://github.com/ioos/glider-dac/wiki) ▸ **NetCDF File Format Description**
-
-# Contents
- + [Introduction](#introduction)
- + [File Naming Conventions](#file-naming-conventions)
- + [Global Attributes](#global-attributes)
-   - [trajectory](#trajectory)
-   - [time](#time)
-   - [time_qc](#time_qc)
-   - [lat](#lat)
-   - [lat_qc](#lat_qc)
-   - [lon](#lon)
-   - [lon_qc](#lon_qc)
-   - [pressure](#pressure)
-   - [pressure_qc](#pressure_qc)
-   - [depth](#depth)
-   - [depth_qc](#depth_qc)
-   - [temperature](#temperature)
-   - [temperature_qc](#temperature_qc)
-   - [conductivity](#conductivity)
-   - [conductivity_qc](#conductivity_qc)
-   - [density](#density)
-   - [density_qc](#density_qc)
-   - [profile_id](#profile_id)
-   - [profile_time](#profile_time)
-   - [profile_time_qc](#profile_time_qc)
-   - [profile_lat](#profile_lat)
-   - [profile_lat_qc](#profile_lat_qc)
-   - [profile_lon](#profile_lon)
-   - [profile_lon_qc](#profile_lon_qc)
-   - [salinity](#salinity)
-   - [salinity_qc](#salinity_qc)
-   - [time_uv](#time_uv)
-   - [time_uv_qc](#time_uv_qc)
-   - [lat_uv](#lat_uv)
-   - [lat_uv_qc](#lat_uv_qc)
-   - [lon_uv](#lon_uv)
-   - [lon_uv_qc](#lon_uv_qc)
-   - [u](#u)
-   - [u_qc](#u_qc)
-   - [v](#v)
-   - [v_qc](#v_qc)
-   - [platform](#platform)
-   - [instrument_ctd](#instrument_ctd)
- + [Variables](#variables)
--->
-
 ## Introduction
 
 This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](/glider-dac/ngdac-netcdf-file-submission-process.html) process.

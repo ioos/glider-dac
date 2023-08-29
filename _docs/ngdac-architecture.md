@@ -9,15 +9,6 @@ toc: false
 summary: This page presents an in-depth description and discussion of the U.S. IOOS National Data Assembly Center architecture.
 ---
 
-<!--
-> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **NGDAC Architecture**
-
-# Contents
-
-+ [Data Assembly Center Architecture](#data-assembly-center-architecture)
-
--->
-
 ## Data Assembly Center Architecture
 
 The following diagram illustrates the architecture of the <b>U.S. IOOS National Glider Data Assembly Center</b> and end-to-end data flow pathway.

@@ -9,19 +9,7 @@ toc: false
 summary: A list of links for Data Providers
 ---
 
-<!--
-> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **Data Provider Links**
--->
-
 The following is a list of links for data providers and web applications developers that provide the means to create new deployments, upload conforming [DAC NetCDF files](ngdac-netcdf-file-format-version-2.html), view data set status and programmatically interface with the DAC via a RESTful API.
-
-<!--
-# Contents
-
-- [Utilities and Resources for Data Providers](#utilities-and-resources-for-data-providers)
-- [Links](#links)
-- [Interacting with the DAC](#link-use-and-descriptions)
--->
 
 ## Data Provider Utilities
 

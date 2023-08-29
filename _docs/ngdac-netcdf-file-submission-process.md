@@ -9,18 +9,6 @@ toc: false
 summary: This page provides a detailed description of the end-to-end process of becoming a data provider, registering new glider deployments and submitting NetCDF files to the U.S. IOOS National Glider Data Assembly Center.
 ---
 
-<!--
-> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **NGDAC File Submission Process**
-
-# Contents
-
-+ [Data Provider Registration](#data-provider-registration)
-+ [New Deployment Registration](#new-deployment-registration)
-+ [Submission of NetCDF Files](#submission-of-netcdf-files)
-+ [Dataset Status](#dataset-status)
-+ [Dataset Archiving](#dataset-archiving)
--->
-
 All additional questions or feedback should be directed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)

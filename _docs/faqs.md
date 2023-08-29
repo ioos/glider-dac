@@ -33,8 +33,3 @@ Yes! The DAC now accepts any science variables that have a valid [CF Standard Na
 ## What is the current procedure for sending data to the Global Telecommunications System (GTS)?
 
 The National Data Buoy Center harvests new profile observations from the [DAC's ERDDAP server](https://gliders.ioos.us/erddap/index.html) once per hour, encodes the profiles in to a modified drifting buoy BUFR format and releases the messages to the GTS.  The development of a glider specific BUFR format is currently being developed and finalized.
-
-
-<!-- 2. Can I submit raw glider files to the DAC? -->
-
-<!-- At the moment no, you must convert the raw files to netCDF following the DAC [metadata conventions](/glider-dac/ngdac-netcdf-file-format-version-2.html). But we're in the process of developing a raw data upload tool that will enable users to  -->

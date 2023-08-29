@@ -8,15 +8,6 @@ toc: false
 #permalink: index.html
 summary: This page defines glider and sampling terminology used throughout the rest of the Wiki.
 ---
-<!--
-> [Wiki](https://github.com/kerfoot/glider-dac/wiki) ▸ **Glider Background and Sampling Terminology**
-
-## Contents
-
-+ [Glider Types](#glider-types)
-+ [Sampling Pattern Terminology](#sampling-pattern-terminology)
-+ [NetCDF File Format Description](ngdac-netcdf-file-format-version-2.html)
--->
 
 ## Glider Types
 As of this writing, there are 3 major buoyancy driven glider types that are currently utilized by IOOS Regional Associations:
