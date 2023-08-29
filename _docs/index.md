@@ -27,7 +27,7 @@ This wiki is a collection of documents and resources describing the NetCDF file 
 
 The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b>:
 
- + Develop a simple, fully self-describing [NetCDF](http://en.wikipedia.org/wiki/NetCDF) file specification that preserves the resolution of the original glider data sets.
+ + Develop a simple, fully self-describing [NetCDF](https://docs.unidata.ucar.edu/netcdf-c/current/) file specification that preserves the resolution of the original glider data sets.
  + Provide glider operators with a simple process for registering and submitting glider data sets to a centralized storage location.
  + Provide public access to glider data sets via existing web services and standards, in a variety of well-known formats.
  + Facilitate the distribution of glider data sets on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts).
