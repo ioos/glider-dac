@@ -95,10 +95,10 @@ class Deployment(Document):
         if self.username == "navoceano" and self.glider_name.startswith("ng"):
             glob_path = Path(app.config.get('DATA_ROOT')
                              / "hurricanes-20230601T000"
-                             / f"{self.glider_name}*"))
+                             / f"{self.glider_name}*")
             for deployment_file in glob.iglob(glob_path):
                 symlink_dest = Path('deployment_dir' /
-                                    deployment_file.name.replace("_", "-")))
+                                    deployment_file.name.replace("_", "-"))
                 try:
                     os.symlink(deployment_file, symlink_dest)
                 except OSError:
