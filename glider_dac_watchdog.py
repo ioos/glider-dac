@@ -63,7 +63,6 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 if not navo_deployment_directory:
                     navo_deployment_directory = os.path.join(self.base, f"navoceano/{glider_callsign}-{date_str}")
                 # Directory could exist, but no deployment in DB!
-                self.create_deployment_if_nonexistent(os.path.split(navo_deployment_directory))
                 try:
                     os.makedirs(navo_deployment_directory,
                                 exist_ok=True)
@@ -145,32 +144,9 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
             app.logger.info("New deployment directory: %s", rel_path)
 
-            with app.app_context():
-                self.create_deployment_if_nonexistent(path_parts)
-
         elif isinstance(event, FileCreatedEvent):
             self.file_moved_or_created(event)
 
-    def create_deployment_if_nonexistent(self, path_parts):
-        deployment_name = path_parts[1]
-        username = os.path.split(path_parts[0])[-1]
-        deployment = db.Deployment.find_one({'name': deployment_name})
-        if deployment is None:
-            app.logger.info(locals())
-            deployment = db.Deployment()
-            user = db.User.find_one({'username': username})
-            app.logger.info("User is %s", user)
-            if hasattr(user, '_id'):
-                deployment.user_id = user._id
-                deployment.name = deployment_name
-                deployment.deployment_dir = os.path.join(username, deployment_name)
-                deployment.glider_name = deployment_name.split("-", 1)[0]
-                deployment.updated = datetime.utcnow()
-                deployment.save()
-                deployment.delayed_mode = deployment_name.endswith("-delayed")
-                # TODO: Hook into main GDAC codebase for model creation
-                # TODO: Add deployment date field
-                app.logger.info(f"Created previously nonexistent deployment {deployment_name} for user {username}")
 
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):
