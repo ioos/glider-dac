@@ -9,7 +9,7 @@ toc: false
 summary: A list of links for Data Providers
 ---
 
-The following is a list of links for data providers and web applications developers that provide the means to create new deployments, upload conforming [DAC NetCDF files](ngdac-netcdf-file-format-version-2.html), view data set status and programmatically interface with the DAC via a RESTful API.
+The following is a list of links for data providers and web applications developers that provide the means to create new deployments, upload conforming [DAC NetCDF files](ngdac-netcdf-file-format-version-2), view data set status and programmatically interface with the DAC via a RESTful API.
 
 ## Data Provider Utilities
 
@@ -22,7 +22,7 @@ The following is a list of links for data providers and web applications develop
 
  - [**Deployment Registration**](https://gliders.ioos.us/providers)
 
-See the section on [New Deployment Registration](https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process.html#new-deployment-registration) for more details.
+See the section on [New Deployment Registration](ngdac-netcdf-file-submission-process#new-deployment-registration) for more details.
 
 ## Data Access Links
 
