@@ -1,0 +1,12 @@
+name: Jekyll diff
+on: [push, pull_request]
+
+jobs:
+  diff-site:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: David-Byrne/jekyll-diff-action@v1.3.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
