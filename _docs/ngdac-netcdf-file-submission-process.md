@@ -13,7 +13,7 @@ All additional questions or feedback should be directed to:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
-A consolidated list of the links referenced below can be found [here](/glider-dac/useful-links).
+A consolidated list of the links referenced below can be found [here](useful-links).
 
 
 ## Data Provider Registration
@@ -33,7 +33,7 @@ and all user account requests should be emailed to:
 
 ## New Deployment Registration
 
-Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a WMO ID for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a WMO ID for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 The next step is to register the deployment with the **NGDAC**.
 
@@ -68,15 +68,15 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
 2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
 
-![GliderDAC - Deployments page](/glider-dac/DAC_providers_your_deployments.png)
+![GliderDAC - Deployments page](DAC_providers_your_deployments.png)
 
 3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
     **YYYYmmddTHHMM**
 
-    Where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2.html#trajectory) variable in each NetCDF file that is submitted to the DAC.  
+    Where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to the DAC.  
 
     **IMPORTANT**:
-    This WMO ID must be included as th [global](ngdac-netcdf-file-format-version-2.html#description--examples-of-required-global-attributes) attribute wmo_id as well as an attribute (wmo_id) of the file's [platform](ngdac-netcdf-file-format-version-2.html#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    This WMO ID must be included as th [global](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes) attribute wmo_id as well as an attribute (wmo_id) of the file's [platform](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
     
 4. An additional field, attribution, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 
@@ -84,7 +84,7 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 
     **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
 
-6. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process.html#dataset-archiving) for more details on the NCEI archival process.
+6. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process#dataset-archiving) for more details on the NCEI archival process.
 
 ## Submission of NetCDF Files
 
@@ -129,7 +129,7 @@ New NetCDF files should be uploaded to the directory [created above](#deployment
     ftp> mput *.nc
 ```
 
-Please remember to use the [proper](ngdac-netcdf-file-format-version-2.html#file-naming-conventions) file naming convention.
+Please remember to use the [proper](ngdac-netcdf-file-format-version-2#file-naming-conventions) file naming convention.
 
 The resulting deployment directory structure will look something like this:
 
@@ -141,7 +141,7 @@ The resulting deployment directory structure will look something like this:
         ...
 ```
 
-A generic [ftp script](https://github.com/ioos/glider-dac/blob/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
+A generic [ftp script](https://raw.githubusercontent.com/ioos/ioosngdac/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
  + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
  + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
 
@@ -149,7 +149,7 @@ A generic [ftp script](https://github.com/ioos/glider-dac/blob/master/util/ncFtp
 
 ## Dataset Status
 
-Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](/glider-dac/ngdac-architecture.html#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
+Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](ngdac-architecture#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hrs**.  We are actively working on ways to decrease this time frame.
 
 We've built a [dataset status](https://gliders.ioos.us/status/) page to provide administrators and users with the ability to track datasets through the end-to-end process.  The [home page](https://gliders.ioos.us/status/) displays a list of all data sets for which either/both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) are not yet available.  Please check this page before emailing the DAC administrators regarding data set availability.
 
@@ -163,13 +163,13 @@ Here's how to mark a deployment as complete and submit the dataset to NCEI:
 
 2.Once logged
 
-![GliderDAC - Deployments page](/glider-dac/DAC_providers_your_deployments.png)
+![GliderDAC - Deployments page](DAC_providers_your_deployments.png)
 
-2. Select the deployment of interest from the table of deployments by clicking on the deployment name.
+1. Select the deployment of interest from the table of deployments by clicking on the deployment name.
 
-4. Under the **Edit** section on the right side of the deployment page, you'll see checkboxes for **Completed** and **Submit to NCEI on Completion**. Select both checkboxes and click the **Submit** button.
+2. Under the **Edit** section on the right side of the deployment page, you'll see checkboxes for **Completed** and **Submit to NCEI on Completion**. Select both checkboxes and click the **Submit** button.
 
-![GliderDAC - Deployments page](/glider-dac/DAC_complete_deployment.png)
+![GliderDAC - Deployments page](DAC_complete_deployment.png)
 
 Once submitted, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with NCEI's authority tables for project, institution, platform, and instrument. The results of these checks will be emailed on completion. If any of these checks have failed, NCEI will not archive the deployment.
 
