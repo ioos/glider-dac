@@ -6,6 +6,8 @@ import os
 import argparse
 import glob
 import logging
+from rq import Queue
+import glider_qc
 from datetime import datetime
 from glider_dac import app, db
 from watchdog.events import (FileSystemEventHandler,
@@ -18,6 +20,10 @@ class HandleDeploymentDB(FileSystemEventHandler):
     def __init__(self, base, flagsdir):
         self.base = base
         self.flagsdir = flagsdir  # path to ERDDAP flags folder
+        # TODO: possibly create multiple priority queues depending on whether
+        # or not delayed mode datasets are used.
+        self.queue = Queue("gliderdac",
+                           connection=glider_qc.get_redis_connection())
 
     def file_moved_or_created(self, event):
         app.logger.info('%s %s', self.base, event.src_path)
@@ -105,6 +111,14 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     if not deployment.delayed_mode:
                         deployment_name = path_parts[0].split('/')[-1]
                         self.touch_erddap(deployment_name)
+                    # kick off QARTOD job
+                    app.logger.info("Enqueueing QARTOD job for deployment %s",
+                                    event.dest_path)
+                    self.queue.enqueue(glider_qc.qc_task, event.dest_path,
+                                       os.path.join(
+                                         os.path.dirname(
+                                           os.path.realpath(__file__)
+                                         ), "data/qc_config.yml"))
 
     def touch_erddap(self, deployment_name):
         '''
