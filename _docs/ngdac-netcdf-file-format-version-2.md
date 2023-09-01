@@ -11,9 +11,9 @@ summary: A description of the NetCDF file format specification.
 
 ## Introduction
 
-This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](/glider-dac/ngdac-netcdf-file-submission-process.html) process.
+This page provides an in-depth description of the NetCDF file format specification (**IOOS_Glider_NetCDF_v2.0.nc**) used by the **U.S. IOOS National Glider Data Assembly Center** to archive and distribute real-time and delayed-mode glider data sets. A thorough reading is **strongly** recommended prior to beginning the [submission](ngdac-netcdf-file-submission-process) process.
 
-**Examples** of the file specification are available as [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/nc/template).
+**Examples** of the file specification are available as [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/nc/template).
 
 The NetCDF file specification detailed below serves 2 primary purposes:
  + Provide a complete metadata record for all glider data submitted to the **NGDAC** that can be harvested and stored by existing catalogs and registries.
