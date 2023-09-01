@@ -310,7 +310,7 @@ The following is a list and description of all variables and corresponding varia
  + **platform:long_name**
  + All **instrument_ctd** attributes except **instrument_ctd:platform**
 
-**Examples** of the file specification are available as [**NetCDF**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://github.com/ioos/glider-dac/blob/master/nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [**here**](https://github.com/ioos/glider-dac/tree/master/nc/template).
+**Examples** of the file specification are available as [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [**here**](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template).
 
 ### Dimensions
 

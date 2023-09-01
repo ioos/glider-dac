@@ -141,7 +141,7 @@ The resulting deployment directory structure will look something like this:
         ...
 ```
 
-A generic [ftp script](https://github.com/ioos/glider-dac/blob/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
+A generic [ftp script](https://raw.githubusercontent.com/ioos/ioosngdac/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
  + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
  + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
 
