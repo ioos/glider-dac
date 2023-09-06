@@ -10,10 +10,13 @@ services:
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
     #  # - .:/glider-dac/  # For local development
+      - log_volume:/glider-dac/logs
       - ./users.db:/glider-dac/users.db
     deploy:
       restart_policy:
         condition: always
+    environment:
+      - REDIS_HOST=redis
 
     depends_on:
       - mongo
@@ -34,16 +37,20 @@ services:
     environment:
       - DATA_ROOT=/data/data/priv_erddap
       - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
+      - REDIS_HOST=redis
 
   qartod_worker_1: &qartod
     build: .
     container_name: qartod_worker_1
-    command: python glider-dac/scripts/glider_qartod.py -w
+    command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
       - /data/:/data
+      - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
         condition: always
+    environment:
+      REDIS_HOST: redis
 
   qartod_worker_2:
     <<: *qartod
@@ -118,3 +125,4 @@ volumes:
   mongo_config:
   redis_data:
   status_mysql:
+  log_volume:
