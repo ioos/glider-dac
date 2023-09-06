@@ -31,6 +31,6 @@ cftime==1.4.1
 flask-cors==3.0.9
 compliance-checker>=5.0.0
 cc-plugin-glider>=2.0.3
-flasgger==0.9.5
+-e git+https://github.com/flasgger/flasgger.git@master#egg=flasgger
 multidict
 influxdb>=5.3.1
