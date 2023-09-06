@@ -7,7 +7,7 @@ import argparse
 import glob
 import logging
 from rq import Queue
-import glider_qc
+from glider_qc import glider_qc, check_needs_qc
 from datetime import datetime
 from glider_dac import app, db
 from watchdog.events import (FileSystemEventHandler,
@@ -112,13 +112,19 @@ class HandleDeploymentDB(FileSystemEventHandler):
                         deployment_name = path_parts[0].split('/')[-1]
                         self.touch_erddap(deployment_name)
                     # kick off QARTOD job
-                    app.logger.info("Enqueueing QARTOD job for deployment %s",
-                                    event.dest_path)
-                    self.queue.enqueue(glider_qc.qc_task, event.dest_path,
-                                       os.path.join(
-                                         os.path.dirname(
-                                           os.path.realpath(__file__)
-                                         ), "data/qc_config.yml"))
+                    if isinstance(event, FileModifiedEvent):
+                        file_path = event.src_path
+                    else:
+                        file_path = event.dest_path
+                    # TODO: DRY/refactor with batch QARTOD job?
+                    if check_needs_qc(file_path):
+                        app.logger.info("Enqueueing QARTOD job for deployment %s",
+                                        file_path)
+                        self.queue.enqueue(glider_qc.qc_task, file_path,
+                                           os.path.join(
+                                             os.path.dirname(
+                                               os.path.realpath(__file__)
+                                             ), "data/qc_config.yml"))
 
     def touch_erddap(self, deployment_name):
         '''
