@@ -127,11 +127,11 @@ class HandleDeploymentDB(FileSystemEventHandler):
                                                    os.path.realpath(__file__)
                                                  ), "data/qc_config.yml"))
                         else:
-                            app.logger.info("File %s already has QARTOD", file_path)
+                            app.logger.info("File %s already has QC", file_path)
                     except OSError:
                         app.logger.exception("Exception occurred while "
                                              "attempting to inspect file %s "
-                                             "for QARTOD variables: ", file_path)
+                                             "for QC variables: ", file_path)
 
     def touch_erddap(self, deployment_name):
         '''
