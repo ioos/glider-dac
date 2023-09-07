@@ -117,16 +117,21 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     else:
                         file_path = event.dest_path
                     # TODO: DRY/refactor with batch QARTOD job?
-                    if glider_qc.check_needs_qc(file_path):
-                        app.logger.info("Enqueueing QARTOD job for file %s",
-                                        file_path)
-                        self.queue.enqueue(glider_qc.qc_task, file_path,
-                                           os.path.join(
-                                             os.path.dirname(
-                                               os.path.realpath(__file__)
-                                             ), "data/qc_config.yml"))
-                    else:
-                        app.logger.info("File %s already has QARTOD", file_path)
+                    try:
+                        if glider_qc.check_needs_qc(file_path):
+                            app.logger.info("Enqueueing QARTOD job for file %s",
+                                            file_path)
+                            self.queue.enqueue(glider_qc.qc_task, file_path,
+                                               os.path.join(
+                                                 os.path.dirname(
+                                                   os.path.realpath(__file__)
+                                                 ), "data/qc_config.yml"))
+                        else:
+                            app.logger.info("File %s already has QARTOD", file_path)
+                    except OSError:
+                        app.logger.exception("Exception occurred while "
+                                             "attempting to inspect file %s "
+                                             "for QARTOD variables: ", file_path)
 
     def touch_erddap(self, deployment_name):
         '''
