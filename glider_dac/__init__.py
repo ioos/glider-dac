@@ -42,12 +42,9 @@ if os.path.exists(extra_config_path):
         config_dict = {**config_dict, **yaml.load(extra_config,
                                                   Loader=yaml.Loader)}
 
-if app.config["ENV"].upper() == "PRODUCTION":
-    try:
-        app.config.update(config_dict["PRODUCTION"])
-    except KeyError:
-        app.config.update(config_dict["DEVELOPMENT"])
-else:
+try:
+    app.config.update(config_dict["PRODUCTION"])
+except KeyError:
     app.config.update(config_dict["DEVELOPMENT"])
 
 import redis

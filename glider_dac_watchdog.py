@@ -6,6 +6,8 @@ import os
 import argparse
 import glob
 import logging
+from rq import Queue
+from glider_qc import glider_qc
 from datetime import datetime
 from glider_dac import app, db
 from watchdog.events import (FileSystemEventHandler,
@@ -18,6 +20,10 @@ class HandleDeploymentDB(FileSystemEventHandler):
     def __init__(self, base, flagsdir):
         self.base = base
         self.flagsdir = flagsdir  # path to ERDDAP flags folder
+        # TODO: possibly create multiple priority queues depending on whether
+        # or not delayed mode datasets are used.
+        self.queue = Queue("gliderdac",
+                           connection=glider_qc.get_redis_connection())
 
     def file_moved_or_created(self, event):
         app.logger.info('%s %s', self.base, event.src_path)
@@ -105,6 +111,27 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     if not deployment.delayed_mode:
                         deployment_name = path_parts[0].split('/')[-1]
                         self.touch_erddap(deployment_name)
+                    # kick off QARTOD job
+                    if isinstance(event, (FileModifiedEvent, FileCreatedEvent)):
+                        file_path = event.src_path
+                    else:
+                        file_path = event.dest_path
+                    # TODO: DRY/refactor with batch QARTOD job?
+                    try:
+                        if glider_qc.check_needs_qc(file_path):
+                            app.logger.info("Enqueueing QARTOD job for file %s",
+                                            file_path)
+                            self.queue.enqueue(glider_qc.qc_task, file_path,
+                                               os.path.join(
+                                                 os.path.dirname(
+                                                   os.path.realpath(__file__)
+                                                 ), "data/qc_config.yml"))
+                        else:
+                            app.logger.info("File %s already has QC", file_path)
+                    except OSError:
+                        app.logger.exception("Exception occurred while "
+                                             "attempting to inspect file %s "
+                                             "for QC variables: ", file_path)
 
     def touch_erddap(self, deployment_name):
         '''

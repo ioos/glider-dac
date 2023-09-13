@@ -12,7 +12,6 @@ from bson.objectid import ObjectId
 from rq import Queue, Connection, Worker
 from shutil import rmtree
 import os
-from pathlib import Path
 import glob
 import hashlib
 
@@ -93,12 +92,12 @@ class Deployment(Document):
             db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
         # HACK: special logic for Navy gliders deployment
         if self.username == "navoceano" and self.glider_name.startswith("ng"):
-            glob_path = Path(app.config.get('DATA_ROOT')
-                             / "hurricanes-20230601T000"
-                             / f"{self.glider_name}*")
+            glob_path = os.path.join(app.config.get('DATA_ROOT'),
+                                     "hurricanes-20230601T000",
+                                     f"{self.glider_name}*")
             for deployment_file in glob.iglob(glob_path):
-                symlink_dest = Path('deployment_dir' /
-                                    deployment_file.name.replace("_", "-"))
+                symlink_dest = os.path.join('deployment_dir',
+                                            deployment_file.name.replace("_", "-"))
                 try:
                     os.symlink(deployment_file, symlink_dest)
                 except OSError:
