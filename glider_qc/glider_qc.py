@@ -202,11 +202,11 @@ class GliderQC(object):
     #
     #     return qcvariables
 
-    def load_config(self, path='data/config_legacy_vars.yml'):
+    def load_config(self, path='data/qc_config.yml'):
         '''
         Loads a yaml file configuration for QC
         '''
-        path = path or 'data/config_legacy_vars.yml'
+        path = path or 'data/qc_config.yml'
         log.info("Loading config from %s", path)
         with open(path, 'r') as f:
             self.config = yaml.safe_load(f.read())
