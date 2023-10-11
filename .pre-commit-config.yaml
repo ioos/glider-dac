@@ -21,6 +21,9 @@ repos:
     rev: v0.9.0
     hooks:
       - id: shellcheck
+        language: docker_image
+        entry: docker.io/koalaman/shellcheck:v0.9.0
+        types: [shell]
 
 ci:
     autofix_commit_msg: |
