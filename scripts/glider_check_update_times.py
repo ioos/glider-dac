@@ -47,7 +47,7 @@ def get_nc_time(nc_filepath):
 
 def get_last_nc_file(root_folder, subdir):
     """
-    Try to find the last netCDF file and time based on sorted filename and 
+    Try to find the last netCDF file and time based on sorted filename and
     file modification time.  If the two don't match, read the netCDF file
     and find the file with the last time.  Return a 2-tuple with the filename
     and the last time variable value contained in the netCDF file
@@ -62,7 +62,7 @@ def get_last_nc_file(root_folder, subdir):
         return None
 
     # if both files names are the same, return them both
-    if last_name == last_mod_time: 
+    if last_name == last_mod_time:
         return last_name, get_nc_time(last_name)
     # otherwise find the file with the last time
     else:
@@ -94,7 +94,7 @@ def check_times(t1, t2, label, check_thresh=pd.Timedelta(hours=12)):
     except Exception as e:
         print(str(e))
 
-def process_deployment(dep_subdir): 
+def process_deployment(dep_subdir):
     """
     Processes deployments, comparing submissions to ERDDAP private
     and ERDDAP private to ERDDAP public
@@ -102,7 +102,7 @@ def process_deployment(dep_subdir):
     print(dep_subdir)
     last_sub_time = get_last_nc_file(SUBMISSION_FOLDER, dep_subdir)
     last_priv_time = get_last_nc_file(PRIV_ERDDAP_FOLDER, dep_subdir)
-    last_pub_time = get_last_nc_file(PUB_ERDDAP_FOLDER, dep_subdir) 
+    last_pub_time = get_last_nc_file(PUB_ERDDAP_FOLDER, dep_subdir)
     check_times(last_sub_time, last_priv_time, 'sub vs priv')
     check_times(last_priv_time, last_pub_time, 'priv vs pub')
 
