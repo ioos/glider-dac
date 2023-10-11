@@ -192,4 +192,3 @@ def slugify(value):
 # Import everything
 import glider_dac.views
 import glider_dac.models
-

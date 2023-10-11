@@ -98,4 +98,3 @@ def delete_institution(institution_id):
     app.logger.info("Deleting institution")
     institution.delete()
     return jsonify({}), 204
-

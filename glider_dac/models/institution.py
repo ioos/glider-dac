@@ -31,4 +31,3 @@ class Institution(Document):
             'unique': True,
         },
     ]
-
