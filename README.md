@@ -7,5 +7,5 @@ This is the main repository for the IOOS Glider DAC site, scripts, and tools.
 
 Detailed documentation on contact information, file format, user account registration, deployment registration and file submission can be found on the [IOOS National Glider DAC wiki](https://ioos.github.io/glider-dac/index.html).
 
-Inquires should be sent to glider **dot** dac **dot** support **at** noaa **dot** gov
+Inquires should be sent to glider.dac.support@noaa.gov
 
