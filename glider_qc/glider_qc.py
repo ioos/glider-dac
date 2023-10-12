@@ -426,8 +426,8 @@ class GliderQC(object):
 
     def update_config(self, varspec, varname, times, values, time_units):
         '''
-         Update the inout config file with specs values for the spike
-         and the gross range test methods
+         Update the config file with specs values for the spike
+         and the rate of change test methods
 
         :param varspec: Input dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
@@ -571,8 +571,8 @@ def run_qc(config, ncfile):
                 qartod_flag = qc_test.results
             except Exception as error:
                 # Handle the exception
-                # Mark all falgs as Not Evaluated
-                log.info("%error occured applying", testname, "%for", var_name)                
+                # Mark all flags as Not Evaluated
+                log.info("%Error occurred applying", testname, "%for", var_name)                
                 qartod_flag = np.full((values.size,), 2)
 
             # create the qartod variable and get the config specs
