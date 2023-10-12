@@ -592,7 +592,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
 
-        qartod_vars_snippet = qc_var_snippets(required_qartod_vars, qartod_var_type)
+        qartod_vars_snippet = qartod_var_snippets(required_qartod_vars, qartod_var_type)
 
         vars_sorted = sorted(common_variables +
                              qartod_vars_snippet + all_other_vars,
@@ -608,7 +608,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
             reload_settings = reload_template.format(10)
         try:
             tree = etree.fromstring(f"""
-                <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
+                <dataset type="EDDTableFromNcFiles" datasetID={deployment.name} active="true">
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
                     <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
@@ -643,9 +643,9 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="ioos_dac_checksum">{checksum}</att>
                         <att name="ioos_dac_completed">{completed}</att>
                         <att name="gts_ingest">{gts_ingest}</att>
-                    </addAttributes>
+                     </addAttributes>
                 </dataset>
-                """)
+                """)                
             for var in variable_order:
                 tree.append(var)
             for identifier, mod_attrs in extra_atts.items():
@@ -657,53 +657,64 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
 
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
+
     var_list = []
     for req_var in required_qartod_vars:
         # If the required QARTOD QC variable isn't already defined,
         # then supply a set of default attributes.
-        if req_var not in qc_var_types['qartod']:
+        if req_var not in qartod_var_type['qartod']:
+            print('not in file', req_var)
             flag_atts = """
-                  <att name="ioos_category">Quality</att>
-                  <att name="flag_values" type="byteList">1 2 3 4 9</att>
-                  <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
-                  <att name="valid_min" type="byte">1</att>
-                  <att name="valid_max" type="byte">9</att>
-                  <att name="_FillValue" type="byte">-127</att>'
-                  """
-        else:
+              <att name="ioos_category">Quality</att>
+              <att name="flag_values" type="byteList">1 2 3 4 9</att>
+              <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
+              <att name="valid_min" type="byte">1</att>
+              <att name="valid_max" type="byte">9</att>
+              <att name="dac_comment">ioos_qc_module_qartod</att>
+              <att name="https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"></att>
+            """
+        else: 
             flag_atts = ""
-
+            
         qartod_snip = f"""
             <dataVariable>
                <sourceName>{req_var}</sourceName>
                <destinationName>{req_var}</destinationName>
                <dataType>byte</dataType>
                <addAttributes>
-                     {flag_atts}
-               </addAttributes>
-           </dataVariable>
-           """
-
-        var_list.append(etree.fromstring(qartod_snip))
-
-    for qartod_var in qartod_var_type["qartod"]:
-        # if we already have this variable as part of required qartod variables,
-        # skip it.
-        if qartod_var in required_qartod_vars:
-            continue
-
-            # assume byte for data type as it is required
-        gen_qartod_snip = f"""
-            <dataVariable>
-               <sourceName>{qartod_var}</sourceName>
-               <dataType>byte</dataType>
-               <addAttributes>
-                  <att name="ioos_category">Quality</att>
+                    {flag_atts}
                </addAttributes>
             </dataVariable>
             """
+        var_list.append(etree.fromstring(qartod_snip))
+                     
+        
+    for qartod_var in qartod_var_type["qartod"]:
+        # if there are QARTOD variables defined, populate them
+        if "_FillValue" not in qartod_var_type['qartod'][qartod_var]:
+            fill_value_snippet = '<att name="_FillValue" type="byte">-127</att>'
+        else:
+            fill_value_snippet = ""
+        
+        # all qartod variables should have _FillValue, missing_value,
+        # flag_values, and flag_meanings defined
 
-        var_list.append(etree.fromstring(gen_qartod_snip))
+        qartod_snip = f"""
+        <dataVariable>
+           <sourceName>{qartod_var}</sourceName>
+           <destinationName>{qartod_var}</destinationName>
+           <dataType>byte</dataType>
+           <addAttributes>
+                  <att name="ioos_category">Quality</att>
+                  <att name="flag_values" type="byteList">1 2 3 4 9</att>
+                  <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
+                  <att name="valid_min" type="byte">1</att>
+                  <att name="valid_max" type="byte">9</att>
+                  {fill_value_snippet}
+           </addAttributes>
+        </dataVariable>
+           """
+        var_list.append(etree.fromstring(qartod_snip))
 
     return var_list
 
