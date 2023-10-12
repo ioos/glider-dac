@@ -52,32 +52,34 @@ class GliderQC(object):
                 variables.append(ncvar[0].name)
         return variables
 
-    # def find_qc_flags(self, ncvariable):
-    #     '''
-    #     Returns a list of non-GliderDAC QC flags associated with a variable
-    #
-    #     :param netCDF4.Variable ncvariable: Variable to get the status flag
-    #                                         variables for
-    #     '''
-    #     valid_variables = []
-    #     ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
-    #     if isinstance(ancillary_variables, str):
-    #         ancillary_variables = ancillary_variables.split(' ')
-    #     else:
-    #         return []
-    #     for varname in ancillary_variables:
-    #         if varname not in self.ncfile.variables:
-    #             log.warning("%s defined as ancillary variable but doesn't exist", varname)
-    #             continue
-    #         anc_standard_name = getattr(self.ncfile.variables[varname],
-    #                                     'standard_name', '')
-    #         if varname.endswith('_qc'):
-    #             valid_variables.append(varname)
-    #         elif ("status_flag" in anc_standard_name or
-    #               anc_standard_name.endswith("quality_flag")):
-    #             valid_variables.append(varname)
-    #
-    #     return valid_variables
+    def find_qc_flags(self, ncvariable):
+        '''
+        Returns a list of non-GliderDAC QC flags associated with a variable
+    
+        :param netCDF4.Variable ncvariable: Variable to get the status flag
+                                            variables for
+        '''
+        valid_variables = []
+        ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
+        if isinstance(ancillary_variables, str):
+            ancillary_variables = ancillary_variables.split(' ')
+        else:
+            return []
+        for varname in ancillary_variables:
+            if varname not in self.ncfile.variables:
+                log.warning("%s defined as ancillary variable but doesn't exist", varname)
+                continue
+            # anc_standard_name = getattr(self.ncfile.variables[varname],
+            #                             'standard_name', '')
+            # if varname.endswith('_qc'):
+            #     valid_variables.append(varname)
+            # elif ("status_flag" in anc_standard_name or
+            #       anc_standard_name.endswith("quality_flag")):
+            #     valid_variables.append(varname)
+            if varname.startswith("qartod"):
+                valid_variables.append(varname)
+                
+        return valid_variables
 
     def append_ancillary_variable(self, parent, child):
         '''
@@ -95,15 +97,15 @@ class GliderQC(object):
         ancillary_variables.append(child.name)
         parent.ancillary_variables = ' '.join(ancillary_variables)
 
-    # def needs_qc(self, ncvariable):
-    #     '''
-    #     Returns True if the variable has no associated QC variables
-    #
-    #     :param netCDF4.Variable ncvariable: Variable to get the ancillary
-    #                                         variables for
-    #     '''
-    #     ancillary_variables = self.find_qc_flags(ncvariable)
-    #     return len(ancillary_variables) == 0
+    def needs_qc(self, ncvariable):
+        '''
+        Returns True if the variable has no associated QC variables
+    
+        :param netCDF4.Variable ncvariable: Variable to get the ancillary
+                                            variables for
+        '''
+        ancillary_variables = self.find_qc_flags(ncvariable)
+        return len(ancillary_variables) == 0
 
     # def create_qc_variables(self, ncvariable):
     #     '''
@@ -543,46 +545,69 @@ def run_qc(config, ncfile):
         if len(values) == 0:
             log.info(var_name, " is empty %s")
             continue
-
+            
+        if not xyz.needs_qc(var_data):
+            log.info("%s Does not need QARTOD", var_name)
+            continue
+            
         # UPDATE VARIABLE CONFIG SET
+        log.info("%s Updating Config File", var_name)
         var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
         config_set = xyz.update_config(var_spec, var_name, times, values, time_units)
-        print('updated config files')
 
         # Get the variable's qc results
+        log.info("%s Applying QC to ", var_name)
         results = xyz.apply_qc(nc_path, var_name, config_set)
-        print('applied qc')
 
         # Read the results and update the qartod variable
-        for testname in ['gross_range_test', 'spike_test',
-                         'rate_of_change_test', 'qc_rollup']:  # 'flat_line_test',
+        for testname in ['gross_range_test',
+                         'spike_test',
+                         'rate_of_change_test',
+                         'qc_rollup',
+                         'flat_line_test']:
+            log.info("%s Reading ", testname, "%results for", var_name)
+            try:
+                qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname) 
+                qartod_flag = qc_test.results
+            except Exception as error:
+                # Handle the exception
+                # Mark all falgs as Not Evaluated
+                log.info("%error occured applying", testname, "%for", var_name)                
+                qartod_flag = np.full((values.size,), 2)
 
-            qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
-            print('read qc results', var_name, testname)
-
-            # create the qartod variable name and get the config specs
+            # create the qartod variable and get the config specs
+            log.info("Creating QARTOD variable for %s", var_name)
+            
             if testname == 'qc_rollup':
-                qartodname = 'qartod_' + var_name + '_primary_flag'
+                qartodname = 'qartod_'+ var_name + '_primary_flag'
                 # Pass the config specs to a variable
-                testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
+                testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']          
             else:
-                qartodname = 'qartod_' + var_name + '_' + testname.split('_test')[0] + '_flag'
+                qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag' 
                 # Pass the config specs to a variable
                 testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
 
-            print('created qartod name and got the config specs')
-
-            # Update the qartod variable
-            qartod_var = ncfile.variables[qartodname]
-            qartod_var[:] = np.array(qc_test.results)
+            # Create qartod variable 
+            qartod_var = ncfile.createVariable(qartodname, np.int8, var_data.dimensions, fill_value=np.int8(9))
+            
+            # Add qartod variable attributes
+            qartod_var.units = '1'
+            qartod_var.standard_name = testname +'_quality_flag'
+            qartod_var.long_name = 'QARTOD ' + testname + ' for ' + var_data.standard_name
+            qartod_var.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
+            qartod_var.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
+            qartod_var.references = 'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
+            qartod_var.dac_comment = 'ioos_qc_module_qartod'
+            qartod_var.ioos_category = 'Quality'
+            qartod_var.valid_min = 1
+            qartod_var.valid_max = 9            
+            qartod_var.qartod_config =  repr(testconfig)
             qartod_var.qartod_test = repr(testname)
-            ncfile.variables[qartodname].qartod_config = repr(testconfig)
-
-            print('Updated the qartod variable')
-
-            # add qartod variables to the variable ancillary_variables attribute
+            qartod_var[:] = np.array(qartod_flag)
+                      
+            # Add qartod variables to the variable ancillary_variables attribute
+            log.info("Add QARTOD variable %s", var_name, "% to the variable's attribute: ancillary_variables")
             xyz.append_ancillary_variable(var_data, qartod_var)
-            print('Updated ancillary variable', var_name)
 
     # maybe unnecessary with calling context handler, but had some files
     # which had xattr set, but not updated with QC
@@ -598,12 +623,12 @@ def check_needs_qc(nc_path):
             return False
     except OSError:
         pass
-    # with Dataset(nc_path, 'r') as nc:
-    #     qc = GliderQC(nc, None)
-    #     for varname in qc.find_geophysical_variables():
-    #         ncvar = nc.variables[varname]
-    #         if qc.needs_qc(ncvar):
-    #             return True
+    with Dataset(nc_path, 'r') as nc:
+        qc = GliderQC(nc, None)
+        for varname in qc.find_geophysical_variables():
+            ncvar = nc.variables[varname]
+            if qc.needs_qc(ncvar):
+                return True
     # if this section was reached, QC has been run, but xattr remains unset
     try:
         os.setxattr(nc_path, "user.qc_run", b"true")
