@@ -362,21 +362,21 @@ class GliderQC(object):
         max_thresh = 2.0 * std
         return min_thresh, max_thresh
 
-    def get_unmasked(self, ncvariable):
-        times = self.ncfile.variables['time'][:]
-        values = ncvariable[:]
+    # def get_unmasked(self, ncvariable):
+    #     times = self.ncfile.variables['time'][:]
+    #     values = ncvariable[:]
 
-        mask = np.zeros(times.shape[0], dtype=bool)
+    #     mask = np.zeros(times.shape[0], dtype=bool)
 
-        if hasattr(values, 'mask'):
-            mask |= values.mask
+    #     if hasattr(values, 'mask'):
+    #         mask |= values.mask
 
-        if hasattr(times, 'mask'):
-            mask |= times.mask
+    #     if hasattr(times, 'mask'):
+    #         mask |= times.mask
 
-        values = ma.getdata(values[~mask])
-        values = self.normalize_variable(values, ncvariable.units, ncvariable.standard_name)
-        return times, values, mask
+    #     values = ma.getdata(values[~mask])
+    #     values = self.normalize_variable(values, ncvariable.units, ncvariable.standard_name)
+    #     return times, values, mask
 
     def get_unmasked(self, ncvariable, times, values):
 
