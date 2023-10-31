@@ -461,7 +461,7 @@ def qc_task(nc_path, config):
         raise ProcessError("File lock already acquired by another process")
     try:
         with Dataset(nc_path, 'r+') as nc:
-            run_qc(config, nc)
+            run_qc(config, nc, nc_path)
         os.setxattr(nc_path, "user.qc_run", b"true")
     except OSError:
         log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
@@ -524,7 +524,7 @@ def get_redis_connection():
 #     # which had xattr set, but not updated with QC
 #     ncfile.sync()
 
-def run_qc(config, ncfile):
+def run_qc(config, ncfile, ncpath):
     '''
     Runs IOOS QARTOD tests on a netCDF file
     '''
@@ -557,7 +557,7 @@ def run_qc(config, ncfile):
 
         # Get the variable's qc results
         log.info("%s Applying QC to ", var_name)
-        results = xyz.apply_qc(nc_path, var_name, config_set)
+        results = xyz.apply_qc(ncpath, var_name, config_set)
 
         # Read the results and update the qartod variable
         for testname in ['gross_range_test',
