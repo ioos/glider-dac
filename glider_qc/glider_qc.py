@@ -543,20 +543,20 @@ def run_qc(config, ncfile, ncpath):
         times, values = xyz.get_unmasked(var_data, t, x)
 
         if len(values) == 0:
-            log.info(var_name, " is empty %s")
+            log.info("%s is empty", var_name)
             continue
             
         if not xyz.needs_qc(var_data):
-            log.info("%s Does not need QARTOD", var_name)
+            log.info("%s does not need QARTOD", var_name)
             continue
             
         # UPDATE VARIABLE CONFIG SET
-        log.info("%s Updating Config File", var_name)
+        log.info("Updating config file for %s", var_name)
         var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
         config_set = xyz.update_config(var_spec, var_name, times, values, time_units)
 
         # Get the variable's qc results
-        log.info("%s Applying QC to ", var_name)
+        log.info("Applying QC to %s", var_name)
         results = xyz.apply_qc(ncpath, var_name, config_set)
 
         # Read the results and update the qartod variable
@@ -565,32 +565,36 @@ def run_qc(config, ncfile, ncpath):
                          'rate_of_change_test',
                          'qc_rollup',
                          'flat_line_test']:
-            log.info("%s Reading ", testname, "%results for", var_name)
+            log.info("Reading %s", testname, "results for %s", var_name)
             try:
                 qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname) 
                 qartod_flag = qc_test.results
+                test_message = 'Could run qartod.'
             except Exception as error:
                 # Handle the exception
                 # Mark all flags as Not Evaluated
-                log.info("%Error occurred applying", testname, "%for", var_name)                
+                log.info("Error occurred applying %s", testname, "for %s", var_name)                
                 qartod_flag = np.full((values.size,), 2)
+                test_message = 'Could not run qartod.'
 
-            # create the qartod variable and get the config specs
+            # create the qartod variable
             log.info("Creating QARTOD variable for %s", var_name)
             
             if testname == 'qc_rollup':
+                # compose the qartod variable name
                 qartodname = 'qartod_'+ var_name + '_primary_flag'
                 # Pass the config specs to a variable
                 testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']          
             else:
+                # compose the qartod variable name
                 qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag' 
                 # Pass the config specs to a variable
                 testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
 
-            # Create qartod variable 
+            # Create the qartod netcdf variable
             qartod_var = ncfile.createVariable(qartodname, np.int8, var_data.dimensions, fill_value=np.int8(9))
             
-            # Add qartod variable attributes
+            # Add the qartod variable attributes
             qartod_var.units = '1'
             qartod_var.standard_name = testname +'_quality_flag'
             qartod_var.long_name = 'QARTOD ' + testname + ' for ' + var_data.standard_name
@@ -601,12 +605,12 @@ def run_qc(config, ncfile, ncpath):
             qartod_var.ioos_category = 'Quality'
             qartod_var.valid_min = 1
             qartod_var.valid_max = 9            
-            qartod_var.qartod_config =  repr(testconfig)
-            qartod_var.qartod_test = repr(testname)
+            qartod_var.qartod_config =  str(testconfig)
+            qartod_var.qartod_status = test_message + str(testname)
             qartod_var[:] = np.array(qartod_flag)
                       
-            # Add qartod variables to the variable ancillary_variables attribute
-            log.info("Add QARTOD variable %s", var_name, "% to the variable's attribute: ancillary_variables")
+            # Add the qartod variable to the geophysical variable's ancillary_variables attribute
+            log.info("Add QARTOD variable %s", qartodname, "to %s 's attribute - ancillary_variables", var_name)
             xyz.append_ancillary_variable(var_data, qartod_var)
 
     # maybe unnecessary with calling context handler, but had some files
