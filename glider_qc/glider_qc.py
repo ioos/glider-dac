@@ -565,7 +565,7 @@ def run_qc(config, ncfile, ncpath):
                          'rate_of_change_test',
                          'qc_rollup',
                          'flat_line_test']:
-            log.info("Reading %s", testname, "results for %s", var_name)
+            log.info("Reading %s results for %s", testname, var_name)
             try:
                 qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname) 
                 qartod_flag = qc_test.results
@@ -573,7 +573,7 @@ def run_qc(config, ncfile, ncpath):
             except Exception as error:
                 # Handle the exception
                 # Mark all flags as Not Evaluated
-                log.info("Error occurred applying %s", testname, "for %s", var_name)                
+                log.exception(f"Exception occurred trying to apply {var_name, testname}:")
                 qartod_flag = np.full((values.size,), 2)
                 test_message = 'Could not run qartod.'
 
@@ -610,7 +610,7 @@ def run_qc(config, ncfile, ncpath):
             qartod_var[:] = np.array(qartod_flag)
                       
             # Add the qartod variable to the geophysical variable's ancillary_variables attribute
-            log.info("Add QARTOD variable %s", qartodname, "to %s 's attribute - ancillary_variables", var_name)
+            log.info("Add %s to %s ancillary_variables", qartodname, var_name)
             xyz.append_ancillary_variable(var_data, qartod_var)
 
     # maybe unnecessary with calling context handler, but had some files
@@ -626,6 +626,7 @@ def check_needs_qc(nc_path):
         if os.getxattr(nc_path, "user.qc_run"):
             return False
     except OSError:
+        log.exception(f"Exception occured trying to get xattr {ncfile.filepath()}:")
         pass
     with Dataset(nc_path, 'r') as nc:
         qc = GliderQC(nc, None)
