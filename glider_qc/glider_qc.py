@@ -626,7 +626,6 @@ def check_needs_qc(nc_path):
         if os.getxattr(nc_path, "user.qc_run"):
             return False
     except OSError:
-        log.exception(f"Exception occured trying to get xattr {ncfile.filepath()}:")
         pass
     with Dataset(nc_path, 'r') as nc:
         qc = GliderQC(nc, None)
