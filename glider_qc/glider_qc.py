@@ -569,13 +569,13 @@ def run_qc(config, ncfile, ncpath):
             try:
                 qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname) 
                 qartod_flag = qc_test.results
-                test_message = 'Could run qartod.'
+                test_message = 'Could run qartod '
             except Exception as error:
                 # Handle the exception
                 # Mark all flags as Not Evaluated
                 log.exception(f"Exception occurred trying to apply {var_name, testname}:")
                 qartod_flag = np.full((values.size,), 2)
-                test_message = 'Could not run qartod.'
+                test_message = 'Could not run qartod '
 
             # create the qartod variable
             log.info("Creating QARTOD variable for %s", var_name)
@@ -601,7 +601,7 @@ def run_qc(config, ncfile, ncpath):
             qartod_var.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
             qartod_var.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
             qartod_var.references = 'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
-            qartod_var.dac_comment = 'ioos_qc_module_qartod'
+            qartod_var.dac_comment = 'Using IOOS QC collection of utilities, scripts and tests'
             qartod_var.ioos_category = 'Quality'
             qartod_var.valid_min = 1
             qartod_var.valid_max = 9            
