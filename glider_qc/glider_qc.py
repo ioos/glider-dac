@@ -578,7 +578,7 @@ def run_qc(config, ncfile, ncpath):
                 test_message = 'Could not run qartod '
 
             # create the qartod variable
-            log.info("Creating QARTOD variable for %s", var_name)
+            log.info("Creating %s QARTOD variable to log %s results", var_name, testname)
             
             if testname == 'qc_rollup':
                 # compose the qartod variable name
