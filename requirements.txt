@@ -1,4 +1,4 @@
-aiohttp==3.7.4
+aiohttp==3.8.6
 async-timeout<4.0
 asyncio==3.4.3
 Flask>=0.12.3
