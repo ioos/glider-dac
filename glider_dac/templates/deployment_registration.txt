@@ -1,4 +1,4 @@
-A new Glider Deployment ({{ deployment.username }} / {{ deployment.name }}) has been created. 
+A new Glider Deployment ({{ deployment.username }} / {{ deployment.name }}) has been created.
 
 DeploymentInfo:
     DEPLOYMENT URL: {{ url_for('show_deployment', username=username, deployment_id=deployment._id, _external=True) }}
@@ -7,6 +7,6 @@ DeploymentInfo:
     SOS: {{ deployment.sos }}
     THREDDS_CATALOG: {{ thredds_url }}
     ERDDAP_CATALOG: {{ erddap_url }}
-    
+
 
 Thank you for supporting the IOOS National Glider Data Assembly Center

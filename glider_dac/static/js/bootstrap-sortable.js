@@ -127,4 +127,3 @@
     $($.bootstrapSortable);
 
 }(jQuery));
-

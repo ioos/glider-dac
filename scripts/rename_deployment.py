@@ -69,4 +69,3 @@ if __name__ == '__main__':
     parser.add_argument('dest', help='Destination deployment name')
     args = parser.parse_args()
     sys.exit(main(args))
-

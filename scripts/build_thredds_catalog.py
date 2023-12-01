@@ -74,4 +74,3 @@ if __name__ == "__main__":
     templates = os.path.realpath(args.templates)
 
     main(data_root, catalog, templates)
-

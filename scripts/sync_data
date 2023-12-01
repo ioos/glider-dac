@@ -17,5 +17,3 @@ do
         rsync -r -a -v --delete -e "ssh -l $1" "$2":"$s" "$4"/"$i"
     done
 done
-
-

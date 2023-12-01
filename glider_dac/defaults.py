@@ -55,5 +55,3 @@ MAIL_PASSWORD       = os.environ.get('MAIL_PASSWORD')
 MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 MAIL_DEFAULT_TO     = os.environ.get('MAIL_DEFAULT_TO')
 MAIL_DEFAULT_LIST   = os.environ.get('MAIL_DEFAULT_LIST', None)
-
-

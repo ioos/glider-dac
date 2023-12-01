@@ -26,4 +26,3 @@ do
     # shellcheck disable=SC2128
     wget -nH --cut-dirs=2 --output-document="$2$ud/${dname}.nc3.nc" "${SERVER}/tabledap/${dname}.ncCFMA"
 done
-

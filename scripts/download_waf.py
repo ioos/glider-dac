@@ -35,7 +35,7 @@ def get_thredds_waf(url, destination_path, suffix=None):
         iso_url = services['iso']['url']
         if iso_url:
             get_iso_doc(iso_url, destination_path, dataset.id + suffix + '.xml')
-            
+
 def get_erddap_waf(url, destination_path, suffix=None):
     '''
     Scrapes the available datasets from ERDDAP and harvests the ISO 19115
@@ -70,7 +70,7 @@ def create_dataset_doc(doc):
     '''
     Creates a python dictionary of the ERDDAP index JSON response
 
-    { 
+    {
         dataset_id : {
             col_name : row value
         }
@@ -119,6 +119,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     main(args)
-
-
-
