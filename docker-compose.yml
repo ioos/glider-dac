@@ -101,7 +101,7 @@ services:
 
   erddap:
     container_name: erddap
-    image: axiom/docker-erddap:2.23-jdk17-openjdk
+    image: axiom/docker-erddap:latest-jdk17-openjdk
     ports:
       - 8080:8080
     deploy:
