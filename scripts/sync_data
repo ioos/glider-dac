@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # ./sync_data <ssh user> <remote host> <src> <dest>
 
@@ -6,16 +6,14 @@
 # and executes one rsync command per each in order to chop off the upload/
 # part of the path.
 
-users=($(ssh -l $1 $2 ls $3))
+users=("$(ssh -l "$1" "$2" ls "$3")")
 
 for i in "${users[@]}"
 do
-    srcs=($(ssh -l $1 $2 "find \"$3/$i\" -name '*.nc' -exec dirname {} \; | sort -u"))
+    srcs=("$(ssh -l "$1" "$2" "find \"$3/$i\" -name '*.nc' -exec dirname {} \; | sort -u")")
     for s in "${srcs[@]}"
     do
-        echo $s
-        rsync -r -a -v --delete -e "ssh -l $1" $2:$s $4/$i
+        echo "$s"
+        rsync -r -a -v --delete -e "ssh -l $1" "$2":"$s" "$4"/"$i"
     done
 done
-
-

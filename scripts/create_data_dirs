@@ -22,4 +22,3 @@ for i in "${@}" ; do
     echo "Syncing $i"
     rsync --delete -av -f"+ */" -f"- *" "$src/" "$i"
 done
-

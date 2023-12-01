@@ -6,4 +6,3 @@ from bson import ObjectId
 
 with app.app_context():
     embed()
-

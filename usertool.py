@@ -62,5 +62,3 @@ if __name__ == "__main__":
 
     elif args.op == 'init':
         u.init_db(args.db_file)
-
-

@@ -80,4 +80,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     with app.app_context():
         sys.exit(main(args))
-

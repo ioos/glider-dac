@@ -68,4 +68,3 @@ COMMON: &common
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
-
