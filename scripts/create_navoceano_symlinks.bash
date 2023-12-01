@@ -4,7 +4,7 @@
 # not have symlinks yet.
 shopt -s nullglob
 navo_dir=/data/data/priv_erddap/navoceano
-cd "$navo_dir"
+cd "$navo_dir" || exit
 
 for dest_dir in ng*; do
     glider_name="${dest_dir%%-*}"
