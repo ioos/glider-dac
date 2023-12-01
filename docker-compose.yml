@@ -85,7 +85,7 @@ services:
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
     container_name: thredds
-    image: unidata/thredds-docker:5.3
+    image: unidata/thredds-docker:5.4
     ports:
       - 8082:8080
     volumes:
