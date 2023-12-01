@@ -23,6 +23,18 @@ handler = logging.StreamHandler(sys.stderr)
 handler.setLevel(logging.INFO)
 root_logger.addHandler(handler)
 
+
+def send_email_wrapper(message):
+    """
+    Email sending function with exceptions to catch and log exceptions
+    """
+    try:
+        mail.send(message)
+    except:
+        app.logger.exception("Exception occurred while attempting to send "
+                             "email: ")
+
+
 def send_registration_email(username, deployment):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
         app.logger.info("Email is disabled")
@@ -43,7 +55,7 @@ def send_registration_email(username, deployment):
                         thredds_url=get_thredds_catalog_url(),
                         erddap_url=get_erddap_catalog_url())
 
-    mail.send(msg)
+    send_email_wrapper(msg)
 
 def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
     if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
@@ -67,7 +79,7 @@ def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
         return
     msg.body       = message
 
-    mail.send(msg)
+    send_email_wrapper(msg)
 
 def get_thredds_catalog_url():
     args = {
