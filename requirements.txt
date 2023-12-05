@@ -1,7 +1,7 @@
 aiohttp==3.7.4
 async-timeout<4.0
 asyncio==3.4.3
-Flask>=0.12.3
+Flask<2.4
 Flask-Login>=0.2.7
 gunicorn>=19.5.0
 Flask-WTF>=1.0
@@ -35,3 +35,4 @@ cc-plugin-glider>=2.0.3
 -e git+https://github.com/flasgger/flasgger.git@master#egg=flasgger
 multidict
 influxdb>=5.3.1
+quantities==0.14.1
