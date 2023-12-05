@@ -7,7 +7,8 @@ View definition for Deployments
 from cf_units import Unit
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as dateparse
-from flask import render_template, redirect, jsonify, flash, url_for, request, Markup
+from flask import (abort, render_template, redirect, jsonify, flash, url_for,
+                   request, Markup)
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
@@ -98,11 +99,11 @@ def list_operator_deployments(operator):
     return render_template('operator_deployments.html', operator=operator, deployments=deployments)
 
 
-@app.route('/users/<string:username>/deployment/<ObjectId:deployment_id>')
-def show_deployment(username, deployment_id):
-    user = db.User.find_one({'username': username})
-    deployment = db.Deployment.find_one({'_id': deployment_id})
-
+@app.route('/deployment/<string:deployment_name>')
+def show_deployment(deployment_name):
+    deployment = db.Deployment.find_one({'name': deployment_name})
+    if deployment is None:
+        abort(404)
     files = []
     for dirpath, dirnames, filenames in os.walk(deployment.full_path):
         for f in filenames:
@@ -117,19 +118,14 @@ def show_deployment(username, deployment_id):
     form = DeploymentForm(obj=deployment)
 
     if current_user and current_user.is_active and (current_user.is_admin or
-                                                    current_user == user):
+                                                    current_user.username == deployment.username):
         kwargs['editable'] = True
         if current_user.is_admin or current_user == user:
             kwargs['admin'] = True
 
-    return render_template('show_deployment.html', username=username, form=form, deployment=deployment, files=files, **kwargs)
+    return render_template('show_deployment.html', form=form, deployment=deployment, files=files, **kwargs)
 
 
-@app.route('/deployment/<ObjectId:deployment_id>')
-def show_deployment_no_username(deployment_id):
-    deployment = db.Deployment.find_one({'_id': deployment_id})
-    username = db.User.find_one({'_id': deployment.user_id}).username
-    return redirect(url_for('show_deployment', username=username, deployment_id=deployment._id))
 
 
 @app.route('/users/<string:username>/deployment/new', methods=['POST'])
