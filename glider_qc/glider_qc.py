@@ -55,7 +55,7 @@ class GliderQC(object):
     def find_qc_flags(self, ncvariable):
         '''
         Returns a list of non-GliderDAC QC flags associated with a variable
-    
+
         :param netCDF4.Variable ncvariable: Variable to get the status flag
                                             variables for
         '''
@@ -78,7 +78,7 @@ class GliderQC(object):
             #     valid_variables.append(varname)
             if varname.startswith("qartod"):
                 valid_variables.append(varname)
-                
+
         return valid_variables
 
     def append_ancillary_variable(self, parent, child):
@@ -100,7 +100,7 @@ class GliderQC(object):
     def needs_qc(self, ncvariable):
         '''
         Returns True if the variable has no associated QC variables
-    
+
         :param netCDF4.Variable ncvariable: Variable to get the ancillary
                                             variables for
         '''
@@ -271,7 +271,7 @@ class GliderQC(object):
         results.append(agg)
 
         return results
-        
+
     # def apply_qc(self, ncvariable, parent):
     #     '''
     #     Applies QC to a qartod variable
@@ -545,11 +545,11 @@ def run_qc(config, ncfile, ncpath):
         if len(values) == 0:
             log.info("%s is empty", var_name)
             continue
-            
+
         if not xyz.needs_qc(var_data):
             log.info("%s does not need QARTOD", var_name)
             continue
-            
+
         # UPDATE VARIABLE CONFIG SET
         log.info("Updating config file for %s", var_name)
         var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
@@ -567,7 +567,7 @@ def run_qc(config, ncfile, ncpath):
                          'flat_line_test']:
             log.info("Reading %s results for %s", testname, var_name)
             try:
-                qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname) 
+                qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
                 qartod_flag = qc_test.results
                 test_message = 'Could run qartod '
             except Exception as error:
@@ -579,21 +579,21 @@ def run_qc(config, ncfile, ncpath):
 
             # create the qartod variable
             log.info("Creating %s QARTOD variable to log %s results", var_name, testname)
-            
+
             if testname == 'qc_rollup':
                 # compose the qartod variable name
                 qartodname = 'qartod_'+ var_name + '_primary_flag'
                 # Pass the config specs to a variable
-                testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']          
+                testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
             else:
                 # compose the qartod variable name
-                qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag' 
+                qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag'
                 # Pass the config specs to a variable
                 testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
 
             # Create the qartod netcdf variable
             qartod_var = ncfile.createVariable(qartodname, np.int8, var_data.dimensions, fill_value=np.int8(9))
-            
+
             # Add the qartod variable attributes
             qartod_var.units = '1'
             qartod_var.standard_name = testname +'_quality_flag'
@@ -604,11 +604,11 @@ def run_qc(config, ncfile, ncpath):
             qartod_var.dac_comment = 'Using IOOS QC collection of utilities, scripts and tests'
             qartod_var.ioos_category = 'Quality'
             qartod_var.valid_min = 1
-            qartod_var.valid_max = 9            
+            qartod_var.valid_max = 9
             qartod_var.qartod_config =  str(testconfig)
             qartod_var.qartod_status = test_message + str(testname)
             qartod_var[:] = np.array(qartod_flag)
-                      
+
             # Add the qartod variable to the geophysical variable's ancillary_variables attribute
             log.info("Add %s to %s ancillary_variables", qartodname, var_name)
             xyz.append_ancillary_variable(var_data, qartod_var)

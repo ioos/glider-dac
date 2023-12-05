@@ -645,7 +645,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="gts_ingest">{gts_ingest}</att>
                      </addAttributes>
                 </dataset>
-                """)                
+                """)
             for var in variable_order:
                 tree.append(var)
             for identifier, mod_attrs in extra_atts.items():
@@ -673,9 +673,9 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
               <att name="dac_comment">ioos_qc_module_qartod</att>
               <att name="https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"></att>
             """
-        else: 
+        else:
             flag_atts = ""
-            
+
         qartod_snip = f"""
             <dataVariable>
                <sourceName>{req_var}</sourceName>
@@ -687,15 +687,15 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
             </dataVariable>
             """
         var_list.append(etree.fromstring(qartod_snip))
-                     
-        
+
+
     for qartod_var in qartod_var_type["qartod"]:
         # if there are QARTOD variables defined, populate them
         if "_FillValue" not in qartod_var_type['qartod'][qartod_var]:
             fill_value_snippet = '<att name="_FillValue" type="byte">-127</att>'
         else:
             fill_value_snippet = ""
-        
+
         # all qartod variables should have _FillValue, missing_value,
         # flag_values, and flag_meanings defined
 

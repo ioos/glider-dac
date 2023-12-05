@@ -16,8 +16,8 @@ contexts:
                suspect_span: [0, 35]
                fail_span: [-2, 40]
              spike_test:
-               suspect_threshold: 
-               fail_threshold: 
+               suspect_threshold:
+               fail_threshold:
              rate_of_change_test:
                threshold: 0.1
 #             flat_line_test:
