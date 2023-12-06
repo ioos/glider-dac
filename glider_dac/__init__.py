@@ -3,7 +3,7 @@ import datetime
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
-from flask_kvsession import KVSessionExtension
+from flask_session import Session
 from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
 from simplekv.memory.redisstore import RedisStore
@@ -47,6 +47,11 @@ try:
 except KeyError:
     app.config.update(config_dict["DEVELOPMENT"])
 
+app.secret_key = app.config["SECRET_KEY"]
+app.config["SESSION_TYPE"] = "redis"
+app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+Session(app)
+
 import redis
 redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
                                   port=app.config.get('REDIS_PORT'),
@@ -54,9 +59,9 @@ redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
 redis_connection = redis.Redis(connection_pool=redis_pool)
 strict_redis = redis.StrictRedis(connection_pool=redis_pool)
 
+
 store = RedisStore(strict_redis)
 
-KVSessionExtension(store, app)
 
 from rq import Queue
 queue = Queue('default', connection=redis_connection)
