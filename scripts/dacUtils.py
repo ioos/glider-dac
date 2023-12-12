@@ -192,24 +192,24 @@ def main(args):
             # Create it if the --mkdir option was specified and it does not exist
             print('Creating output directory:{0}\n'.format(args.outputDirectory))
             os.makedirs(args.outputDirectory)
-    
+
     for oldNc in args.ncFiles:
-        
+
         (oldPath, oldName) = os.path.split(oldNc)
         newNc = os.path.join(args.outputDirectory, oldName)
-        
+
         nc = dacv2tov1(oldNc, newNc)
-        
+
         print('File created:{0}\n'.format(newNc))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert one or more DAC 2.0 NetCDF files to version 1.0.  Output files use the same name as the input files.')
-    parser.add_argument('outputDirectory',  
+    parser.add_argument('outputDirectory',
         type=str,
         help='Destination directory for writing new files.')
-    parser.add_argument('ncFiles', 
+    parser.add_argument('ncFiles',
         type=str,
-        nargs='+', 
+        nargs='+',
         help='v2.0 files to process')
     parser.add_argument('-m', '--mkdir',
         action='store_true',
@@ -224,4 +224,3 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main(args)
-

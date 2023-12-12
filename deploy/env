@@ -20,4 +20,3 @@ export RSYNC_TO_PATH='{{ rsync_to_path }}'
 export MONGO_URI='{{ mongo_db }}'
 export ADMINS='{{ admins }}'
 export USER_DB_FILE='{{ user_db_file }}'
-

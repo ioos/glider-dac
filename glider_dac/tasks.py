@@ -29,4 +29,3 @@ def delete_deployment(deployment_id):
     deployment = db.Deployment.find_one({"_id":deployment_id})
     if deployment is not None:
         deployment.delete()
-

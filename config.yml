@@ -47,6 +47,8 @@ COMMON: &common
   REDIS_HOST: localhost
   REDIS_PORT: 6379
   REDIS_DB: 8
+  SESSION_PERMANENT: True
+  SESSION_TYPE: redis
 
   JSON_DIR: '/data/data/priv_erddap/'
   path2priv: '/data/data/priv_erddap/'
@@ -68,4 +70,3 @@ COMMON: &common
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
-
