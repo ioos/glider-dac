@@ -643,7 +643,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="ioos_dac_checksum">{checksum}</att>
                         <att name="ioos_dac_completed">{completed}</att>
                         <att name="gts_ingest">{gts_ingest}</att>
-                    </addAttributes>
+                     </addAttributes>
                 </dataset>
                 """)
             for var in variable_order:
@@ -656,10 +656,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
             return etree.tostring(tree, encoding=str)        
             
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
+
     var_list = []
     for req_var in required_qartod_vars:
         # If the required QARTOD QC variable isn't already defined,
         # then supply a set of default attributes.
+        
         if req_var in qartod_var_type['qartod']:
             continue    
 
@@ -687,6 +689,9 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
             """
 
         var_list.append(etree.fromstring(qartod_snip))
+
+    return var_list
+
 
 # def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
 #     var_list = []
