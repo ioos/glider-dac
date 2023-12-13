@@ -10,8 +10,9 @@ from rq import Queue
 from flask import current_app
 from glider_qc import glider_qc
 from datetime import datetime
-from glider_dac import db
 import logging
+from glider_dac.extensions import db
+from flask import current_app
 from watchdog.events import (FileSystemEventHandler,
                              DirCreatedEvent, DirDeletedEvent,
                              FileCreatedEvent, FileMovedEvent, FileModifiedEvent)
@@ -40,12 +41,13 @@ class HandleDeploymentDB(FileSystemEventHandler):
             rel_path = os.path.relpath(event.dest_path, self.base)
         path_parts = os.path.split(rel_path)
         log.info("%s %s", type(event), path_parts)
+        current_app.logger.info("%s %s", type(event), path_parts)
 
         # ignore if a dotfile
         if path_parts[1].startswith('.'):
             return
 
-        with log.app_context():
+        with current_app.app_context():
             # navoceano unsorted deployments
             if path_parts[0] == "navoceano/hurricanes-20230601T0000":
                 if not path_parts[-1].endswith(".nc"):

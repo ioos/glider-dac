@@ -1,7 +1,7 @@
 import os
 import datetime
 
-from .extensions import db
+from glider_dac.extensions import db, get_redis_connection_other
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
@@ -30,9 +30,9 @@ csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.User.find_one({"_id": ObjectId(user_id)})
+#@login_manager.user_loader
+#def load_user(user_id):
+#    return db.User.find_one({"_id": ObjectId(user_id)})
 
 # Create application object
 def create_app():
@@ -79,14 +79,10 @@ def create_app():
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     Session(app)
 
-    redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
-                                      port=app.config.get('REDIS_PORT'),
-                                      db=app.config.get('REDIS_DB'))
-    redis_connection = redis.Redis(connection_pool=redis_pool)
-    strict_redis = redis.StrictRedis(connection_pool=redis_pool)
 
-    store = RedisStore(strict_redis)
-
+    redis_connection = get_redis_connection_other(app.config.get('REDIS_HOST'),
+                                                  app.config.get('REDIS_PORT'),
+                                                  app.config.get('REDIS_DB'))
     app.queue = Queue('default', connection=redis_connection)
     with Connection(redis_connection):
         app.worker = Worker(list(map(Queue, ["default"])))
@@ -95,7 +91,6 @@ def create_app():
 
     import sys
 
-    from flask_mongokit import MongoKit
     import os
     db.init_app(app)
     db.create_all()
@@ -106,11 +101,11 @@ def create_app():
 
     login_manager.init_app(app)
 
-    app.jinja_env.filters['datetimeformat'] = datetimeformat
-    app.jinja_env.filters['timedeltaformat'] = timedeltaformat
-    app.jinja_env.filters['prettydate'] = prettydate
-    app.jinja_env.filters['pluralize'] = pluralize
-    app.jinja_env.filters['padfit'] = padfit
+    app.jinja_env.filters['datetimeformat'] = util.datetimeformat
+    app.jinja_env.filters['timedeltaformat'] = util.timedeltaformat
+    app.jinja_env.filters['prettydate'] = util.prettydate
+    app.jinja_env.filters['pluralize'] = util.pluralize
+    app.jinja_env.filters['padfit'] = util.padfit
 
     # User Auth DB file - create if not existing
     if not os.path.exists(app.config.get('USER_DB_FILE')):
@@ -133,9 +128,7 @@ def create_app():
     app.register_blueprint(institution_bp)
     app.register_blueprint(user_bp)
 
-
     return app
-
 
 def timedeltaformat(starting, ending):
     if isinstance(starting, datetime.datetime) and isinstance(ending, datetime.datetime):

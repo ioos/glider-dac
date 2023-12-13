@@ -10,11 +10,8 @@ from glider_dac.extensions import db
 from geoalchemy2.types import Geometry
 #from sqlalchemy import event
 from flask_sqlalchemy import models_committed
-#from glider_dac.worker import queue
 from glider_dac.glider_emails import glider_deployment_check
 from datetime import datetime
-#from flask_mongokit import Document
-from bson.objectid import ObjectId
 from rq import Queue, Connection, Worker
 from shutil import rmtree
 import os
@@ -78,12 +75,15 @@ class Deployment(db.Model):
         # so we need to save it.  This is when you add "New deployment" while logged in -- files must
         # later be added
         except KeyError:
-            Document.save(self)
+            # TODO: Update for SQLAlchemy
+            pass
+            #Document.save(self)
         # otherwise, need to use update/upsert via Pymongo in case of queued job for
         # compliance so that result does not get clobbered.
         # use $set instead of replacing document
         else:
-            db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
+            db.deployments.update({"_id": doc_id}, {"$set": update_vals},
+                                  upsert=True)
         # HACK: special logic for Navy gliders deployment
         if self.username == "navoceano" and self.glider_name.startswith("ng"):
             glob_path = os.path.join(app.config.get('DATA_ROOT'),

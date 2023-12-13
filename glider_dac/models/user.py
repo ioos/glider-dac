@@ -4,7 +4,6 @@ from datetime import datetime
 from glider_dac import db
 from flask import current_app
 from glider_util.bdb import UserDB
-from flask_mongokit import Document
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)

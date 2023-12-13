@@ -15,7 +15,6 @@ from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
 import re
 from functools import wraps
-from bson.objectid import ObjectId
 
 def with_app_ctxt(f):
     @wraps(f)

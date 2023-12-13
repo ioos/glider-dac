@@ -15,7 +15,7 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - ./config.local.yml:/glider-dac/config.local.yml
+      #- ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
       - berkeleydb_mount:/glider-dac/berkeleydb
       - ${DATA_VOLUME:-data_volume}:/data
@@ -32,7 +32,7 @@ services:
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
     depends_on:
-      - mongo
+      - mysql
       - redis
 
   glider-dac-worker:
@@ -131,8 +131,6 @@ volumes:
   berkeleydb_mount:
   thredds_cache:
   thredds_logs:
-  mongo_storage:
-  mongo_config:
   redis_data:
   status_mysql:
   log_volume:

@@ -18,6 +18,8 @@ RUN pip install -U pip && \
     pip uninstall -y mongokit && \
     pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
     pip install -U pymongo==2.8
+    pip install --no-cache Cython thredds_crawler numpy>=1.19.5 && \
+    pip install --no-cache -r requirements.txt
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag berkeleydb \
@@ -28,6 +30,4 @@ USER glider
 ENV PYTHONPATH="${PYTHONPATH}:/glider-dac"
 
 EXPOSE 5000
-#CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "__init__:create_app()"]
-#CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:create_app()"]
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "glider_dac:create_app()"]
