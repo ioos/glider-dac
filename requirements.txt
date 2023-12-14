@@ -1,5 +1,6 @@
 aiohttp==3.9.0
 async-timeout<5.0
+awscli
 asyncio==3.4.3
 Flask<2.4
 Flask-Login>=0.2.7

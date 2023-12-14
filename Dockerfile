@@ -14,7 +14,7 @@ RUN pip install --no-cache Cython thredds_crawler numpy==1.19.5 && \
     pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
     pip install -U pymongo==2.8
 
-RUN chown -R glider:glider /glider-dac/logs/
+RUN mkdir /data && chown -R glider:glider /glider-dac/logs/ /data/
 USER glider
 # TODO: move logs elsewhere
 VOLUME /glider-dac/logs/

@@ -1,5 +1,12 @@
 version: '3.3'
 
+
+secrets:
+  S3_ACCESS_KEY:
+    file: secrets/access_key.txt
+  S3_SECRET_KEY:
+    file: secrets/secret_key.txt
+
 services:
   glider-dac-providers-app: &provider_anchor
     container_name: glider-dac-providers-app
@@ -12,9 +19,13 @@ services:
     #  # - .:/glider-dac/  # For local development
       - log_volume:/glider-dac/logs
       - ./users.db:/glider-dac/users.db
+      - data_dir:/data
     deploy:
       restart_policy:
         condition: always
+    secrets:
+      - S3_ACCESS_KEY
+      - S3_SECRET_KEY
     environment:
       - REDIS_HOST=redis
 
@@ -44,7 +55,7 @@ services:
     container_name: qartod_worker_1
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
-      - /data/:/data
+      - data_dir:/data:rw
       - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
@@ -119,6 +130,7 @@ services:
         condition: always
 
 volumes:
+  data_dir:
   thredds_cache:
   thredds_logs:
   mongo_storage:
