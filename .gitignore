@@ -8,7 +8,6 @@ config.local.yml
 /.fab
 /.fab-production
 /.fabstage
-/.env
 .DS_Store
 
 ftp_temp
