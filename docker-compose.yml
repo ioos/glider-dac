@@ -16,10 +16,10 @@ services:
       - 3000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
-    #  # - .:/glider-dac/  # For local development
       - log_volume:/glider-dac/logs
       - ./users.db:/glider-dac/users.db
-      - data_dir:/data
+      - data_volume:/data
+      - erddap_big_parent_directory:/erddapData
     deploy:
       restart_policy:
         condition: always
@@ -27,8 +27,9 @@ services:
       - S3_ACCESS_KEY
       - S3_SECRET_KEY
     environment:
-      - REDIS_HOST=redis
-
+      - DATA_ROOT=${DATA_ROOT}
+      - FLAGS_DIR=${FLAGS_DIR}
+      - REDIS_HOST=${REDIS_HOST}
     depends_on:
       - mongo
       - redis
@@ -44,24 +45,21 @@ services:
     container_name: glider-dac-watchdog
     command: python glider_dac_watchdog.py
     ports: []
-    # Update DATA_ROOT to point to ERDDAP directory
-    environment:
-      - DATA_ROOT=/data/data/priv_erddap
-      - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
-      - REDIS_HOST=redis
 
   qartod_worker_1: &qartod
     build: .
     container_name: qartod_worker_1
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
-      - data_dir:/data:rw
+      - data_volume:/data
       - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
         condition: always
     environment:
-      REDIS_HOST: redis
+      - DATA_ROOT=${DATA_ROOT}
+      - FLAGS_DIR=${FLAGS_DIR}
+      - REDIS_HOST=${REDIS_HOST}
 
   qartod_worker_2:
     <<: *qartod
@@ -100,7 +98,7 @@ services:
     ports:
       - 8082:8080
     volumes:
-      - /data:/data
+      - data_volume:/data
       - ./docker_contrib/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml
       - ./docker_contrib/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml
       - thredds_cache:/usr/local/tomcat/content/thredds/cache
@@ -108,7 +106,6 @@ services:
     deploy:
       restart_policy:
         condition: always
-
 
   erddap:
     container_name: erddap
@@ -118,6 +115,9 @@ services:
     deploy:
       restart_policy:
         condition: always
+    volumes:
+      - data_volume:/data
+      - erddap_big_parent_directory:/erddapData
 
   redis:
     container_name: redis
@@ -130,7 +130,7 @@ services:
         condition: always
 
 volumes:
-  data_dir:
+  data_volume:
   thredds_cache:
   thredds_logs:
   mongo_storage:
@@ -138,3 +138,4 @@ volumes:
   redis_data:
   status_mysql:
   log_volume:
+  erddap_big_parent_directory:
