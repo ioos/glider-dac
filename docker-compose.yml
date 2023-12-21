@@ -1,11 +1,11 @@
 version: '3.3'
 
 
-secrets:
-  S3_ACCESS_KEY:
-    file: secrets/access_key.txt
-  S3_SECRET_KEY:
-    file: secrets/secret_key.txt
+#secrets:
+#  S3_ACCESS_KEY:
+#    file: secrets/access_key.txt
+#  S3_SECRET_KEY:
+#    file: secrets/secret_key.txt
 
 services:
   glider-dac-providers-app: &provider_anchor
@@ -23,9 +23,9 @@ services:
     deploy:
       restart_policy:
         condition: always
-    secrets:
-      - S3_ACCESS_KEY
-      - S3_SECRET_KEY
+    #secrets:
+    #  - S3_ACCESS_KEY
+    #  - S3_SECRET_KEY
     environment:
       - DATA_ROOT=${DATA_ROOT}
       - FLAGS_DIR=${FLAGS_DIR}
