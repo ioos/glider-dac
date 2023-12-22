@@ -17,10 +17,9 @@ RUN pip install -U pip && \
     pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
     pip install -U pymongo==2.8
 
-RUN { [ ! -f "users.db" ] && python usertool.py users.db init; } && \
-    mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
-             /erddapData/flag /erddapData/hardFlag && \
-    chown -R glider:glider /glider-dac/logs /data
+RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
+             /erddapData/flag /erddapData/hardFlag berkeleydb && \
+    chown -R glider:glider /glider-dac/logs /data && \
 USER glider
 # TODO: move logs elsewhere
 VOLUME /glider-dac/logs/

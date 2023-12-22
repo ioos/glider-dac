@@ -17,7 +17,7 @@ services:
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
-      - ./users.db:/glider-dac/users.db
+      - berkeleydb_mount:/glider-dac/berkeleydb
       - data_volume:/data
       - erddap_big_parent_directory:/erddapData
     deploy:
@@ -131,6 +131,7 @@ services:
 
 volumes:
   data_volume:
+  berkeleydb_mount:
   thredds_cache:
   thredds_logs:
   mongo_storage:
