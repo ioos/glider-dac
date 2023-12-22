@@ -20,6 +20,7 @@ RUN pip install -U pip && \
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag berkeleydb && \
     chown -R glider:glider /glider-dac/logs /data && \
+    ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 # TODO: move logs elsewhere
 VOLUME /glider-dac/logs/
