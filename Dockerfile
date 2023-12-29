@@ -7,6 +7,8 @@ RUN apt-get update && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
 COPY . /glider-dac
+# TODO: move logs elsewhere
+VOLUME /glider-dac/logs/ /data
 WORKDIR glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
@@ -19,12 +21,9 @@ RUN pip install -U pip && \
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag berkeleydb && \
-    chown -R glider:glider /glider-dac/logs /data && \
-    ln -sf /glider-dac/scripts/crontab /etc/crontab
+    chown -R glider:glider /glider-dac /data && \
+    ln -sf scripts/crontab /etc/crontab
 USER glider
-# TODO: move logs elsewhere
-VOLUME /glider-dac/logs/
-VOLUME /data
 ENV PYTHONPATH="${PYTHONPATH}:/glider_dac"
 
 EXPOSE 5000
