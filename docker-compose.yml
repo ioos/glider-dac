@@ -53,9 +53,8 @@ services:
     command: cron -f
     ports: []
 
-  qartod_worker_1: &qartod
+  qartod-worker:
     build: .
-    container_name: qartod_worker_1
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
       - ${DATA_VOLUME:-data_volume}:/data
@@ -64,15 +63,12 @@ services:
     deploy:
       restart_policy:
         condition: always
+      replicas: 2
     environment:
       - DATA_VOLUME=${DATA_VOLUME}
       - DATA_ROOT=${DATA_ROOT}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
-
-  qartod_worker_2:
-    <<: *qartod
-    container_name: qartod_worker_2
 
   mongo:
     container_name: mongo
