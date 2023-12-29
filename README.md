@@ -22,10 +22,15 @@ by emailing a request to glider.dac.support@noaa.gov and explaining your use cas
 
 Once this is in place, optionally create a folder where you wish to sync data
 as a bind mount for docker and then in the `.env` file, set the `DATA_VOLUME`
-environment variable to match this location.  The default compose setup comes
-with a named Docker volume, so it is also an option to copy directly to this
-mount using `docker cp` or moving the files to the volume location reported
-by `docker volume inspect gliderdac_data_volume`.
+environment variable to match this location.  If using a bind mount, ensure
+that the corresponding directories for the submission and served ERDDAP data
+exist with the filesystem hierarchy.  By default in the configuration, these
+are `submission` and `data/priv_erddap` by default.  Assuming a `DATA_VOLUME`
+set to `/data/`, issuing the following command in shell will create the
+necessary directories: `mkdir -p /data/submission /data/data/priv_erddap`.
+The default compose setup comes with a named Docker volume, so it is also an
+option to copy directly to this mount using `docker cp` or moving the files to
+the volume location reported by `docker volume inspect gliderdac_data_volume`.
 
 Then, run the `aws s3 sync` command to fetch the data, with `s3://ioosngdac/submission/`
 as the source directory.
