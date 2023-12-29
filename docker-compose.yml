@@ -58,6 +58,7 @@ services:
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
       - data_volume:/data
+      - berkeleydb_mount:/glider-dac/berkeleydb
       - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
