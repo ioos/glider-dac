@@ -18,7 +18,7 @@ services:
       - ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
       - berkeleydb_mount:/glider-dac/berkeleydb
-      - data_volume:/data
+      - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
     deploy:
       restart_policy:
@@ -28,6 +28,7 @@ services:
     #  - S3_SECRET_KEY
     environment:
       - DATA_ROOT=${DATA_ROOT}
+      - DATA_VOLUME=${DATA_VOLUME}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
     depends_on:
@@ -57,13 +58,14 @@ services:
     container_name: qartod_worker_1
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
-      - data_volume:/data
+      - ${DATA_VOLUME:-data_volume}:/data
       - berkeleydb_mount:/glider-dac/berkeleydb
       - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
         condition: always
     environment:
+      - DATA_VOLUME=${DATA_VOLUME}
       - DATA_ROOT=${DATA_ROOT}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
@@ -105,11 +107,13 @@ services:
     ports:
       - 8082:8080
     volumes:
-      - data_volume:/data
+      - ${DATA_VOLUME:-data_volume}:/data
       - ./docker_contrib/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml
       - ./docker_contrib/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml
       - thredds_cache:/usr/local/tomcat/content/thredds/cache
       - thredds_logs:/usr/local/tomcat/content/thredds/logs
+    environment:
+      - DATA_VOLUME=${DATA_VOLUME}
     deploy:
       restart_policy:
         condition: always
@@ -123,8 +127,10 @@ services:
       restart_policy:
         condition: always
     volumes:
-      - data_volume:/data
+      - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
+    environment:
+      - DATA_VOLUME=${DATA_VOLUME}
 
   redis:
     container_name: redis
