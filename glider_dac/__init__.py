@@ -60,7 +60,6 @@ redis_connection = redis.Redis(connection_pool=redis_pool)
 strict_redis = redis.StrictRedis(connection_pool=redis_pool)
 
 
-store = RedisStore(strict_redis)
 
 
 from rq import Queue

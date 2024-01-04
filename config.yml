@@ -30,7 +30,8 @@ COMMON: &common
   GA_ENABLED: True
   GA_TAG_ID: G-999999AAAA
 
-  PUBLIC_ERDDAP: gliders.ioos.us
+  PRIVATE_ERDDAP: erddap:8080
+  PUBLIC_ERDDAP: erddap:8080
   THREDDS: gliders.ioos.us
   DATA_ROOT: /data/submission
   PRIV_DATA_ROOT: /data/data/priv_erddap

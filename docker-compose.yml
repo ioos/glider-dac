@@ -20,6 +20,8 @@ services:
       - berkeleydb_mount:/glider-dac/berkeleydb
       - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
+      - ./datasets.xml:/data/catalog/priv_erddap/datasets.xml
+      - /data/catalog/priv_erddap
     deploy:
       restart_policy:
         condition: always
@@ -125,6 +127,7 @@ services:
     volumes:
       - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
+      - ./datasets.xml:/usr/local/tomcat/content/erddap/datasets.xml
     environment:
       - DATA_VOLUME=${DATA_VOLUME}
 

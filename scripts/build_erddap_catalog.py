@@ -37,6 +37,7 @@ import json
 import logging
 import numpy as np
 import os
+import shutil
 import redis
 import sys
 from collections import defaultdict
@@ -176,7 +177,7 @@ def build_datasets_xml(data_root, catalog_root, force):
             for line in fileinput.input([tail_path]):
                 f.write(line)
         # now try moving the file to update datasets.xml
-        os.rename(ds_tmp_path, ds_path)
+        shutil.move(ds_tmp_path, ds_path)
     except OSError:
         logger.exception("Could not write to datasets.xml")
 

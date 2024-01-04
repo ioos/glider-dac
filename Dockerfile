@@ -20,11 +20,12 @@ RUN pip install -U pip && \
     pip install -U pymongo==2.8
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
-             /erddapData/flag /erddapData/hardFlag berkeleydb && \
+             /erddapData/flag /erddapData/hardFlag berkeleydb \
+             /data/catalog/priv_erddap && \
     chown -R glider:glider /glider-dac /data && \
-    ln -sf scripts/crontab /etc/crontab
+    ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
-ENV PYTHONPATH="${PYTHONPATH}:/glider_dac"
+ENV PYTHONPATH="${PYTHONPATH}:/glider-dac"
 
 EXPOSE 5000
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
