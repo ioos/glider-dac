@@ -593,7 +593,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
 
-        qartod_vars_snippet = qc_var_snippets(required_qartod_vars, qartod_var_type)
+        qartod_vars_snippet = qartod_var_snippets(required_qartod_vars, qartod_var_type)
 
         vars_sorted = sorted(common_variables +
                              qartod_vars_snippet + all_other_vars,
@@ -662,17 +662,17 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
     for req_var in required_qartod_vars:
         # If the required QARTOD QC variable isn't already defined,
         # then supply a set of default attributes.
-        if req_var not in qc_var_types['qartod']:
-            flag_atts = """
-                  <att name="ioos_category">Quality</att>
-                  <att name="flag_values" type="byteList">1 2 3 4 9</att>
-                  <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
-                  <att name="valid_min" type="byte">1</att>
-                  <att name="valid_max" type="byte">9</att>
-                  <att name="_FillValue" type="byte">-127</att>'
-                  """
-        else:
-            flag_atts = ""
+        #if req_var not in qc_var_types['qartod']:
+        flag_atts = """
+              <att name="ioos_category">Quality</att>
+              <att name="flag_values" type="byteList">1 2 3 4 9</att>
+              <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
+              <att name="valid_min" type="byte">1</att>
+              <att name="valid_max" type="byte">9</att>
+              <att name="_FillValue" type="byte">-127</att>'
+              """
+        #else:
+        #    flag_atts = ""
 
         qartod_snip = f"""
             <dataVariable>
