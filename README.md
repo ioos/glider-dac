@@ -31,6 +31,9 @@ necessary directories: `mkdir -p /data/submission /data/data/priv_erddap`.
 The default compose setup comes with a named Docker volume, so it is also an
 option to copy directly to this mount using `docker cp` or moving the files to
 the volume location reported by `docker volume inspect gliderdac_data_volume`.
+Create an empty file named `datasets.xml` in the project root directory so that
+ERDDAP can populate the datasets when running the job to add XML dataset entries
+to this file.
 
 Then, run the `aws s3 sync` command to fetch the data, with `s3://ioosngdac/submission/`
 as the source directory.
