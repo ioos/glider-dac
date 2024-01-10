@@ -45,6 +45,7 @@ to glider profiles which started in December 2023:
 Then, copy one of the nightly database backups and restore it to the database:
 
 ```
+mkdir backup_dir
 cd backup_dir
 aws s3 cp s3://ioosngdac/backups/2023-12-29-gliderdac-mongodb.tar.gz .
 tar xf 2023-12-29-gliderdac-mongodb.tar.gz
