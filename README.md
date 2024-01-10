@@ -22,28 +22,30 @@ by emailing a request to glider.dac.support@noaa.gov and explaining your use cas
 
 Once this is in place, optionally create a folder where you wish to sync data
 as a bind mount for docker and then in the `.env` file, set the `DATA_VOLUME`
-environment variable to match this location.  If using a bind mount, ensure
-that the corresponding directories for the submission and served ERDDAP data
+environment variable to match the local path of the data directory. If using a bind mount, ensure that the corresponding directories for the submission and served ERDDAP data
 exist with the filesystem hierarchy.  By default in the configuration, these
-are `submission` and `data/priv_erddap` by default.  Assuming a `DATA_VOLUME`
-set to `/data/`, issuing the following command in shell will create the
-necessary directories: `mkdir -p /data/submission /data/data/priv_erddap`.
+are `submission` and `data/priv_erddap` by default.  Issuing the following command in shell will create the
+necessary directories: <br > `mkdir -p /<DESTINATION_DATA_DIRECTORY>/submission /DESTINATION_DATA_DIRECTORY/data/priv_erddap` <br >
+
 The default compose setup comes with a named Docker volume, so it is also an
 option to copy directly to this mount using `docker cp` or moving the files to
-the volume location reported by `docker volume inspect gliderdac_data_volume`.
-Create an empty file named `datasets.xml` in the project root directory so that
+the volume location reported by `docker volume inspect gliderdac_data_volume`. <br >
+
+Create an empty file named `datasets.xml` in the project root directory `glider-dac` so that
 ERDDAP can populate the datasets when running the job to add XML dataset entries
-to this file.
+to this file. <br >
+
+Next, comment out the line `- ./config.local.yml:/glider-dac/config.local.yml` in the docker-compose.yml file. Look under `volumes:` in the `glider-dac-providers-app:` services section. This step is necessary to setting up the correct configuration for the providers app. <br >
 
 Then, run the `aws s3 sync` command to fetch the data, with `s3://ioosngdac/submission/`
-as the source directory.
-It is recommended to fetch a subset of the data using the `--include` option.
+as the source directory. It is recommended to fetch a subset of the data using the `--include` option.
 Here, the command fetches NetCDF files with "202312" in the name, corresponding
 to glider profiles which started in December 2023:
-`aws s3 sync s3://ioosngdac/submission/ <DESTINATION_DATA_DIRECTORY> --exclude '*' --include '*202312*.nc'`
+`
+aws s3 sync s3://ioosngdac/submission/ <DESTINATION_DATA_DIRECTORY>/submission --exclude '*' --include '*202312*.nc'` <br >
+`
 
-Then, copy one of the nightly database backups and restore it to the database:
-
+While the data are downloading from the s3 bucket, copy one of the nightly database backups and restore it to the database:
 ```
 mkdir backup_dir
 cd backup_dir
