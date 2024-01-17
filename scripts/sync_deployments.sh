@@ -18,7 +18,7 @@ else
     if [[ "${#submission_subfolders[@]}" -gt 0 ]]; then
         # (2021-10-13) ensure dataset.xml isn't clobbered upon rsync --delete
         # TODO: remove path hardcoding
-        rsync -avu --delete --chmod ug+rwX,o+rX --exclude dataset.xml --exclude 'navoceano/ng*/*.nc' /data/submission/ /data/data/priv_erddap/ >> /var/log/gliderdac/rsync.log 2>&1
+        rsync -avu --delete --chmod ug+rwX,o+rX --exclude dataset.xml --exclude 'navoceano/ng*/*.nc' /data/submission/ /data/data/priv_erddap/ 2>&1
     else
         echo 'Submission folder (/data/submission) appears to contain no subfolders, aborting' >&2
     fi
