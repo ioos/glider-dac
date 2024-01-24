@@ -1,67 +1,131 @@
-sea_water_temperature: # deg_C
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - -5.
-      - 45.
-  spike: {}
-  rate_of_change: {}
-sea_water_electrical_conductivity: # S m-1
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 0
-      - 7
-  spike: {}
-  rate_of_change: {}
-sea_water_practical_salinity: # unitless
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 0
-      - 50
-  spike: {}
-  rate_of_change: {}
-sea_water_salinity: # unitless
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 0
-      - 50
-  spike: {}
-  rate_of_change: {}
-sea_water_density: # kg m-3
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 900
-      - 1050
-  spike: {}
-  rate_of_change: {}
-sea_water_pressure: # `
-  flat_line:
-    low_reps: 4
-    high_reps: 8
-    eps: 1.1920929e-07
-  gross_range:
-    sensor_span:
-      - 0
-      - 11000
-  pressure: {}
-  rate_of_change: {}
-  spike: {}
+contexts:
+   - streams:
+       conductivity:
+         qartod:
+             gross_range_test:
+               suspect_span: [0, 6]
+               fail_span: [0, 9]
+             spike_test:
+               suspect_threshold:
+               fail_threshold:
+             rate_of_change_test:
+               threshold: 0.1
+       temperature:
+         qartod:
+             gross_range_test:
+               suspect_span: [0, 35]
+               fail_span: [-2, 40]
+             spike_test:
+               suspect_threshold:
+               fail_threshold:
+             rate_of_change_test:
+               threshold: 0.1
+#             flat_line_test:
+#               tolerance: 1
+#               suspect_threshold: 3600
+#               fail_threshold: 9000
+       pressure:
+         qartod:
+             gross_range_test:
+               suspect_span: [0, 1000]
+               fail_span: [0, 6000]
+             spike_test:
+               suspect_threshold:
+               fail_threshold:
+             rate_of_change_test:
+               threshold: 0.1
+#             flat_line_test:
+#               tolerance: 1
+#               suspect_threshold: 3600
+#               fail_threshold: 9000
+       salinity:
+         qartod:
+             gross_range_test:
+               fail_span: [0, 42]
+               suspect_span: [10, 38]
+             spike_test:
+               suspect_threshold:
+               fail_threshold:
+             rate_of_change_test:
+               threshold: 0.1
+       density:
+         qartod:
+             gross_range_test:
+               fail_span: [1000, 1100]
+             spike_test:
+               suspect_threshold:
+               fail_threshold:
+             rate_of_change_test:
+               threshold: 0.1
+#             flat_line_test:
+#               tolerance: 1
+#               suspect_threshold: 3600
+#               fail_threshold: 9000
+
+# sea_water_temperature: # deg_C
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - -5.
+#       - 45.
+#   spike: {}
+#   rate_of_change: {}
+# sea_water_electrical_conductivity: # S m-1
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - 0
+#       - 7
+#   spike: {}
+#   rate_of_change: {}
+# sea_water_practical_salinity: # unitless
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - 0
+#       - 50
+#   spike: {}
+#   rate_of_change: {}
+# sea_water_salinity: # unitless
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - 0
+#       - 50
+#   spike: {}
+#   rate_of_change: {}
+# sea_water_density: # kg m-3
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - 900
+#       - 1050
+#   spike: {}
+#   rate_of_change: {}
+# sea_water_pressure: # `
+#   flat_line:
+#     low_reps: 4
+#     high_reps: 8
+#     eps: 1.1920929e-07
+#   gross_range:
+#     sensor_span:
+#       - 0
+#       - 11000
+#   pressure: {}
+#   rate_of_change: {}
+#   spike: {}

@@ -186,7 +186,6 @@ def build_datasets_xml(data_root, catalog_root, force):
     for inactive_deployment_name in inactive_deployment_names:
         sync_deployment(inactive_deployment_name)
 
-
 def variable_sort_function(element):
     """
     Sorts by ERDDAP variable destinationName, or by
@@ -512,14 +511,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     """).findall("dataVariable")
 
 
-    # variables which need to have the variable {var_name}_qc present in the
-    # template.  Right now these are all the same, so are hardcoded
-    # required_qc_vars = {"conductivity_qc", "density_qc", "depth_qc",
-    #                     "latitude_qc", "lat_uv_qc", "longitude_qc",
-    #                     "lon_uv_qc", "profile_lat_qc", "profile_lon_qc",
-    #                     "pressure_qc", "salinity_qc", "temperature_qc",
-    #                     "time_qc", "time_uv_qc", "profile_time_qc",
-    #                     "u_qc", "v_qc"}
 
     required_qartod_vars = {"qartod_conductivity_flat_line_flag",
                             "qartod_conductivity_gross_range_flag",
@@ -548,14 +539,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
                             "qartod_temperature_rate_of_change_flag",
                             "qartod_temperature_spike_flag"}
 
-    # any destinationNames that need to have a different name.
-    # by default the destinationName will equal the sourceName
-    # dest_var_remaps = {'longitude_qc': 'precise_lon_qc',
-    #                    'latitude_qc': 'precise_lat_qc',
-    #                    'profile_lon_qc': 'longitude_qc',
-    #                    'profile_lat_qc': 'latitude_qc',
-    #                    'time_qc': 'precise_time_qc',
-    #                    'profile_time_qc': 'time_qc'}
 
     existing_varnames = {'trajectory', 'wmo_id', 'profile_id', 'profile_time',
                          'profile_lat', 'profile_lon', 'time', 'depth',
@@ -566,21 +549,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
     with Dataset(nc_file, 'r') as ds:
-        # qc_var_types = check_for_qc_vars(ds)
-        # #qc_vars = qc_var_snippets(required_qc_vars, qc_var_types)
-        # # need to explicitly cast keys to set in Python 2
-        # exclude_vars = (existing_varnames | set(dest_var_remaps.keys()) |
-        #                 required_qc_vars | {'latitude', 'longitude'} |
-        #                 qc_var_types['gen_qc'].keys() | qc_var_types['qartod'].keys())
-        # all_other_vars = [add_erddap_var_elem(var) for var in
-        #                   ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)]
-        # gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
-        # qc_vars_snippet = qc_var_snippets(required_qc_vars, qc_var_types, dest_var_remaps)
-        #
-        # vars_sorted = sorted(common_variables +
-        #                      qc_vars_snippet + all_other_vars,
-        #                      key=variable_sort_function)
-        # variable_order = core_variables + vars_sorted
 
         qartod_var_type = check_for_qartod_vars(ds)
 
@@ -604,12 +572,13 @@ def build_erddap_catalog_chunk(data_root, deployment):
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
         if completed or delayed_mode:
-            reload_settings = reload_template.format(720)
+            reload_settings = reload_template.format(720) 
         else:
             reload_settings = reload_template.format(10)
+            
         try:
             tree = etree.fromstring(f"""
-                <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
+                <dataset type="EDDTableFromNcFiles" datasetID={deployment.name} active="true">  
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
                     <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
@@ -644,7 +613,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         <att name="ioos_dac_checksum">{checksum}</att>
                         <att name="ioos_dac_completed">{completed}</att>
                         <att name="gts_ingest">{gts_ingest}</att>
-                    </addAttributes>
+                     </addAttributes>
                 </dataset>
                 """)
             for var in variable_order:
@@ -654,134 +623,45 @@ def build_erddap_catalog_chunk(data_root, deployment):
         except Exception:
             logger.exception("Exception occurred while adding atts to template: {}".format(deployment_dir))
         finally:
-            return etree.tostring(tree, encoding=str)
-
-
+            return etree.tostring(tree, encoding=str)        
+            
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
+
     var_list = []
     for req_var in required_qartod_vars:
         # If the required QARTOD QC variable isn't already defined,
         # then supply a set of default attributes.
-        #if req_var not in qc_var_types['qartod']:
-        flag_atts = """
-              <att name="ioos_category">Quality</att>
-              <att name="flag_values" type="byteList">1 2 3 4 9</att>
-              <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
-              <att name="valid_min" type="byte">1</att>
-              <att name="valid_max" type="byte">9</att>
-              <att name="_FillValue" type="byte">-127</att>'
-              """
-        #else:
-        #    flag_atts = ""
+        
+        if req_var in qartod_var_type['qartod']:
+            continue    
 
+        else:
+                        
+            flag_atts = """
+                  <att name="ioos_category">Quality</att>
+                  <att name="flag_values" type="byteList">1 2 3 4 9</att>
+                  <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
+                  <att name="valid_min" type="byte">1</att>
+                  <att name="valid_max" type="byte">9</att>
+                  <att name="dac_comment">ioos_qc_module_qartod</att>
+                  <att name="https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"></att>
+                  """
+        
         qartod_snip = f"""
             <dataVariable>
                <sourceName>{req_var}</sourceName>
                <destinationName>{req_var}</destinationName>
                <dataType>byte</dataType>
                <addAttributes>
-                     {flag_atts}
-               </addAttributes>
-           </dataVariable>
-           """
-
-        var_list.append(etree.fromstring(qartod_snip))
-
-    for qartod_var in qartod_var_type["qartod"]:
-        # if we already have this variable as part of required qartod variables,
-        # skip it.
-        if qartod_var in required_qartod_vars:
-            continue
-
-            # assume byte for data type as it is required
-        gen_qartod_snip = f"""
-            <dataVariable>
-               <sourceName>{qartod_var}</sourceName>
-               <dataType>byte</dataType>
-               <addAttributes>
-                  <att name="ioos_category">Quality</att>
+                  {flag_atts}
                </addAttributes>
             </dataVariable>
             """
 
-        var_list.append(etree.fromstring(gen_qartod_snip))
+        var_list.append(etree.fromstring(qartod_snip))
 
     return var_list
 
-# def qc_var_snippets(required_vars, qc_var_types, dest_var_remaps):
-#     var_list = []
-#     for req_var in required_vars:
-#         # If the required non-QARTOD QC variable isn't already defined,
-#         # then supply a set of default attributes.
-#         if req_var not in qc_var_types['gen_qc']:
-#             flag_atts = """
-#                 <att name="flag_values" type="byteList">0 1 2 3 4 5 6 7 8 9</att>
-#                 <att name="flag_meanings">no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed interpolated_value missing_value</att>
-#                 <att name="_FillValue" type="byte">-127</att>
-#                 <att name="valid_min" type="byte">0</att>
-#                 <att name="valid_max" type="byte">9</att>
-#             """
-#         else:
-#             flag_atts = ""
-#
-#         var_str = f"""
-#         <dataVariable>
-#             <sourceName>{req_var}</sourceName>
-#             <destinationName>{dest_var_remaps.get(req_var, req_var)}</destinationName>
-#             <dataType>byte</dataType>
-#             <addAttributes>
-#                 <att name="ioos_category">Quality</att>
-#                 <att name="long_name">{dest_var_remaps.get(req_var, req_var).replace('_qc', '')} Variable Quality Flag</att>
-#                 {flag_atts}
-#             </addAttributes>
-#         </dataVariable>"""
-#         var_list.append(etree.fromstring(var_str))
-#
-#     for qartod_var in qc_var_types["qartod"]:
-#     # if there are QARTOD variables defined, populate them
-#
-#        if "_FillValue" not in qc_var_types['qartod'][qartod_var]:
-#            fill_value_snippet = '<att name="_FillValue" type="byte">-127</att>'
-#        else:
-#            fill_value_snippet = ""
-#         # all qartod variables should have _FillValue, missing_value,
-#         # flag_values, and flag_meanings defined
-#
-#        qartod_snip = f"""
-#        <dataVariable>
-#            <sourceName>{qartod_var}</sourceName>
-#            <destinationName>{qartod_var}</destinationName>
-#            <dataType>byte</dataType>
-#            <addAttributes>
-#               <att name="ioos_category">Quality</att>
-#               <att name="flag_values" type="byteList">1 2 3 4 9</att>
-#               <att name="flag_meanings">GOOD NOT_EVALUATED SUSPECT BAD MISSING</att>
-#               <att name="valid_min" type="byte">1</att>
-#               <att name="valid_max" type="byte">9</att>
-#               {fill_value_snippet}
-#            </addAttributes>
-#        </dataVariable>
-#        """
-#        var_list.append(etree.fromstring(qartod_snip))
-#
-#     for gen_qc_var in qc_var_types["gen_qc"]:
-#         # if we already have this variable as part of required QC variables,
-#         # skip it.
-#         if gen_qc_var in required_vars:
-#             continue
-#         # assume byte for data type as it is required
-#         gen_qc_snip = f"""
-#             <dataVariable>
-#                <sourceName>{gen_qc_var}</sourceName>
-#                <dataType>byte</dataType>
-#                <addAttributes>
-#                   <att name="ioos_category">Quality</att>
-#                </addAttributes>
-#             </dataVariable>
-#             """
-#         var_list.append(etree.fromstring(gen_qc_snip))
-#
-#     return var_list
 
 def add_erddap_var_elem(var):
     """
@@ -798,6 +678,7 @@ def add_erddap_var_elem(var):
     add_atts = etree.SubElement(dvar_elem, 'addAttributes')
     ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
     ioos_category.text = "Other"
+    
     return dvar_elem
 
 
@@ -850,20 +731,6 @@ def check_for_qartod_vars(nc):
         if var.startswith('qartod'):
             qartod_vars['qartod'][var] = nc.variables[var].ncattrs()
     return qartod_vars
-
-# def check_for_qc_vars(nc):
-#     """
-#     Checks for general gc variables and QARTOD variables by naming conventions.
-#     Returns a dict with both sets of variables as keys, and their attributes
-#     as values.
-#     """
-#     qc_vars = {'gen_qc': {}, 'qartod': {}}
-#     for var in nc.variables:
-#         if var.endswith('_qc'):
-#             qc_vars['gen_qc'][var] = nc.variables[var].ncattrs()
-#         elif var.startswith('qartod'):
-#             qc_vars['qartod'][var] = nc.variables[var].ncattrs()
-#     return qc_vars
 
 
 def get_latest_nc_file(root):
