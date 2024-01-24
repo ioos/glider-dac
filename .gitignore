@@ -8,15 +8,19 @@ config.local.yml
 /.fab
 /.fab-production
 /.fabstage
-/.env
 .DS_Store
 
 ftp_temp
 tds_temp
 tds_catalogs
 data/
+secrets/
 
 # BerkeleyDB user database
 users.db
+.env
 .venv/
 activate
+
+# ERDDAP datasets.xml, stores persistent changes and must be created by user manually
+datasets.xml

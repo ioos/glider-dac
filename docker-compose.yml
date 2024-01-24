@@ -1,5 +1,12 @@
 version: '3.3'
 
+
+#secrets:
+#  S3_ACCESS_KEY:
+#    file: secrets/access_key.txt
+#  S3_SECRET_KEY:
+#    file: secrets/secret_key.txt
+
 services:
   glider-dac-providers-app: &provider_anchor
     container_name: glider-dac-providers-app
@@ -9,15 +16,23 @@ services:
       - 3000:5000
     volumes:
       - ./config.local.yml:/glider-dac/config.local.yml
-    #  # - .:/glider-dac/  # For local development
       - log_volume:/glider-dac/logs
-      - ./users.db:/glider-dac/users.db
+      - berkeleydb_mount:/glider-dac/berkeleydb
+      - ${DATA_VOLUME:-data_volume}:/data
+      - erddap_big_parent_directory:/erddapData
+      - ./datasets.xml:/data/catalog/priv_erddap/datasets.xml
+      - /data/catalog/priv_erddap
     deploy:
       restart_policy:
         condition: always
+    #secrets:
+    #  - S3_ACCESS_KEY
+    #  - S3_SECRET_KEY
     environment:
-      - REDIS_HOST=redis
-
+      - DATA_ROOT=${DATA_ROOT}
+      - DATA_VOLUME=${DATA_VOLUME}
+      - FLAGS_DIR=${FLAGS_DIR}
+      - REDIS_HOST=${REDIS_HOST}
     depends_on:
       - mongo
       - redis
@@ -33,28 +48,29 @@ services:
     container_name: glider-dac-watchdog
     command: python glider_dac_watchdog.py
     ports: []
-    # Update DATA_ROOT to point to ERDDAP directory
-    environment:
-      - DATA_ROOT=/data/data/priv_erddap
-      - FLAGS_DIR=/scratch/tomcat-erddap-private/flag
-      - REDIS_HOST=redis
+  glider-dac-cron:
+    <<: *provider_anchor
+    container_name: glider-dac-cron
+    user: root
+    command: cron -f
+    ports: []
 
-  qartod_worker_1: &qartod
+  qartod-worker:
     build: .
-    container_name: qartod_worker_1
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
-      - /data/:/data
+      - ${DATA_VOLUME:-data_volume}:/data
+      - berkeleydb_mount:/glider-dac/berkeleydb
       - log_volume:/glider-dac/logs
     deploy:
       restart_policy:
         condition: always
+      replicas: 2
     environment:
-      REDIS_HOST: redis
-
-  qartod_worker_2:
-    <<: *qartod
-    container_name: qartod_worker_2
+      - DATA_VOLUME=${DATA_VOLUME}
+      - DATA_ROOT=${DATA_ROOT}
+      - FLAGS_DIR=${FLAGS_DIR}
+      - REDIS_HOST=${REDIS_HOST}
 
   mongo:
     container_name: mongo
@@ -89,15 +105,16 @@ services:
     ports:
       - 8082:8080
     volumes:
-      - /data:/data
+      - ${DATA_VOLUME:-data_volume}:/data
       - ./docker_contrib/catalog.xml:/usr/local/tomcat/content/thredds/catalog.xml
       - ./docker_contrib/threddsConfig.xml:/usr/local/tomcat/content/thredds/threddsConfig.xml
       - thredds_cache:/usr/local/tomcat/content/thredds/cache
       - thredds_logs:/usr/local/tomcat/content/thredds/logs
+    environment:
+      - DATA_VOLUME=${DATA_VOLUME}
     deploy:
       restart_policy:
         condition: always
-
 
   erddap:
     container_name: erddap
@@ -107,6 +124,12 @@ services:
     deploy:
       restart_policy:
         condition: always
+    volumes:
+      - ${DATA_VOLUME:-data_volume}:/data
+      - erddap_big_parent_directory:/erddapData
+      - ./datasets.xml:/usr/local/tomcat/content/erddap/datasets.xml
+    environment:
+      - DATA_VOLUME=${DATA_VOLUME}
 
   redis:
     container_name: redis
@@ -119,6 +142,8 @@ services:
         condition: always
 
 volumes:
+  data_volume:
+  berkeleydb_mount:
   thredds_cache:
   thredds_logs:
   mongo_storage:
@@ -126,3 +151,4 @@ volumes:
   redis_data:
   status_mysql:
   log_volume:
+  erddap_big_parent_directory:

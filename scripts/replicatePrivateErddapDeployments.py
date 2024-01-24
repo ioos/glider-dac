@@ -8,6 +8,7 @@ import glob
 import json
 import logging
 import os
+import shutil
 import sys
 import time
 from datetime import datetime
@@ -151,7 +152,7 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                                 log.exception("Exception while attempting to open NetCDF dataset {}".format(path_arg + '.tmp'))
                                 os.unlink(path_arg + '.tmp')
                             else:
-                                os.rename(path_arg + '.tmp', path_arg)
+                                shutil.move(path_arg + '.tmp', path_arg)
 
                                 # if the download succeeded and file isn't corrupt, replace the previous file
                                 log.info(("moved file {}".format(path_arg + '.tmp')))

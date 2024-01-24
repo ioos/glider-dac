@@ -5,7 +5,7 @@ import os.path
 import os
 import argparse
 import glob
-import logging
+import sys
 from rq import Queue
 from glider_qc import glider_qc
 from datetime import datetime
@@ -229,4 +229,10 @@ if __name__ == "__main__":
 
     base = os.path.realpath(args.basedir)
     flagsdir = os.path.realpath(args.flagsdir)
-    main(HandleDeploymentDB(base, flagsdir))
+    try:
+        main(HandleDeploymentDB(base, flagsdir))
+    except OSError:
+        with app.app_context():
+            app.logger.exception("Exception occurred attempting to set up file "
+                                 f"watch on directory {base}")
+        sys.exit(1)

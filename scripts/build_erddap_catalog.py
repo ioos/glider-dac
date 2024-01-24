@@ -37,6 +37,7 @@ import json
 import logging
 import numpy as np
 import os
+import shutil
 import redis
 import sys
 from collections import defaultdict
@@ -176,7 +177,7 @@ def build_datasets_xml(data_root, catalog_root, force):
             for line in fileinput.input([tail_path]):
                 f.write(line)
         # now try moving the file to update datasets.xml
-        os.rename(ds_tmp_path, ds_path)
+        shutil.move(ds_tmp_path, ds_path)
     except OSError:
         logger.exception("Could not write to datasets.xml")
 
@@ -571,13 +572,13 @@ def build_erddap_catalog_chunk(data_root, deployment):
         # Add any of the extra variables and attributes
         reload_template = "<reloadEveryNMinutes>{}</reloadEveryNMinutes>"
         if completed or delayed_mode:
-            reload_settings = reload_template.format(720) 
+            reload_settings = reload_template.format(720)
         else:
             reload_settings = reload_template.format(10)
-            
+
         try:
             tree = etree.fromstring(f"""
-                <dataset type="EDDTableFromNcFiles" datasetID={deployment.name} active="true">  
+                <dataset type="EDDTableFromNcFiles" datasetID={deployment.name} active="true">
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
                     <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
@@ -622,20 +623,20 @@ def build_erddap_catalog_chunk(data_root, deployment):
         except Exception:
             logger.exception("Exception occurred while adding atts to template: {}".format(deployment_dir))
         finally:
-            return etree.tostring(tree, encoding=str)        
-            
+            return etree.tostring(tree, encoding=str)
+
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
 
     var_list = []
     for req_var in required_qartod_vars:
         # If the required QARTOD QC variable isn't already defined,
         # then supply a set of default attributes.
-        
+
         if req_var in qartod_var_type['qartod']:
-            continue    
+            continue
 
         else:
-                        
+
             flag_atts = """
                   <att name="ioos_category">Quality</att>
                   <att name="flag_values" type="byteList">1 2 3 4 9</att>
@@ -645,7 +646,7 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
                   <att name="dac_comment">ioos_qc_module_qartod</att>
                   <att name="https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"></att>
                   """
-        
+
         qartod_snip = f"""
             <dataVariable>
                <sourceName>{req_var}</sourceName>
@@ -677,7 +678,7 @@ def add_erddap_var_elem(var):
     add_atts = etree.SubElement(dvar_elem, 'addAttributes')
     ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
     ioos_category.text = "Other"
-    
+
     return dvar_elem
 
 

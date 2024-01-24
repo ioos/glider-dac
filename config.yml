@@ -2,7 +2,7 @@ COMMON: &common
   HOST: localhost
   PORT: 5000
   DEBUG: False
-  MONGODB_HOST: localhost
+  MONGODB_HOST: mongo
   MONGODB_PORT: 27017
   MONGODB_DATABASE: gliderdac
 
@@ -30,7 +30,8 @@ COMMON: &common
   GA_ENABLED: True
   GA_TAG_ID: G-999999AAAA
 
-  PUBLIC_ERDDAP: gliders.ioos.us
+  PRIVATE_ERDDAP: erddap:8080
+  PUBLIC_ERDDAP: erddap:8080
   THREDDS: gliders.ioos.us
   DATA_ROOT: /data/submission
   PRIV_DATA_ROOT: /data/data/priv_erddap
@@ -42,11 +43,12 @@ COMMON: &common
   INFLUXDB_PORT: 8086
   ADMINS:
    - admin
-  USER_DB_FILE: users.db
+  USER_DB_FILE: berkeleydb/users.db
 
-  REDIS_HOST: localhost
+  REDIS_HOST: redis
   REDIS_PORT: 6379
   REDIS_DB: 8
+  REDIS_URL: redis://redis:6379/8
   SESSION_PERMANENT: True
   SESSION_TYPE: redis
 
