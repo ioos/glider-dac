@@ -15,7 +15,7 @@ services:
     ports:
       - 3000:5000
     volumes:
-      - ./config.local.yml:/glider-dac/config.local.yml
+    #  - ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
       - berkeleydb_mount:/glider-dac/berkeleydb
       - ${DATA_VOLUME:-data_volume}:/data
