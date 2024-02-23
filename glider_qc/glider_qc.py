@@ -156,7 +156,7 @@ class GliderQC(object):
             'sea_water_practical_salinity']
 
         variables = []
-        note= ''
+        note = ''
         for standard_name in valid_standard_names:
             ncvar = self.ncfile.get_variables_by_attributes(standard_name=standard_name)
             if len(ncvar) == 1:
@@ -166,7 +166,7 @@ class GliderQC(object):
                 for nn in range(len(ncvar)):
                     var_name.append(ncvar[nn].name)
                 log.info("QC skipped for %s: more variables (%s) share the same standard name", standard_name, var_name)
-                note += 'QC skipped for' + standard_name + ': the same standard name is shared by ' + var_name + ', '
+                note += 'QC skipped for' + standard_name + ': the same standard name is shared by ' + ' '.join(var_name) + ', '
 
         return variables, note
 
@@ -508,11 +508,9 @@ def check_needs_qc(nc_path):
     # quick check to see if QC has already been run on these files
     try:
         if os.getxattr(nc_path, "user.qc_run"):
-            log.info("xattr is set for %s", nc_path.split('/')[-1])
             return False
     except OSError:
         log.exception(f"Exception occurred trying to get xattr at {nc_path}:")
-        log.info(f"Exception occurred trying to get xattr at {nc_path}:")
         pass
     with Dataset(nc_path, 'r') as nc:
         qc = GliderQC(nc, None)
@@ -520,13 +518,10 @@ def check_needs_qc(nc_path):
         for varname in legacy_var:
             ncvar = nc.variables[varname]
             if qc.needs_qc(ncvar):
-                log.info("xattr is unset for %s", nc_path.split('/')[-1])
                 return True
     # if this section was reached, QC has been run, but xattr remains unset
     try:
         os.setxattr(nc_path, "user.qc_run", b"true")
-        log.info("setting xattr for %s", nc_path.split('/')[-1])
     except OSError:
         log.exception(f"Exception occurred trying to set xattr on already QCed file at {nc_path}:")
-        log.info(f"Exception occurred trying to set xattr on already QCed file at {nc_path}:")
     return False
