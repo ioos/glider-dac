@@ -578,7 +578,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         try:
             tree = etree.fromstring(f"""
-                <dataset type="EDDTableFromNcFiles" datasetID={deployment.name} active="true">
+                <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
                     <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
