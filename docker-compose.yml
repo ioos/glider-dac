@@ -22,9 +22,7 @@ services:
       - erddap_big_parent_directory:/erddapData
       - ./datasets.xml:/data/catalog/priv_erddap/datasets.xml
       - /data/catalog/priv_erddap
-    deploy:
-      restart_policy:
-        condition: always
+    restart: always
     #secrets:
     #  - S3_ACCESS_KEY
     #  - S3_SECRET_KEY
@@ -48,6 +46,7 @@ services:
     container_name: glider-dac-watchdog
     command: python glider_dac_watchdog.py
     ports: []
+
   glider-dac-cron:
     <<: *provider_anchor
     container_name: glider-dac-cron
@@ -62,10 +61,7 @@ services:
       - ${DATA_VOLUME:-data_volume}:/data
       - berkeleydb_mount:/glider-dac/berkeleydb
       - log_volume:/glider-dac/logs
-    deploy:
-      restart_policy:
-        condition: always
-      replicas: 2
+    restart: always
     environment:
       - DATA_VOLUME=${DATA_VOLUME}
       - DATA_ROOT=${DATA_ROOT}
@@ -78,9 +74,7 @@ services:
     volumes:
       - mongo_storage:/data/db
       - mongo_config:/data/configdb
-    deploy:
-      restart_policy:
-        condition: always
+    restart: always
 
   # For John Kerfoot's new status page application -- move elsewhere if needed
   mysql:
@@ -94,9 +88,7 @@ services:
         - 3306:3306
     volumes:
       - status_mysql:/var/lib/mysql
-    deploy:
-      restart_policy:
-        condition: always
+    restart: always
 
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
@@ -112,18 +104,14 @@ services:
       - thredds_logs:/usr/local/tomcat/content/thredds/logs
     environment:
       - DATA_VOLUME=${DATA_VOLUME}
-    deploy:
-      restart_policy:
-        condition: always
+    restart: always
 
   erddap:
     container_name: erddap
     image: axiom/docker-erddap:latest-jdk17-openjdk
     ports:
       - 8080:8080
-    deploy:
-      restart_policy:
-        condition: always
+    restart: always
     volumes:
       - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
