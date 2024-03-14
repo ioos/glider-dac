@@ -7,6 +7,7 @@ from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
 from tests.resources import STATIC_FILES
+import yaml
 import tempfile
 import os
 import numpy as np
@@ -29,20 +30,11 @@ class TestGliderQC(TestCase):
         self.addCleanup(ncfile.close)
 
         qc = GliderQC(ncfile, 'data/qc_config.yml')
-        variables = qc.find_geophysical_variables()
+        variables = qc.find_geophysical_variables()[0]
         assert len(variables) == 5
         assert 'temperature' in variables
         assert 'salinity' in variables
         assert 'pressure' in variables
-
-    def test_find_qc_flags(self):
-        ncfile = Dataset(STATIC_FILES['murphy'], 'r')
-        self.addCleanup(ncfile.close)
-
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
-        temperature = ncfile.variables['temperature']
-        ancillary_variables = qc.find_qc_flags(temperature)
-        assert ancillary_variables == ['temperature_qc', 'temperature_qc']
 
     def test_create_qc_variables(self):
         copypath = self.copy_ncfile(STATIC_FILES['murphy'])
@@ -71,28 +63,27 @@ class TestGliderQC(TestCase):
         self.addCleanup(ncfile.close)
 
         qc = GliderQC(ncfile, 'data/qc_config.yml')
-        temperature = ncfile.variables['temperature']
-        qc.create_qc_variables(temperature)
+        with open('data/qc_config.yml') as yaml_content:
+            qc_config = yaml.safe_load(yaml_content)
 
-        qc.apply_qc(ncfile.variables['qartod_temperature_gross_range_flag'])
+        results_raw = qc.apply_qc(STATIC_FILES['murphy'], 'temperature', qc_config)
+
+        results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temperature'}
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            ncfile.variables['qartod_temperature_gross_range_flag'][:])
+            results_dict['gross_range_test'])
 
-        qc.apply_qc(ncfile.variables['qartod_temperature_flat_line_flag'])
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            ncfile.variables['qartod_temperature_flat_line_flag'][:])
+            results_dict['flat_line_test'])
 
-        qc.apply_qc(ncfile.variables['qartod_temperature_rate_of_change_flag'])
-        np.testing.assert_equal(
-            np.array([2, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            ncfile.variables['qartod_temperature_rate_of_change_flag'][:])
-
-        qc.apply_qc(ncfile.variables['qartod_temperature_spike_flag'])
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            ncfile.variables['qartod_temperature_spike_flag'][:])
+            results_dict['rate_of_change_test'])
+
+        np.testing.assert_equal(
+            np.array([2, 1, 1, 1, 1, 1, 1, 2], dtype=np.int8),
+            results_dict['spike_test'])
 
     def test_units_qc(self):
         fd, fake_file = tempfile.mkstemp()
@@ -110,12 +101,18 @@ class TestGliderQC(TestCase):
         tempvar.units = 'deg_F'
         tempvar[np.array([0, 1, 2, 3, 4, 9])] = np.array([72.0, 72.1, 72.0, 1.0, 72.03, 72.1])
 
-        qc = GliderQC(nc, 'data/qc_config.yml')
-        for qcvarname in qc.create_qc_variables(nc.variables['temp']):
-            qc.apply_qc(nc.variables[qcvarname])
+        qc = GliderQC(fake_file, 'data/qc_config.yml')
+        with open('data/qc_config.yml') as yaml_content:
+            qc_config = yaml.safe_load(yaml_content)
+        qc_config["contexts"][0]["streams"]["temp"] = qc_config["contexts"][0]["streams"]["temperature"]
+        del qc_config["contexts"][0]["streams"]["temperature"]
 
-        np.testing.assert_equal(nc.variables['qartod_temp_flat_line_flag'][:].mask, ~np.array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0], dtype=bool))
-        np.testing.assert_equal(ma.getdata(nc.variables['qartod_temp_flat_line_flag'][:]), np.array([1, 9, 1, 9, 1, 9, 9, 9, 9, 9], dtype=np.int8))
+        results_raw = qc.apply_qc(fake_file, 'temp', qc_config)
+
+        results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
+
+        np.testing.assert_equal(results_dict['flat_line_test'][:].mask, ~np.array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0], dtype=bool))
+        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 9, 1, 9, 1, 9, 9, 9, 9, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
         values = np.array([32.0, 65.0, 100.0])
