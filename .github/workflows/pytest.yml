@@ -1,0 +1,25 @@
+name: Run pytest
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker image
+        run: docker build -t glider-dac-build .
+
+      - name: Run tests
+        run: docker run --rm -T glider-dac-build pytest
