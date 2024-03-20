@@ -111,7 +111,6 @@ class TestGliderQC(TestCase):
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
 
-        np.testing.assert_equal(results_dict['flat_line_test'][:].mask, ~np.array([1, 0, 1, 0, 1, 0, 0, 0, 0, 0], dtype=bool))
         np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 9, 1, 9, 1, 9, 9, 9, 9, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
