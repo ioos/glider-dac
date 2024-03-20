@@ -35,7 +35,7 @@ class TestGliderXml(TestCase):
              'compliance_check_passed': False,
              'checksum': '22222222222222222222222222222222',
              'completed': True, 'deployment_date': datetime.now(),
-             'deployment_dir': 'data/Murphy-20150809T135508Z_rt',
+             'deployment_dir': 'data/Murphy-20150809T135508Z',
              'glider_name': 'Murphy', 'wmo_id': '4801904',
              'operator': '', 'attribution': None, 'estimated_deploy_date': None,
              'delayed_mode': None,
