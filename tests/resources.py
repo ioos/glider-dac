@@ -20,5 +20,5 @@ def generate_dataset(cdl_path, nc_path):
 
 
 STATIC_FILES = {
-    'murphy': get_filename('test/data/Murphy-20150809T135508Z_rt/Murphy-20150809T135508Z_rt.nc'),
+    'murphy': get_filename('tests/data/Murphy-20150809T135508Z/Murphy-20150809T135508Z_rt.nc'),
 }
