@@ -59,7 +59,7 @@ $(function() {
     <tbody>
     {%- for m in deployments %}
     <tr>
-      <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
+      <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m.name) }}">{{ m.name }}</a></td>
       <td>{% if m.operator %}<a href="{{ url_for('list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
       <td>
