@@ -56,10 +56,8 @@ docker exec -w /data mongo sh -c "mongorestore mongo_dumps/dump && rm -rf mongo_
 rm -rf mongo_dumps
 ```
 
-<!-- markdown-link-check-disable -->
 Once these steps are run, you should be able to navigate to the development server
 at http://localhost:3000 and view various deployments.
-<!-- markdown-link-check-enable -->
 
 If desired, create a user with `docker exec -it glider-dac-providers-app python usertool.py set <username>`
 to add a user and set the password.  If creating a user with the same name as one of the restored users in the database backup,
