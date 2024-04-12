@@ -9,6 +9,7 @@ import redis
 import sys
 from datetime import datetime, timezone, timedelta
 from glider_dac import app, db
+from glider_dac.models.deployment import Deployment
 from glider_dac.common import log_formatter
 
 logger = logging.getLogger(__name__)
@@ -103,12 +104,13 @@ def get_delayed_mode_deployments(force=False):
             dt_yesterday = datetime.now(tz=timezone.utc) - timedelta(days=1)
             last_run_ts = _redis.get(redis_key) or dt_yesterday.timestamp()
             last_run = datetime.utcfromtimestamp(int(last_run_ts))
-            query['updated'] = {'$gte': last_run}
+            update_time = last_run
         except Exception:
             logger.error("Error: Parsing last run from redis. Processing Datasets from last 24 hrs")
-            query['updated'] = {'$gte': dt_yesterday}
+            update_time = dt_yesterday
 
-    deployments = db.Deployment.find(query)
+    deployments = Deployment.query(query).filter(Deployment.updated >=
+                                                 update_time).all()
 
     return [d.deployment_dir for d in deployments]
 

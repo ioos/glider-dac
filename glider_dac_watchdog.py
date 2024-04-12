@@ -86,7 +86,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     log.exception("Could not create new deployment file for NAVOCEANO: ")
                 return
 
-            deployment = db.Deployment.find_one({'deployment_dir' : path_parts[0]})
+            deployment = Deployment.query.filter_by(deployment_dir=path_parts[0]).one_or_none()
             if deployment is None:
                 log.error("Cannot find deployment for %s", path_parts[0])
                 return
@@ -199,7 +199,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
             log.info("Removed deployment directory: %s", rel_path)
 
             with current_app.app_context():
-                deployment = db.Deployment.find_one({'deployment_dir': event.src_path})
+                deployment = Deployment.query.filter_by(deployment_dir=event.src_path).one_or_none()
                 if deployment:
                     deployment.delete()
 

@@ -4,9 +4,11 @@ from datetime import datetime
 from glider_dac import db
 from flask import current_app
 from glider_util.bdb import UserDB
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
+    #user_id = db.Column(db.String, primary_key=True)
+    username = db.Column(db.String, primary_key=True, nullable=False)
     name = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String)
     organization = db.Column(db.String)
@@ -29,12 +31,11 @@ class User(db.Model):
     def authenticate(cls, username, password):
         if cls._check_login(username, password):
             # Return the ID of the user
-            usr = db.User.find_one( { 'username' : username } )
-            if usr is None:
-                usr = db.User()
-                usr.username = username
-                usr.save()
-            return usr
+            current_user = User.query.filter_by(username=username).one()
+            if current_user is None:
+                current_user = User(username=username)
+                current_user.save()
+            return current_user
         return None
 
     @classmethod
@@ -74,8 +75,9 @@ class User(db.Model):
         return self.username in current_app.config.get("ADMINS")
 
     def get_id(self):
-        return str(self._id)
+        return str(self.username)
 
-    @classmethod
-    def get_deployment_count_by_user(cls):
-        return [count for count in db.deployments.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}, cursor={})]
+
+class UserSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = User

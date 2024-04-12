@@ -11,7 +11,6 @@ from flask import (render_template, make_response, redirect, jsonify, flash, url
 from flask_login import login_required, login_user, logout_user, current_user
 from glider_dac import db
 from glider_util import datetimeformat
-from pymongo.errors import DuplicateKeyError
 from dateutil.parser import parse as dateparse
 import re
 from functools import wraps
@@ -25,8 +24,8 @@ def with_app_ctxt(f):
 
 
 @with_app_ctxt
-def delete_deployment(deployment_id):
-    deployment_id = ObjectId(deployment_id)
-    deployment = db.Deployment.find_one({"_id":deployment_id})
+def delete_deployment(deployment_name):
+    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
     if deployment is not None:
-        deployment.delete()
+        db.session.delete(deployment)
+        db.session.commit()

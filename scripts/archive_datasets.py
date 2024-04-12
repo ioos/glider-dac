@@ -9,7 +9,6 @@ import os
 import hashlib
 import logging
 import shutil
-import pymongo
 from glider_dac.common import log_formatter
 from glider_dac import app
 

@@ -12,6 +12,8 @@ from flask_sqlalchemy import SQLAlchemy
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
+from glider_dac.models.user import User
+from sqlalchemy import event
 import os
 import os.path
 import redis
@@ -22,7 +24,7 @@ from glider_dac.views.deployment import deployment_bp
 from glider_dac.views.index import index_bp
 from glider_dac.views.institution import institution_bp
 from glider_dac.views.user import user_bp
-from glider_util import datetimeformat
+import glider_dac.utilities as util
 
 
 csrf = CSRFProtect()
@@ -30,14 +32,11 @@ csrf = CSRFProtect()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 
-#@login_manager.user_loader
-#def load_user(user_id):
-#    return db.User.find_one({"_id": ObjectId(user_id)})
-
 # Create application object
 def create_app():
     app = Flask(__name__)
 
+    # TODO: Move elsewhere?
     app.url_map.strict_slashes = False
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
@@ -84,22 +83,39 @@ def create_app():
                                                   app.config.get('REDIS_PORT'),
                                                   app.config.get('REDIS_DB'))
     app.queue = Queue('default', connection=redis_connection)
-    with Connection(redis_connection):
-        app.worker = Worker(list(map(Queue, ["default"])))
-        app.worker.work()
+    #with Connection(redis_connection):
+    #    app.worker = Worker(list(map(Queue, ["default"])))
+    #    app.worker.work()
 
 
     import sys
 
     import os
+
     db.init_app(app)
-    db.create_all()
+
+    with app.app_context():
+        @event.listens_for(db.engine, "connect")
+        def load_spatialite(dbapi_conn, connection_record):
+            if str(db.engine.url).startswith("sqlite:"):
+                # From # https://geoalchemy-2.readthedocs.io/en/latest/spatialite_tutorial.html
+                dbapi_conn.enable_load_extension(True)
+                # HACK: hardcoded for Docker -- find another means of loading
+                # on other possible OSes
+                dbapi_conn.load_extension('/usr/lib/x86_64-linux-gnu/mod_spatialite.so')
+
+        db.create_all()
 
     # Mailer
     from flask_mail import Mail
     app.mail = Mail(app)
 
     login_manager.init_app(app)
+
+    from .models.user import User
+    @login_manager.user_loader
+    def load_user(username):
+        return User.query.filter_by(username=username).one_or_none()
 
     app.jinja_env.filters['datetimeformat'] = util.datetimeformat
     app.jinja_env.filters['timedeltaformat'] = util.timedeltaformat
@@ -129,86 +145,6 @@ def create_app():
     app.register_blueprint(user_bp)
 
     return app
-
-def timedeltaformat(starting, ending):
-    if isinstance(starting, datetime.datetime) and isinstance(ending, datetime.datetime):
-        return ending - starting
-    return "unknown"
-
-def prettydate(d):
-    if d is None:
-        return "never"
-    utc_dt = datetime.datetime.utcnow()
-    if utc_dt > d:
-        return prettypastdate(d, utc_dt - d)
-    else:
-        return prettyfuturedate(d, d - utc_dt)
-
-# from http://stackoverflow.com/a/5164027/84732
-def prettypastdate(d, diff):
-    s = diff.seconds
-    if diff.days > 7:
-        return d.strftime('%Y %b %d')
-    elif diff.days > 1:
-        return '{} days ago'.format(diff.days)
-    elif diff.days == 1:
-        return '1 day ago'
-    elif s <= 1:
-        return 'just now'
-    elif s < 60:
-        return '{} seconds ago'.format(s)
-    elif s < 120:
-        return '1 minute ago'
-    elif s < 3600:
-        return '{} minutes ago'.format(s//60)
-    elif s < 7200:
-        return '1 hour ago'
-    else:
-        return '{} hours ago'.format(s//3600)
-
-def prettyfuturedate(d, diff):
-    s = diff.seconds
-    if diff.days > 7:
-        return d.strftime('%Y %b %d')
-    elif diff.days > 1:
-        return '{} days from now'.format(diff.days)
-    elif diff.days == 1:
-        return '1 day from now'
-    elif s <= 1:
-        return 'just now'
-    elif s < 60:
-        return '{} seconds from now'.format(s)
-    elif s < 120:
-        return '1 minute from now'
-    elif s < 3600:
-        return '{} minutes from now'.format(s/60)
-    elif s < 7200:
-        return '1 hour from now'
-    else:
-        return '{} hours from now'.format(s/3600)
-
-def pluralize(number, singular = '', plural = 's'):
-    if number == 1:
-        return singular
-    else:
-        return plural
-
-# TODO: move to CSS `text-overflow: ellipsis;`
-# pad/truncate filter (for making text tables)
-def padfit(value, size):
-    if len(value) <= size:
-        return value.ljust(size)
-
-    return value[0:(size-3)] + "..."
-
-
-def slugify(value):
-    """
-    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
-    Pulled from Django
-    """
-    value = re.sub(r'[^\w\s-]', '', value).strip()
-    return re.sub(r'[-\s]+', '-', value)
 
 # Import everything
 import glider_dac.views

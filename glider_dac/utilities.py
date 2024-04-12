@@ -1,4 +1,6 @@
 import datetime
+from sqlalchemy import func
+import re
 
 # Create datetime jinja2 filter
 def datetimeformat(value, format='%a, %b %d %Y at %I:%M%p'):
@@ -85,3 +87,10 @@ def slugify(value):
     """
     value = re.sub(r'[^\w\s-]', '', value).strip()
     return re.sub(r'[-\s]+', '-', value)
+
+def slugify_sql(value):
+    return func.regexp_replace(
+            func.regexp_replace(
+              func.regexp_replace(value, r'[^\w\s-]', ''), r'[-\s]+', '-'),
+            r"^\s+|\s+$", "")
+

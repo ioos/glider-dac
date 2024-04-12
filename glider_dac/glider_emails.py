@@ -1,6 +1,7 @@
 import os
 from flask_mail import Message
 from flask import render_template
+from glider_dac.models.deployment import Deployment
 #from glider_dac import app, mail, db
 #from glider_dac import mail, db
 from flask import current_app
@@ -8,6 +9,7 @@ from datetime import datetime
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
 from urllib.parse import urljoin
+from sqlalchemy import func
 import tempfile
 import glob
 import sys
@@ -107,66 +109,51 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
     #       no longer send emails.
     cs = CheckSuite()
     cs.load_all_available_checkers()
+    query = Deployment.query
     with app.app_context():
         if data_type is not None:
-            is_delayed_mode = data_type == 'delayed'
-            if is_delayed_mode:
-                q_dict = {"delayed_mode": True,
-                          "completed": completed}
-            else:
-                q_dict = {"$or": [{"delayed_mode": False},
-                                  {"delayed_mode": {"$exists": False}}],
-                          "completed": completed}
-
+            query = query.filter(Deployment.completed==completed,
+                                            func.coalesce(Deployment.delayed_mode,
+                                                        False) == is_delayed_mode)
+            # TODO: force not null constraints in model on this field
             if not force:
-                q_dict["compliance_check_passed"] = {"$ne": True}
+                query = query.filter(compliance_check_passed != True)
 
-        # TODO: combine username/deployment cases?
         if username:
-            q_dict = {"username": username}
+            query = query.filter_by(username=username)
         # a particular deployment has been specified
+
+
+
+
+
+
+
         elif deployment_dir:
-            q_dict = {"deployment_dir": deployment_dir}
-        else:
-            q_dict = {}
+            query = query.filter_by(deployment_dir=deployment_dir)
 
-        agg_pipeline = [{"$match": q_dict},
-                        {"$group": {"_id": "$user_id",
-                           "deployments": {"$push":
-                                {"_id": "$_id",
-                                 "name": "$name",
-                                 "deployment_dir": "$deployment_dir"} } }
-                        }]
-        # if force is enabled, re-check the datasets no matter what
+    for deployment in query.all():
+        user = deployment.username
+        user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
 
-        # is this syntax still used?  if the first fn call fails, use the
-        # second set of results
         try:
-            agg_result_set = db.deployments.aggregate(agg_pipeline)['result']
-        except:
-            agg_result_set = db.deployments.aggregate(agg_pipeline, cursor={})
-        for res in agg_result_set:
-            user = db.users.find_one(res["_id"])
-            all_messages = []
-            failing_deployments = []
-            for dep in res['deployments']:
-                root_logger.info("Running compliance check on glider "
-                                 "deployment: {}".format(dep))
-                try:
-                    dep_passed, dep_messages = process_deployment(dep)
-                    all_messages.append(dep_messages)
-                    if not dep_passed:
-                        failing_deployments.append(dep)
-                except Exception as e:
-                    root_logger.exception(
-                        "Exception occurred while processing deployment {}".format(dep['name']))
-                    text_body = ''
-        # disable email for time being
-        #send_deployment_cchecker_email(user, failing_deployments,
-        #                               "\n".join(all_messages))
+            dep_passed, dep_messages = process_deployment(deployment)
+            if not dep_passed:
+                user_errors[user]["failed_deployments"].append(deployment.name)
+            user_errors[user]["messages"].extend(dep_messages)
+        except Exception as e:
+            root_logger.exception("Exception occurred while processing deployment {}".format(deployment.name))
+
+        # TODO: Allow for disabling of sending compliance checker emails
+        for username, results_dict in user_errors.items():
+            send_deployment_cchecker_email(username,
+                                           results_dict["failed_deployments"],
+                                           "\n".join(results_dict["messages"]))
+
+
 
 def process_deployment(dep):
-    deployment_issues = "Deployment {}".format(os.path.basename(dep['name']))
+    deployment_issues = "Deployment {}".format(os.path.basename(dep.name))
     groups = OrderedDict()
     erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
     base_url = app.config["PRIVATE_ERDDAP"]
@@ -174,7 +161,7 @@ def process_deployment(dep):
     if not base_url.startswith("http"):
         base_url = "http://{}".format(base_url)
     url_path = "/".join([base_url,
-                         erddap_fmt_string.format(dep["name"])])
+                         erddap_fmt_string.format(dep.name)])
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
     failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
@@ -186,27 +173,26 @@ def process_deployment(dep):
 
     compliance_passed = errs['scored_points'] == errs['possible_points']
 
-    update_fields = {"compliance_check_passed": compliance_passed}
+    dep.compliance_check_passed = compliance_passed
     standard_name_errs = []
     if compliance_passed:
-        final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
+        final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
     else:
         error_list = [err_msg for err_severity in ("high_priorities",
             "medium_priorities", "low_priorities") for err_section in
             errs[err_severity] for err_msg in err_section["msgs"]]
-        update_fields["compliance_check_report"] = errs
+        dep.compliance_check_report = errs
 
         for err in errs["high_priorities"]:
             if err["name"] == "Standard Names":
                 standard_name_errs.extend(err["msgs"])
 
         if not standard_name_errs:
-            final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
+            final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
         else:
             root_logger.info(standard_name_errs)
-            final_message = ("Deployment {} has issues:\n{}".format(dep['name'],
+            final_message = ("Deployment {} has issues:\n{}".format(dep.name,
                              "\n".join(standard_name_errs)))
 
-    # Set fields.  Don't use upsert as deployment ought to exist prior to write.
-    db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
+    db.session.commit()
     return final_message.startswith("All files passed"), final_message

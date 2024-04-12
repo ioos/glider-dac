@@ -12,7 +12,7 @@ from flask_login import current_user
 #from glider_dac import app, db
 from glider_dac import db
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringFiel.d, SubmitField
 from functools import wraps
 import json
 
@@ -44,7 +44,7 @@ def admin_required(func):
             return app.login_manager.unauthorized()
         elif not current_user.is_admin:
             flash("Permission denied", 'danger')
-            return redirect(url_for('index'))
+            return redirect(url_for('index.index'))
         return func(*args, **kwargs)
     return wrapper
 
@@ -57,12 +57,14 @@ class NewInstitutionForm(FlaskForm):
 @institution_bp.route('/institutions/', methods=['GET', 'POST'])
 @admin_required
 def show_institutions():
-    institutions = list(db.Institution.find())
+    institutions = Institution.query.all()
     form = NewInstitutionForm()
     if form.validate_on_submit():
-        institution = db.Institution()
+        institution = Institution()
         institution.name = form.name.data
         institution.save()
+        db.session.add(institution)
+        db.session.commit()
         flash('Institution Created', 'success')
 
     return render_template('institutions.html',
@@ -73,7 +75,7 @@ def show_institutions():
 @institution_bp.route('/api/institution', methods=['GET'])
 @cross_origin()
 def get_institutions():
-    institutions = [json.loads(inst.to_json()) for inst in db.Institution.find()]
+    institutions = [json.loads(inst.to_json()) for inst in Institution.query.all()]
     return jsonify(results=institutions)
 
 
@@ -83,23 +85,26 @@ def get_institutions():
 def new_institution():
     app.logger.info(request.data)
     data = json.loads(request.data)
-    institution = db.Institution()
+    institution = Institution()
     institution.name = data['name']
     institution.save()
+    db.session.add(institution)
+    db.session.commit()
     return institution.to_json()
 
 
-@institution_bp.route('/api/institution/<ObjectId:institution_id>',
+@institution_bp.route('/api/institution/<string:institution_id>',
                       methods=['DELETE'])
 @admin_required
 @error_wrapper
 def delete_institution(institution_id):
     if not current_user.is_admin:
         flash("Permission denied", 'danger')
-        return redirect(url_for('index'))
-    institution = db.Institution.find_one({"_id": institution_id})
+        return redirect(url_for('index.index'))
+    institution = Institution.query.filter_by(institution_id=institution_id).one_or_none()
     if institution is None:
         return jsonify({}), 404
     app.logger.info("Deleting institution")
-    institution.delete()
+    db.session.delete(institution)
+    db.session.commit()
     return jsonify({}), 204

@@ -5,12 +5,19 @@ glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
 from flask import current_app
-from glider_dac import slugify
+from glider_dac.utilities import slugify, slugify_sql
 from glider_dac.extensions import db
 from geoalchemy2.types import Geometry
+import geojson
 #from sqlalchemy import event
-from flask_sqlalchemy import models_committed
+from flask_sqlalchemy.track_modifications import models_committed
 from glider_dac.glider_emails import glider_deployment_check
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, relationship
+from marshmallow import fields
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy.convert import ModelConverter
+#from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
 from rq import Queue, Connection, Worker
 from shutil import rmtree
@@ -21,12 +28,16 @@ import hashlib
 
 
 class Deployment(db.Model):
-    deployment_id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, unique=True, nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))
+    #deployment_id = db.Column(db.String, primary_key=True)
+    name = db.Column(db.String, unique=True, nullable=False, index=True,
+                     primary_key=True)
+    #user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))
+    username = db.Column(db.String, db.ForeignKey("user.username"))
+    #user: Mapped["User"] = relationship()
+    user = db.relationship("User", lazy='joined', backref="deployments")
     #'username': str,  # The cached username to lightly DB load
     # The operator of this Glider. Shows up in TDS as the title.
-    operator = db.Column(db.String, nullable=False)
+    operator = db.Column(db.String, nullable=True)#nullable=False)
     deployment_dir = db.Column(db.String, unique=True, nullable=False)
     #estimated_deploy_date: datetime,
     estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
@@ -38,7 +49,7 @@ class Deployment(db.Model):
                         default=datetime.utcnow)
     updated = db.Column(db.DateTime(timezone=True), nullable=False)
     glider_name = db.Column(db.String, nullable=False)
-    deployment_date = db.Column(db.DateTime(timezone=True), nullable=False)
+    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True) # nullable=
     archive_safe = db.Column(db.Boolean, nullable=False, default=True)
     checksum = db.Column(db.String)
     attribution = db.Column(db.String)
@@ -47,15 +58,10 @@ class Deployment(db.Model):
     latest_file_mtime = db.Column(db.DateTime(timezone=True))
     compliance_check_passed = db.Column(db.Boolean, nullable=False,
                                         default=False)
-    compliance_check_report = db.Column(db.JSON)
+    compliance_check_report = db.Column(db.JSON, nullable=True)
 
 
     def save(self):
-        if self.username is None or self.username == '':
-            user = db.User.find_one({'_id': self.user_id})
-            self.username = user.username
-
-
         # Update the stats on the latest profile file
         modtime = None
         latest_file = self.get_latest_nc_file()
@@ -68,7 +74,6 @@ class Deployment(db.Model):
         self.sync()
         self.updated = datetime.utcnow()
         app.logger.info("Update time is %s", self.updated)
-        update_vals = dict(self)
         try:
             doc_id = update_vals.pop("_id")
         # if we get a KeyError, this is a new deployment that hasn't been entered into the database yet
@@ -82,8 +87,7 @@ class Deployment(db.Model):
         # compliance so that result does not get clobbered.
         # use $set instead of replacing document
         else:
-            db.deployments.update({"_id": doc_id}, {"$set": update_vals},
-                                  upsert=True)
+            db.session.commit()
         # HACK: special logic for Navy gliders deployment
         if self.username == "navoceano" and self.glider_name.startswith("ng"):
             glob_path = os.path.join(app.config.get('DATA_ROOT'),
@@ -104,58 +108,47 @@ class Deployment(db.Model):
             rmtree(self.public_erddap_path)
         if os.path.exists(self.thredds_path):
             rmtree(self.thredds_path)
-    @property
+
+    @hybrid_property
     def dap(self):
         '''
         Returns the THREDDS DAP URL to this deployment
         '''
-        args = {
-            'host': current_app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        dap_url = "http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
+        host = current_app.config['THREDDS']
+        user = self.username
+        deployment = self.name
+        dap_url = "http://" + host + "/thredds/dodsC/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
         return dap_url
 
-    @property
+    @hybrid_property
     def sos(self):
         '''
         Returns the URL to the NcSOS endpoint
         '''
-        args = {
-            'host': current_app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        sos_url = "http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
-        return sos_url
+        host = current_app.config['THREDDS']
+        user = self.username
+        deployment = self.name
+        return "http://" + host + "thredds/sos/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
 
-    @property
+    @hybrid_property
     def iso(self):
-        name = slugify(self.name)
-        iso_url = 'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
-            'host': current_app.config['PUBLIC_ERDDAP'], 'name': name}
-        return iso_url
+        host = current_app.config['PRIVATE_ERDDAP']
+        name = self.name
+        return "http://" + host + "/erddap/tabledap/" + name + ".iso19115"
 
-    @property
+    @hybrid_property
     def thredds(self):
-        args = {
-            'host': current_app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        thredds_url = "http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
-        return thredds_url
+        host = current_app.config['THREDDS']
+        user = self.username
+        deployment = self.name
+        return "http://" + host + "/thredds/catalog/deployments/" + user + "/" + deployment + "/catalog.html?dataset=deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
 
-    @property
+    @hybrid_property
     def erddap(self):
-        args = {
-            'host': current_app.config['PUBLIC_ERDDAP'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        erddap_url = "http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
-        return erddap_url
+        host = current_app.config['PRIVATE_ERDDAP']
+        user = self.username
+        deployment = self.name
+        return "http://" + host + "/erddap/tabledap/" + deployment + ".html"
 
     @property
     def title(self):
@@ -166,15 +159,18 @@ class Deployment(db.Model):
 
     @property
     def full_path(self):
-        return os.path.join(current_app.config.get('DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('DATA_ROOT'),
+                            self.deployment_dir)
 
     @property
     def public_erddap_path(self):
-        return os.path.join(current_app.config.get('PUBLIC_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('PUBLIC_DATA_ROOT'),
+                            self.deployment_dir)
 
     @property
     def thredds_path(self):
-        return os.path.join(current_app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('THREDDS_DATA_ROOT'),
+                            self.deployment_dir)
 
     def on_complete(self):
         """
@@ -284,14 +280,51 @@ class Deployment(db.Model):
                 # Write the new wmo_id to file if new
                 with open(wmo_id_file, 'w') as f:
                     f.write(self.wmo_id)
-    @classmethod
-    def get_deployment_count_by_operator(cls):
-        return [count for count in db.deployments.aggregate({'$group': {'_id':
-                                                                        '$operator',
-                                                                        'count':
-                                                                        {'$sum':
-                                                                         1}}},
-                                                            cursor={})]
+
+
+class GeoJSONField(fields.Field):
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        # Convert GeoAlchemy geometry to GeoJSON format
+        return geojson.loads(db.session.scalar(value.ST_AsGeoJSON()))
+
+
+class DeploymentModelConverter(ModelConverter):
+        SQLA_TYPE_MAPPING = {
+            **ModelConverter.SQLA_TYPE_MAPPING,
+            **{Geometry: fields.Field}
+        }
+
+class DeploymentSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Deployment
+        model_converter = DeploymentModelConverter
+
+    estimated_deploy_location = GeoJSONField()
+
+    # TODO?: Aggressively Java-esque -- is there a better way to get these
+    # hybrid properties?
+    dap = fields.Method("get_dap")
+    sos = fields.Method("get_sos")
+    iso = fields.Method("get_iso")
+    thredds = fields.Method("get_thredds")
+    erddap = fields.Method("get_erddap")
+
+    def get_dap(self, obj):
+        return obj.dap
+
+    def get_sos(self, obj):
+        return obj.sos
+
+    def get_iso(self, obj):
+        return obj.iso
+
+    def get_thredds(self, obj):
+        return obj.thredds
+
+    def get_erddap(self, obj):
+        return obj.erddap
 
 def on_models_committed(sender, changes):
     for model, operation in changes:

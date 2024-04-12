@@ -1,4 +1,3 @@
-import pymongo
 import os
 import multiprocessing
 import glob
@@ -121,8 +120,6 @@ def process_deployment(dep_subdir):
 current_time = datetime.utcnow()
 
 if __name__ == '__main__':
-    client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
-                                                app.config["MONGODB_PORT"]))
     db = client.gliderdac
     dt_filt = current_time - timedelta(days=270)
     dep_list = [d['deployment_dir'] for d in

@@ -4,7 +4,7 @@
 
 <h3>Login</h3>
 
-<form class="form-horizontal" method="POST" action="{{ url_for('login') }}">
+<form class="form-horizontal" method="POST" action="{{ url_for('index.login') }}">
   {{ form.csrf_token }}
   {% if form.csrf_token and form.csrf_token.errors %}
       <div class="warning">You have submitted an invalid CSRF token</div>

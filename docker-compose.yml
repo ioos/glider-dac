@@ -1,6 +1,5 @@
 version: '3.3'
 
-
 #secrets:
 #  S3_ACCESS_KEY:
 #    file: secrets/access_key.txt

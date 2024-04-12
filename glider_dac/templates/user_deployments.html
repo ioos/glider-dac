@@ -10,7 +10,7 @@
 {% if form %}
 
 <div id="new-deployment-form" class="" style="">
-  <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('new_deployment', username=username) }}">
+  <form class="form form-inline" style="margin:0px;" method="POST" action="{{ url_for('deployment.new_deployment', username=username) }}">
     {{ form.hidden_tag() }}
     <div class="form-group">
       {{ form.glider_name(placeholder="Glider Name", class_="form-control") }}
@@ -59,12 +59,12 @@ $(function() {
     <tbody>
     {%- for m in deployments %}
     <tr>
-      <td><a href="{{ url_for('show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
-      <td>{% if m.operator %}<a href="{{ url_for('list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
+      <td><a href="{{ url_for('deployment.show_deployment', username=username, deployment_id=m._id) }}">{{ m.name }}</a></td>
+      <td>{% if m.operator %}<a href="{{ url_for('deployment.list_operator_deployments', operator=m.operator) }}">{{ m.operator }}{% endif %}</a></td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>
       <td>
         {% if form and not m.delayed_mode%}
-          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('new_delayed_mode_deployment', username=username, deployment_id=m._id) }}">
+          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('deployment.new_delayed_mode_deployment', username=username, deployment_id=m._id) }}">
             {{ form.hidden_tag() }}
             <button title="Submit delayed mode data for this deployment" class="btn btn-primary btn-xs" {{ disabled }}><span class="glyphicon glyphicon-plus"></span> Delayed Mode</button>
           </form>

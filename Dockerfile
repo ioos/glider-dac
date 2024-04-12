@@ -3,7 +3,7 @@ FROM python:3.8
 ARG glider_gid_uid=1000
 RUN apt-get update && \
     apt-get -y install cron rsync libxml2-dev libudunits2-dev \
-                       libnetcdf-dev netcdf-bin && \
+                       libnetcdf-dev netcdf-bin libsqlite3-mod-spatialite && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
 COPY . /glider-dac
@@ -14,11 +14,6 @@ WORKDIR glider-dac
 # Python 3, but this allows the service to run without import or runtime errors
 RUN pip install -U pip && \
     pip install --no-cache Cython thredds_crawler numpy pytest && \
-    pip install --no-cache -r requirements.txt && \
-    pip uninstall -y mongokit && \
-    pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
-    pip install -U pymongo==2.8
-    pip install --no-cache Cython thredds_crawler numpy>=1.19.5 && \
     pip install --no-cache -r requirements.txt
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
