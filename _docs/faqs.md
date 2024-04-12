@@ -13,7 +13,7 @@ summary: A list of frequently asked questions
 - [Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?](#can-i-re-upload-files-to-the-dac-to-incorporate-more-metadata-based-on-compliance-checker-guidance)
 - [Can I submit variables other than the core CTD variables?](#can-i-submit-variables-other-than-the-core-ctd-variables)
 - [What is the current procedure for sending data to the Global Telecommunications System (GTS)?](#what-is-the-current-procedure-for-sending-data-to-the-global-telecommunications-system-gts)
-- [What criteria are used by NDBC to determine whether a profile(s) is released to GTS?](what-criteria-are-used-by-ndbc-to-determine-whether-a-profile-is-released-to-gts)
+- [What criteria are used by NDBC to determine whether a profile(s) is released to GTS?](#what-criteria-are-used-by-ndbc-to-determine-whether-a-profile-is-released-to-gts)
 
 ## Can I re-upload files to the DAC to incorporate more metadata based on compliance checker guidance?
 
