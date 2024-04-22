@@ -17,7 +17,7 @@ from glider_dac import db, tasks
 #from glider_dac.worker import queue
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
-from glider_dac.glider_emails import send_registration_email
+from glider_dac.models.deployment import Deployment
 from multidict import CIMultiDict
 from wtforms import StringField, SubmitField, BooleanField, validators
 from flask import Blueprint
@@ -71,7 +71,7 @@ def list_user_deployments(username):
     deployments = Deployment.query.filter_by(user=user).all()
 
     kwargs = {}
-    if current_user and current_user.is_active and (current_user.is_admin or
+    if current_user and current_user.is_active and (current_user.admin or
                                                     current_user == user):
         # Permission to edit
         form = NewDeploymentForm()
@@ -122,10 +122,10 @@ def show_deployment(deployment_name):
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user and current_user.is_active and (current_user.is_admin or
+    if current_user and current_user.is_active and (current_user.admin or
                                                     current_user == deployment.user):
         kwargs['editable'] = True
-        if current_user.is_admin or current_user == user:
+        if current_user.admin or current_user == deployment.username:
             kwargs['admin'] = True
 
     current_app.logger.info(deployment.dap)
@@ -137,7 +137,7 @@ def show_deployment(deployment_name):
 @login_required
 def new_deployment(username):
     user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (user is not None and not current_user.is_admin and
+    if user is None or (user is not None and not current_user.admin and
                         current_user != user):
         # No permission
         flash("Permission denied", 'danger')
@@ -188,8 +188,11 @@ def new_deployment(username):
             db.session.add(deployment)
             db.session.commit()
             flash("Deployment created", 'success')
-            send_registration_email(username, deployment)
-        except DuplicateKeyError:
+            deployment.send_registration_email()
+        # TODO: handle prior to creation
+        #except DuplicateKeyError:
+        except Exception as e:
+            raise(e)
             flash("Deployment names must be unique across Glider DAC: %s already used" %
                   deployment_name, 'danger')
 
@@ -214,7 +217,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     :param str deployment_name: Name of the existing realtime deployment
     '''
     user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (user is not None and not current_user.is_admin and
+    if user is None or (user is not None and not current_user.admin and
                         current_user != user):
         # No permission
         flash("Permission denied", 'danger')
@@ -252,7 +255,7 @@ def new_delayed_mode_deployment(username, deployment_name):
 def edit_deployment(username, deployment_name):
 
     user = User.query.filter(username=username)
-    if user is None or (user is not None and not current_user.is_admin and
+    if user is None or (user is not None and not current_user.admin and
                         current_user != user):
         # No permission
         flash("Permission denied", 'danger')
@@ -285,7 +288,7 @@ def post_deployment_file(username, deployment_id):
     user = User.query.filter_by(username=username)
 
     if not (deployment and user and deployment.user_id == user._id and
-            (current_user.is_admin or current_user == user)):
+            (current_user.admin or current_user == user)):
         raise Exception("Unauthorized")  # @TODO better response via ajax?
 
     retval = []
@@ -305,7 +308,7 @@ def post_deployment_file(username, deployment_id):
 
         retval.append((safe_filename, datetime.utcnow()))
     editable = current_user and current_user.is_active and (
-        current_user.is_admin or current_user == user)
+        current_user.admin or current_user == user)
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
@@ -322,13 +325,13 @@ def delete_deployment_files(username, deployment_name):
     if user is None:
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
-    if not (current_user and current_user.is_active and (current_user.is_admin
+    if not (current_user and current_user.is_active and (current_user.admin
                                                          or current_user ==
                                                          user)):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
 
-    if not (deployment and user and (current_user.is_admin or user._id ==
+    if not (deployment and user and (current_user.admin or user._id ==
                                      deployment.user_id)):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
@@ -352,7 +355,7 @@ def delete_deployment(username, deployment_name):
     if user is None:
         flash("Permission denied", 'danger')
         return redirect(url_for("deployment.show_deployment", username=username, deployment_name=deployment_name))
-    if not (current_user and current_user.is_active and (current_user.is_admin
+    if not (current_user and current_user.is_active and (current_user.admin
                                                          or current_user ==
                                                          user)):
         flash("Permission denied", 'danger')

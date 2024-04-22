@@ -30,7 +30,7 @@ import glider_dac.utilities as util
 csrf = CSRFProtect()
 # Login manager for frontend
 login_manager = LoginManager()
-login_manager.login_view = "login"
+login_manager.login_view = "index.login"
 
 # Create application object
 def create_app():

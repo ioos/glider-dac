@@ -20,7 +20,7 @@
       <tbody>
       {%- for user in user_deployment_counts %}
       <tr>
-        <td>{{user.username}} {% if user.is_admin %}<span class="label label-success">ADMIN</span>{% endif %}</td>
+        <td>{{user.username}} {% if user.admin %}<span class="label label-success">ADMIN</span>{% endif %}</td>
         <td>{{user.name}}</td>
         <td>{{user.email}}</td>
         <td>{{user.organization}}</td>
@@ -34,7 +34,7 @@
 
         <td>
           <a href="{{ url_for('user.admin_edit_user', user_id=user._id) }}" class="btn btn-default btn-xs">Edit</a>
-          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('admin_delete_user', user_id=user._id) }}">
+          <form class="form form-inline" style="display: inline" method="POST" action="{{ url_for('user.admin_delete_user', user_id=user._id) }}">
             {{ form.hidden_tag() }}
             <button class="btn btn-danger btn-xs">Delete</button>
           </form>
@@ -60,7 +60,7 @@
 
 <div class="col-lg-6">
   <h3>Add New User</h3>
-  <form class="form" style="margin:0px;" method="POST" action="{{ url_for('admin') }}">
+  <form class="form" style="margin:0px;" method="POST" action="{{ url_for('user.admin') }}">
     {{ form.hidden_tag() }}
     {{ render_field(form.username) }}
     {{ render_field(form.password) }}

@@ -1,5 +1,7 @@
 import datetime
+import functools
 from sqlalchemy import func
+from flask import current_app
 import re
 
 # Create datetime jinja2 filter
@@ -88,9 +90,36 @@ def slugify(value):
     value = re.sub(r'[^\w\s-]', '', value).strip()
     return re.sub(r'[-\s]+', '-', value)
 
+
 def slugify_sql(value):
     return func.regexp_replace(
             func.regexp_replace(
               func.regexp_replace(value, r'[^\w\s-]', ''), r'[-\s]+', '-'),
             r"^\s+|\s+$", "")
 
+
+def get_thredds_catalog_url():
+    args = {
+        'host': current_app.config['THREDDS']
+    }
+    url = 'http://%(host)s/thredds/catalog.xml' % args
+    return url
+
+
+def get_erddap_catalog_url():
+    args = {
+        'host': current_app.config['PUBLIC_ERDDAP']
+    }
+    url = 'http://%(host)s/erddap/metadata/iso19115/xml/' % args
+    return url
+
+
+def email_exception_logging_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except:
+            current_app.logger.exception("Exception occurred while attempting to send "
+                                  "email: ")
+    return wrapper

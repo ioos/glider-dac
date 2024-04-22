@@ -11,6 +11,7 @@ class User(db.Model):
     username = db.Column(db.String, primary_key=True, nullable=False)
     name = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
     organization = db.Column(db.String)
     created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     updated = db.Column(db.DateTime(timezone=True))
@@ -49,7 +50,6 @@ class User(db.Model):
         return os.path.join(data_root, self.username)
 
     def save(self):
-        super().save()
         # on creation of user, ensure that a directory with user name is present
         self.ensure_dir("")
 
@@ -70,13 +70,9 @@ class User(db.Model):
     # This method is not provided by flask-login.  Make a property to bring it
     # in line with the rest of the expected properties from flask-login, namely:
     # is_active, is_authenticated, and is_anonymous.
-    @property
-    def is_admin(self):
-        return self.username in current_app.config.get("ADMINS")
 
     def get_id(self):
         return str(self.username)
-
 
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:

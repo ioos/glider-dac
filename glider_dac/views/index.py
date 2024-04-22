@@ -5,7 +5,7 @@ glider_dac/views/index.py
 '''
 from flask import (render_template, make_response, redirect, flash, url_for,
                    request, current_app, Blueprint)
-#from flask import current_app
+from glider_dac.models.institution import Institution
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from glider_dac.models.user import User
@@ -26,8 +26,8 @@ class LoginForm(FlaskForm):
 def index():
     deployments = Deployment.query.order_by(Deployment.created.desc()).limit(20)
     user_deployments = (db.session.execute(select(User.name,
-                                 func.count(Deployment.user_id)).join(User)
-                                 .group_by(Deployment.user_id)).all())
+                                 func.count(Deployment.name)).join(User)
+                                 .group_by(Deployment.username)).all())
 
     operator_deployments = (db.session.execute(
                                     select(Deployment.operator, func.count())

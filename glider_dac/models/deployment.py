@@ -4,17 +4,21 @@
 glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
-from flask import current_app
-from glider_dac.utilities import slugify, slugify_sql
+from flask import current_app, render_template
+from flask_mail import Message
+from glider_dac.utilities import (slugify, slugify_sql,
+                                  email_exception_logging_wrapper,
+                                  get_thredds_catalog_url,
+                                  get_erddap_catalog_url)
 from glider_dac.extensions import db
+from glider_dac.models.user import User
 from geoalchemy2.types import Geometry
 import geojson
 #from sqlalchemy import event
 from flask_sqlalchemy.track_modifications import models_committed
-from glider_dac.glider_emails import glider_deployment_check
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, relationship
-from marshmallow import fields
+from marshmallow.fields import Field, Method
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.convert import ModelConverter
 #from sqlalchemy_serializer import SerializerMixin
@@ -31,10 +35,10 @@ class Deployment(db.Model):
     #deployment_id = db.Column(db.String, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False, index=True,
                      primary_key=True)
-    #user_id = db.Column(db.Integer, db.ForeignKey("user.user_id"))
+    user_id = db.Column(db.Integer, nullable=True)
     username = db.Column(db.String, db.ForeignKey("user.username"))
     #user: Mapped["User"] = relationship()
-    user = db.relationship("User", lazy='joined', backref="deployments")
+    user = db.relationship("User", lazy='joined', backref="deployment")
     #'username': str,  # The cached username to lightly DB load
     # The operator of this Glider. Shows up in TDS as the title.
     operator = db.Column(db.String, nullable=True)#nullable=False)
@@ -82,7 +86,6 @@ class Deployment(db.Model):
         except KeyError:
             # TODO: Update for SQLAlchemy
             pass
-            #Document.save(self)
         # otherwise, need to use update/upsert via Pymongo in case of queued job for
         # compliance so that result does not get clobbered.
         # use $set instead of replacing document
@@ -281,8 +284,100 @@ class Deployment(db.Model):
                 with open(wmo_id_file, 'w') as f:
                     f.write(self.wmo_id)
 
+    @email_exception_logging_wrapper
+    def send_deployment_cchecker_email(self, user, failing_deployments, attachment_msgs):
+        if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
+            app.logger.info("Email is disabled")
+            return
+        # sender comes from MAIL_DEFAULT_SENDER in env
 
-class GeoJSONField(fields.Field):
+        app.logger.info("Sending email about deployment compliance checker to {}".format(user['username']))
+        subject        = "Glider DAC Compliance Check on Deployments for user %s" % user['username']
+        recipients     = [user['email']] #app.config.get('MAIL_DEFAULT_TO')]
+        msg            = Message(subject, recipients=recipients)
+        if len(failing_deployments) > 0:
+            message = ("The following glider deployments failed compliance check:"
+                    "\n{}\n\nPlease see attached file for more details. "
+                    "Valid CF standard names are required for NCEI archival."
+                    .format("\n".join(d['name'] for d in failing_deployments)))
+            date_str_today = datetime.today().strftime("%Y-%m-%d")
+            attachment_filename = "failing_glider_md_{}".format(date_str_today)
+            msg.attach(attachment_filename, 'text/plain', data=attachment_msgs)
+        else:
+            return
+        msg.body       = message
+
+        current_app.mail.send(msg)
+
+    @email_exception_logging_wrapper
+    def send_registration_email(self):
+        current_app.logger.info("Sending email about new deployment to %s",
+                                current_app.config.get('MAIL_DEFAULT_TO'))
+        subject        = "New Glider Deployment - %s" % self.name
+        recipients     = [current_app.config.get('MAIL_DEFAULT_TO')]
+        cc_recipients  = []
+        if current_app.config.get('MAIL_DEFAULT_LIST') is not None:
+            cc_recipients.append(current_app.config.get('MAIL_DEFAULT_LIST'))
+
+        message = Message(subject, recipients=recipients, cc=cc_recipients)
+        message.body = render_template(
+                            'deployment_registration.txt',
+                            deployment=self,
+                            username=self.username,
+                            thredds_url=get_thredds_catalog_url(),
+                            erddap_url=get_erddap_catalog_url())
+
+        if not current_app.config.get('MAIL_ENABLED', False): # Mail is disabled
+            current_app.logger.info("Email is disabled. Message digest below:")
+            current_app.logger.info(message)
+            return
+        # sender comes from MAIL_DEFAULT_SENDER in env
+        current_app.mail.send(message)
+
+    def glider_deployment_check(self, data_type=None, completed=True, force=False,
+                                deployment_dir=None, username=None):
+        """
+        """
+        # TODO: move this functionality to another module as compliance checks
+        #       no longer send emails.
+        cs = CheckSuite()
+        cs.load_all_available_checkers()
+        query = Deployment.query
+        with app.app_context():
+            if data_type is not None:
+                query = query.filter(Deployment.completed==completed,
+                                                func.coalesce(Deployment.delayed_mode,
+                                                            False) == is_delayed_mode)
+                # TODO: force not null constraints in model on this field
+                if not force:
+                    query = query.filter(compliance_check_passed != True)
+
+            if username:
+                query = query.filter_by(username=username)
+            # a particular deployment has been specified
+            elif deployment_dir:
+                query = query.filter_by(deployment_dir=deployment_dir)
+
+        for deployment in query.all():
+            user = deployment.username
+            user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
+
+            try:
+                dep_passed, dep_messages = self.process_deployment(deployment)
+                if not dep_passed:
+                    user_errors[user]["failed_deployments"].append(deployment.name)
+                user_errors[user]["messages"].extend(dep_messages)
+            except Exception as e:
+                root_logger.exception("Exception occurred while processing deployment {}".format(deployment.name))
+
+            # TODO: Allow for disabling of sending compliance checker emails
+            for username, results_dict in user_errors.items():
+                send_deployment_cchecker_email(username,
+                                            results_dict["failed_deployments"],
+                                            "\n".join(results_dict["messages"]))
+
+
+class GeoJSONField(Field):
     def _serialize(self, value, attr, obj, **kwargs):
         if value is None:
             return None
@@ -293,7 +388,7 @@ class GeoJSONField(fields.Field):
 class DeploymentModelConverter(ModelConverter):
         SQLA_TYPE_MAPPING = {
             **ModelConverter.SQLA_TYPE_MAPPING,
-            **{Geometry: fields.Field}
+            **{Geometry: Field}
         }
 
 class DeploymentSchema(SQLAlchemyAutoSchema):
@@ -305,11 +400,11 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
 
     # TODO?: Aggressively Java-esque -- is there a better way to get these
     # hybrid properties?
-    dap = fields.Method("get_dap")
-    sos = fields.Method("get_sos")
-    iso = fields.Method("get_iso")
-    thredds = fields.Method("get_thredds")
-    erddap = fields.Method("get_erddap")
+    dap = Method("get_dap")
+    sos = Method("get_sos")
+    iso = Method("get_iso")
+    thredds = Method("get_thredds")
+    erddap = Method("get_erddap")
 
     def get_dap(self, obj):
         return obj.dap
@@ -326,10 +421,59 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
     def get_erddap(self, obj):
         return obj.erddap
 
+
+
+    def process_deployment(self, deployment):
+        deployment_issues = "Deployment {}".format(os.path.basename(deployment.name))
+        groups = OrderedDict()
+        erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
+        base_url = app.config["PRIVATE_ERDDAP"]
+        # FIXME: determine a more robust way of getting scheme
+        if not base_url.startswith("http"):
+            base_url = "http://{}".format(base_url)
+        url_path = "/".join([base_url,
+                            erddap_fmt_string.format(deployment.name)])
+        # TODO: would be better if we didn't have to write to a temp file
+        outhandle, outfile = tempfile.mkstemp()
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                    checker_names=['gliderdac'], verbose=True,
+                                    criteria='lenient', output_format='json',
+                                    output_filename=outfile)
+        with open(outfile, 'r') as f:
+            errs = json.load(f)["gliderdac"]
+
+        compliance_passed = errs['scored_points'] == errs['possible_points']
+
+        self.compliance_check_passed = compliance_passed
+        standard_name_errs = []
+        if compliance_passed:
+            final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
+        else:
+            error_list = [err_msg for err_severity in ("high_priorities",
+                "medium_priorities", "low_priorities") for err_section in
+                errs[err_severity] for err_msg in err_section["msgs"]]
+            self.compliance_check_report = errs
+
+            for err in errs["high_priorities"]:
+                if err["name"] == "Standard Names":
+                    standard_name_errs.extend(err["msgs"])
+
+            if not standard_name_errs:
+                final_message = "All files passed compliance check on glider deployment {}".format(deployment.name)
+            else:
+                root_logger.info(standard_name_errs)
+                final_message = ("Deployment {} has issues:\n{}".format(dep.name,
+                                "\n".join(standard_name_errs)))
+
+        db.session.commit()
+        return final_message.startswith("All files passed"), final_message
+
 def on_models_committed(sender, changes):
     for model, operation in changes:
         if isinstance(model, Deployment):
             if operation == "insert" or operation == "update":
-                model.save()
+                if isinstance(model, (Deployment, User)):
+                    model.save()
             elif operation == "delete":
-                model.delete()
+                if isinstance(model, Deployment):
+                    model.delete()

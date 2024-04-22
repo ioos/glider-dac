@@ -5,14 +5,15 @@ glider_dac/views/institution.py
 View definition for institutions
 '''
 
-from flask import (render_template, redirect, flash, url_for, jsonify, request,
-                   Blueprint)
+from flask import (current_app, render_template, redirect, flash, url_for,
+                   jsonify, request, Blueprint)
 from flask_cors import cross_origin
 from flask_login import current_user
 #from glider_dac import app, db
 from glider_dac import db
+from glider_dac.models.institution import Institution
 from flask_wtf import FlaskForm
-from wtforms import StringFiel.d, SubmitField
+from wtforms import StringField, SubmitField
 from functools import wraps
 import json
 
@@ -38,11 +39,11 @@ def admin_required(func):
     '''
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if app.login_manager._login_disabled:
+        if current_app.login_manager._login_disabled:
             return func(*args, **kwargs)
         elif not current_user.is_authenticated:
             return app.login_manager.unauthorized()
-        elif not current_user.is_admin:
+        elif not current_user.admin:
             flash("Permission denied", 'danger')
             return redirect(url_for('index.index'))
         return func(*args, **kwargs)
@@ -83,7 +84,7 @@ def get_institutions():
 @admin_required
 @error_wrapper
 def new_institution():
-    app.logger.info(request.data)
+    current_app.logger.info(request.data)
     data = json.loads(request.data)
     institution = Institution()
     institution.name = data['name']
@@ -98,13 +99,13 @@ def new_institution():
 @admin_required
 @error_wrapper
 def delete_institution(institution_id):
-    if not current_user.is_admin:
+    if not current_user.admin:
         flash("Permission denied", 'danger')
         return redirect(url_for('index.index'))
     institution = Institution.query.filter_by(institution_id=institution_id).one_or_none()
     if institution is None:
         return jsonify({}), 404
-    app.logger.info("Deleting institution")
+    current_app.logger.info(f"Deleting institution {institution.name}")
     db.session.delete(institution)
     db.session.commit()
     return jsonify({}), 204
