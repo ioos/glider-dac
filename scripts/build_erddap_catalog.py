@@ -40,6 +40,7 @@ import os
 import shutil
 import redis
 import sys
+from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
 from glider_dac import app, db
@@ -142,36 +143,42 @@ def build_datasets_xml(data_root, catalog_root, force):
 
 
     # Now loop through all the deployments and construct datasets.xml
-    # store in temporary file first
-    ds_tmp_path = os.path.join(catalog_root, 'datasets.xml.tmp')
+    # store in buffer first to avoid writing unfinished XML to datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
     deployments_name_set = set()
     deployments = Deployment.query.all()  # All deployments now
+    buf = StringIO()
+    for line in fileinput.input([head_path]):
+        buf.write(line)
+    # for each deployment, get the dataset chunk
+    for deployment in deployments:
+        deployments_name_set.add(deployment.name)
+        # First check that a chunk exists
+        dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir,
+                                          'dataset.xml')
+        if os.path.isfile(dataset_chunk_path):
+            for line in fileinput.input([dataset_chunk_path]):
+                buf.write(line)
+
+    inactive_deployment_names = inactive_datasets(deployments_name_set)
+
+    for inactive_deployment in inactive_deployment_names:
+        buf.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
+                    inactive_deployment))
+
+    for line in fileinput.input([tail_path]):
+        buf.write(line)
+    # now try moving the file to update datasets.xml
+    #shutil.move(ds_tmp_path, ds_path)
     try:
-        with open(ds_tmp_path, 'w') as f:
-            for line in fileinput.input([head_path]):
-                f.write(line)
-            # for each deployment, get the dataset chunk
-            for deployment in deployments:
-                deployments_name_set.add(deployment.name)
-                # First check that a chunk exists
-                dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir, 'dataset.xml')
-                if os.path.isfile(dataset_chunk_path):
-                    for line in fileinput.input([dataset_chunk_path]):
-                        f.write(line)
-
-            inactive_deployment_names = inactive_datasets(deployments_name_set)
-
-            for inactive_deployment in inactive_deployment_names:
-                f.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
-                            inactive_deployment))
-
-            for line in fileinput.input([tail_path]):
-                f.write(line)
-        # now try moving the file to update datasets.xml
-        shutil.move(ds_tmp_path, ds_path)
+        with open(ds_path, 'w') as fd:
+          buf.seek(0)
+          fd.truncate(0)
+          shutil.copyfileobj(buf, fd)
     except OSError:
         logger.exception("Could not write to datasets.xml")
+    finally:
+         del buf
 
     logger.info("Wrote {} from {} deployments".format(ds_path, deployments.count()))
     # issue flag refresh to remove inactive deployments after datasets.xml written
@@ -569,7 +576,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
             reload_settings = reload_template.format(10)
 
         try:
-            tree = etree.fromstring(f"""
+            tree = etree.fromstring(rf"""
                 <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
