@@ -584,7 +584,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
             reload_settings = reload_template.format(10)
 
         try:
-            tree = etree.fromstring(f"""
+            tree = etree.fromstring(rf"""
                 <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
                     <!-- defaultDataQuery uses datasetID -->
                     <!--
