@@ -31,18 +31,14 @@ import hashlib
 
 
 class Deployment(db.Model):
-    #deployment_id = db.Column(db.String, primary_key=True)
     name = db.Column(db.String, unique=True, nullable=False, index=True,
                      primary_key=True)
     user_id = db.Column(db.Integer, nullable=True)
     username = db.Column(db.String, db.ForeignKey("user.username"))
-    #user: Mapped["User"] = relationship()
     user = db.relationship("User", lazy='joined', backref="deployment")
-    #'username': str,  # The cached username to lightly DB load
     # The operator of this Glider. Shows up in TDS as the title.
     operator = db.Column(db.String, nullable=True)#nullable=False)
     deployment_dir = db.Column(db.String, unique=True, nullable=False)
-    #estimated_deploy_date: datetime,
     estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
                                                    srid=4326))
     # TODO: Add constraints for WMO IDs??
@@ -62,6 +58,7 @@ class Deployment(db.Model):
     compliance_check_passed = db.Column(db.Boolean, nullable=False,
                                         default=False)
     compliance_check_report = db.Column(db.JSON, nullable=True)
+    cf_standard_names_valid = db.Column(db.Boolean, nullable=True)
 
 
     def save(self):
@@ -459,10 +456,12 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
 
             if not standard_name_errs:
                 final_message = "All files passed compliance check on glider deployment {}".format(deployment.name)
+                self.cf_standard_names_valid = True
             else:
                 root_logger.info(standard_name_errs)
                 final_message = ("Deployment {} has issues:\n{}".format(dep.name,
                                 "\n".join(standard_name_errs)))
+                self.cf_standard_names_valid = False
 
         db.session.commit()
         return final_message.startswith("All files passed"), final_message

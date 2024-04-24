@@ -9,6 +9,7 @@ import os
 import hashlib
 import logging
 import shutil
+from glider_dac.models.deployment import Deployment
 from glider_dac.common import log_formatter
 from glider_dac import app
 
@@ -40,14 +41,8 @@ def get_active_deployments():
      - The dataset is marked for archival by NCEI
      - The dataset has no standard name errors in the glider compliance checker report
     '''
-    client = pymongo.MongoClient("{}:{}".format(app.config["MONGODB_HOST"],
-                                                app.config["MONGODB_PORT"]))
-    db = client.gliderdac
-    return db.deployments.find({'completed': True, "archive_safe": True,
-                                "$and": [{"compliance_check_report": {"$exists": True}},
-                                         {"compliance_check_report.high_priorities":
-                                          {"$elemMatch": {"name": "Standard Names",
-                                                          "msgs": {"$not": {"$elemMatch": {"$regex": "^standard_name .* is not defined in Standard Name Table"}}}}}}]})
+    return Deployment.query.filter_by(completed=True, archive_safe=True,
+                                      cf_standard_name_valid=True).all()
 
 
 def get_active_deployment_paths():
