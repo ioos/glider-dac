@@ -16,8 +16,6 @@ tds_catalogs
 data/
 secrets/
 
-# BerkeleyDB user database
-users.db
 .env
 .venv/
 activate

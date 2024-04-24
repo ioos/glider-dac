@@ -48,7 +48,6 @@ COMMON: &common
   INFLUXDB_PORT: 8086
   ADMINS:
    - admin
-  USER_DB_FILE: berkeleydb/users.db
 
   REDIS_HOST: redis
   REDIS_PORT: 6379

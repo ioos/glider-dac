@@ -2,7 +2,7 @@ FROM python:3.8
 
 ARG glider_gid_uid=1000
 RUN apt-get update && \
-    apt-get -y install cron db-util rsync libxml2-dev libudunits2-dev \
+    apt-get -y install cron rsync libxml2-dev libudunits2-dev \
                        libnetcdf-dev netcdf-bin libsqlite3-mod-spatialite && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
@@ -17,7 +17,7 @@ RUN pip install -U pip && \
     pip install --no-cache -r requirements.txt
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
-             /erddapData/flag /erddapData/hardFlag berkeleydb \
+             /erddapData/flag /erddapData/hardFlag  \
              /data/catalog/priv_erddap && \
     chown -R glider:glider /glider-dac /data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab

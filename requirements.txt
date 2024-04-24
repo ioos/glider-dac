@@ -13,7 +13,6 @@ marshmallow
 marshmallow-sqlalchemy
 watchdog>=0.9.0
 lxml==4.8.0
-bsddb3==6.2.7
 Flask-Mail==0.9.0
 Flask-Script==2.0.5
 feedparser==6.0.1
