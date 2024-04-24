@@ -15,6 +15,7 @@ from flask_wtf import FlaskForm
 from glider_dac.models.deployment import Deployment
 from wtforms import validators, StringField, PasswordField, SubmitField
 from wtforms.form import BaseForm
+from passlib.hash import sha512_crypt
 
 
 class UserForm(FlaskForm):
@@ -53,9 +54,9 @@ def edit_user(username):
     if form.validate_on_submit():
         form.populate_obj(user)
         user.save()
-        db.session.commit()
         if form.password.data:
-            User.update(username=user.username, password=form.password.data)
+            user.password = sha512_crypt.hash(form.password.data)
+        db.session.commit()
         flash("Account updated", 'success')
         return redirect(url_for("index.index"))
 
@@ -79,7 +80,7 @@ def admin():
         user = User()
         form.populate_obj(user)
         user.save()
-        User.update(username=user.username, password=form.password.data)
+        user.password = sha512_crypt.hash(form.password.data)
         db.session.add(user)
         db.session.commit()
 
@@ -127,7 +128,7 @@ def admin_edit_user(username):
         user.save()
         db.session.commit()
         if form.password.data:
-            User.update(username=user.username, password=form.password.data)
+            user.password = sha512_crypt.hash(form.password.data)
         flash("Account updated", 'success')
         return redirect(url_for("user.admin"))
 

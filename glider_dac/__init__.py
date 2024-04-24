@@ -123,11 +123,6 @@ def create_app():
     app.jinja_env.filters['pluralize'] = util.pluralize
     app.jinja_env.filters['padfit'] = util.padfit
 
-    # User Auth DB file - create if not existing
-    if not os.path.exists(app.config.get('USER_DB_FILE')):
-        from glider_util.bdb import UserDB
-        UserDB.init_db(app.config.get('USER_DB_FILE'))
-
     # Create logging
     if app.config.get('LOG_FILE') == True:
         import logging

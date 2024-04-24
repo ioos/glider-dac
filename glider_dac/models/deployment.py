@@ -14,14 +14,13 @@ from glider_dac.extensions import db
 from glider_dac.models.user import User
 from geoalchemy2.types import Geometry
 import geojson
-#from sqlalchemy import event
+from compliance_checker.runner import Suite
 from flask_sqlalchemy.track_modifications import models_committed
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, relationship
 from marshmallow.fields import Field, Method
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.convert import ModelConverter
-#from sqlalchemy_serializer import SerializerMixin
 from datetime import datetime
 from rq import Queue, Connection, Worker
 from shutil import rmtree

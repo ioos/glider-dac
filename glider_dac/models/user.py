@@ -3,8 +3,8 @@ import os.path
 from datetime import datetime
 from glider_dac import db
 from flask import current_app
-from glider_util.bdb import UserDB
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from passlib.hash import sha512_crypt
 
 class User(db.Model):
     #user_id = db.Column(db.String, primary_key=True)
@@ -12,37 +12,28 @@ class User(db.Model):
     name = db.Column(db.String, unique=True, nullable=False)
     email = db.Column(db.String)
     admin = db.Column(db.Boolean, nullable=False, default=False)
+    password = db.Column(db.String, nullable=False)
     organization = db.Column(db.String)
     created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     updated = db.Column(db.DateTime(timezone=True))
 
-    indexes = [
-        {
-            'fields': 'username',
-            'unique': True,
-        },
-    ]
-
     @classmethod
-    def _check_login(cls, username, password):
-        u = UserDB(current_app.config.get('USER_DB_FILE'))
-        return u.check(username.encode(), password.encode())
+    def check_login(cls, username, password):
+        user = User.query.filter_by(username=username).one_or_none()
+        if user is None:
+            return False
+        return sha512_crypt.verify(password, user.password)
 
     @classmethod
     def authenticate(cls, username, password):
-        if cls._check_login(username, password):
+        if cls.check_login(username, password):
             # Return the ID of the user
-            current_user = User.query.filter_by(username=username).one()
+            current_user = User.query.filter_by(username=username).one_or_none()
             if current_user is None:
                 current_user = User(username=username)
                 current_user.save()
             return current_user
         return None
-
-    @classmethod
-    def update(cls, username, password):
-        u = UserDB(current_app.config.get('USER_DB_FILE'))
-        return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):
