@@ -2,14 +2,14 @@ import os
 import multiprocessing
 import glob
 import logging
-from glider_dac import app
+from flask import current_app
+from glider_dac.models.deployment import Deployment
 from netCDF4 import Dataset
 # netcdftime was moving from main netCDF module
 # try both here
 from cftime import utime
 import numpy as np
 import pandas as pd
-from glider_dac import app
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
 
@@ -73,7 +73,7 @@ def get_last_nc_file(root_folder, subdir):
             return max_label, tiebreaker[max_label]
 
 def get_erddap_server_time(deployment):
-    erddap_loc = (f"https://{app.config['SERVER_NAME']}/erddap/"
+    erddap_loc = (f"https://{current_app.config['SERVER_NAME']}/erddap/"
                   f"tabledap/{deployment.split('/')[-1]}.csv"
                    "?precise_time&precise_time=max(precise_time)")
     try:
@@ -89,10 +89,10 @@ def process_deployment(dep_subdir):
     and ERDDAP private to ERDDAP public
     """
     print(dep_subdir)
-    last_sub_time = get_last_nc_file(app.config["DATA_ROOT"], dep_subdir)
-    last_priv_time = get_last_nc_file(app.config["PRIV_DATA_ROOT"],
+    last_sub_time = get_last_nc_file(current_app.config["DATA_ROOT"], dep_subdir)
+    last_priv_time = get_last_nc_file(current_app.config["PRIV_DATA_ROOT"],
                                       dep_subdir)
-    last_pub_time = get_last_nc_file(app.config["PUBLIC_DATA_ROOT"], dep_subdir)
+    last_pub_time = get_last_nc_file(current_app.config["PUBLIC_DATA_ROOT"], dep_subdir)
     erddap_server_time = get_erddap_server_time(dep_subdir)
     data = {"measurement": "erddap_nc_comparison",
             "tags": {
@@ -122,11 +122,11 @@ current_time = datetime.utcnow()
 if __name__ == '__main__':
     db = client.gliderdac
     dt_filt = current_time - timedelta(days=270)
-    dep_list = [d['deployment_dir'] for d in
-                db.deployments.find({'completed': False,
-                                     'updated': {"$gt": dt_filt}},
-                                     {'deployment_dir': True})]
-    influx_client = InfluxDBClient(host=app.config["INFLUXDB_HOST"],
-                                   port=app.config["INFLUXDB_PORT"])
+    dep_list = [d[0] for d in
+                (Deployment.query.filter(Deployment.completed= False,
+                                        Deployment.updated >= dt_filt)
+                                        .with_entities(Deployment.deployment_dir).all())]
+    influx_client = InfluxDBClient(host=current_app.config["INFLUXDB_HOST"],
+                                   port=current_app.config["INFLUXDB_PORT"])
     pool = multiprocessing.Pool()
     pool.map(process_deployment, dep_list)
