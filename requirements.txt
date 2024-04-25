@@ -8,6 +8,7 @@ gunicorn>=20.1.0
 Flask-WTF>=1.0.1
 Flask-SQLAlchemy>=2.5.1
 GeoAlchemy2>=0.11.1 
+mysqlclient
 geojson
 marshmallow
 marshmallow-sqlalchemy

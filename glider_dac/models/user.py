@@ -7,13 +7,13 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
 
 class User(db.Model):
-    #user_id = db.Column(db.String, primary_key=True)
-    username = db.Column(db.String, primary_key=True, nullable=False)
-    name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String)
+    #user_id = db.Column(db.String(255), primary_key=True)
+    username = db.Column(db.String(255), primary_key=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255))
     admin = db.Column(db.Boolean, nullable=False, default=False)
-    password = db.Column(db.String, nullable=False)
-    organization = db.Column(db.String)
+    password = db.Column(db.String(255), nullable=False)
+    organization = db.Column(db.String(255))
     created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     updated = db.Column(db.DateTime(timezone=True))
 

@@ -12,7 +12,7 @@ from glider_dac.utilities import (slugify, slugify_sql,
                                   get_erddap_catalog_url)
 from glider_dac.extensions import db
 from glider_dac.models.user import User
-from geoalchemy2.types import Geometry
+#from geoalchemy2.types import Geometry
 import geojson
 from compliance_checker.suite import CheckSuite
 from flask_sqlalchemy.track_modifications import models_committed
@@ -31,28 +31,28 @@ import hashlib
 
 
 class Deployment(db.Model):
-    name = db.Column(db.String, unique=True, nullable=False, index=True,
+    name = db.Column(db.String(255), unique=True, nullable=False, index=True,
                      primary_key=True)
-    username = db.Column(db.String, db.ForeignKey("user.username"))
+    username = db.Column(db.String(255), db.ForeignKey("user.username"))
     user = db.relationship("User", lazy='joined', backref="deployment")
     # The operator of this Glider. Shows up in TDS as the title.
-    operator = db.Column(db.String, nullable=True)#nullable=False)
-    deployment_dir = db.Column(db.String, nullable=False)
+    operator = db.Column(db.String(255), nullable=True)#nullable=False)
+    deployment_dir = db.Column(db.String(255), nullable=False)
     #estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
     #                                               srid=4326))
     # TODO: Add constraints for WMO IDs??
-    wmo_id = db.Column(db.String)
+    wmo_id = db.Column(db.String(255))
     completed = db.Column(db.Boolean, nullable=False, default=False)
     created = db.Column(db.DateTime(timezone=True), nullable=False,
                         default=datetime.utcnow)
     updated = db.Column(db.DateTime(timezone=True), nullable=False)
-    glider_name = db.Column(db.String, nullable=False)
+    glider_name = db.Column(db.String(255), nullable=False)
     deployment_date = db.Column(db.DateTime(timezone=True), nullable=True) # nullable=
     archive_safe = db.Column(db.Boolean, nullable=False, default=True)
-    checksum = db.Column(db.String)
-    attribution = db.Column(db.String)
+    checksum = db.Column(db.String(255))
+    attribution = db.Column(db.Text)
     delayed_mode = db.Column(db.Boolean, nullable=True, default=False)
-    latest_file = db.Column(db.String)
+    latest_file = db.Column(db.String(255))
     latest_file_mtime = db.Column(db.DateTime(timezone=True))
     compliance_check_passed = db.Column(db.Boolean, nullable=False,
                                         default=False)

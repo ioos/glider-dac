@@ -95,15 +95,6 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        @event.listens_for(db.engine, "connect")
-        def load_spatialite(dbapi_conn, connection_record):
-            if str(db.engine.url).startswith("sqlite:"):
-                # From # https://geoalchemy-2.readthedocs.io/en/latest/spatialite_tutorial.html
-                dbapi_conn.enable_load_extension(True)
-                # HACK: hardcoded for Docker -- find another means of loading
-                # on other possible OSes
-                dbapi_conn.load_extension('/usr/lib/x86_64-linux-gnu/mod_spatialite.so')
-
         db.create_all()
 
     # Mailer

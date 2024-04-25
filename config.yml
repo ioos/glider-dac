@@ -74,7 +74,7 @@ COMMON: &common
   PUBLIC_CATALOG: '/data/catalog/pub_erddap/datasets.xml'
   PRIVATE_CATALOG: '/data/catalog/priv_erddap/datasets.xml'
 
-  SQLALCHEMY_DATABASE_URI: 'sqlite:////tmp/test.db'
+  SQLALCHEMY_DATABASE_URI: mysql://username:password@mysql/gliderdac
 
 DEVELOPMENT: &development
   <<: *common
