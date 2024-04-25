@@ -14,7 +14,7 @@ from glider_dac.extensions import db
 from glider_dac.models.user import User
 from geoalchemy2.types import Geometry
 import geojson
-from compliance_checker.runner import Suite
+from compliance_checker.suite import CheckSuite
 from flask_sqlalchemy.track_modifications import models_committed
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, relationship
@@ -33,14 +33,13 @@ import hashlib
 class Deployment(db.Model):
     name = db.Column(db.String, unique=True, nullable=False, index=True,
                      primary_key=True)
-    user_id = db.Column(db.Integer, nullable=True)
     username = db.Column(db.String, db.ForeignKey("user.username"))
     user = db.relationship("User", lazy='joined', backref="deployment")
     # The operator of this Glider. Shows up in TDS as the title.
     operator = db.Column(db.String, nullable=True)#nullable=False)
-    deployment_dir = db.Column(db.String, unique=True, nullable=False)
-    estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
-                                                   srid=4326))
+    deployment_dir = db.Column(db.String, nullable=False)
+    #estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
+    #                                               srid=4326))
     # TODO: Add constraints for WMO IDs??
     wmo_id = db.Column(db.String)
     completed = db.Column(db.Boolean, nullable=False, default=False)
@@ -52,7 +51,7 @@ class Deployment(db.Model):
     archive_safe = db.Column(db.Boolean, nullable=False, default=True)
     checksum = db.Column(db.String)
     attribution = db.Column(db.String)
-    delayed_mode = db.Column(db.Boolean, nullable=False, default=False)
+    delayed_mode = db.Column(db.Boolean, nullable=True, default=False)
     latest_file = db.Column(db.String)
     latest_file_mtime = db.Column(db.DateTime(timezone=True))
     compliance_check_passed = db.Column(db.Boolean, nullable=False,
