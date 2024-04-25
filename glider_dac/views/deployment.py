@@ -12,8 +12,7 @@ from flask import (current_app, render_template, redirect, jsonify, flash,
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
-#from glider_dac import app, db, tasks
-from glider_dac import db, tasks
+from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
