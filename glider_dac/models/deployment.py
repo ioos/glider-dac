@@ -99,7 +99,12 @@ class Deployment(db.Model):
                 except OSError:
                     logger.exception(f"Could not symlink {symlink_dest}")
 
-    def delete(self):
+    def delete_deployment(self):
+        self.delete_files()
+        db.session.delete(self)
+        db.session.commit()
+
+    def delete_files(self):
         if os.path.exists(self.full_path):
             rmtree(self.full_path)
         if os.path.exists(self.public_erddap_path):
@@ -203,9 +208,9 @@ class Deployment(db.Model):
             # can run any time there is a sync, so check if a checker run has already been executed
             # if compliance check failed or has not yet been run, go ahead to next section
             if not getattr(self, "compliance_check_passed", None):
-                app.logger.info("Scheduling compliance check for completed "
+                current_app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))
-                queue.enqueue(glider_deployment_check,
+                current_app.queue.enqueue(glider_deployment_check,
                               kwargs={"deployment_dir": self.deployment_dir},
                               job_timeout=800)
         else:
@@ -382,8 +387,8 @@ class GeoJSONField(Field):
 
 class DeploymentModelConverter(ModelConverter):
         SQLA_TYPE_MAPPING = {
-            **ModelConverter.SQLA_TYPE_MAPPING,
-            **{Geometry: Field}
+            **ModelConverter.SQLA_TYPE_MAPPING
+            #**{Geometry: Field}
         }
 
 class DeploymentSchema(SQLAlchemyAutoSchema):

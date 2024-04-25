@@ -8,13 +8,12 @@ from cf_units import Unit
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as dateparse
 from flask import (current_app, render_template, redirect, jsonify, flash,
-                   url_for, request, Markup)
+                   url_for, request)
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
 #from glider_dac import app, db, tasks
 from glider_dac import db, tasks
-#from glider_dac.worker import queue
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
@@ -67,7 +66,7 @@ class NewDeploymentForm(FlaskForm):
 @deployment_bp.route('/users/<string:username>/deployments')
 def list_user_deployments(username):
     # TODO: add error case
-    user = User.query.filter_by(username=username).one()
+    user = User.query.filter_by(username=username).one_or_none()
     deployments = Deployment.query.filter_by(user=user).all()
 
     kwargs = {}
@@ -107,7 +106,7 @@ def list_operator_deployments(operator):
 
 @deployment_bp.route('/deployment/<path:deployment_name>')
 def show_deployment(deployment_name):
-    deployment = Deployment.query.filter_by(name=deployment_name).one()
+    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
 
     files = []
     for dirpath, dirnames, filenames in os.walk(deployment.full_path):
@@ -125,12 +124,12 @@ def show_deployment(deployment_name):
     if current_user and current_user.is_active and (current_user.admin or
                                                     current_user == deployment.user):
         kwargs['editable'] = True
-        if current_user.admin or current_user == deployment.username:
+        if current_user.admin or current_user.username == deployment.username:
             kwargs['admin'] = True
 
     current_app.logger.info(deployment.dap)
     return render_template('show_deployment.html', form=form,
-                           deployment=deployment, files=files, **kwargs)
+                           deployment=deployment, username=current_user.username, files=files, **kwargs)
 
 @deployment_bp.route('/users/<string:username>/deployment/new',
                      methods=['POST'])
@@ -205,7 +204,7 @@ def new_deployment(username):
                             username=username))
 
 
-@deployment_bp.route('/users/<string:username>/deployment/<string:deployment_id>/new',
+@deployment_bp.route('/users/<string:username>/deployment/<string:deployment_name>/new',
            methods=['POST'])
 @login_required
 def new_delayed_mode_deployment(username, deployment_name):
@@ -223,17 +222,17 @@ def new_delayed_mode_deployment(username, deployment_name):
         flash("Permission denied", 'danger')
         return redirect(url_for("index.index"))
 
-    rt_deployment = Deployment.query.filter_by(name=deployment_name)
+    rt_deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
     # Need to check if the "real time" deployment is complete yet
     if not rt_deployment.completed:
         deployment_url = url_for('deployment.show_deployment', username=username, deployment_name=deployment_name)
-        flash(Markup('The real time deployment <a href="%s">%s</a> must be marked as complete before adding delayed mode data' %
-              (deployment_url, rt_deployment.name)), 'danger')
+        flash('The real time %s must be marked as complete before adding delayed mode data' %
+              rt_deployment.name, 'danger')
         return redirect(url_for('deployment.list_user_deployments', username=username))
 
     deployment = Deployment()
     deployment.name = rt_deployment.name + '-delayed'
-    deployment.user_id = user._id
+    #deployment.user_id = user.user_id
     deployment.username = username
     deployment.operator = rt_deployment.operator
     deployment.deployment_dir = os.path.join(username, deployment_name)
@@ -246,7 +245,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     db.session.add(deployment)
     db.session.commit()
     flash("Deployment created", 'success')
-    send_registration_email(username, deployment)
+    deployment.send_registration_email()
 
     return redirect(url_for('deployment.list_user_deployments', username=username))
 
@@ -254,15 +253,14 @@ def new_delayed_mode_deployment(username, deployment_name):
 @login_required
 def edit_deployment(username, deployment_name):
 
-    user = User.query.filter(username=username)
+    user = User.query.filter_by(username=username).one_or_none()
     if user is None or (user is not None and not current_user.admin and
                         current_user != user):
         # No permission
         flash("Permission denied", 'danger')
         return redirect(url_for('deployment.list_user_deployments', username=username))
 
-    # TODO: Remove MongoDB
-    deployment = Deployment.query.filter_by(name=deployment_name).one()
+    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
 
     form = DeploymentForm(obj=deployment)
 
@@ -271,7 +269,7 @@ def edit_deployment(username, deployment_name):
         deployment.updated = datetime.utcnow()
         db.session.commit()
         flash("Deployment updated", 'success')
-        return redirect(url_for('deployment.show_deployment', username=username, deployment_id=deployment._id))
+        return redirect(url_for('deployment.show_deployment', username=username, deployment_name=deployment.name))
     else:
         error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
                                for k, v in form.errors.items()])
@@ -282,12 +280,12 @@ def edit_deployment(username, deployment_name):
 
 @deployment_bp.route('/users/<string:username>/deployment/<string:deployment_name>/files', methods=['POST'])
 @login_required
-def post_deployment_file(username, deployment_id):
+def post_deployment_file(username, deployment_name):
 
-    deployment = Deployment.query.filter_by(name=deployment_name)
-    user = User.query.filter_by(username=username)
+    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    user = User.query.filter_by(username=username).one_or_none()
 
-    if not (deployment and user and deployment.user_id == user._id and
+    if not (deployment and user and deployment.username == user.username and
             (current_user.admin or current_user == user)):
         raise Exception("Unauthorized")  # @TODO better response via ajax?
 
@@ -347,8 +345,8 @@ def delete_deployment_files(username, deployment_name):
 @login_required
 def delete_deployment(username, deployment_name):
 
-    deployment = Deployment.query.filter_by(name=deployment_name)
-    user = User.query.filter_by(username=username)
+    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    user = User.query.filter_by(username=username).one_or_none()
     if deployment is None:
         flash("Permission denied", 'danger')
         return redirect(url_for("deployment.show_deployment", username=username, deployment_name=deployment_name))
@@ -361,9 +359,9 @@ def delete_deployment(username, deployment_name):
         flash("Permission denied", 'danger')
         return redirect(url_for("deployment.show_deployment", username=username, deployment_name=deployment_name))
 
-    queue.enqueue_call(func=tasks.delete_deployment,
-                       args=(deployment_id,), timeout=30)
-    flash("Deployment queued for deletion", 'success')
+    # TODO: consider moving back to task queue?
+    deployment.delete_deployment()
+    flash("Deployment and associated files deleted", "success")
 
     return redirect(url_for("deployment.list_user_deployments", username=username))
 

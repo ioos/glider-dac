@@ -9,7 +9,7 @@ from passlib.hash import sha512_crypt
 class User(db.Model):
     #user_id = db.Column(db.String, primary_key=True)
     username = db.Column(db.String, primary_key=True, nullable=False)
-    name = db.Column(db.String, unique=True, nullable=False)
+    name = db.Column(db.String, nullable=False)
     email = db.Column(db.String)
     admin = db.Column(db.Boolean, nullable=False, default=False)
     password = db.Column(db.String, nullable=False)
