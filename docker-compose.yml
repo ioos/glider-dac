@@ -29,6 +29,7 @@ services:
       - DATA_VOLUME=${DATA_VOLUME}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
+      - FLASK_APP=glider_dac:create_app()
     depends_on:
       - mysql
       - redis

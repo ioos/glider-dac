@@ -1,4 +1,5 @@
 COMMON: &common
+  FLASK_APP: "glider_dac:create_app()"
   HOST: localhost
   PORT: 5000
   DEBUG: False
