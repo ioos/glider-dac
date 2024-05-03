@@ -185,6 +185,7 @@ def new_deployment(username):
             deployment.delayed_mode = delayed_mode
             db.session.add(deployment)
             db.session.commit()
+            deployment.sync()
             flash("Deployment created", 'success')
             deployment.send_registration_email()
         # TODO: handle prior to creation
