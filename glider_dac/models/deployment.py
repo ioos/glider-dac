@@ -13,6 +13,7 @@ from glider_dac.utilities import (slugify, slugify_sql,
 from glider_dac.extensions import db
 from glider_dac.models.user import User
 #from geoalchemy2.types import Geometry
+import json
 import geojson
 from compliance_checker.suite import CheckSuite
 from flask_sqlalchemy.track_modifications import models_committed
@@ -266,8 +267,9 @@ class Deployment(db.Model):
 
         # Serialize Deployment model to disk
         json_file = os.path.join(self.full_path, "deployment.json")
+        schema = DeploymentSchema()
         with open(json_file, 'w') as f:
-            f.write(self.to_json())
+            f.write(json.dumps(schema.dump(self)))
 
     def update_wmoid_file(self):
         # Keep the WMO file updated if it is edited via the web form
