@@ -13,7 +13,7 @@ config.local.yml
 ftp_temp
 tds_temp
 tds_catalogs
-data/
+/tests/data/
 secrets/
 
 .env

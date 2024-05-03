@@ -84,3 +84,18 @@ TESTING:
   <<: *common
   DEBUG: True
   TESTING: True
+  # only use in memory DB for testing
+  SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
+  WTF_CSRF_ENABLED: False
+  path2priv: 'tests/test_fs/data/data/priv_erddap/'
+  path2pub: 'tests/test_fs/data/data/pub_erddap/'
+  path2thredds: 'tests/test_fs/data/data/thredds/'
+  flags_private: 'tests/test_fs/scratch/tomcat-erddap-private/flag'
+  flags_public: 'tests/test_fs/scratch/tomcat-erddap-public/flag'
+  DATA_ROOT: tests/test_fs/data/submission
+  PRIV_DATA_ROOT: tests/test_fs/data/data/priv_erddap
+  PUBLIC_DATA_ROOT: tests/test_fs/data/data/pub_erddap
+  THREDDS_DATA_ROOT: tests/test_fs/data/data/thredds
+  ARCHIVE_PATH: tests/test_fs/data/data/archive
+  SERVER: "http://localhost:8080/erddap"
+  erddap_private: 'localhost:8080'
