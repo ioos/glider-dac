@@ -56,21 +56,21 @@ def create_app():
     with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
         config_dict = yaml.load(base_config, Loader=yaml.Loader)
 
+
+
+
     extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
-    # merge in settings from config.local.yml, if it exists
-    if os.path.exists(extra_config_path):
+    # If the testing environment isn't specified, merge in settings from
+    # config.local.yml, if it exists
+    if os.environ.get("FLASK_ENV") != "TESTING" and os.path.exists(extra_config_path):
         with open(extra_config_path) as extra_config:
             config_dict = {**config_dict, **yaml.load(extra_config,
                                                     Loader=yaml.Loader)}
-
-
-    if "ENV" in app.config:
-        try:
-            app.config.update(config_dict[app.config["ENV"].upper()])
-        except KeyError:
-            app.logger.error(f"Cannot find config for {app.config['ENV']}, "
-                              "falling back to DEVELOPMENT")
-    else:
+    try:
+        app.config.update(config_dict[os.environ["FLASK_ENV"]])
+    except KeyError:
+        app.logger.error(f"Cannot find config for {os.environ.get('ENV', None)}, "
+                          "falling back to DEVELOPMENT")
         app.config.update(config_dict["DEVELOPMENT"])
 
     app.secret_key = app.config["SECRET_KEY"]
