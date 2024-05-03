@@ -20,16 +20,15 @@ services:
       - erddap_big_parent_directory:/erddapData
       - ./datasets.xml:/data/catalog/priv_erddap/datasets.xml
       - /data/catalog/priv_erddap
-    restart: always
     #secrets:
     #  - S3_ACCESS_KEY
     #  - S3_SECRET_KEY
     environment:
+      - FLASK_APP=glider_dac:create_app
       - DATA_ROOT=${DATA_ROOT}
       - DATA_VOLUME=${DATA_VOLUME}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
-      - FLASK_APP=glider_dac:create_app()
     depends_on:
       - mysql
       - redis
