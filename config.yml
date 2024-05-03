@@ -84,9 +84,12 @@ TESTING:
   <<: *common
   DEBUG: True
   TESTING: True
+  # enable email for mock email testing
+  MAIL_ENABLED: True
   # only use in memory DB for testing
   SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
   WTF_CSRF_ENABLED: False
+  # TODO: these directories need to be made relative to project root
   path2priv: 'tests/test_fs/data/data/priv_erddap/'
   path2pub: 'tests/test_fs/data/data/pub_erddap/'
   path2thredds: 'tests/test_fs/data/data/thredds/'
