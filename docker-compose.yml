@@ -77,7 +77,6 @@ services:
         - 3306:3306
     volumes:
       - status_mysql:/var/lib/mysql
-    restart: always
 
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
