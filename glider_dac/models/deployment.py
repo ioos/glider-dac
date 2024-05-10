@@ -345,7 +345,7 @@ class Deployment(db.Model):
         cs = CheckSuite()
         cs.load_all_available_checkers()
         query = Deployment.query
-        with app.app_context():
+        with current_app.app_context():
             if data_type is not None:
                 query = query.filter(Deployment.completed==completed,
                                                 func.coalesce(Deployment.delayed_mode,
@@ -365,7 +365,7 @@ class Deployment(db.Model):
             user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
 
             try:
-                dep_passed, dep_messages = self.process_deployment(deployment)
+                dep_passed, dep_messages = self.process_deployment()
                 if not dep_passed:
                     user_errors[user]["failed_deployments"].append(deployment.name)
                 user_errors[user]["messages"].extend(dep_messages)
@@ -378,6 +378,52 @@ class Deployment(db.Model):
                                             results_dict["failed_deployments"],
                                             "\n".join(results_dict["messages"]))
 
+    def process_deployment(self):
+        deployment_issues = "Deployment {}".format(os.path.basename(self.name))
+        groups = OrderedDict()
+        erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
+        base_url = current_app.config["PRIVATE_ERDDAP"]
+        # FIXME: determine a more robust way of getting scheme
+        if not base_url.startswith("http"):
+            base_url = "http://{}".format(base_url)
+        url_path = "/".join([base_url,
+                            erddap_fmt_string.format(self.name)])
+        # TODO: would be better if we didn't have to write to a temp file
+        outhandle, outfile = tempfile.mkstemp()
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                    checker_names=['gliderdac'], verbose=True,
+                                    criteria='lenient', output_format='json',
+                                    output_filename=outfile)
+        with open(outfile, 'r') as f:
+            errs = json.load(f)["gliderdac"]
+
+        compliance_passed = errs['scored_points'] == errs['possible_points']
+
+        self.compliance_check_passed = compliance_passed
+        standard_name_errs = []
+        if compliance_passed:
+            final_message = "All files passed compliance check on glider deployment {}".format(self.name)
+        else:
+            error_list = [err_msg for err_severity in ("high_priorities",
+                "medium_priorities", "low_priorities") for err_section in
+                errs[err_severity] for err_msg in err_section["msgs"]]
+            self.compliance_check_report = errs
+
+            for err in errs["high_priorities"]:
+                if err["name"] == "Standard Names":
+                    standard_name_errs.extend(err["msgs"])
+
+            if not standard_name_errs:
+                final_message = "All files passed compliance check on glider deployment {}".format(self.name)
+                self.cf_standard_names_valid = True
+            else:
+                root_logger.info(standard_name_errs)
+                final_message = ("Deployment {} has issues:\n{}".format(self.name,
+                                "\n".join(standard_name_errs)))
+                self.cf_standard_names_valid = False
+
+        db.session.commit()
+        return final_message.startswith("All files passed"), final_message
 
 class GeoJSONField(Field):
     def _serialize(self, value, attr, obj, **kwargs):
@@ -423,54 +469,6 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
     def get_erddap(self, obj):
         return obj.erddap
 
-
-
-    def process_deployment(self, deployment):
-        deployment_issues = "Deployment {}".format(os.path.basename(deployment.name))
-        groups = OrderedDict()
-        erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
-        base_url = app.config["PRIVATE_ERDDAP"]
-        # FIXME: determine a more robust way of getting scheme
-        if not base_url.startswith("http"):
-            base_url = "http://{}".format(base_url)
-        url_path = "/".join([base_url,
-                            erddap_fmt_string.format(deployment.name)])
-        # TODO: would be better if we didn't have to write to a temp file
-        outhandle, outfile = tempfile.mkstemp()
-        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
-                                    checker_names=['gliderdac'], verbose=True,
-                                    criteria='lenient', output_format='json',
-                                    output_filename=outfile)
-        with open(outfile, 'r') as f:
-            errs = json.load(f)["gliderdac"]
-
-        compliance_passed = errs['scored_points'] == errs['possible_points']
-
-        self.compliance_check_passed = compliance_passed
-        standard_name_errs = []
-        if compliance_passed:
-            final_message = "All files passed compliance check on glider deployment {}".format(dep.name)
-        else:
-            error_list = [err_msg for err_severity in ("high_priorities",
-                "medium_priorities", "low_priorities") for err_section in
-                errs[err_severity] for err_msg in err_section["msgs"]]
-            self.compliance_check_report = errs
-
-            for err in errs["high_priorities"]:
-                if err["name"] == "Standard Names":
-                    standard_name_errs.extend(err["msgs"])
-
-            if not standard_name_errs:
-                final_message = "All files passed compliance check on glider deployment {}".format(deployment.name)
-                self.cf_standard_names_valid = True
-            else:
-                root_logger.info(standard_name_errs)
-                final_message = ("Deployment {} has issues:\n{}".format(dep.name,
-                                "\n".join(standard_name_errs)))
-                self.cf_standard_names_valid = False
-
-        db.session.commit()
-        return final_message.startswith("All files passed"), final_message
 
 def on_models_committed(sender, changes):
     for model, operation in changes:
