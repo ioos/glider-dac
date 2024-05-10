@@ -19,7 +19,6 @@ import os.path
 import redis
 import yaml
 from rq import Queue, Connection, Worker
-from glider_dac.common import log_formatter
 from glider_dac.views.deployment import deployment_bp
 from glider_dac.views.index import index_bp
 from glider_dac.views.institution import institution_bp
@@ -115,8 +114,10 @@ def create_app():
     app.jinja_env.filters['padfit'] = util.padfit
 
     # Create logging
+    import logging
+    log_format_str = '%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s'
+    log_formatter = logging.Formatter(log_format_str)
     if app.config.get('LOG_FILE') == True:
-        import logging
         from logging import FileHandler
         file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
                                                 '../logs/glider_dac.txt'))
