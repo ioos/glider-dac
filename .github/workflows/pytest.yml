@@ -19,5 +19,8 @@ jobs:
       - name: Build Docker image
         run: docker build -t glider-dac-build .
 
+      - name: Install testing requirements
+        run: docker run glider-dac-build pip install --no-cache -r /glider-dac/test_requirements.txt
+
       - name: Run tests
         run: docker run --rm glider-dac-build pytest /glider-dac/tests
