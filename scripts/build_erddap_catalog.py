@@ -43,7 +43,8 @@ import sys
 from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
-from glider_dac import app, db
+from glider_dac.extensions import db
+from flask import current_app
 from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
@@ -72,9 +73,9 @@ template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templat
 
 # Connect to redis to keep track of the last time this script ran
 redis_key = 'build_erddap_catalog_last_run_deployment'
-redis_host = app.config.get('REDIS_HOST', 'redis')
-redis_port = app.config.get('REDIS_PORT', 6379)
-redis_db = app.config.get('REDIS_DB', 0)
+redis_host = current_app.config.get('REDIS_HOST', 'redis')
+redis_port = current_app.config.get('REDIS_PORT', 6379)
+redis_db = current_app.config.get('REDIS_DB', 0)
 _redis = redis.Redis(
     host=redis_host,
     port=redis_port,
@@ -83,7 +84,7 @@ _redis = redis.Redis(
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(current_app.config["PRIVATE_ERDDAP"]),
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
@@ -768,5 +769,5 @@ if __name__ == "__main__":
     data_dir = os.path.realpath(args.data_dir)
     force = args.force
 
-    with app.app_context():
+    with current_app.app_context():
         sys.exit(main(data_dir, catalog_dir, force))
