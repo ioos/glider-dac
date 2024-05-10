@@ -28,6 +28,9 @@ from shutil import rmtree
 import os
 import glob
 import hashlib
+from compliance_checker.runner import ComplianceChecker
+from collections import OrderedDict
+import tempfile
 
 
 

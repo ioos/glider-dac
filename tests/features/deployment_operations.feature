@@ -15,8 +15,10 @@ Feature: Glider Deployment Operations
           And the deployment should be deleted and no longer visible on any deployment page
 
      Scenario: NCEI archival of deployments
-          Given a deployment has been marked as completed and ready for NCEI archival in the application by the user who created the deployment or an admin user
-          When the deployment directory has one or more valid glider NetCDF files
+          Given I am a logged in user
+          When I create a new glider deployment
+          And the deployment has been marked as completed and ready for NCEI archival
+          And the deployment directory has one or more valid glider NetCDF files
           And the deployment exists in ERDDAP
           And the IOOS Compliance Checker has run the CF compliance checks against the deployment aggregation in ERDDAP
           And the single aggregated file exists in a folder with the NetCDF data

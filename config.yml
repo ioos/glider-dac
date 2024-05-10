@@ -100,5 +100,6 @@ TESTING:
   PUBLIC_DATA_ROOT: tests/test_fs/data/data/pub_erddap
   THREDDS_DATA_ROOT: tests/test_fs/data/data/thredds
   ARCHIVE_PATH: tests/test_fs/data/data/archive
+  NCEI_DIR: tests/test_fs/data/data/archive
   SERVER: "http://localhost:8080/erddap"
   erddap_private: 'localhost:8080'

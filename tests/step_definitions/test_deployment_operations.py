@@ -3,12 +3,18 @@ from pytest_bdd import scenarios, scenario, given, when, then
 
 import os
 import shutil
+from glob import glob
+import json
 from flask_login import current_user
 from glider_dac import create_app
+from tests.resources import STATIC_FILES
 from glider_dac.extensions import db
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from passlib.hash import sha512_crypt
+from netCDF4 import Dataset
+from compliance_checker.suite import CheckSuite
+from scripts import archive_datasets
 
 # Load all scenarios from the feature file
 # why is app context even needed here?
@@ -39,14 +45,19 @@ def clear_database(app):
     db.session.commit()
     # Clean up
     #with app.app_context():
-    for path in os.listdir(app.config["DATA_ROOT"]):
-        if path == '.gitignore':
-            continue
-        full_path = os.path.join(app.config["DATA_ROOT"], path)
-        if os.path.isfile(full_path) or os.path.islink(full_path):
-            os.unlink(full_path)
-        else:
-            shutil.rmtree(full_path)
+    for top_level in (app.config["DATA_ROOT"],
+                      app.config["PRIV_DATA_ROOT"],
+                      app.config["PUBLIC_DATA_ROOT"],
+                      app.config["ARCHIVE_PATH"]):
+
+        for path in os.listdir(top_level):
+            if path == '.gitignore':
+                continue
+            full_path = os.path.join(top_level, path)
+            if os.path.isfile(full_path) or os.path.islink(full_path):
+                os.unlink(full_path)
+            else:
+                shutil.rmtree(full_path)
     yield
 
 @pytest.fixture
@@ -76,12 +87,13 @@ def user_logged_in(client):
 # Needs to be in separate named fixture since pytest-bdd does name munging.
 # First call creates the deployment, and # subsequent calls can re-refer to the
 # fixture to fetch the email content it sends
-@pytest.fixture
+@pytest.fixture(scope="function")
 def create_deployment_and_capture_email(client, mail_recorder, app):
     with mail_recorder() as outbox:
-        response = client.post('/users/testuser/deployment/new', data={'glider_name': 'testdeployment', 'deployment_date': '2024-05-02T0000',
-                                                                    'attribution': 'Automated Glider Tests'},
-                               follow_redirects=True)
+        with app.app_context():
+            response = client.post('/users/testuser/deployment/new', data={'glider_name': 'testdeployment', 'deployment_date': '2024-05-02T0000',
+                                                                        'attribution': 'Automated Glider Tests'},
+                                   follow_redirects=True)
     assert response.status_code == 200
     deployment = Deployment.query.filter_by(glider_name="testdeployment").one_or_none()
     assert deployment is not None
@@ -106,3 +118,78 @@ def deployment_email_notification(app, create_deployment_and_capture_email):
     assert message.sender == app.config["MAIL_DEFAULT_SENDER"]
     assert message.send_to == set(app.config["MAIL_DEFAULT_TO"].split(";"))
     assert message.subject == "New Glider Deployment - testdeployment-20240502T0000"
+
+# deletion scenario
+@when("I attempt to delete an existing deployment belonging to my user")
+def delete_deployment_hierarchy(client):
+    response = client.post("/users/testuser/deployment/testdeployment-20240502T0000/delete", follow_redirects=True)
+    assert response.status_code == 200
+
+@then("the requisite folder hierarchy and any folders should be removed from the submission, ERDDAP, and THREDDS locations")
+def check_deployment_folders_deleted():
+    search_pattern = os.path.join("tests", "test_fs", '**', 'testdeployment-20240502T0000')
+    assert len(glob(search_pattern, recursive=True)) == 0
+
+@then("the deployment should be deleted and no longer visible on any deployment page")
+def deployment_model_gone(client):
+    assert Deployment.query.filter_by(name="testdeployment-20240502T0000").one_or_none() is None
+    # TODO: Any page may be a little strong.  Consider only checking from API results
+    response = client.get("/api/deployment")
+    assert all(deployment["name"] != "testdeployment-20240502T000" for deployment in json.loads(response.data))
+
+@when("the deployment has been marked as completed and ready for NCEI archival")
+def deployment_created_and_ready_for_archival(create_deployment_and_capture_email):
+    deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").one()
+    deployment.completed = True
+    deployment.ncei_archive = True
+    db.session.commit()
+    yield deployment
+
+@when("the deployment directory has one or more valid glider NetCDF files")
+def deployment_has_netcdf_files():
+    # just copy our already existing private ERDDAP deployment
+    folder_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/"
+    os.makedirs(folder_path)
+    ds_path = os.path.join(folder_path, "testdeployment-20240502T0000.nc")
+    shutil.copy(os.path.join(os.getcwd(), "../..", STATIC_FILES['murphy']), ds_path)
+    with Dataset(ds_path, "r"):
+        pass
+
+
+@when("the deployment exists in ERDDAP")
+def erddap_deployment():
+    # TODO: find reasonable DAP approximation of ERDDAP
+    ds_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
+    yield Dataset(ds_path, "r")
+
+@when("the IOOS Compliance Checker has run the CF compliance checks against the deployment aggregation in ERDDAP")
+def compliance_checker_run(mocker):
+    ds_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
+    ds = Dataset(ds_path, "r")
+
+    # TODO: normally this would be called through glider_deployment_check
+    # checkers don't load properly without this prelude
+    cs = CheckSuite()
+    cs.load_all_available_checkers()
+    # imported as `from netCDF4 import Dataset` later on
+    mocker.patch.object(CheckSuite, "load_dataset", new=lambda obj, loc: ds)
+    deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").one()
+    deployment.process_deployment()
+    assert deployment.compliance_check_report is not None
+
+
+@when("the single aggregated file exists in a folder with the NetCDF data")
+def aggregated_file_exists():
+    folder_path = "tests/test_fs/data/data/pub_erddap/testuser/testdeployment-20240502T0000/"
+    os.makedirs(folder_path)
+    shutil.copy(os.path.join(os.getcwd(), "../..", STATIC_FILES['murphy']), os.path.join(folder_path, "testdeployment-20240502T0000.ncCF.nc3.nc"))
+
+
+@then("the NCEI archival script will link the aggregated deployment file to the archival directory")
+def ncei_archival_script():
+    # Mock the command-line arguments
+    archive_datasets.main()
+    file_path = "tests/test_fs/data/data/archive/testdeployment-20240502T0000.ncCF.nc3.nc"
+    # TODO: test that file exists and is hard link
+    assert (os.path.exists(file_path) and os.stat(file_path).st_nlink > 1 and
+            os.path.exists(file_path + ".md5"))
