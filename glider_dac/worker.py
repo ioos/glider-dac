@@ -3,12 +3,14 @@
 import os
 import redis
 from rq import Worker, Queue, Connection
-from glider_dac import redis_connection
+from flask import current_app
+from glider_qc import glider_qc
+from simplekv.memory.redisstore import RedisStore
 
 listen = ['default']
 
 def main():
-    with Connection(redis_connection):
+    with Connection(glider_qc.get_redis_connection()):
         worker = Worker(list(map(Queue, listen)))
         worker.work()
 

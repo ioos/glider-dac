@@ -6,6 +6,7 @@ RUN apt-get update && \
                        libnetcdf-dev netcdf-bin && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
+ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits
 COPY . /glider-dac
 # TODO: move logs elsewhere
 VOLUME /glider-dac/logs/ /data
@@ -13,19 +14,17 @@ WORKDIR glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
 RUN pip install -U pip && \
-    pip install --no-cache Cython thredds_crawler numpy==1.19.5 pytest && \
-    pip install --no-cache -r requirements.txt && \
-    pip uninstall -y mongokit && \
-    pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
-    pip install -U pymongo==2.8
+    pip install --no-cache Cython thredds_crawler numpy pytest && \
+    pip install --no-cache -r requirements.txt
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
-             /erddapData/flag /erddapData/hardFlag berkeleydb \
+             /erddapData/flag /erddapData/hardFlag  \
              /data/catalog/priv_erddap && \
     chown -R glider:glider /glider-dac /data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 ENV PYTHONPATH="${PYTHONPATH}:/glider-dac"
+ENV FLASK_APP=glider_dac:create_app
 
 EXPOSE 5000
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "glider_dac:create_app()"]

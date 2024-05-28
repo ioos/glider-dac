@@ -1,65 +1,46 @@
 import os
 import os.path
 from datetime import datetime
-from glider_dac import app, db
-from glider_util.bdb import UserDB
-from flask_mongokit import Document
+from glider_dac import db
+from flask import current_app
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from passlib.hash import sha512_crypt
 
-@db.register
-class User(Document):
-    __collection__ = 'users'
-    use_dot_notation = True
-    use_schemaless = True
-
-    structure = {
-        'username'                  : str,
-        'name'                      : str,
-        'email'                     : str,
-        'organization'              : str,
-        'created'                   : datetime,
-        'updated'                   : datetime
-    }
-
-    default_values = {
-        'created': datetime.utcnow
-    }
-
-    indexes = [
-        {
-            'fields': 'username',
-            'unique': True,
-        },
-    ]
+class User(db.Model):
+    #user_id = db.Column(db.String(255), primary_key=True)
+    username = db.Column(db.String(255), primary_key=True, nullable=False)
+    name = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255))
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+    password = db.Column(db.String(255), nullable=False)
+    organization = db.Column(db.String(255))
+    created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    updated = db.Column(db.DateTime(timezone=True))
 
     @classmethod
-    def _check_login(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.check(username.encode(), password.encode())
+    def check_login(cls, username, password):
+        user = User.query.filter_by(username=username).one_or_none()
+        if user is None:
+            return False
+        return sha512_crypt.verify(password, user.password)
 
     @classmethod
     def authenticate(cls, username, password):
-        if cls._check_login(username, password):
+        if cls.check_login(username, password):
             # Return the ID of the user
-            usr = db.User.find_one( { 'username' : username } )
-            if usr is None:
-                usr = db.User()
-                usr.username = username
-                usr.save()
-            return usr
+            current_user = User.query.filter_by(username=username).one_or_none()
+            if current_user is None:
+                current_user = User(username=username)
+                current_user.save()
+            return current_user
         return None
-
-    @classmethod
-    def update(cls, username, password):
-        u = UserDB(app.config.get('USER_DB_FILE'))
-        return u.set(username.encode(), password.encode())
 
     @property
     def data_root(self):
-        data_root = app.config.get('DATA_ROOT')
+        data_root = current_app.config.get('DATA_ROOT')
         return os.path.join(data_root, self.username)
 
     def save(self):
-        super().save()
         # on creation of user, ensure that a directory with user name is present
         self.ensure_dir("")
 
@@ -80,13 +61,10 @@ class User(Document):
     # This method is not provided by flask-login.  Make a property to bring it
     # in line with the rest of the expected properties from flask-login, namely:
     # is_active, is_authenticated, and is_anonymous.
-    @property
-    def is_admin(self):
-        return self.username in app.config.get("ADMINS")
 
     def get_id(self):
-        return str(self._id)
+        return str(self.username)
 
-    @classmethod
-    def get_deployment_count_by_user(cls):
-        return [count for count in db.deployments.aggregate({ '$group': { '_id': '$user_id', 'count': { '$sum' : 1 }}}, cursor={})]
+class UserSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = User
