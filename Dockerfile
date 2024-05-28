@@ -6,6 +6,7 @@ RUN apt-get update && \
                        libnetcdf-dev netcdf-bin && \
     mkdir glider-dac && groupadd -g $glider_gid_uid glider && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
+ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits
 COPY . /glider-dac
 # TODO: move logs elsewhere
 VOLUME /glider-dac/logs/ /data
