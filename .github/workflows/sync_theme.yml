@@ -7,7 +7,7 @@ on:
   schedule:
      - cron: "00 14 * * *"
 
-  workflow_dispatch:
+  workflow_dispatch: null
 
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4
       with: { ref: gh-pages }
 
     - name: submodule checkout
@@ -39,3 +39,13 @@ jobs:
            timestamp=$(date -u)
            git commit -m "Update theme on: ${timestamp}" || exit 0
            git push
+
+  keepalive-job:
+    name: Keepalive Workflow
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4
+      - uses: gautamkrishnar/keepalive-workflow@beb86212524e1ae856d1cd80efb44e73bf7daf4a # 2.0.1
