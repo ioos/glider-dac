@@ -57,15 +57,16 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 # remove trailing Z from deployment name
                 navo_directory = os.path.join(self.base, "navoceano")
                 navo_deployment_directory = None
-                possible_existing_dirs = list(glob.iglob(os.path.join(navo_directory, f"{glider_callsign}*")))
+                possible_existing_dirs = sorted(glob.glob(os.path.join(navo_directory, f"{glider_callsign}*")))
                 # Use an already existing directory if there is one for the the deployment
-                # TODO: handle for multiple possible existing callsigns if new deployment is made?
+                navo_deployment_directory = None
                 for maybe_dir in possible_existing_dirs:
                     if os.path.isdir(maybe_dir):
-                        navo_deployment_directory = maybe_dir
-                # TODO: handle for multiple possible existing callsigns if new deployment is made?
-                        break
-                # otherwise specify a dir to be created
+                        dir_date_part = deployment_dir.rsplit("-", 1)[0]
+                        # get most recent matching directory
+                        if date_str >= dir_date_part:
+                            navo_deployment_directory = maybe_dir
+
                 if not navo_deployment_directory:
                     navo_deployment_directory = os.path.join(self.base, f"navoceano/{glider_callsign}-{date_str}")
                 # Directory could exist, but no deployment in DB!
