@@ -145,9 +145,6 @@ def get_files(netcdf_files):
 
     return file_paths
 
-def setup_logging(default_level=logging.INFO):
-    """ Setup logging configuration """
-
 def setup_logging(
     default_path=None,
     default_level=logging.INFO,
