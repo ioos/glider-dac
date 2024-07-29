@@ -239,7 +239,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
             logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
-    latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
+    if (deployment.latest_file is None or
+        not os.path.isfile(os.path.join(dir_path, deployment.latest_file))):
+        latest_file = get_latest_nc_file(dir_path)
+    else:
+        latest_file = deployment.latest_file
+
     if latest_file is None:
         raise IOError('No nc files found in deployment {}'.format(deployment_dir))
 
