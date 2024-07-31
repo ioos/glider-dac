@@ -61,11 +61,17 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 
-erddap_mapping_dict = defaultdict(lambda: 'String',
-                                  { np.int8: 'byte',
-                                    np.int16: 'short',
-                                    np.float32: 'float',
-                                    np.float64: 'double' })
+erddap_mapping_dict = defaultdict(lambda: "String",
+                                  {np.int8: "byte",
+                                   np.uint8: "ubyte",
+                                   np.int16: "short",
+                                   np.uint16: "ushort",
+                                   np.int32: "int",
+                                   np.uint32: "uint",
+                                   np.int64: "long",
+                                   np.uint64: "ulong",
+                                   np.float32: "float",
+                                   np.float64: "double"})
 
 # The directory where the XML templates exist
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
