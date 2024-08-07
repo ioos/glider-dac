@@ -61,11 +61,17 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 
-erddap_mapping_dict = defaultdict(lambda: 'String',
-                                  { np.int8: 'byte',
-                                    np.int16: 'short',
-                                    np.float32: 'float',
-                                    np.float64: 'double' })
+erddap_mapping_dict = defaultdict(lambda: "String",
+                                  {np.int8: "byte",
+                                   np.uint8: "ubyte",
+                                   np.int16: "short",
+                                   np.uint16: "ushort",
+                                   np.int32: "int",
+                                   np.uint32: "uint",
+                                   np.int64: "long",
+                                   np.uint64: "ulong",
+                                   np.float32: "float",
+                                   np.float64: "double"})
 
 # The directory where the XML templates exist
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
@@ -239,7 +245,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
             logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
-    latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
+    if (deployment.latest_file is None or
+        not os.path.isfile(os.path.join(dir_path, deployment.latest_file))):
+        latest_file = get_latest_nc_file(dir_path)
+    else:
+        latest_file = deployment.latest_file
+
     if latest_file is None:
         raise IOError('No nc files found in deployment {}'.format(deployment_dir))
 
@@ -559,16 +570,19 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         qartod_var_type = check_for_qartod_vars(ds)
 
-        exclude_vars = (existing_varnames |
-                        {'latitude', 'longitude'} |
-                        qartod_var_type['qartod'].keys())
+        exclude_vars = (existing_varnames | {'latitude', 'longitude'})
 
         all_other_vars = [add_erddap_var_elem(var) for var in
                           ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)]
 
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
 
-        qartod_vars_snippet = qartod_var_snippets(required_qartod_vars, qartod_var_type)
+        # Exclude automatic QARTOD variables if the dataset is delayed mode
+        # This will keep any user supplied QARTOD variables, they should be part of
+        # `all_other_vars` already
+        qartod_vars_snippet = (qartod_var_snippets(required_qartod_vars,
+                                                   qartod_var_type)
+                               if not deployment.delayed_mode else [])
 
         vars_sorted = sorted(common_variables +
                              qartod_vars_snippet + all_other_vars,
