@@ -27,10 +27,6 @@ class ProcessError(ValueError):
 
 class GliderQC(object):
     def __init__(self, ncfile, config_file=None):
-        '''
-        :param ncfile: netCDF4._netCDF4.Dataset
-        :param config_file : json file
-        '''
         self.ncfile = ncfile
         if config_file is not None:
             self.load_config(config_file)
@@ -116,7 +112,7 @@ class GliderQC(object):
             variable_name = template['name'] % {'name': name}
 
             if variable_name not in self.ncfile.variables:
-                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int16(-999))
+                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int8(9))
             else:
                 ncvar = self.ncfile.variables[variable_name]
 
@@ -323,90 +319,11 @@ class GliderQC(object):
 
         return results
 
-    def copy_variable(self, nc, ncvariable):
-        '''
-        Copy a variable to a new one
-        :param nc: netCDF4._netCDF4.Dataset 
-        :param ncvariable: netCDF4.Variable
-        '''
-
-        name = ncvariable.name
-        typen = ncvariable.dtype
-        dims = ncvariable.dimensions
-        fval = ncvariable._FillValue
-        
-        new_name = name + '_obsolete'
-        coord = name.split('_')[-1]
-        
-        ### Create a new variable with the same dimensions and attributes
-        new_variable = nc.createVariable(new_name , typen, dims, fill_value=fval)
-
-        # Copy the data
-        new_variable[:] = ncvariable[:]
-
-        # Copy attributes 
-        listn = [item for item in ncvariable.ncattrs() if item != '_FillValue']
-        for attr in listn:
-            new_variable.setncattr(attr,  ncvariable.getncattr(attr))
-
-        # Add comments
-        new_variable.GDAC_comment = f" This is the original data made obsolete because it is 3 standard deviations \
-        above the mean of the average {coord} array, classifying it as an outlier. The variable {name} has the corrected data."
-                                
-        return new_variable
-
-    def check_location(self, ncf, report):
-        '''
-        Check the glider track lon and lat coordinates for outliers.
-        If an outlier is detected:
-         - Copy the profile_lat/lon variables onto new variables to preserve the original data.
-         - Replace the profile_lat/lon data with the median of the lat or lon arrays.  
-        :param ncf: netCDF4._netCDF4.Dataset 
-        :param report: string reporting on issues
-        '''
-        profile_lat = ncf.variables['profile_lat']
-        profile_lon = ncf.variables['profile_lon']
-
-        lat = ncf.variables['lat']
-        lon = ncf.variables['lon']
-
-        if  ~np.isnan(profile_lat[:]) \
-            or ~np.isnan(profile_lon[:]):
-
-            ### Calculate how many standard deviations a value is above the mean
-            num_std_lat = np.abs((profile_lat[:] - np.mean(lat[:])) / np.std(lat[:]))
-            num_std_lon = np.abs((profile_lon[:] - np.mean(lon[:])) / np.std(lon[:]))
-
-            if num_std_lat > 3 or num_std_lon > 3:
-                log.info("Error in glider track lon and lat coordinates %s %s", profile_lat[:], profile_lon[:])
-                report += "Error in glider track lon and lat coordinates, "
-
-                ### Create new variables to store the data before it gets modified
-                new_lat_variable = self.copy_variable(ncf, profile_lat)
-                new_lon_variable = self.copy_variable(ncf, profile_lon)
-                           
-                ### Modify the data  
-                profile_lat.comment = f"Value is an estimate of the latitude at the statistical median of the profile"             
-                profile_lat.GDAC_comment = \
-                    f"The original value {str(profile_lat[:])} was replaced with the median value of the lat array because it is 3 standard deviations above the mean of the average lat array, classifying it as an outlier"  
-                profile_lat[:] = np.median(lat[:]) 
-
-                ### Modify the profile_lon data                                                     
-                profile_lon.comment = f"Value is an estimate of the longitude at the statistical median of the profile" 
-                profile_lon.GDAC_comment = \
-                    f"The original value {str(profile_lon[:])} was replaced with the median value of the lon array because it is 3 standard deviations above the mean of the average lon array, classifying it as an outlier"                                                                                           
-                profile_lon[:] = np.median(lon[:])
-
-        return report
-
-
     def check_time(self, ncfile, nc_path):
         '''
         Check the time array for data start time inconsistent with the deployment start time,
         invalid timestamps, duplicate timestamps, and non-ascending timestamps
-       
-        :param ncfile: netCDF4._netCDF4.Dataset 
-        :param nc_path string defining path to the netcdf file
+        :param ncfile: string defining the file data
         '''
 
         times = ncfile.variables['time']
@@ -445,25 +362,18 @@ def run_qc(config, ncfile, nc_path): #
     '''
     Runs IOOS QARTOD tests on a netCDF file
 
-    :param config: string defining path to the configuration file
-    :param nc_path: string defining path to the netcdf file
-    :param ncfile: netCDF4._netCDF4.Dataset
+    :param nc_path string defining path to the netcdf file
+    :param ncfile:
     '''
     xyz = GliderQC(ncfile, config)
-    
 
     timedata = ncfile.variables['time']
     time_units = timedata.units
 
-    
     # Check the Time Array
     report = xyz.check_time(ncfile, nc_path)
 
-
     if len(report) == 0:
-
-        # Check glider track coordinates
-        report = xyz.check_location(ncfile, report)
 
         # Loop through the legacy variables
         legacy_variables, note = xyz.find_geophysical_variables()
@@ -534,9 +444,8 @@ def run_qc(config, ncfile, nc_path): #
                 log.info("Updating %s", qartodname)
                 qartod_var = ncfile.variables[qartodname]
                 qartod_var[:] = np.array(qc_test.results)
-                qartod_var.qartod_test = f"{testname}"   
-                ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
-
+                qartod_var.qartod_test = repr(testname)
+                ncfile.variables[qartodname].qartod_config =  repr(testconfig)
         ncfile.dac_qc_comment = report
         # maybe unnecessary with calling context handler, but had some files
         # which had xattr set, but not updated with QC
