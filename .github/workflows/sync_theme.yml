@@ -48,4 +48,4 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@44c2b7a8a4ea60a981eaca3cf939b5f4305c123b # v4
-      - uses: gautamkrishnar/keepalive-workflow@24ba73b43d5ea8d2b3d56fb9b8de951ba9a3dd18 # 2.0.6
+      - uses: gautamkrishnar/keepalive-workflow@3eb47f21355191080dca0f7662d45c192d2ef64d # 2.0.7
