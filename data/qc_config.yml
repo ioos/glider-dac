@@ -11,9 +11,9 @@ contexts:
              rate_of_change_test:
                threshold: 0.1
              flat_line_test:
-               tolerance: 1
-               suspect_threshold: 3600
-               fail_threshold: 9000
+               tolerance: 0.001
+               suspect_threshold: 3000
+               fail_threshold: 5000
        temperature:
          qartod:
              gross_range_test:
@@ -25,9 +25,9 @@ contexts:
              rate_of_change_test:
                threshold: 0.1
              flat_line_test:
-               tolerance: 1
-               suspect_threshold: 3600
-               fail_threshold: 9000
+               tolerance: 0.001
+               suspect_threshold: 3000
+               fail_threshold: 5000
        pressure:
          qartod:
              gross_range_test:
@@ -39,9 +39,9 @@ contexts:
              rate_of_change_test:
                threshold: 0.1
              flat_line_test:
-               tolerance: 1
-               suspect_threshold: 3600
-               fail_threshold: 9000
+               tolerance: 0.001
+               suspect_threshold: 3000
+               fail_threshold: 5000
        salinity:
          qartod:
              gross_range_test:
@@ -53,9 +53,9 @@ contexts:
              rate_of_change_test:
                threshold: 0.1
              flat_line_test:
-               tolerance: 1
-               suspect_threshold: 3600
-               fail_threshold: 9000
+               tolerance: 0.001
+               suspect_threshold: 3000
+               fail_threshold: 5000
        density:
          qartod:
              gross_range_test:
@@ -66,74 +66,6 @@ contexts:
              rate_of_change_test:
                threshold: 0.1
              flat_line_test:
-               tolerance: 1
-               suspect_threshold: 3600
-               fail_threshold: 9000
-
-# sea_water_temperature: # deg_C
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - -5.
-#       - 45.
-#   spike: {}
-#   rate_of_change: {}
-# sea_water_electrical_conductivity: # S m-1
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - 0
-#       - 7
-#   spike: {}
-#   rate_of_change: {}
-# sea_water_practical_salinity: # unitless
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - 0
-#       - 50
-#   spike: {}
-#   rate_of_change: {}
-# sea_water_salinity: # unitless
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - 0
-#       - 50
-#   spike: {}
-#   rate_of_change: {}
-# sea_water_density: # kg m-3
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - 900
-#       - 1050
-#   spike: {}
-#   rate_of_change: {}
-# sea_water_pressure: # `
-#   flat_line:
-#     low_reps: 4
-#     high_reps: 8
-#     eps: 1.1920929e-07
-#   gross_range:
-#     sensor_span:
-#       - 0
-#       - 11000
-#   pressure: {}
-#   rate_of_change: {}
-#   spike: {}
+               tolerance: 0.001
+               suspect_threshold: 3000
+               fail_threshold: 5000
