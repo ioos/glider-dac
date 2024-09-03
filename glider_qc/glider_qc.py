@@ -325,7 +325,7 @@ class GliderQC(object):
         :param ncvariable: netCDF4.Variable
         :param flag: integer value 
         '''
-        ncvar_name = 'qartod_location_flag'       
+        ncvar_name = 'qartod_location_test_flag'
         ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int32(2))
         ncvar[:] = flag
         ncvar.units = '1'
