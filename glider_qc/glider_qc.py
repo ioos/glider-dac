@@ -323,7 +323,7 @@ class GliderQC(object):
         '''
         Create a location test variable for the lon and lat coordinates
         :param ncvariable: netCDF4.Variable
-        :param flag: integer value 
+        :param flag: integer value
         '''
         ncvar_name = 'qartod_location_test_flag'
         ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int32(2))
@@ -338,8 +338,8 @@ class GliderQC(object):
         ncvar.references = 'The GDAC uses a modified version of the location test described in https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
         ncvar.qartod_package = 'The GDAC location test does not use the algorithm from https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py (location_test) but instead relies on the statistical median of the lat/lon arrays'
         ncvar.dac_comment = 'The FAIL flag is applied if the profile_(lat,lon) value exceeds 3 standard deviations above the mean of the average lat/lon arrays'
-        ncvar.ioos_category = 'Quality' 
-        
+        ncvar.ioos_category = 'Quality'
+
         return ncvar
 
     def check_location(self, ncf, report):
@@ -347,26 +347,26 @@ class GliderQC(object):
         Check the glider track lon and lat coordinates for outliers.
         If an outlier is detected:
             - Copy the profile_lat/lon variables onto new variables to preserve the original data.
-            - Replace the profile_lat/lon data with the median of the lat or lon arrays.  
-        :param ncf: netCDF4._netCDF4.Dataset 
+            - Replace the profile_lat/lon data with the median of the lat or lon arrays.
+        :param ncf: netCDF4._netCDF4.Dataset
         :param report: string reporting on issues
         '''
-        profile_lat = ncf.variables['profile_lat']
-        profile_lon = ncf.variables['profile_lon']
+        profile_lat = ncf.variables['profile_lat'][0]
+        profile_lon = ncf.variables['profile_lon'][0]
 
         lat = ncf.variables['lat']
         lon = ncf.variables['lon']
 
-        if  ~np.isnan(profile_lat[:]) \
-            or ~np.isnan(profile_lon[:]):
+        if  ~(np.isnan(profile_lat) & np.ma.is_masked(profile_lat) &
+              np.isnan(profile_lon) & np.ma.is_masked(profile_lon)):
 
             ### Calculate how many standard deviations a value is above the mean
-            num_std_lat = np.abs((profile_lat[:] - np.mean(lat[:])) / np.std(lat[:]))
-            num_std_lon = np.abs((profile_lon[:] - np.mean(lon[:])) / np.std(lon[:]))
+            num_std_lat = np.abs((profile_lat - np.mean(lat[:])) / np.std(lat[:]))
+            num_std_lon = np.abs((profile_lon- np.mean(lon[:])) / np.std(lon[:]))
 
             if num_std_lat > 3 or num_std_lon > 3:
                 flag = 4 # FAIL
-                log.info("Error in the glider track lon and lat coordinates %s %s", profile_lat[:], profile_lon[:])
+                log.info("Error in the glider track lon and lat coordinates %s %s", profile_lat, profile_lon)
                 report += "Error in the glider track lat or lon coordinates, "
 
             else:
@@ -374,17 +374,17 @@ class GliderQC(object):
         else:
             flag = 9 # MISSING
             report += "Missing one or both of the glider track lat and lon coordinates, "
-        
+
         ### Create location test variable to store the test flag
-        ndim = profile_lat.dimensions 
+        ndim = ncf.variables["profile_lat"].dimensions
         location_flag_variable = self.create_location_flag_variable(ndim, flag)
-        
+
         # store location test variable under the ancillary_variables attribute
         profile_lat.ancillary_variables = location_flag_variable.name
         profile_lon.ancillary_variables = location_flag_variable.name
-                      
+
         return report
-    
+
     def check_time(self, ncfile, nc_path):
         '''
         Check the time array for data start time inconsistent with the deployment start time,
@@ -434,17 +434,18 @@ def run_qc(config, ncfile, nc_path):
     file_name = nc_path.split('/')[-1]
 
     xyz = GliderQC(ncfile, config)
-    
+
     timedata = ncfile.variables['time']
     time_units = timedata.units
- 
+
     # Check the Time Array
     report = xyz.check_time(ncfile, nc_path)
 
     if len(report) == 0:
 
         # Check glider track coordinates
-        report = xyz.check_location(ncfile, report)
+        if 'qartod_location_flag' not in ncfile.variables:
+            report = xyz.check_location(ncfile, report)
 
         # Loop through the legacy variables
         legacy_variables, note = xyz.find_geophysical_variables()
@@ -515,7 +516,7 @@ def run_qc(config, ncfile, nc_path):
                 log.info("Updating %s", qartodname)
                 qartod_var = ncfile.variables[qartodname]
                 qartod_var[:] = np.array(qc_test.results)
-                qartod_var.qartod_test = f"{testname}"   
+                qartod_var.qartod_test = f"{testname}"
                 ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
 
         ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
