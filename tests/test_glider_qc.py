@@ -105,7 +105,7 @@ class TestGliderQC(TestCase):
         tempvar.standard_name = 'sea_water_temperature'
         tempvar.units = 'deg_F'
         tempvar[np.array([0, 1, 2, 3, 4, 6, 7, 8])] = np.array([71, 72, 72.0001, 72, 72.0001, 72.0001, 72, 74])
-        
+
         qc = GliderQC(fake_file, 'data/qc_config.yml')
         with open('data/qc_config.yml') as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
