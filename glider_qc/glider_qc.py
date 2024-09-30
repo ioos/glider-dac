@@ -500,7 +500,11 @@ def run_qc(config, ncfile, nc_path):
                              'flat_line_test',
                              'qc_rollup']:
 
-                qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
+                try:
+                    qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
+                except Exception as e:
+                    log.exception("Encountered error while attempting to run test '{testname}':")
+                    continue
 
                 # create the qartod variable name and get the config specs
                 if testname == 'qc_rollup':
