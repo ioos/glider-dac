@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import aiohttp
+import aiofiles
 import argparse
 import async_timeout
 import asyncio
@@ -128,6 +129,8 @@ async def retrieve_data(where, deployment, sem, proto='http'):
     log.info("Host Arg %s", url)
 
     fail_counter = 5
+    chunk_size_bytes = 16 * 1024
+    tmp_path = f"{path_arg}.tmp"
     # try to release semaphore before attempting to get the response
     async with sem:
         try:
@@ -137,25 +140,22 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                         # This causes timeouts even when the max simultaneous connection
                         # lock isn't released
                         async with session.get(url) as response:
-                            with open(path_arg + '.tmp', 'wb') as f_handle:
-                                while True:
-                                    chunk = await response.content.read(1024)
-                                    if not chunk:
-                                        break
-                                    f_handle.write(chunk)
+                            async with aiofiles.open(tmp_path, mode="wb") as f:
+                                async for data in response.content.iter_chunked(chunk_size_bytes):
+                                    await f.write(data)
                             try:
                                 log.info(os.stat(path_arg + '.tmp'))
                                 # sanity check to ensure netCDF file is valid
-                                with Dataset(path_arg + '.tmp') as d:
+                                with Dataset(tmp_path) as d:
                                     pass
                             except Exception:
                                 log.exception("Exception while attempting to open NetCDF dataset {}".format(path_arg + '.tmp'))
-                                os.unlink(path_arg + '.tmp')
+                                os.unlink(tmp_path)
                             else:
-                                shutil.move(path_arg + '.tmp', path_arg)
+                                shutil.move(tmp_path, path_arg)
 
                                 # if the download succeeded and file isn't corrupt, replace the previous file
-                                log.info(("moved file {}".format(path_arg + '.tmp')))
+                                log.info(("moved file {}".format(tmp_path)))
                             return await response.release()
                     except Exception as e:
                         fail_counter -= 1
