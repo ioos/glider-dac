@@ -482,8 +482,8 @@ def run_qc(config, ncfile, nc_path):
                 values = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
             except:
                 log.exception("cf_units Problem Normalizing %s %s %s",  var_data.name, var_data.units, var_data.standard_name)
-                repot += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
-                raise
+                report += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
+                continue
 
             # Create the QARTOD variables
             qcvarname = xyz.create_qc_variables(var_data)
