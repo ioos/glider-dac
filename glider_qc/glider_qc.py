@@ -444,7 +444,7 @@ def run_qc(config, ncfile, nc_path):
     if len(report) == 0:
 
         # Check glider track coordinates
-        if 'qartod_location_flag' not in ncfile.variables:
+        if 'qartod_location_test_flag' not in ncfile.variables:
             try:
                 report = xyz.check_location(ncfile, report)
             except Exception as e:
