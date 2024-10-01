@@ -538,7 +538,7 @@ def qc_task(nc_path, config):
     if not lock.acquire():
         raise ProcessError("File lock already acquired by another process")
     # Repeat xattr check.  Consider removing when inotify loop conditions
-    # where file is repeteadly picked are addressed.
+    # where file is repeatedly picked are addressed.
     try:
         if os.getxattr(nc_path, "user.qc_run"):
             return False
