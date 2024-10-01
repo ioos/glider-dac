@@ -445,7 +445,10 @@ def run_qc(config, ncfile, nc_path):
 
         # Check glider track coordinates
         if 'qartod_location_flag' not in ncfile.variables:
-            report = xyz.check_location(ncfile, report)
+            try:
+                report = xyz.check_location(ncfile, report)
+            except Exception as e:
+                log.exception("Could not run location test:")
 
         # Loop through the legacy variables
         legacy_variables, note = xyz.find_geophysical_variables()
