@@ -444,8 +444,11 @@ def run_qc(config, ncfile, nc_path):
     if len(report) == 0:
 
         # Check glider track coordinates
-        if 'qartod_location_flag' not in ncfile.variables:
-            report = xyz.check_location(ncfile, report)
+        if 'qartod_location_test_flag' not in ncfile.variables:
+            try:
+                report = xyz.check_location(ncfile, report)
+            except Exception as e:
+                log.exception("Could not run location test:")
 
         # Loop through the legacy variables
         legacy_variables, note = xyz.find_geophysical_variables()
@@ -479,8 +482,8 @@ def run_qc(config, ncfile, nc_path):
                 values = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
             except:
                 log.exception("cf_units Problem Normalizing %s %s %s",  var_data.name, var_data.units, var_data.standard_name)
-                repot += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
-                raise
+                report += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
+                continue
 
             # Create the QARTOD variables
             qcvarname = xyz.create_qc_variables(var_data)
@@ -539,7 +542,7 @@ def qc_task(nc_path, config):
     if not lock.acquire():
         raise ProcessError("File lock already acquired by another process")
     # Repeat xattr check.  Consider removing when inotify loop conditions
-    # where file is repeteadly picked are addressed.
+    # where file is repeatedly picked are addressed.
     try:
         if os.getxattr(nc_path, "user.qc_run"):
             return False
