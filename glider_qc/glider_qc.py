@@ -439,7 +439,12 @@ def run_qc(config, ncfile, nc_path):
     time_units = timedata.units
 
     # Check the Time Array
-    report = xyz.check_time(ncfile, nc_path)
+    try:
+        report = xyz.check_time(ncfile, nc_path)
+    except:
+        time_err = "Could not check times"
+        log.exception(f"{time_err}: ")
+        report = "{time_err}"
 
     if len(report) == 0:
 
@@ -527,9 +532,6 @@ def run_qc(config, ncfile, nc_path):
                 ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
 
         ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
-        # maybe unnecessary with calling context handler, but had some files
-        # which had xattr set, but not updated with QC
-        ncfile.sync()
 
 def qc_task(nc_path, config):
     '''
@@ -552,8 +554,14 @@ def qc_task(nc_path, config):
         with Dataset(nc_path, 'r+') as nc:
             run_qc(config, nc, nc_path)
         os.setxattr(nc_path, "user.qc_run", b"true")
+    # set user_qc xattr to error to prevent continuous inotify looping on
+    # partially modified netCDF files
     except OSError:
         log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
+    except:
+        log.exception("Other unhandled error occurred during QC:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
     finally:
         lock.release()
 
