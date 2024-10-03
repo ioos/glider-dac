@@ -554,8 +554,14 @@ def qc_task(nc_path, config):
         with Dataset(nc_path, 'r+') as nc:
             run_qc(config, nc, nc_path)
         os.setxattr(nc_path, "user.qc_run", b"true")
+    # set user_qc xattr to error to prevent continuous inotify looping on
+    # partially modified netCDF files
     except OSError:
         log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
+    except:
+        log.exception("Other unhandled error occurred during QC:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
     finally:
         lock.release()
 
