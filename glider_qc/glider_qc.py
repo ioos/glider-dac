@@ -439,7 +439,12 @@ def run_qc(config, ncfile, nc_path):
     time_units = timedata.units
 
     # Check the Time Array
-    report = xyz.check_time(ncfile, nc_path)
+    try:
+        report = xyz.check_time(ncfile, nc_path)
+    except:
+        time_err = "Could not check times"
+        log.exception(f"{time_err}: ")
+        report = "{time_err}"
 
     if len(report) == 0:
 
