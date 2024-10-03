@@ -532,9 +532,6 @@ def run_qc(config, ncfile, nc_path):
                 ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
 
         ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
-        # maybe unnecessary with calling context handler, but had some files
-        # which had xattr set, but not updated with QC
-        ncfile.sync()
 
 def qc_task(nc_path, config):
     '''
