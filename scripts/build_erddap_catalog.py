@@ -634,7 +634,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                 'standard_name': 'location_test_quality_flag'
             },
         }
-    
+
     existing_varnames = {'trajectory', 'wmo_id', 'platform', 'instrument_ctd',
                          'profile_id', 'profile_time', 'profile_lat', 'profile_lon',
                          'time', 'depth', 'lat', 'lon',
@@ -643,7 +643,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
 
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
-    
+
     with Dataset(nc_file, 'r') as ds:
 
         qartod_var_type = check_for_qartod_vars(ds)
@@ -714,7 +714,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                         </addAttributes>
                     </dataset>
                 """)
-                
+
             for var in variable_order:
                 tree.append(var)
             for identifier, mod_attrs in extra_atts.items():
@@ -729,10 +729,10 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
 
     var_list = []
     for req_var, template in list(required_qartod_vars.items()):
-        
+
         # If the required QARTOD variable isn't already defined,
         # then supply a set of default attributes.
-       
+
         if req_var in qartod_var_type['qartod']:
             continue
         else:
@@ -747,24 +747,24 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
                     <att name="valid_min" type="byte">1</att>
                     <att name="valid_max" type="byte">9</att>
                     """
-     
+
         qartod_snip = f"""
             <dataVariable>
                 <sourceName>{req_var}</sourceName>
                 <destinationName>{req_var}</destinationName>
                 <dataType>byte</dataType>
-                <addAttributes> 
+                <addAttributes>
                     <att name="long_name">{template['long_name']}</att>
                     <att name="standard_name"> {template['standard_name']} </att>
                     {flag_atts}
                 </addAttributes>
             </dataVariable>
             """
-        
+
         var_list.append(etree.fromstring(qartod_snip))
 
     return var_list
-    
+
 
 def add_erddap_var_elem(var):
     """
