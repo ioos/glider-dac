@@ -34,8 +34,7 @@ class GliderQC(object):
     def needs_qc(self, ncvariable):
         '''
         Returns True if the variable has no associated QC variables
-
-        :ncvariable: netCDF4.Variable
+        :param ncvariable: netCDF4.Variable
         '''
         ancillary_variables = self.find_qc_flags(ncvariable)
         log.info("Need QC: %s",len(ancillary_variables) == 0)
@@ -45,33 +44,37 @@ class GliderQC(object):
     def find_qc_flags(self, ncvariable):
         '''
         Returns a list of QARTOD flags associated with a variable
-
-        :ncvariable: netCDF4.Variable
+        :param ncvariable: netCDF4.Variable
         '''
         valid_variables = []
         try:
             ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
+            log.info("%s is missing the ancillary_variables attribute", ncvariable.name)
         except:
             return []
 
         if isinstance(ancillary_variables, str) and len(ancillary_variables) > 0 and ancillary_variables !=  ' ':
             ancillary_variables = ancillary_variables.split(' ')
         else:
-            log.info('ancillary_variables is empty or contains an empty string')
+            log.info("%s ancillary_variables is not a string, is empty, or contains an empty string", ncvariable.name)
             return []
 
-        for varname in ancillary_variables:
-            if varname not in self.ncfile.variables:
-                log.warning("%s defined as ancillary variable but doesn't exist", varname)
-
-            if varname.startswith("qartod"):
-                valid_variables.append(varname)
+        for varname in ancillary_variables:           
+            if varname.startswith('qartod'):
+                if varname not in self.ncfile.variables:
+                    log.warning("%s ancillary_variables %s doesn't exist in the file", ncvariable.name, varname)
+                    # modify the ncvariable.ancillary_variables to an empty attribute
+                    ncvariable.ancillary_variables = ''
+                    return []
+                else:
+                    valid_variables.append(varname)         
 
         return valid_variables
 
     def create_qc_variables(self, ncvariable):
         '''
         Returns a list of variable names for the newly created variables for QC flags
+        :param ncvariable: netCDF4.Variable
         '''
         name = ncvariable.name
         standard_name = ncvariable.standard_name
@@ -125,7 +128,7 @@ class GliderQC(object):
             ncvar.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
             ncvar.references = 'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf '
             ncvar.qartod_package = 'https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py'
-            ncvar.dac_comment = 'ioos_qartod'
+            ncvar.dac_comment = 'QARTOD TESTS RUN'
             ncvar.ioos_category = 'Quality'
 
             qcvariables.append(variable_name)
@@ -136,6 +139,7 @@ class GliderQC(object):
     def load_config(self, path):
         '''
         Loads a yaml file configuration for QC
+        :param
         '''
         path = path or '/data/qc_config.yml'
         log.info("Loading config from %s", path)
@@ -146,8 +150,7 @@ class GliderQC(object):
         '''
         Returns a list of variable names matching the geophysical variable's
         standard names for temperature, conductivity, density and salinity.
-        '''
-
+        '''       
         valid_standard_names = [
             'sea_water_temperature',
             'sea_water_electrical_conductivity',
@@ -166,12 +169,15 @@ class GliderQC(object):
                 for nn in range(len(ncvar)):
                     var_name.append(ncvar[nn].name)
                 log.info("QC skipped for %s: more variables (%s) share the same standard name", standard_name, var_name)
-                note += 'QC skipped for' + standard_name + ': the same standard name is shared by ' + ' '.join(var_name) + ', '
+                note = 'QC skipped: ' + standard_name + ' shared by ' + ', '.join(var_name)
 
         return variables, note
 
     def get_unmasked(self, ndata):
-
+        '''
+        Returns unmasked values.
+        :param ndata: netCDF4.Variable
+        '''
         xdata = ndata[:]
         mask = np.zeros(xdata.shape[0], dtype=bool)
 
@@ -182,20 +188,42 @@ class GliderQC(object):
 
         return vdata
 
-    def get_rate_of_change_threshold(self, values, times, time_units='seconds since 1970-01-01T00:00:00Z'):
+    # def get_rate_of_change_threshold(self, values, times, time_units='seconds since 1970-01-01T00:00:00Z'):
+    #     '''
+    #     Return the threshold used for the rate of change test
+
+    #     :param values: numpy array of values
+    #     :param times: numpy array of times
+    #     :param time_units: string defining time units
+    #     '''
+    #     n_dev = 3   # Set to 3 standard deviations
+    #     std = np.nanstd(values)
+    #     thresh = n_dev * std
+    #     thresh_rate = thresh / np.median(np.diff(times))
+
+    #     return thresh_rate
+
+    def get_rate_of_change_threshold(self, values, times):
         '''
         Return the threshold used for the rate of change test
-
         :param values: numpy array of values
         :param times: numpy array of times
-        :param time_units: string defining time units
         '''
-        n_dev = 3   # Set to 3 standard deviations
         std = np.nanstd(values)
-        thresh = n_dev * std
-        thresh_rate = thresh / np.median(np.diff(times))
-
-        return thresh_rate
+        mean = np.nanmean(values)
+        
+        list_values = []
+        list_times = []
+        for nn, xx in enumerate(values):
+            if (xx > (mean - std)) and (xx < (mean+std)):
+                list_values.append(values[nn])
+                list_times.append(times[nn])
+    
+        roc = np.abs(
+        np.diff(list_values) / np.diff(list_times).astype("timedelta64[s]").astype(float))       
+        threshold = np.max(roc)
+        
+        return threshold
 
     def get_spike_thresholds(self, values):
         '''
@@ -214,6 +242,9 @@ class GliderQC(object):
         Returns an array of values that are converted into a standard set of
         units. The motivation behind this is so that we compare values of the
         same units when performing QC.
+        :param values: numpy array of values
+        :param units: string defining units
+        :param standard_name: string defining the variable's CF compliant name
         '''
         mapping = {
             'sea_water_temperature': 'deg_C',
@@ -235,9 +266,8 @@ class GliderQC(object):
     def append_ancillary_variable(self, parent, child):
         '''
         Links two variables through the ancillary_variables attribute
-
-        :param netCDF.Variable parent: Parent Variable
-        :param netCDF.Variable child: Status Flag Variable
+        :param parent: netCDF.Variable (Parent Variable)
+        :param child: netCDF.Variable (Status Flag Variable)
         '''
         # Case when ancillary_variables is not an attribute of the parent variable
         try:
@@ -258,13 +288,12 @@ class GliderQC(object):
          Update the input config file with specs values for the spike
          and the gross range test methods
 
-        :param varspec: Input dictionary with variable config specs for QARTOD tests
+        :param varspec: dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
         :param times: numpy array of times
         :param values: numpy array of values
         :param time_units: string defining time units
         '''
-
         # Calculate the spike test threshold
         suspect_threshold, fail_threshold = self.get_spike_thresholds(values)
         # replace the threshold values in the config file
@@ -272,7 +301,7 @@ class GliderQC(object):
         varspec['spike_test']['fail_threshold'] = np.float64(fail_threshold)
 
         # Calculate the rate of change test threshold
-        threshold = self.get_rate_of_change_threshold(values, times, time_units)
+        threshold = self.get_rate_of_change_threshold(values, times)
         # replace the threshold values in the config file
         varspec['rate_of_change_test']['threshold'] = np.float64(threshold)
 
@@ -285,12 +314,10 @@ class GliderQC(object):
         '''
         Pass configuration and netcdf file to ioos_qc to generate
         qc test results for a variable
-
         :param nc_path: string defining path to the netcdf file
         :param varname: string defining the variable name
         :param configset: dictionary with variable config specs for each QARTOD tests
         '''
-
         # Read the variable configuration specifications
         c_x = Config(configset)
 
@@ -322,14 +349,14 @@ class GliderQC(object):
     def create_location_flag_variable(self, ndim, flag):
         '''
         Create a location test variable for the lon and lat coordinates
-        :param ncvariable: netCDF4.Variable
+        :param ndim: netCDF variables dimensions
         :param flag: integer value
         '''
         ncvar_name = 'qartod_location_test_flag'
         ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int32(2))
         ncvar[:] = flag
         ncvar.units = '1'
-        ncvar.standard_name = 'location_quality_flag'
+        ncvar.standard_name = 'location_test_quality_flag'
         ncvar.long_name = 'QARTOD Location Flag for the profile_(lat,lon) variables'
         ncvar.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
         ncvar.valid_min = np.int8(1)
@@ -349,7 +376,7 @@ class GliderQC(object):
             - Copy the profile_lat/lon variables onto new variables to preserve the original data.
             - Replace the profile_lat/lon data with the median of the lat or lon arrays.
         :param ncf: netCDF4._netCDF4.Dataset
-        :param report: string reporting on issues
+        :param report: string statement reporting on issues
         '''
         profile_lat = ncf.variables['profile_lat'][0]
         profile_lon = ncf.variables['profile_lon'][0]
@@ -367,13 +394,13 @@ class GliderQC(object):
             if num_std_lat > 3 or num_std_lon > 3:
                 flag = 4 # FAIL
                 log.info("Error in the glider track lon and lat coordinates %s %s", profile_lat, profile_lon)
-                report += "Error in the glider track lat or lon coordinates, "
+                report += "| Error in the glider track lat or lon coordinates"
 
             else:
                 flag = 1 # PASS
         else:
             flag = 9 # MISSING
-            report += "Missing one or both of the glider track lat and lon coordinates, "
+            report += "| Missing one or both of the glider track lat and lon coordinates"
 
         ### Create location test variable to store the test flag
         ndim = ncf.variables["profile_lat"].dimensions
@@ -389,37 +416,40 @@ class GliderQC(object):
         '''
         Check the time array for data start time inconsistent with the deployment start time,
         invalid timestamps, duplicate timestamps, and non-ascending timestamps
-        :param ncfile: string defining the file data
+        :param ncfile: netCDF4._netCDF4.Dataset
+        :param nc_path: string defining path to the netcdf file
         '''
-
         times = ncfile.variables['time']
         timedata = self.get_unmasked(times)
-
-        deployment_time = nc_path.split('/')[-2].split('-')[-1]
-
+        deployment_time = nc_path.split('/')[-2].split('-')[-1]      
         report = ''
+        
         try:
             start_time = datetime.datetime.strptime(deployment_time, '%Y%m%dT%H%M').timestamp()
             if start_time > timedata[:][0]:
                 log.info("Start time starts before deployment time")
-                report += "Start time starts before deployment time, "
+                report += "| Start time starts before deployment time"
         except:
             log.info("Missing Deployment Start time")
-            report += "Missing Deployment Start time, "
+            report += "| Missing deployment start time"
             start_time = timedata[:][0]
 
+        if times.dtype == "timedelta64[ns]":
+            log.info("timestamps are in nanoseconds")
+            report += "| Invalid timestamps: unit in nanoseconds"
+            
         if np.any(timedata[:] == 0):
             log.info("Invalid timestamps (t == 0)")
-            report += "Invalid timestamps (t == 0), "
+            report += "| Invalid timestamps (t == 0)"
 
         if len(timedata[:]) != len(set(timedata[:])):
             log.info("Duplicate timestamps")
-            report += "Duplicate timestamps, "
+            report += "| Duplicate timestamps"
 
         a = np.where(timedata[:-1] - timedata[1:] > 0)
         if len(a[0]) != 0:
             log.info("Not in Ascending Order")
-            report += "Not in Ascending Order, "
+            report += "| Not in Ascending Order"
 
         return report
 
@@ -431,12 +461,7 @@ def run_qc(config, ncfile, nc_path):
     :param nc_path: string defining path to the netCDF file
     :param ncfile: netCDF4._netCDF4.Dataset
     '''
-    file_name = nc_path.split('/')[-1]
-
     xyz = GliderQC(ncfile, config)
-
-    timedata = ncfile.variables['time']
-    time_units = timedata.units
 
     # Check the Time Array
     try:
@@ -444,99 +469,123 @@ def run_qc(config, ncfile, nc_path):
     except:
         time_err = "Could not check times"
         log.exception(f"{time_err}: ")
-        report = "{time_err}"
+        report = f"{time_err}"
 
     if len(report) == 0:
-
+        file_name = nc_path.split('/')[-1]
+        log.info(" Running IOOS QARTOD tests on %s", file_name)
+        
         # Check glider track coordinates
         if 'qartod_location_test_flag' not in ncfile.variables:
             try:
                 report = xyz.check_location(ncfile, report)
             except Exception as e:
-                log.exception("Could not run location test:")
-
-        # Loop through the legacy variables
+                location_err = "Could not run location test"
+                log.exception(f"{location_err}: ")
+                report = f"{location_err}"
+                
+        # Find geophysical variables
         legacy_variables, note = xyz.find_geophysical_variables()
-
-        # Report legacy variables issues
-        if len(note) != 0:
-            report += note
-
-        # Apply QC to legacy variable
-        for var_name in legacy_variables:
-            var_data = ncfile.variables[var_name]
-
-            # Check the Data Array
-            if len(np.unique(var_data)) == 1:
-                if np.ma.isMaskedArray(np.unique(var_data)) | np.isnan(np.unique(var_data)):
-                    log.info("%s : The array is nans %s", var_name, np.unique(var_data))
-                    text_n = 'Skipped QC: ' + var_name + ' is an array of nans'
-                    report += text_n
-                    continue
-
-                if np.unique(var_data) == var_data._FillValue:
-                    log.info("%s : The array is FillValues %s", var_name, np.unique(var_data))
-                    text_n = 'Skipped QC: ' + var_name + ' is an array of FillValues'
-                    report += text_n
-                    continue
-
-            values = xyz.get_unmasked(var_data)
-            times = xyz.get_unmasked(timedata)
-
-            try:
-                values = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
-            except:
-                log.exception("cf_units Problem Normalizing %s %s %s",  var_data.name, var_data.units, var_data.standard_name)
-                report += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
-                continue
-
-            # Create the QARTOD variables
-            qcvarname = xyz.create_qc_variables(var_data)
-            log.info("Created %s QC Variables for %s", str(len(qcvarname)), var_name)
-
-            # UPDATE VARIABLE CONFIG SET
-            var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
-            config_set = xyz.update_config(var_spec, var_name, times, values, time_units)
-
-            # GET the QC RESULTS
-            results = xyz.apply_qc(nc_path, var_name, config_set)
-            log.info("Generated QC test results for %s", var_name)
-
-            for testname in ['gross_range_test',
-                             'spike_test',
-                             'rate_of_change_test',
-                             'flat_line_test',
-                             'qc_rollup']:
-
+        if len(legacy_variables) == 0:
+            variables_err = "No geophysical variables found"
+            log.info(f"{variables_err}") 
+            report += f"{variables_err}"
+        else:    
+            
+            log.info("Found %s geophysical variables for QC: %s", str(len(legacy_variables)), legacy_variables)
+            
+            # Report legacy variables issues
+            if len(note) != 0:
+                report += note
+    
+            # Loop through the legacy variables and apply QC
+            for var_name in legacy_variables:
+                var_data = ncfile.variables[var_name]
+    
+                # Check the Data Array
+                if var_data.valid_min > var_data.valid_max:
+                    log.info("%s : valid_min %s and valid_max %s are switched", var_name, var_data.valid_min, var_data.valid_max)
+                        text_n = '| Skipped QC: ' + var_name + ' has the valid_min and the valid_max switched'
+                        report += text_n
+                        continue
+                    
+                if len(np.unique(var_data)) == 1:
+                    if np.ma.isMaskedArray(np.unique(var_data)) | np.isnan(np.unique(var_data)):
+                        log.info("%s : The array is nans %s", var_name, np.unique(var_data))
+                        text_n = '| Skipped QC: ' + var_name + ' is an array of nans'
+                        report += text_n
+                        continue
+    
+                    if np.unique(var_data) == var_data._FillValue:
+                        log.info("%s : The array is FillValues %s", var_name, np.unique(var_data))
+                        text_n = '| Skipped QC: ' + var_name + ' is an array of fill values'
+                        report += text_n
+                        continue
+    
+                timedata = ncfile.variables['time']
+                values = xyz.get_unmasked(var_data)
+                times = xyz.get_unmasked(timedata)
+    
                 try:
-                    qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
-                except Exception as e:
-                    log.exception("Encountered error while attempting to run test '{testname}':")
+                    values = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
+                except:
+                    log.exception("Invalid Unit Conversion %s %s %s",  var_data.name, var_data.units, var_data.standard_name)
+                    text_n = '| Skipped QC: Ivalid units convertion' + ', '.join([var_data.name , var_data.units, var_data.standard_name])
+                    report += text_n
                     continue
-
-                # create the qartod variable name and get the config specs
-                if testname == 'qc_rollup':
-                    qartodname = 'qartod_'+ var_name + '_primary_flag'
-                    # Pass the config specs to a variable
-                    testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
-                else:
-                    qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag'
-                    # Pass the config specs to a variable
-                    testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
-
-                # Update the qartod variable
-                log.info("Updating %s", qartodname)
-                qartod_var = ncfile.variables[qartodname]
-                qartod_var[:] = np.array(qc_test.results)
-                qartod_var.qartod_test = f"{testname}"
-                ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
-
+    
+                # Create the QARTOD variables
+                qcvarname = xyz.create_qc_variables(var_data)
+                log.info("Created %s QC Variables for %s", str(len(qcvarname)), var_name)
+    
+                # Update variable config set
+                var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
+                config_set = xyz.update_config(var_spec, var_name, times, values, timedata.units)
+    
+                # Get the QC results
+                results = xyz.apply_qc(nc_path, var_name, config_set)
+                log.info("Generated QC test results for %s", var_name)
+    
+                for testname in ['gross_range_test',
+                                 'spike_test',
+                                 'rate_of_change_test',
+                                 'flat_line_test',
+                                 'qc_rollup']:
+    
+                    try:
+                        qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
+                    except Exception as e:
+                        log.exception("Encountered error while attempting to run test '{testname}':")
+                        text_n = '| Skipped QC: Encountered errors while attempting to run ' + testname
+                        report += text_n
+                        continue
+    
+                    # create the qartod variable name and get the config specs
+                    if testname == 'qc_rollup':
+                        qartodname = 'qartod_'+ var_name + '_primary_flag'
+                        # Pass the config specs to a variable
+                        testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
+                    else:
+                        qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag'
+                        # Pass the config specs to a variable
+                        testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
+    
+                    # Update the qartod variable
+                    log.info("Updating %s", qartodname)
+                    qartod_var = ncfile.variables[qartodname]
+                    qartod_var[:] = np.array(qc_test.results)
+                    qartod_var.qartod_test = f"{testname}"
+                    ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
+        
+        # report issues with geophysical variables
+        ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
+    else:
+        # report issues with time array
         ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
 
 def qc_task(nc_path, config):
     '''
     Job wrapper around performing QC
-
     :param nc_path: string defining path to the netcdf file
     :param config: string defining path to the configuration file
     '''
@@ -568,8 +617,7 @@ def qc_task(nc_path, config):
 def lock_file(path):
     '''
     Acquires a file lock or raises an exception
-
-    :param nc_path string defining path to the netcdf file
+    :param path string defining path to the netcdf file
     '''
     rc = get_redis_connection()
     digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
@@ -597,7 +645,6 @@ def get_redis_connection():
 def check_needs_qc(nc_path):
     '''
     Returns True if the netCDF file needs GliderQC
-
     param nc_path: string defining path to the netcdf file
     '''
     # quick check to see if QC has already been run on these files
