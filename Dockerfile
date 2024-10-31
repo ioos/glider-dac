@@ -26,6 +26,8 @@ RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
+# fetch newest standard name table at build time
+RUN bash -c "/usr/local/bin/cchecker.py -d latest /dev/null 2> /dev/null || true"
 
 EXPOSE 5000
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
