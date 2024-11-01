@@ -204,13 +204,6 @@ class Deployment(Document):
 
         # generate md5s of all data files on completion
         if self.completed:
-            for dirpath, dirnames, filenames in os.walk(self.full_path):
-                for f in filenames:
-                    if (f in ["deployment.json", "wmoid.txt", "completed.txt"]
-                        or f.endswith(".md5") or not f.endswith('.nc')):
-                        continue
-
-                    full_file = os.path.join(dirpath, f)
             # schedule the checker job to kick off the compliance checker email
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
