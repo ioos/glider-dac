@@ -8,11 +8,10 @@ RUN apt-get update && \
           useradd -u $glider_gid_uid -g $glider_gid_uid glider
 COPY . /glider-dac
 # TODO: move logs elsewhere
-VOLUME /glider-dac/logs/ /data
+VOLUME /glider-dac/logs/ /data /usr/local/lib/python3.8/site-packages/compliance_checker/data
 WORKDIR /glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
-VOLUME /usr/local/lib/python3.8/site-packages/compliance_checker/data/cf-standard-name-table.xml
 RUN pip install -U pip && \
     pip install --no-cache Cython thredds_crawler numpy==1.19.5 pytest && \
     pip install --no-cache -r requirements.txt && \
@@ -23,7 +22,7 @@ RUN pip install -U pip && \
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag berkeleydb \
              /data/catalog/priv_erddap && \
-    chown -R glider:glider /glider-dac /data && \
+    chown -R glider:glider /glider-dac /data /usr/local/lib/python3.8/site-packages/compliance_checker/data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
