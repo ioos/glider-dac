@@ -209,7 +209,7 @@ class Deployment(Document):
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
             # if compliance check failed or has not yet been run, go ahead to next section
-            if not getattr(self, "compliance_check_passed", None):
+            if getattr(self, "compliance_check_passed", None) is None:
                 app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))
                 queue.enqueue(glider_deployment_check,
