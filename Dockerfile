@@ -12,6 +12,7 @@ VOLUME /glider-dac/logs/ /data
 WORKDIR /glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
+VOLUME /usr/local/lib/python3.8/site-packages/compliance_checker/data/cf-standard-name-table.xml
 RUN pip install -U pip && \
     pip install --no-cache Cython thredds_crawler numpy==1.19.5 pytest && \
     pip install --no-cache -r requirements.txt && \
@@ -26,7 +27,6 @@ RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
-VOLUME /usr/local/lib/python3.8/site-packages/compliance_checker/data/cf-standard-name-table.xml
 
 EXPOSE 5000
 CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
