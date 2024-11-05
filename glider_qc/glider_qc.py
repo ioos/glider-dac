@@ -572,9 +572,8 @@ def lock_file(path):
     :param nc_path string defining path to the netcdf file
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
-    key = 'gliderdac:%s' % digest
-    lock = rc.lock(key, blocking_timeout=60)
+    key = f"gliderdac:{path}"
+    lock = rc.lock(key, blocking_timeout=0)
     return lock
 
 def get_redis_connection():

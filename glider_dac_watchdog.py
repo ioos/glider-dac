@@ -119,6 +119,9 @@ class HandleDeploymentDB(FileSystemEventHandler):
                         file_path = event.dest_path
                     # TODO: DRY/refactor with batch QARTOD job?
                     try:
+                        if self.queue.connection.exists(f"gliderdac:{file_path}"):
+                            app.logger.info(f"File {file_path} already has lock in Redis")
+                            return
                         if glider_qc.check_needs_qc(file_path):
                             app.logger.info("Enqueueing QARTOD job for file %s",
                                             file_path)
@@ -128,7 +131,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                                                    os.path.realpath(__file__)
                                                  ), "data/qc_config.yml"))
                         else:
-                            app.logger.info("File %s already has QC", file_path)
+                            app.logger.info(f"File {file_path} already has QC")
                     except OSError:
                         app.logger.exception("Exception occurred while "
                                              "attempting to inspect file %s "
@@ -136,9 +139,8 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
     def touch_erddap(self, deployment_name):
         '''
-        Creates a flag file for erddap's file monitoring thread so that it reloads
+        Creates a flag file for ERDDAP's file monitoring thread so that it reloads
         the dataset
-
         '''
         full_path = os.path.join(self.flagsdir, deployment_name)
         app.logger.info("Touching ERDDAP flag file at {}".format(full_path))

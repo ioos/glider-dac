@@ -97,10 +97,14 @@ def process(file_paths, config, sync=False):
 
             glider_qc.log.info("Applying QC to dataset %s", nc_path)
 
-            if sync:
-                glider_qc.qc_task(nc_path, config)
+            # TODO: DRY WRT glider_dac_watchdog.py
+            if not queue.connection.exists(f"gliderdac:{nc_path}"):
+                if sync:
+                    glider_qc.qc_task(nc_path, config)
+                else:
+                    queue.enqueue(glider_qc.qc_task, nc_path, config)
             else:
-                queue.enqueue(glider_qc.qc_task, nc_path, config)
+                glider_qc.log.info(f"File {nc_path} already has Redis lock, skipping")
 
         except Exception:
             glider_qc.log.exception("Failed to check %s for QC", nc_path)
