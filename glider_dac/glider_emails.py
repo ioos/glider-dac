@@ -173,14 +173,18 @@ def process_deployment(dep):
                          erddap_fmt_string.format(dep["name"])])
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
-    failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
-                                  checker_names=['gliderdac'], verbose=True,
-                                  criteria='lenient', output_format='json',
-                                  output_filename=outfile)
-    with open(outfile, 'r') as f:
-        errs = json.load(f)["gliderdac"]
+    try:
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                      checker_names=['gliderdac'], verbose=True,
+                                      criteria='lenient', output_format='json',
+                                      output_filename=outfile)
+        with open(outfile, 'r') as f:
+            errs = json.load(f)["gliderdac"]
 
-    compliance_passed = errs['scored_points'] == errs['possible_points']
+        compliance_passed = errs['scored_points'] == errs['possible_points']
+    except OSError:
+        logger.exception("Potentially failed to open netCDF file:")
+        compliance_passed = False
 
     update_fields = {"compliance_check_passed": compliance_passed}
     standard_name_errs = []
