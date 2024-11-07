@@ -629,7 +629,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                 'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
                 'standard_name': 'spike_test_quality_flag'
             },
-            'qartod_location_flag': {
+            'qartod_location_test_flag': {
                 'long_name': 'QARTOD Location Test for longitude and latitude',
                 'standard_name': 'location_test_quality_flag'
             },
