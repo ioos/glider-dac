@@ -183,7 +183,7 @@ def process_deployment(dep):
 
         compliance_passed = errs['scored_points'] == errs['possible_points']
     except OSError:
-        logger.exception("Potentially failed to open netCDF file:")
+        root_logger.exception("Potentially failed to open netCDF file:")
         compliance_passed = False
 
     update_fields = {"compliance_check_passed": compliance_passed}
