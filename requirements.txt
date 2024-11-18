@@ -1,4 +1,4 @@
-aiohttp==3.10.2
+aiohttp==3.10.11
 aiofiles==24.1.0
 async-timeout<5.0
 awscli
