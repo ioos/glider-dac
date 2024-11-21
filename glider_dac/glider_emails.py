@@ -221,7 +221,7 @@ def notify_incomplete_deployments(username):
         'completed': False,
         'updated': {'$lt': two_weeks_ago},
         'username': username  # Filter by username
-    }).sort({'updated': pymongo.ASCENDING})
+    }).sort('updated', pymongo.ASCENDING)
 
     # Convert the cursor to a list
     deployments = list(incomplete_deployments)
