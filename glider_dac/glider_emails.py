@@ -260,8 +260,7 @@ def notify_incomplete_deployments(username):
     """
 
     user_email = db.users.find_one({"username": username})["email"]
-    send_email(user_email, subject, body)
     msg = Message(subject, recipients=[user_email])
-    msg.body = body
+    msg.html = body
 
     send_email_wrapper(msg)
