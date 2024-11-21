@@ -237,7 +237,8 @@ def notify_incomplete_deployments(username):
     body = f"""
     <html>
     <body>
-        <p>User {username} has the following incomplete deployments that were last updated more than two weeks ago:</p>
+        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
+           Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
         <table border="1" style="border-collapse: collapse;">
             <tr>
                 <th>Deployment Name</th>
