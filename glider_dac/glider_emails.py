@@ -228,7 +228,6 @@ def notify_incomplete_deployments(username):
 
     # Check if there are any deployments to notify about
     if not deployments:
-        print(f"No incomplete deployments found for user: {username}")
         return
 
     # Prepare email content
@@ -238,7 +237,7 @@ def notify_incomplete_deployments(username):
     body = f"""
     <html>
     <body>
-        <p>You have the following incomplete deployments that were last updated more than two weeks ago:</p>
+        <p>User {username} has the following incomplete deployments that were last updated more than two weeks ago:</p>
         <table border="1" style="border-collapse: collapse;">
             <tr>
                 <th>Deployment Name</th>
@@ -260,10 +259,9 @@ def notify_incomplete_deployments(username):
     </html>
     """
 
-    # Send email (you may want to fetch the user's email address based on the username)
-    user_email = db.users.find_one({"username": username})  # Replace with actual email retrieval logic
+    user_email = db.users.find_one({"username": username})["email"]
     send_email(user_email, subject, body)
-    msg = Message(subject, recipients=recipients)
+    msg = Message(subject, recipients=[user_email])
     msg.body = body
 
     send_email_wrapper(msg)
