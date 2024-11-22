@@ -2,10 +2,11 @@ import os
 from flask_mail import Message
 from flask import render_template
 from glider_dac import app, mail, db
-from datetime import datetime
+from datetime import datetime, timedelta
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
 from urllib.parse import urljoin
+import pymongo
 import tempfile
 import glob
 import sys
@@ -210,3 +211,57 @@ def process_deployment(dep):
     # Set fields.  Don't use upsert as deployment ought to exist prior to write.
     db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
     return final_message.startswith("All files passed"), final_message
+
+def notify_incomplete_deployments(username):
+    # Calculate the date two weeks ago
+    two_weeks_ago = datetime.now() - timedelta(weeks=2)
+
+    # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
+    incomplete_deployments = db.deployments.find({
+        'completed': False,
+        'updated': {'$lt': two_weeks_ago},
+        'username': username  # Filter by username
+    }).sort('updated', pymongo.ASCENDING)
+
+    # Convert the cursor to a list
+    deployments = list(incomplete_deployments)
+
+    # Check if there are any deployments to notify about
+    if not deployments:
+        return
+
+    # Prepare email content
+    subject = f"Reminder: Incomplete Deployments for {username}"
+
+    # Start building the HTML table
+    body = f"""
+    <html>
+    <body>
+        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
+           Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
+        <table border="1" style="border-collapse: collapse;">
+            <tr>
+                <th>Deployment Name</th>
+                <th>Last Updated</th>
+            </tr>
+    """
+
+    for deployment in deployments:
+        body += f"""
+            <tr>
+                <td>{deployment['name']}</td>
+                <td>{deployment['updated'].strftime('%Y-%m-%d %H:%M:%S')}</td>
+            </tr>
+        """
+
+    body += """
+        </table>
+    </body>
+    </html>
+    """
+
+    user_email = db.users.find_one({"username": username})["email"]
+    msg = Message(subject, recipients=[user_email])
+    msg.html = body
+
+    send_email_wrapper(msg)
