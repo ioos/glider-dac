@@ -4,12 +4,13 @@
 glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
-from glider_dac import app, db, slugify, queue
+from glider_dac import app, db, slugify, queue, redis_connection
 from glider_dac.glider_emails import glider_deployment_check
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_mongokit import Document
 from bson.objectid import ObjectId
-from rq import Queue, Connection, Worker
+from rq.job import Job
+from rq.exceptions import NoSuchJobError
 from shutil import rmtree
 import os
 import glob
@@ -101,7 +102,7 @@ class Deployment(Document):
                 try:
                     os.symlink(deployment_file, symlink_dest)
                 except OSError:
-                    logger.exception(f"Could not symlink {symlink_dest}")
+                    app.logger.exception(f"Could not symlink {symlink_dest}")
 
     def delete(self):
         if os.path.exists(self.full_path):
@@ -209,16 +210,31 @@ class Deployment(Document):
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
             # if compliance check failed or has not yet been run, go ahead to next section
-            if getattr(self, "compliance_check_passed", None) is None:
+            ccheck_job_id = f"{self.name}_compliance_check"
+            # rerun a compliance check if unrun or failed and there is no
+            # other scheduled job already queued up
+            if not getattr(self, "compliance_check_passed", False):
+                try:
+                    job = Job.fetch(id=ccheck_job_id, connection=redis_connection)
+                # if no job exists, continue on
+                except NoSuchJobError:
+                    pass
+                # if the job already exists, do nothing -- it will run later
+                else:
+                    app.logger.info("Deferred compliance check job already scheduled "
+                                    f"for deployment {self.name}, skipping...")
+                    return
+
                 app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))
-                queue.enqueue(glider_deployment_check,
-                              kwargs={"deployment_dir": self.deployment_dir},
-                              job_timeout=800)
+                queue.enqueue_in(timedelta(minutes=30), glider_deployment_check,
+                                 kwargs={"deployment_dir": self.deployment_dir},
+                                 job_id=ccheck_job_id, job_timeout=800)
         else:
             for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
                     if f.endswith(".md5"):
+                        # FIXME? this doesn't create md5sums, it removes them
                         os.unlink(os.path.join(dirpath, f))
 
     def get_latest_nc_file(self):
