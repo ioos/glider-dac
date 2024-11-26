@@ -193,8 +193,8 @@ def process_deployment(dep):
         final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
     else:
         error_list = [err_msg for err_severity in ("high_priorities",
-            "medium_priorities", "low_priorities") for err_section in
-            errs[err_severity] for err_msg in err_section["msgs"]]
+                      "medium_priorities", "low_priorities") for err_section in
+                      errs[err_severity] for err_msg in err_section["msgs"]]
         update_fields["compliance_check_report"] = errs
 
         for err in errs["high_priorities"]:
