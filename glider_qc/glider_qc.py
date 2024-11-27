@@ -329,7 +329,7 @@ class GliderQC(object):
         ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int32(2))
         ncvar[:] = flag
         ncvar.units = '1'
-        ncvar.standard_name = 'location_quality_flag'
+        ncvar.standard_name = 'location_test_quality_flag'
         ncvar.long_name = 'QARTOD Location Flag for the profile_(lat,lon) variables'
         ncvar.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
         ncvar.valid_min = np.int8(1)
