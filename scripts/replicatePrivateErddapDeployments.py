@@ -50,15 +50,13 @@ def main(args):
 
         log.info( "Processing the following deployments")
         for deployment in deployments:
-            if not deployment.endswith("-delayed"):
-                log.info( " - %s", deployment)
+            log.info( " - %s", deployment)
         # limit to 8 simultaneous connections open for fetching data
         # badams (2020-07-30) limit to two concurrent processes to avoid bogging down server
         sem = asyncio.Semaphore(2)
         loop = asyncio.get_event_loop()
         tasks = [loop.create_task(sync_deployment(d, sem, args.force))
-                 for d in deployments
-                 if not d.endswith("-delayed")]
+                 for d in deployments]
         wait_tasks = asyncio.wait(tasks)
         loop.run_until_complete(wait_tasks)
         loop.close()
@@ -102,8 +100,6 @@ async def sync_deployment(deployment, sem, force=False):
 
         # TODO deprecate this second ERDDAP!
         await retrieve_data(app.config["PUBLIC_DATA_ROOT"], deployment, sem)
-
-        #touch_erddap(deployment_name, app.config["flags_public"])
 
         await retrieve_data(app.config["THREDDS_DATA_ROOT"], deployment, sem)
 

@@ -814,9 +814,8 @@ def lock_file(path):
     :param path string defining path to the netcdf file
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
-    key = 'gliderdac:%s' % digest
-    lock = rc.lock(key, blocking_timeout=60)
+    key = f"gliderdac:{path}"
+    lock = rc.lock(key, blocking_timeout=0)
     return lock
 
 def get_redis_connection():
@@ -846,7 +845,6 @@ def check_needs_qc(nc_path):
         if os.getxattr(nc_path, "user.qc_run"):
             return False
     except OSError:
-        log.exception(f"Exception occurred trying to get xattr at {nc_path}:")
         pass
     with Dataset(nc_path, 'r') as nc:
         qc = GliderQC(nc, None)

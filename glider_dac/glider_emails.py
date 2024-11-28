@@ -2,10 +2,11 @@ import os
 from flask_mail import Message
 from flask import render_template
 from glider_dac import app, mail, db
-from datetime import datetime
+from datetime import datetime, timedelta
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
 from urllib.parse import urljoin
+import pymongo
 import tempfile
 import glob
 import sys
@@ -173,14 +174,18 @@ def process_deployment(dep):
                          erddap_fmt_string.format(dep["name"])])
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
-    failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
-                                  checker_names=['gliderdac'], verbose=True,
-                                  criteria='lenient', output_format='json',
-                                  output_filename=outfile)
-    with open(outfile, 'r') as f:
-        errs = json.load(f)["gliderdac"]
+    try:
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                      checker_names=['gliderdac'], verbose=True,
+                                      criteria='lenient', output_format='json',
+                                      output_filename=outfile)
+        with open(outfile, 'r') as f:
+            errs = json.load(f)["gliderdac"]
 
-    compliance_passed = errs['scored_points'] == errs['possible_points']
+        compliance_passed = errs['scored_points'] == errs['possible_points']
+    except OSError:
+        root_logger.exception("Potentially failed to open netCDF file:")
+        compliance_passed = False
 
     update_fields = {"compliance_check_passed": compliance_passed}
     standard_name_errs = []
@@ -188,8 +193,8 @@ def process_deployment(dep):
         final_message = "All files passed compliance check on glider deployment {}".format(dep['name'])
     else:
         error_list = [err_msg for err_severity in ("high_priorities",
-            "medium_priorities", "low_priorities") for err_section in
-            errs[err_severity] for err_msg in err_section["msgs"]]
+                      "medium_priorities", "low_priorities") for err_section in
+                      errs[err_severity] for err_msg in err_section["msgs"]]
         update_fields["compliance_check_report"] = errs
 
         for err in errs["high_priorities"]:
@@ -206,3 +211,57 @@ def process_deployment(dep):
     # Set fields.  Don't use upsert as deployment ought to exist prior to write.
     db.deployments.update({"_id": dep["_id"]}, {"$set": update_fields})
     return final_message.startswith("All files passed"), final_message
+
+def notify_incomplete_deployments(username):
+    # Calculate the date two weeks ago
+    two_weeks_ago = datetime.now() - timedelta(weeks=2)
+
+    # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
+    incomplete_deployments = db.deployments.find({
+        'completed': False,
+        'updated': {'$lt': two_weeks_ago},
+        'username': username  # Filter by username
+    }).sort('updated', pymongo.ASCENDING)
+
+    # Convert the cursor to a list
+    deployments = list(incomplete_deployments)
+
+    # Check if there are any deployments to notify about
+    if not deployments:
+        return
+
+    # Prepare email content
+    subject = f"Reminder: Incomplete Deployments for {username}"
+
+    # Start building the HTML table
+    body = f"""
+    <html>
+    <body>
+        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
+           Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
+        <table border="1" style="border-collapse: collapse;">
+            <tr>
+                <th>Deployment Name</th>
+                <th>Last Updated</th>
+            </tr>
+    """
+
+    for deployment in deployments:
+        body += f"""
+            <tr>
+                <td>{deployment['name']}</td>
+                <td>{deployment['updated'].strftime('%Y-%m-%d %H:%M:%S')}</td>
+            </tr>
+        """
+
+    body += """
+        </table>
+    </body>
+    </html>
+    """
+
+    user_email = db.users.find_one({"username": username})["email"]
+    msg = Message(subject, recipients=[user_email])
+    msg.html = body
+
+    send_email_wrapper(msg)
