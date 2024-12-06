@@ -698,7 +698,7 @@ def run_qc(config, ncfile, nc_path):
             # Loop through the legacy variables and apply QARTOD
             for var_name in legacy_variables:
                 var_data = ncfile.variables[var_name]
-                values = [x if x != '--' else np.nan for x in var_data]
+                values = [x if x != '--' else np.nan for x in var_data[:]]
 
                 # Create the QARTOD variables
                 qcvarname = xyz.create_qc_variables(var_data)
@@ -711,7 +711,7 @@ def run_qc(config, ncfile, nc_path):
   
                 # Check the mapping of standard names with units
                 try:
-                    values, note = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
+                    values, note = xyz.normalize_variable(np.array(values[:]), var_data.units, var_data.standard_name)
                     report_list.append(note)
                     if values is None:
                         continue
