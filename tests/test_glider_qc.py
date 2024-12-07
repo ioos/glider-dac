@@ -70,7 +70,9 @@ class TestGliderQC(TestCase):
         times = ncfile.variables['time']
         values = ncfile.variables['temperature']
         values = [x if x != '--' else np.nan for x in values[:]]
-        values, note = qc.normalize_variable(np.array(values[:]), tempvar.units, tempvar.standard_name)
+        values, note = qc.normalize_variable(np.array(values[:]), 
+                                             ncfile.variables['temperature'].units, 
+                                             ncfile.variables['temperature'].standard_name)
         
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
         
