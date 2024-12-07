@@ -137,7 +137,7 @@ class GliderQC(object):
 
             variable_name = template['name'].format(name=name_value)
 
-            if variable_name not in ncfile.variables:
+            if variable_name not in self.ncfile.variables:
                 ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int16(-999))
             else:
                 ncvar = self.ncfile.variables[variable_name]
