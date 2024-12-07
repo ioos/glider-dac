@@ -74,14 +74,15 @@ class TestGliderQC(TestCase):
                                              ncfile.variables['temperature'].units, 
                                              ncfile.variables['temperature'].standard_name)
         
-        df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
+        df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temperature": values,},)
         
         results_raw = qc.apply_qc(df, 'temperature', qc_config)
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temperature'}
+        
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            results_dict['gross_range_test'])
+            results_dict['gross_range_test'][:])
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
