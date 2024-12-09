@@ -12,7 +12,7 @@ listen = ['default']
 def main():
     with Connection(glider_qc.get_redis_connection()):
         worker = Worker(list(map(Queue, listen)))
-        worker.work()
+        worker.work(with_scheduler=True)
 
 if __name__ == '__main__':
     main()

@@ -64,15 +64,16 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 # remove trailing Z from deployment name
                 navo_directory = os.path.join(self.base, "navoceano")
                 navo_deployment_directory = None
-                possible_existing_dirs = list(glob.iglob(os.path.join(navo_directory, f"{glider_callsign}*")))
+                possible_existing_dirs = sorted(glob.glob(os.path.join(navo_directory, f"{glider_callsign}*")))
                 # Use an already existing directory if there is one for the the deployment
-                # TODO: handle for multiple possible existing callsigns if new deployment is made?
+                navo_deployment_directory = None
                 for maybe_dir in possible_existing_dirs:
                     if os.path.isdir(maybe_dir):
-                        navo_deployment_directory = maybe_dir
-                # TODO: handle for multiple possible existing callsigns if new deployment is made?
-                        break
-                # otherwise specify a dir to be created
+                        dir_date_part = maybe_dir.rsplit("-", 1)[0]
+                        # get most recent matching directory
+                        if date_str >= dir_date_part:
+                            navo_deployment_directory = maybe_dir
+
                 if not navo_deployment_directory:
                     navo_deployment_directory = os.path.join(self.base, f"navoceano/{glider_callsign}-{date_str}")
                 # Directory could exist, but no deployment in DB!
@@ -125,6 +126,9 @@ class HandleDeploymentDB(FileSystemEventHandler):
                         file_path = event.dest_path
                     # TODO: DRY/refactor with batch QARTOD job?
                     try:
+                        if self.queue.connection.exists(f"gliderdac:{file_path}"):
+                            app.logger.info(f"File {file_path} already has lock in Redis")
+                            return
                         if glider_qc.check_needs_qc(file_path):
                             log.info("Enqueueing QARTOD job for file %s",
                                             file_path)
@@ -134,7 +138,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                                                    os.path.realpath(__file__)
                                                  ), "data/qc_config.yml"))
                         else:
-                            log.info("File %s already has QC", file_path)
+                            log.info(f"File {file_path} already has QC")
                     except OSError:
                         log.exception("Exception occurred while "
                                              "attempting to inspect file %s "
@@ -142,9 +146,8 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
     def touch_erddap(self, deployment_name):
         '''
-        Creates a flag file for erddap's file monitoring thread so that it reloads
+        Creates a flag file for ERDDAP's file monitoring thread so that it reloads
         the dataset
-
         '''
         full_path = os.path.join(self.flagsdir, deployment_name)
         log.info("Touching ERDDAP flag file at {}".format(full_path))

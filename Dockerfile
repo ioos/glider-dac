@@ -9,8 +9,8 @@ RUN apt-get update && \
 ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits
 COPY . /glider-dac
 # TODO: move logs elsewhere
-VOLUME /glider-dac/logs/ /data
-WORKDIR glider-dac
+VOLUME /glider-dac/logs/ /data /usr/local/lib/python3.8/site-packages/compliance_checker/data
+WORKDIR /glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
 RUN pip install -U pip && \
@@ -20,10 +20,10 @@ RUN pip install -U pip && \
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag  \
              /data/catalog/priv_erddap && \
-    chown -R glider:glider /glider-dac /data && \
+    chown -R glider:glider /glider-dac /data /usr/local/lib/python3.8/site-packages/compliance_checker/data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
-ENV PYTHONPATH="${PYTHONPATH}:/glider-dac"
+ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
 ENV FLASK_APP=glider_dac:create_app
 
 EXPOSE 5000

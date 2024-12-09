@@ -6,11 +6,13 @@ Model definition for a Deployment
 '''
 from flask import current_app, render_template
 from flask_mail import Message
+from datetime import datetime, timedelta
 from glider_dac.utilities import (slugify, slugify_sql,
                                   email_exception_logging_wrapper,
                                   get_thredds_catalog_url,
                                   get_erddap_catalog_url)
 from glider_dac.extensions import db
+from glider_dac.glider_qc import get_redis_connection
 from glider_dac.models.user import User
 #from geoalchemy2.types import Geometry
 import json
@@ -24,6 +26,9 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.convert import ModelConverter
 from datetime import datetime
 from rq import Queue, Connection, Worker
+from rq.job import Job
+from rq.exceptions import NoSuchJobError
+from glider_dac.glider_emails import glider_deployment_check
 from shutil import rmtree
 import os
 import glob
@@ -101,7 +106,7 @@ class Deployment(db.Model):
                 try:
                     os.symlink(deployment_file, symlink_dest)
                 except OSError:
-                    logger.exception(f"Could not symlink {symlink_dest}")
+                    app.logger.exception(f"Could not symlink {symlink_dest}")
 
     def delete_deployment(self):
         self.delete_files()
@@ -199,28 +204,36 @@ class Deployment(db.Model):
 
         # generate md5s of all data files on completion
         if self.completed:
-            for dirpath, dirnames, filenames in os.walk(self.full_path):
-                for f in filenames:
-                    if (f in ["deployment.json", "wmoid.txt", "completed.txt"]
-                        or f.endswith(".md5") or not f.endswith('.nc')):
-                        continue
-
-                    full_file = os.path.join(dirpath, f)
             # schedule the checker job to kick off the compliance checker email
             # on the deployment when the deployment is completed
             # on_complete might be a misleading function name -- this section
             # can run any time there is a sync, so check if a checker run has already been executed
             # if compliance check failed or has not yet been run, go ahead to next section
-            if not getattr(self, "compliance_check_passed", None):
-                current_app.logger.info("Scheduling compliance check for completed "
+            ccheck_job_id = f"{self.name}_compliance_check"
+            # rerun a compliance check if unrun or failed and there is no
+            # other scheduled job already queued up
+            if not getattr(self, "compliance_check_passed", False):
+                try:
+                    job = Job.fetch(id=ccheck_job_id, connection=redis_connection)
+                # if no job exists, continue on
+                except NoSuchJobError:
+                    pass
+                # if the job already exists, do nothing -- it will run later
+                else:
+                    app.logger.info("Deferred compliance check job already scheduled "
+                                    f"for deployment {self.name}, skipping...")
+                    return
+
+                app.logger.info("Scheduling compliance check for completed "
                                 "deployment {}".format(self.deployment_dir))
-                current_app.queue.enqueue(glider_deployment_check,
-                              kwargs={"deployment_dir": self.deployment_dir},
-                              job_timeout=800)
+                queue.enqueue_in(timedelta(minutes=30), glider_deployment_check,
+                                 kwargs={"deployment_dir": self.deployment_dir},
+                                 job_id=ccheck_job_id, job_timeout=800)
         else:
             for dirpath, dirnames, filenames in os.walk(self.full_path):
                 for f in filenames:
                     if f.endswith(".md5"):
+                        # FIXME? this doesn't create md5sums, it removes them
                         os.unlink(os.path.join(dirpath, f))
 
     def get_latest_nc_file(self):

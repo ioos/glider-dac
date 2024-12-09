@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import aiohttp
+import aiofiles
 import argparse
 import async_timeout
 import asyncio
@@ -49,15 +50,13 @@ def main(args):
 
         log.info( "Processing the following deployments")
         for deployment in deployments:
-            if not deployment.endswith("-delayed"):
-                log.info( " - %s", deployment)
+            log.info( " - %s", deployment)
         # limit to 8 simultaneous connections open for fetching data
         # badams (2020-07-30) limit to two concurrent processes to avoid bogging down server
         sem = asyncio.Semaphore(2)
         loop = asyncio.get_event_loop()
         tasks = [loop.create_task(sync_deployment(d, sem, args.force))
-                 for d in deployments
-                 if not d.endswith("-delayed")]
+                 for d in deployments]
         wait_tasks = asyncio.wait(tasks)
         loop.run_until_complete(wait_tasks)
         loop.close()
@@ -100,11 +99,9 @@ async def sync_deployment(deployment, sem, force=False):
         deployment_name = deployment.split('/')[-1]
 
         # TODO deprecate this second ERDDAP!
-        await retrieve_data(app.config["path2pub"], deployment, sem)
+        await retrieve_data(app.config["PUBLIC_DATA_ROOT"], deployment, sem)
 
-        touch_erddap(deployment_name, app.config["flags_public"])
-
-        await retrieve_data(app.config["path2thredds"], deployment, sem)
+        await retrieve_data(app.config["THREDDS_DATA_ROOT"], deployment, sem)
 
 
 async def retrieve_data(where, deployment, sem, proto='http'):
@@ -117,17 +114,19 @@ async def retrieve_data(where, deployment, sem, proto='http'):
     if 'thredds' in publish_dir:
         path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
         url = '{}://{}/erddap/tabledap/{}.ncCFMA'.format(proto,
-                                                         app.config["erddap_private"],
+                                                         app.config["PRIVATE_ERDDAP"],
                                                          deployment_name)
     else:
         path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
         url = '{}://{}/erddap/tabledap/{}.ncCF'.format(proto,
-                                                       app.config["erddap_private"],
+                                                       app.config["PRIVATE_ERDDAP"],
                                                        deployment_name)
     log.info("Path Arg %s", path_arg)
     log.info("Host Arg %s", url)
 
     fail_counter = 5
+    chunk_size_bytes = 16 * 1024
+    tmp_path = f"{path_arg}.tmp"
     # try to release semaphore before attempting to get the response
     async with sem:
         try:
@@ -137,25 +136,22 @@ async def retrieve_data(where, deployment, sem, proto='http'):
                         # This causes timeouts even when the max simultaneous connection
                         # lock isn't released
                         async with session.get(url) as response:
-                            with open(path_arg + '.tmp', 'wb') as f_handle:
-                                while True:
-                                    chunk = await response.content.read(1024)
-                                    if not chunk:
-                                        break
-                                    f_handle.write(chunk)
+                            async with aiofiles.open(tmp_path, mode="wb") as f:
+                                async for data in response.content.iter_chunked(chunk_size_bytes):
+                                    await f.write(data)
                             try:
                                 log.info(os.stat(path_arg + '.tmp'))
                                 # sanity check to ensure netCDF file is valid
-                                with Dataset(path_arg + '.tmp') as d:
+                                with Dataset(tmp_path) as d:
                                     pass
                             except Exception:
                                 log.exception("Exception while attempting to open NetCDF dataset {}".format(path_arg + '.tmp'))
-                                os.unlink(path_arg + '.tmp')
+                                os.unlink(tmp_path)
                             else:
-                                shutil.move(path_arg + '.tmp', path_arg)
+                                shutil.move(tmp_path, path_arg)
 
                                 # if the download succeeded and file isn't corrupt, replace the previous file
-                                log.info(("moved file {}".format(path_arg + '.tmp')))
+                                log.info(("moved file {}".format(tmp_path)))
                             return await response.release()
                     except Exception as e:
                         fail_counter -= 1
@@ -174,12 +170,12 @@ def get_deployments():
     Loads deployment directories into a list
     '''
     deployments = []
-    for user in os.listdir(app.config["path2priv"]):
-        if not os.path.isdir(os.path.join(app.config["path2priv"], user)):
+    for user in os.listdir(app.config["PRIV_DATA_ROOT"]):
+        if not os.path.isdir(os.path.join(app.config["PRIV_DATA_ROOT"], user)):
             continue
-        for deployment_name in os.listdir(os.path.join(app.config["path2priv"],
+        for deployment_name in os.listdir(os.path.join(app.config["PRIV_DATA_ROOT"],
                                                        user)):
-            deployment_path = os.path.join(app.config["path2priv"],
+            deployment_path = os.path.join(app.config["PRIV_DATA_ROOT"],
                                            user, deployment_name)
             if os.path.isdir(deployment_path):
                 deployments.append(os.path.join(user, deployment_name))
@@ -188,11 +184,11 @@ def get_deployments():
 
 def get_mod_time(name):
 
-    jsonFile = os.path.join(app.config["JSON_DIR"], name + '/deployment.json')
+    jsonFile = os.path.join(app.config["PRIV_DATA_ROOT"], name + '/deployment.json')
     log.info("Inspecting %s", jsonFile)
 
     try:
-        newest = max(glob.iglob(app.config["JSON_DIR"] + name + '/' + '*.nc'),
+        newest = max(glob.iglob(app.config["PRIV_DATA_ROOT"] + name + '/' + '*.nc'),
                      key=os.path.getmtime)
         ncTime = os.path.getmtime(newest)
     # if there are no nc files, arbitrarily set time as 0

@@ -95,11 +95,16 @@ class TestGliderQC(TestCase):
         timevar = nc.createVariable('time', np.float64, ('time',), fill_value=-9999.)
         timevar.standard_name = 'time'
         timevar.units = 'seconds since 1970-01-01T00:00:00Z'
-        timevar[np.array([0, 2, 4, 6, 8])] = np.array([0, 2, 4, 6, 8])
+        timevar[np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])] =  np.array(np.arange(
+                                                                                "2015-01-01 00:00:00",
+                                                                                "2015-01-01 03:30:00",
+                                                                                step=np.timedelta64(21, "m"),
+                                                                                dtype=np.datetime64,
+                                                                            ))
         tempvar = nc.createVariable('temp', np.float32, ('time',), fill_value=-9999.)
         tempvar.standard_name = 'sea_water_temperature'
         tempvar.units = 'deg_F'
-        tempvar[np.array([0, 1, 2, 3, 4, 9])] = np.array([72.0, 72.1, 72.0, 1.0, 72.03, 72.1])
+        tempvar[np.array([0, 1, 2, 3, 4, 6, 7, 8])] = np.array([71, 72, 72.0001, 72, 72.0001, 72.0001, 72, 74])
 
         qc = GliderQC(fake_file, 'data/qc_config.yml')
         with open('data/qc_config.yml') as yaml_content:
@@ -111,7 +116,7 @@ class TestGliderQC(TestCase):
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
 
-        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 9, 1, 9, 1, 9, 9, 9, 9, 9], dtype=np.int8))
+        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
         values = np.array([32.0, 65.0, 100.0])

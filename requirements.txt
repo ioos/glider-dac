@@ -1,4 +1,5 @@
-aiohttp==3.9.4
+aiohttp==3.10.11
+aiofiles==24.1.0
 async-timeout<5.0
 awscli
 asyncio==3.4.3
@@ -29,13 +30,14 @@ pyyaml>=6.0
 rq
 redis
 rq-dashboard==0.3.4
-git+https://github.com/ioos/ioos_qc.git@4f1bee834e9fa6b744de097d9493af23483a1d75#egg=ioos_qc
+# pin IOOS QC to a particular commit on main until stable version with fixes is released
+-e git+https://github.com/ioos/ioos_qc@57813de111af201f8d7b68c7fcd6337bf37dd6ed#egg=ioos_qc
 netCDF4>=1.5.8
 cf-units>=2.1.5
 # cftime needs to be frozen for utime.  Some scripts could be rewritten to use
 # newer functions
 cftime==1.4.1
-flask-cors==3.0.9
+flask-cors==4.0.1
 compliance-checker>=5.0.0
 cc-plugin-glider>=2.0.3
 flasgger==0.9.7b2
