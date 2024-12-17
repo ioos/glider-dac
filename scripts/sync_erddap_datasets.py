@@ -8,9 +8,10 @@ import os
 import redis
 import sys
 from datetime import datetime, timezone, timedelta
-from glider_dac import app, db
+from flask import current_app
+from glider_dac import db
 from glider_dac.models.deployment import Deployment
-from glider_dac.common import log_formatter
+from glider_dac import log_formatter
 
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
@@ -20,15 +21,16 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 # Connect to redis to keep track of the last time this script ran
-redis_key = 'sync_erddap_datasets_last_run'
-redis_host = app.config.get('REDIS_HOST', 'redis')
-redis_port = app.config.get('REDIS_PORT', 6379)
-redis_db = app.config.get('REDIS_DB', 0)
-_redis = redis.Redis(
-    host=redis_host,
-    port=redis_port,
-    db=redis_db
-)
+with current_app.app_context():
+    redis_key = 'sync_erddap_datasets_last_run'
+    redis_host = current_app.config.get('REDIS_HOST', 'redis')
+    redis_port = current_app.config.get('REDIS_PORT', 6379)
+    redis_db = current_app.config.get('REDIS_DB', 0)
+    _redis = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db
+    )
 
 
 def main(args):
@@ -87,7 +89,7 @@ def sync_deployment(deployment):
     logger.info( "Synchronizing at %s", datetime.utcnow().isoformat())
     deployment_name = deployment.split('/')[-1]
 
-    touch_erddap(deployment_name, app.config["flags_private"])
+    touch_erddap(deployment_name, current_app.config["flags_private"])
 
 
 def get_delayed_mode_deployments(force=False):
@@ -152,5 +154,5 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     parser.add_argument('-v', '--verbose', action="store_true", help="Sets log level to debug")
     args = parser.parse_args()
-    with app.app_context():
+    with current_app.app_context():
         sys.exit(main(args))

@@ -120,15 +120,18 @@ def show_deployment(deployment_name):
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user and current_user.is_active and (current_user.admin or
-                                                    current_user == deployment.user):
+    if current_user.is_authenticated and (current_user.is_active and (current_user.admin or
+                                          current_user == deployment.user)):
         kwargs['editable'] = True
-        if current_user.admin or current_user.username == deployment.username:
+        if current_user.is_authenticated and (current_user.admin or
+                                              current_user.username == deployment.username):
             kwargs['admin'] = True
 
     current_app.logger.info(deployment.dap)
     return render_template('show_deployment.html', form=form,
-                           deployment=deployment, username=current_user.username, files=files, **kwargs)
+                           deployment=deployment,
+                           username=getattr(current_user, "username", None),
+                           files=files, **kwargs)
 
 @deployment_bp.route('/users/<string:username>/deployment/new',
                      methods=['POST'])

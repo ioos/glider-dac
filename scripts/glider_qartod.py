@@ -5,7 +5,7 @@ scripts/glider_qartod.py
 from argparse import ArgumentParser
 from netCDF4 import Dataset
 from glider_qc import glider_qc
-from rq import Queue, Connection, Worker
+from rq import Queue, Worker
 import logging
 import os
 import time
@@ -54,10 +54,8 @@ def main():
         clear_master_lock()
 
     if args.worker:
-        with Connection(glider_qc.get_redis_connection()):
-
-            worker = Worker(list(map(Queue, [APP])))
-            worker.work()
+        worker = Worker([APP], connection=glider_qc.get_redis_connection())
+        worker.work()
 
     lock = acquire_master_lock()
 

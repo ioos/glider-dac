@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM python:3.9
 
 ARG glider_gid_uid=1000
 RUN apt-get update && \
@@ -20,7 +20,7 @@ RUN pip install -U pip && \
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /erddapData/flag /erddapData/hardFlag  \
              /data/catalog/priv_erddap && \
-    chown -R glider:glider /glider-dac /data /usr/local/lib/python3.8/site-packages/compliance_checker/data && \
+    chown -R glider:glider /glider-dac /data /usr/local/lib/python3.9/site-packages/compliance_checker/data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"

@@ -51,7 +51,7 @@ from netCDF4 import Dataset
 from pathlib import Path
 import requests
 from scripts.sync_erddap_datasets import sync_deployment
-from glider_dac.common import log_formatter
+from glider_dac import log_formatter
 
 
 logger = logging.getLogger(__name__)
@@ -78,15 +78,16 @@ erddap_mapping_dict = defaultdict(lambda: "String",
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
-redis_key = 'build_erddap_catalog_last_run_deployment'
-redis_host = current_app.config.get('REDIS_HOST', 'redis')
-redis_port = current_app.config.get('REDIS_PORT', 6379)
-redis_db = current_app.config.get('REDIS_DB', 0)
-_redis = redis.Redis(
-    host=redis_host,
-    port=redis_port,
-    db=redis_db
-)
+with current_app.app_context():
+    redis_key = 'build_erddap_catalog_last_run_deployment'
+    redis_host = current_app.config.get('REDIS_HOST', 'redis')
+    redis_port = current_app.config.get('REDIS_PORT', 6379)
+    redis_db = current_app.config.get('REDIS_DB', 0)
+    _redis = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        db=redis_db
+    )
 
 def inactive_datasets(deployments_set):
     try:

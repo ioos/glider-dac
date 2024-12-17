@@ -12,9 +12,7 @@ from glider_dac.utilities import (slugify, slugify_sql,
                                   get_thredds_catalog_url,
                                   get_erddap_catalog_url)
 from glider_dac.extensions import db
-from glider_dac.glider_qc import get_redis_connection
-from glider_dac.models.user import User
-#from geoalchemy2.types import Geometry
+from glider_qc.glider_qc import get_redis_connection
 import json
 import geojson
 from compliance_checker.suite import CheckSuite
@@ -25,10 +23,10 @@ from marshmallow.fields import Field, Method
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.convert import ModelConverter
 from datetime import datetime
-from rq import Queue, Connection, Worker
+from rq import Queue, Worker
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
-from glider_dac.glider_emails import glider_deployment_check
+#from glider_dac.services.emails import glider_deployment_check
 from shutil import rmtree
 import os
 import glob
@@ -326,31 +324,6 @@ class Deployment(db.Model):
         msg.body       = message
 
         current_app.mail.send(msg)
-
-    @email_exception_logging_wrapper
-    def send_registration_email(self):
-        current_app.logger.info("Sending email about new deployment to %s",
-                                current_app.config.get('MAIL_DEFAULT_TO'))
-        subject        = "New Glider Deployment - %s" % self.name
-        recipients     = [current_app.config.get('MAIL_DEFAULT_TO')]
-        cc_recipients  = []
-        if current_app.config.get('MAIL_DEFAULT_LIST') is not None:
-            cc_recipients.append(current_app.config.get('MAIL_DEFAULT_LIST'))
-
-        message = Message(subject, recipients=recipients, cc=cc_recipients)
-        message.body = render_template(
-                            'deployment_registration.txt',
-                            deployment=self,
-                            username=self.username,
-                            thredds_url=get_thredds_catalog_url(),
-                            erddap_url=get_erddap_catalog_url())
-
-        if not current_app.config.get('MAIL_ENABLED', False): # Mail is disabled
-            current_app.logger.info("Email is disabled. Message digest below:")
-            current_app.logger.info(message)
-            return
-        # sender comes from MAIL_DEFAULT_SENDER in env
-        current_app.mail.send(message)
 
     def glider_deployment_check(self, data_type=None, completed=True, force=False,
                                 deployment_dir=None, username=None):

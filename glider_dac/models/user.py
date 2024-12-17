@@ -2,7 +2,9 @@ import os
 import os.path
 from datetime import datetime
 from glider_dac import db
+from glider_dac.utilities import email_exception_logging_wrapper
 from flask import current_app
+from flask_mail import Message
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
 
@@ -64,6 +66,63 @@ class User(db.Model):
 
     def get_id(self):
         return str(self.username)
+
+    @email_exception_logging_wrapper
+    def notify_user_incomplete_deployments(self):
+        """
+        Notify user via email of any deployments older than two weeks which have not been marked
+        as completed
+        """
+        # Calculate the date two weeks ago
+        two_weeks_ago = datetime.now() - timedelta(weeks=2)
+
+        # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
+        # TODO: fix representation?
+        query = (Deployment.query.filter(Deployment.completed == False,
+                                         Deployment.updated < two_weeks_ago,
+                                         Deployment.username == username)
+                                         .order_by(Deployment.updated))
+        # Convert the cursor to a list
+        deployments = query.all()
+
+        # Check if there are any deployments to notify about
+        if not deployments:
+            return
+
+        # Prepare email content
+        subject = f"Reminder: Incomplete Deployments for {self.name}"
+
+        # Start building the HTML table
+        body = f"""
+        <html>
+        <body>
+            <p>User {self.name} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
+               Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
+            <table border="1" style="border-collapse: collapse;">
+                <tr>
+                    <th>Deployment Name</th>
+                    <th>Last Updated</th>
+                </tr>
+        """
+
+        for deployment in deployments:
+            body += f"""
+                <tr>
+                    <td>{deployment.name}</td>
+                    <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
+                </tr>
+                """
+
+        body += """
+            </table>
+        </body>
+        </html>
+        """
+
+        msg = Message(subject, recipients=self.email)
+        msg.html = body
+
+        send_email_wrapper(msg)
 
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:

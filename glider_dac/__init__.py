@@ -1,6 +1,7 @@
 import os
 import datetime
 
+#from glider_dac.common import log_format_str
 from glider_dac.extensions import db, get_redis_connection_other
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
@@ -18,7 +19,8 @@ import os
 import os.path
 import redis
 import yaml
-from rq import Queue, Connection, Worker
+import logging
+from rq import Queue, Worker
 from glider_dac.views.deployment import deployment_bp
 from glider_dac.views.index import index_bp
 from glider_dac.views.institution import institution_bp
@@ -30,6 +32,8 @@ csrf = CSRFProtect()
 # Login manager for frontend
 login_manager = LoginManager()
 login_manager.login_view = "index.login"
+log_format_str = '%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s'
+log_formatter = logging.Formatter(log_format_str)
 
 # Create application object
 def create_app():
@@ -46,7 +50,7 @@ def create_app():
         'openapi': '3.0.2'
     }
     app.json_encoder = LazyJSONEncoder
-    template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
+    template = dict(swaggerUiPrefix=LazyString(lambda: request.environ.get('HTTP_X_SCRIPT_NAME', '')))
     Swagger(app, template=template)
 
     # TODO: Why does this not recognize top-level import when run in gunicorn?
@@ -82,14 +86,7 @@ def create_app():
                                                   app.config.get('REDIS_PORT'),
                                                   app.config.get('REDIS_DB'))
     app.queue = Queue('default', connection=redis_connection)
-    #with Connection(redis_connection):
-    #    app.worker = Worker(list(map(Queue, ["default"])))
-    #    app.worker.work()
 
-
-    import sys
-
-    import os
 
     db.init_app(app)
 

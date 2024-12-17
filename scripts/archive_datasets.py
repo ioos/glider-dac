@@ -10,7 +10,7 @@ import hashlib
 import logging
 import shutil
 from glider_dac.models.deployment import Deployment
-from glider_dac.common import log_formatter
+from glider_dac import log_formatter
 from flask import current_app
 
 logger = logging.getLogger('archive_datasets')

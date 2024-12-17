@@ -3,7 +3,6 @@ from unittest import TestCase
 from pathlib import Path
 import os
 from tests.resources import STATIC_FILES
-from bson import ObjectId
 from datetime import datetime
 from scripts.build_erddap_catalog import build_erddap_catalog_chunk
 from lxml import etree
@@ -24,11 +23,9 @@ class TestGliderXml(TestCase):
         self.directory = os.path.dirname(__file__)
         # TODO: treat like DB fixture if we decide to change ORMs at some point
         self.deployment = DotDict({
-             '_id': ObjectId('000000000000000000000000'),
              'username': 'test',
              'updated': datetime.now(),
-             'estimated_deploy_location': None, 'user_id':
-              ObjectId('111111111111111111111111'),
+             'estimated_deploy_location': None,
              'name': 'Murphy-20150809T135508Z_rt.nc',
              'archive_safe': True,
              'created': datetime.now(),
