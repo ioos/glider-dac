@@ -10,12 +10,14 @@ import hashlib
 import logging
 import shutil
 from glider_dac.models.deployment import Deployment
+from glider_dac.config import get_config
 from glider_dac import log_formatter
 from flask import current_app
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
 DNA_SUFFIX = '.DO-NOT-ARCHIVE'
+config = get_config()
 
 
 def get_deployments():
@@ -25,7 +27,7 @@ def get_deployments():
     # Why is this using the API rather than hitting the database directly?
     global _DEP_CACHE
     if _DEP_CACHE is None:
-        r = requests.get(current_app.config["API_URL"])
+        r = requests.get(config["API_URL"])
         if r.status_code != 200:
             raise IOError("Failed to get deployments from API")
         _DEP_CACHE = r.json()
@@ -50,7 +52,7 @@ def get_active_deployment_paths():
     Yields a filepath for each deployment marked completed by the API
     '''
     for d in get_active_deployments():
-        filedir = os.path.join(current_app.config["path2pub"], d.deployment_dir)
+        filedir = os.path.join(config["path2pub"], d.deployment_dir)
         filename = os.path.basename(d.deployment_dir) + '.ncCF.nc3.nc'
         filepath = os.path.join(filedir, filename)
         yield filepath
@@ -64,7 +66,7 @@ def make_copy(filepath):
     '''
     logger.info("Running archival for {}".format(filepath))
     filename = os.path.basename(filepath)
-    target = os.path.join(current_app.config["NCEI_DIR"], filename)
+    target = os.path.join(config["NCEI_DIR"], filename)
     do_not_archive_filename = target + DNA_SUFFIX
     source = filepath
     if not os.path.exists(target):
@@ -153,7 +155,7 @@ def remove_archive(deployment):
     :param str deployment: Deployment name
     '''
     filename = '{}.ncCF.nc3.nc'.format(deployment)
-    path = os.path.join(current_app.config["NCEI_DIR"], filename)
+    path = os.path.join(config["NCEI_DIR"], filename)
     logger.info("Removing archive: %s", deployment)
     if os.path.exists(path + '.md5'):
         os.unlink(path + '.md5')
@@ -170,7 +172,7 @@ def mark_do_not_archive(deployment):
     :param str deployment: Deployment name
     '''
     filename = '{}.ncCF.nc3.nc'.format(deployment)
-    path = os.path.join(current_app.config["NCEI_DIR"], filename)
+    path = os.path.join(config["NCEI_DIR"], filename)
     logger.info("Marking deployment %s as DO NOT ARCHIVE", deployment)
     updated_filename = path + DNA_SUFFIX
     if os.path.exists(path):
@@ -203,7 +205,7 @@ def main(args=None):
             logger.exception("Failed processing for file path {}".format(filepath))
 
     active_deployments = [d.name for d in get_active_deployments()]
-    for filename in os.listdir(current_app.config["NCEI_DIR"]):
+    for filename in os.listdir(config["NCEI_DIR"]):
         if filename.endswith('.ncCF.nc3.nc'):
             deployment = filename.split('.')[0]
             if deployment not in active_deployments:

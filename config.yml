@@ -7,7 +7,9 @@ COMMON: &common
   MONGODB_PORT: 27017
   MONGODB_DATABASE: gliderdac
 
-  APPLICATION_PREFIX: "/gliders/"
+  SERVER_NAME: "localhost:5000"
+  APPLICATION_ROOT: "/"
+  APPLICATION_PREFIX: "/"
   SECRET_KEY: thisisakey
   LOG_FILE: yes
   WEB_PASSWORD: password
@@ -79,11 +81,13 @@ COMMON: &common
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
+  PREFERRED_URL_SCHEME: http
 
 TESTING:
   <<: *common
   DEBUG: True
   TESTING: True
+  PREFERRED_URL_SCHEME: http
   # enable email for mock email testing
   MAIL_ENABLED: True
   # only use in memory DB for testing

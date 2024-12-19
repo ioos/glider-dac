@@ -10,6 +10,7 @@ import sys
 from datetime import datetime, timezone, timedelta
 from flask import current_app
 from glider_dac import db
+from glider_dac.config import get_config
 from glider_dac.models.deployment import Deployment
 from glider_dac import log_formatter
 
@@ -21,16 +22,16 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 # Connect to redis to keep track of the last time this script ran
-with current_app.app_context():
-    redis_key = 'sync_erddap_datasets_last_run'
-    redis_host = current_app.config.get('REDIS_HOST', 'redis')
-    redis_port = current_app.config.get('REDIS_PORT', 6379)
-    redis_db = current_app.config.get('REDIS_DB', 0)
-    _redis = redis.Redis(
-        host=redis_host,
-        port=redis_port,
-        db=redis_db
-    )
+config = get_config()
+redis_key = 'sync_erddap_datasets_last_run'
+redis_host = config.get('REDIS_HOST', 'redis')
+redis_port = config.get('REDIS_PORT', 6379)
+redis_db = config.get('REDIS_DB', 0)
+_redis = redis.Redis(
+    host=redis_host,
+    port=redis_port,
+    db=redis_db
+)
 
 
 def main(args):

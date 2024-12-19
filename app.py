@@ -1,5 +1,3 @@
-#from glider_dac import app
-from glider_dac.common import log_formatter
 from flask import current_app
 import os
 

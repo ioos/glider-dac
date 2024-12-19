@@ -25,6 +25,7 @@ from glider_dac.views.deployment import deployment_bp
 from glider_dac.views.index import index_bp
 from glider_dac.views.institution import institution_bp
 from glider_dac.views.user import user_bp
+from glider_dac.config import get_config
 import glider_dac.utilities as util
 
 
@@ -44,38 +45,12 @@ def create_app():
     app.wsgi_app = ReverseProxied(app.wsgi_app)
 
     csrf.init_app(app)
-    app.config['SWAGGER'] = {
-        'title': 'glider-dac',
-        'uiversion': 3,
-        'openapi': '3.0.2'
-    }
+    app.config.update(get_config())
+    app.config["SESSION_TYPE"] = "redis"
+    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.json_encoder = LazyJSONEncoder
     template = dict(swaggerUiPrefix=LazyString(lambda: request.environ.get('HTTP_X_SCRIPT_NAME', '')))
     Swagger(app, template=template)
-
-    # TODO: Why does this not recognize top-level import when run in gunicorn?
-    import os.path
-    cur_dir = os.path.dirname(__file__)
-    with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
-        config_dict = yaml.load(base_config, Loader=yaml.Loader)
-
-
-
-
-    extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
-    # If the testing environment isn't specified, merge in settings from
-    # config.local.yml, if it exists
-    if os.environ.get("FLASK_ENV") != "TESTING" and os.path.exists(extra_config_path):
-        with open(extra_config_path) as extra_config:
-            config_dict = {**config_dict, **yaml.load(extra_config,
-                                                    Loader=yaml.Loader)}
-    try:
-        app.config.update(config_dict[os.environ["FLASK_ENV"]])
-    except KeyError:
-        app.logger.error(f"Cannot find config for {os.environ.get('ENV', None)}, "
-                          "falling back to DEVELOPMENT")
-        app.config.update(config_dict["DEVELOPMENT"])
-
     app.secret_key = app.config["SECRET_KEY"]
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])

@@ -10,7 +10,7 @@ import logging
 import os
 import time
 
-from glider_dac.common import log_format_str
+from glider_dac import log_format_str
 
 APP = 'gliderdac'
 QC_KEY = APP + ':glider_qartod'

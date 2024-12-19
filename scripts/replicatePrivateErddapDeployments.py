@@ -14,10 +14,12 @@ import sys
 import time
 from datetime import datetime
 from netCDF4 import Dataset
-from glider_dac import app, log_formatter
+from glider_dac import log_formatter
+from glider_dac.config import get_config
 
 #from glider_dac.common import log_formatter
 log = None
+config = get_config()
 
 
 def setup_logging(level=logging.DEBUG):
@@ -99,9 +101,9 @@ async def sync_deployment(deployment, sem, force=False):
         deployment_name = deployment.split('/')[-1]
 
         # TODO deprecate this second ERDDAP!
-        await retrieve_data(app.config["PUBLIC_DATA_ROOT"], deployment, sem)
+        await retrieve_data(config["PUBLIC_DATA_ROOT"], deployment, sem)
 
-        await retrieve_data(app.config["THREDDS_DATA_ROOT"], deployment, sem)
+        await retrieve_data(config["THREDDS_DATA_ROOT"], deployment, sem)
 
 
 async def retrieve_data(where, deployment, sem, proto='http'):
@@ -114,12 +116,12 @@ async def retrieve_data(where, deployment, sem, proto='http'):
     if 'thredds' in publish_dir:
         path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
         url = '{}://{}/erddap/tabledap/{}.ncCFMA'.format(proto,
-                                                         app.config["PRIVATE_ERDDAP"],
+                                                         config["PRIVATE_ERDDAP"],
                                                          deployment_name)
     else:
         path_arg = os.path.join(publish_dir, deployment_name + ".ncCF.nc3.nc")
         url = '{}://{}/erddap/tabledap/{}.ncCF'.format(proto,
-                                                       app.config["PRIVATE_ERDDAP"],
+                                                       config["PRIVATE_ERDDAP"],
                                                        deployment_name)
     log.info("Path Arg %s", path_arg)
     log.info("Host Arg %s", url)
@@ -170,12 +172,12 @@ def get_deployments():
     Loads deployment directories into a list
     '''
     deployments = []
-    for user in os.listdir(app.config["PRIV_DATA_ROOT"]):
-        if not os.path.isdir(os.path.join(app.config["PRIV_DATA_ROOT"], user)):
+    for user in os.listdir(config["PRIV_DATA_ROOT"]):
+        if not os.path.isdir(os.path.join(config["PRIV_DATA_ROOT"], user)):
             continue
-        for deployment_name in os.listdir(os.path.join(app.config["PRIV_DATA_ROOT"],
+        for deployment_name in os.listdir(os.path.join(config["PRIV_DATA_ROOT"],
                                                        user)):
-            deployment_path = os.path.join(app.config["PRIV_DATA_ROOT"],
+            deployment_path = os.path.join(config["PRIV_DATA_ROOT"],
                                            user, deployment_name)
             if os.path.isdir(deployment_path):
                 deployments.append(os.path.join(user, deployment_name))
@@ -184,11 +186,11 @@ def get_deployments():
 
 def get_mod_time(name):
 
-    jsonFile = os.path.join(app.config["PRIV_DATA_ROOT"], name + '/deployment.json')
+    jsonFile = os.path.join(config["PRIV_DATA_ROOT"], name + '/deployment.json')
     log.info("Inspecting %s", jsonFile)
 
     try:
-        newest = max(glob.iglob(app.config["PRIV_DATA_ROOT"] + name + '/' + '*.nc'),
+        newest = max(glob.iglob(config["PRIV_DATA_ROOT"] + name + '/' + '*.nc'),
                      key=os.path.getmtime)
         ncTime = os.path.getmtime(newest)
     # if there are no nc files, arbitrarily set time as 0
