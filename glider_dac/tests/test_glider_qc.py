@@ -6,7 +6,7 @@ tests/test_glider_qc.py
 from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
-from tests.resources import STATIC_FILES
+from glider_dac.tests.resources import STATIC_FILES
 import yaml
 import tempfile
 import os
@@ -29,7 +29,7 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(STATIC_FILES['murphy'], 'r')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
+        qc = GliderQC(ncfile, self.qc_conf_loc)
         variables = qc.find_geophysical_variables()[0]
         assert len(variables) == 5
         assert 'temperature' in variables
@@ -41,7 +41,7 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
+        qc = GliderQC(ncfile, self.qc_conf_loc)
         temperature = ncfile.variables['temperature']
         qc.create_qc_variables(temperature)
 
@@ -62,8 +62,8 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
-        with open('data/qc_config.yml') as yaml_content:
+        qc = GliderQC(ncfile, self.qc_conf_loc)
+        with open(self.qc_conf_loc) as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
 
         results_raw = qc.apply_qc(STATIC_FILES['murphy'], 'temperature', qc_config)
@@ -106,8 +106,8 @@ class TestGliderQC(TestCase):
         tempvar.units = 'deg_F'
         tempvar[np.array([0, 1, 2, 3, 4, 6, 7, 8])] = np.array([71, 72, 72.0001, 72, 72.0001, 72.0001, 72, 74])
 
-        qc = GliderQC(fake_file, 'data/qc_config.yml')
-        with open('data/qc_config.yml') as yaml_content:
+        qc = GliderQC(fake_file, self.qc_conf_loc)
+        with open(self.qc_conf_loc) as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
         qc_config["contexts"][0]["streams"]["temp"] = qc_config["contexts"][0]["streams"]["temperature"]
         del qc_config["contexts"][0]["streams"]["temperature"]

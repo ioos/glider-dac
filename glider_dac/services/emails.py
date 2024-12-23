@@ -30,7 +30,7 @@ def send_email_wrapper(message):
     Email sending function with exceptions to catch and log exceptions
     """
     try:
-        mail.send(message)
+        current_app.mail.send(message)
     except:
         current_app.logger.exception("Exception occurred while attempting to send "
                              "email:")

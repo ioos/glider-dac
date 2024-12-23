@@ -1,4 +1,4 @@
-#from glider_dac import app
+from glider_dac import create_app
 from flask import current_app
 import glider_dac.services.emails as glider_email
 #from unittest import TestCase
@@ -43,13 +43,14 @@ def client():
 
 @patch("glider_dac.services.emails")
 def test_email_exception(client, deployment, caplog, monkeypatch):
+    app = create_app()
     username = deployment.username
-    with current_app.app_context():
+    with app.app_context():
         current_app.config["MAIL_ENABLED"] = True
     def smtp_error_raiser(message):
-        raise smtplib.SMTPException("Mock email failure")
-    monkeypatch.setattr(mail, "send", smtp_error_raiser)
-    with app.app_context():
-        glider_emails.send_registration_email(username, deployment)
+        raise smtplib.SMTPException("Exception occurred while attempting to send email:")
+    with current_app.app_context():
+        monkeypatch.setattr(mail, "send", smtp_error_raiser)
+        glider_email.send_registration_email(username, deployment)
     assert caplog.records[-1].msg.startswith("Exception occurred while attempting "
                                              "to send email: ")

@@ -16,6 +16,7 @@ from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
+from glider_dac.services.emails import send_registration_email
 from multidict import CIMultiDict
 from wtforms import StringField, SubmitField, BooleanField, validators
 from flask import Blueprint
@@ -190,7 +191,7 @@ def new_deployment(username):
             db.session.commit()
             deployment.sync()
             flash("Deployment created", 'success')
-            deployment.send_registration_email()
+            send_registration_email(deployment.username, deployment)
         # TODO: handle prior to creation
         #except DuplicateKeyError:
         except Exception as e:
@@ -248,7 +249,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     db.session.add(deployment)
     db.session.commit()
     flash("Deployment created", 'success')
-    deployment.send_registration_email()
+    send_registration_email(deployment.username, deployment)
 
     return redirect(url_for('deployment.list_user_deployments', username=username))
 

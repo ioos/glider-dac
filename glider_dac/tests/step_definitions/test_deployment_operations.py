@@ -7,23 +7,25 @@ from glob import glob
 import json
 from flask_login import current_user
 from glider_dac import create_app
-from tests.resources import STATIC_FILES
+from glider_dac.tests.resources import STATIC_FILES
 from glider_dac.extensions import db
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from passlib.hash import sha512_crypt
 from netCDF4 import Dataset
 from compliance_checker.suite import CheckSuite
-from scripts import archive_datasets
 
 # Load all scenarios from the feature file
 # why is app context even needed here?
 with create_app().app_context():
     scenarios("../features/deployment_operations.feature")
 
-@pytest.fixture
-def app():
+@pytest.fixture(autouse=True)
+def setup_test_env():
     os.environ["FLASK_ENV"] = "TESTING"
+
+@pytest.fixture
+def app(setup_test_env):
     app = create_app()
 
     # Create all database tables
@@ -32,9 +34,12 @@ def app():
 
         yield app
 
+@pytest.fixture(autouse=True)
+def change_test_dir(request, monkeypatch):
+    monkeypatch.chdir(request.fspath.dirname)
 
 @pytest.fixture(autouse=True)
-def clear_database(app):
+def clear_database(app, change_test_dir):
     # Clean up before each scenario
     db.session.remove()
     # Drop all tables
@@ -44,7 +49,6 @@ def clear_database(app):
     # Yield to the test
     db.session.commit()
     # Clean up
-    #with app.app_context():
     for top_level in (app.config["DATA_ROOT"],
                       app.config["PRIV_DATA_ROOT"],
                       app.config["PUBLIC_DATA_ROOT"],
@@ -187,7 +191,9 @@ def aggregated_file_exists():
 
 @then("the NCEI archival script will link the aggregated deployment file to the archival directory")
 def ncei_archival_script():
-    # Mock the command-line arguments
+    # FIXME: import must go here due to config loading on module load, which is dependent on
+    #        FLASK_ENV environment variable value
+    from scripts import archive_datasets
     archive_datasets.main()
     file_path = "tests/test_fs/data/data/archive/testdeployment-20240502T0000.ncCF.nc3.nc"
     # TODO: test that file exists and is hard link

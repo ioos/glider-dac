@@ -2,7 +2,7 @@ from netCDF4 import Dataset
 from unittest import TestCase
 from pathlib import Path
 import os
-from tests.resources import STATIC_FILES
+from glider_dac.tests.resources import STATIC_FILES
 from datetime import datetime
 from scripts.build_erddap_catalog import build_erddap_catalog_chunk
 from lxml import etree
