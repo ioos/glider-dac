@@ -769,8 +769,8 @@ def run_qc(config, ncfile, nc_path):
                         qartod_var.setncattr('qartod_config', json.dumps(testconfig))
 
                 except Exception as e:
-                        apply_qc_err = "apply_qc faild: could not calculate qc flags."
-                        log.exception(f"{apply_qc_err}: {str(e)}")
+                        apply_qc_err = "apply_qc failed: could not calculate QC flags."
+                        log.exception(f"{apply_qc_err}: ")
                         report_list.append(f"{apply_qc_err}: {str(e)}")
                         continu
     # log issues qc
