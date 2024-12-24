@@ -61,7 +61,7 @@ contexts:
              gross_range_test:
                fail_span: [1000, 1100]
                suspect_span: null
-             spike_test: 
+             spike_test:
                suspect_threshold:
                fail_threshold:
              rate_of_change_test:

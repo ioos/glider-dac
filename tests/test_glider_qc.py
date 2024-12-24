@@ -66,20 +66,20 @@ class TestGliderQC(TestCase):
         qc = GliderQC(ncfile, 'data/qc_config.yml')
         with open('data/qc_config.yml') as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
-            
+
         times = ncfile.variables['time']
         values = ncfile.variables['temperature']
         values = [x if x != '--' else np.nan for x in values[:]]
-        values, note = qc.normalize_variable(np.array(values[:]), 
-                                             ncfile.variables['temperature'].units, 
+        values, note = qc.normalize_variable(np.array(values[:]),
+                                             ncfile.variables['temperature'].units,
                                              ncfile.variables['temperature'].standard_name)
-        
+
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temperature": values,},)
-        
+
         results_raw = qc.apply_qc(df, 'temperature', qc_config)
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temperature'}
-        
+
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
             results_dict['gross_range_test'][:])
@@ -125,9 +125,9 @@ class TestGliderQC(TestCase):
 
         times = nc.variables['time']
         values = nc.variables['temp']
-        values = [x if x != '--' else np.nan for x in values[:]] 
+        values = [x if x != '--' else np.nan for x in values[:]]
         values, note = qc.normalize_variable(np.array(values[:]), tempvar.units, tempvar.standard_name)
-        
+
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
         results_raw = qc.apply_qc(df, 'temp', qc_config)
 
