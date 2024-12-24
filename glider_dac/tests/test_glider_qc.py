@@ -6,7 +6,8 @@ tests/test_glider_qc.py
 from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
-from tests.resources import STATIC_FILES
+import glider_dac
+from glider_dac.tests.resources import STATIC_FILES
 import yaml
 import tempfile
 import os
@@ -15,6 +16,8 @@ import numpy.ma as ma
 
 
 class TestGliderQC(TestCase):
+
+    qc_conf_loc = os.path.join(os.path.dirname(glider_dac.__file__), 'data/qc_config.yml')
 
     def copy_ncfile(self, ncpath):
         fd, path = tempfile.mkstemp()
@@ -29,7 +32,7 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(STATIC_FILES['murphy'], 'r')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
+        qc = GliderQC(ncfile, self.qc_conf_loc)
         variables = qc.find_geophysical_variables()[0]
         assert len(variables) == 5
         assert 'temperature' in variables
@@ -41,7 +44,7 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
+        qc = GliderQC(ncfile, self.qc_conf_loc)
         temperature = ncfile.variables['temperature']
         qc.create_qc_variables(temperature)
 
@@ -62,8 +65,8 @@ class TestGliderQC(TestCase):
         ncfile = Dataset(copypath, 'r+')
         self.addCleanup(ncfile.close)
 
-        qc = GliderQC(ncfile, 'data/qc_config.yml')
-        with open('data/qc_config.yml') as yaml_content:
+        qc = GliderQC(ncfile, self.qc_conf_loc)
+        with open(self.qc_conf_loc) as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
 
         results_raw = qc.apply_qc(STATIC_FILES['murphy'], 'temperature', qc_config)
@@ -95,14 +98,19 @@ class TestGliderQC(TestCase):
         timevar = nc.createVariable('time', np.float64, ('time',), fill_value=-9999.)
         timevar.standard_name = 'time'
         timevar.units = 'seconds since 1970-01-01T00:00:00Z'
-        timevar[np.array([0, 2, 4, 6, 8])] = np.array([0, 2, 4, 6, 8])
+        timevar[np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])] =  np.array(np.arange(
+                                                                                "2015-01-01 00:00:00",
+                                                                                "2015-01-01 03:30:00",
+                                                                                step=np.timedelta64(21, "m"),
+                                                                                dtype=np.datetime64,
+                                                                            ))
         tempvar = nc.createVariable('temp', np.float32, ('time',), fill_value=-9999.)
         tempvar.standard_name = 'sea_water_temperature'
         tempvar.units = 'deg_F'
-        tempvar[np.array([0, 1, 2, 3, 4, 9])] = np.array([72.0, 72.1, 72.0, 1.0, 72.03, 72.1])
+        tempvar[np.array([0, 1, 2, 3, 4, 6, 7, 8])] = np.array([71, 72, 72.0001, 72, 72.0001, 72.0001, 72, 74])
 
-        qc = GliderQC(fake_file, 'data/qc_config.yml')
-        with open('data/qc_config.yml') as yaml_content:
+        qc = GliderQC(fake_file, self.qc_conf_loc)
+        with open(self.qc_conf_loc) as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
         qc_config["contexts"][0]["streams"]["temp"] = qc_config["contexts"][0]["streams"]["temperature"]
         del qc_config["contexts"][0]["streams"]["temperature"]
@@ -111,7 +119,7 @@ class TestGliderQC(TestCase):
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
 
-        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 9, 1, 9, 1, 9, 9, 9, 9, 9], dtype=np.int8))
+        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
         values = np.array([32.0, 65.0, 100.0])

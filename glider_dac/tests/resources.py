@@ -1,5 +1,6 @@
 import os
 import subprocess
+import glider_dac
 
 
 def get_filename(path):
@@ -20,5 +21,6 @@ def generate_dataset(cdl_path, nc_path):
 
 
 STATIC_FILES = {
-    'murphy': get_filename('tests/data/Murphy-20150809T135508Z/Murphy-20150809T135508Z_rt.nc'),
+    'murphy': get_filename(os.path.join(os.path.dirname(glider_dac.__file__),
+                                        'tests/data/Murphy-20150809T135508Z/Murphy-20150809T135508Z_rt.nc'))
 }

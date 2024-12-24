@@ -112,7 +112,7 @@ class GliderQC(object):
             variable_name = template['name'] % {'name': name}
 
             if variable_name not in self.ncfile.variables:
-                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int8(9))
+                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int8(2))
             else:
                 ncvar = self.ncfile.variables[variable_name]
 
@@ -123,7 +123,7 @@ class GliderQC(object):
             ncvar.valid_min = np.int8(1)
             ncvar.valid_max = np.int8(9)
             ncvar.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
-            ncvar.references = 'http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf',
+            ncvar.references = 'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf '
             ncvar.qartod_package = 'https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py'
             ncvar.dac_comment = 'ioos_qartod'
             ncvar.ioos_category = 'Quality'
@@ -319,6 +319,72 @@ class GliderQC(object):
 
         return results
 
+    def create_location_flag_variable(self, ndim, flag):
+        '''
+        Create a location test variable for the lon and lat coordinates
+        :param ncvariable: netCDF4.Variable
+        :param flag: integer value
+        '''
+        ncvar_name = 'qartod_location_test_flag'
+        ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int32(2))
+        ncvar[:] = flag
+        ncvar.units = '1'
+        ncvar.standard_name = 'location_test_quality_flag'
+        ncvar.long_name = 'QARTOD Location Flag for the profile_(lat,lon) variables'
+        ncvar.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
+        ncvar.valid_min = np.int8(1)
+        ncvar.valid_max = np.int8(9)
+        ncvar.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
+        ncvar.references = 'The GDAC uses a modified version of the location test described in https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
+        ncvar.qartod_package = 'The GDAC location test does not use the algorithm from https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py (location_test) but instead relies on the statistical median of the lat/lon arrays'
+        ncvar.dac_comment = 'The FAIL flag is applied if the profile_(lat,lon) value exceeds 3 standard deviations above the mean of the average lat/lon arrays'
+        ncvar.ioos_category = 'Quality'
+
+        return ncvar
+
+    def check_location(self, ncf, report):
+        '''
+        Check the glider track lon and lat coordinates for outliers.
+        If an outlier is detected:
+            - Copy the profile_lat/lon variables onto new variables to preserve the original data.
+            - Replace the profile_lat/lon data with the median of the lat or lon arrays.
+        :param ncf: netCDF4._netCDF4.Dataset
+        :param report: string reporting on issues
+        '''
+        profile_lat = ncf.variables['profile_lat'][0]
+        profile_lon = ncf.variables['profile_lon'][0]
+
+        lat = ncf.variables['lat']
+        lon = ncf.variables['lon']
+
+        if  ~(np.isnan(profile_lat) & np.ma.is_masked(profile_lat) &
+              np.isnan(profile_lon) & np.ma.is_masked(profile_lon)):
+
+            ### Calculate how many standard deviations a value is above the mean
+            num_std_lat = np.abs((profile_lat - np.mean(lat[:])) / np.std(lat[:]))
+            num_std_lon = np.abs((profile_lon- np.mean(lon[:])) / np.std(lon[:]))
+
+            if num_std_lat > 3 or num_std_lon > 3:
+                flag = 4 # FAIL
+                log.info("Error in the glider track lon and lat coordinates %s %s", profile_lat, profile_lon)
+                report += "Error in the glider track lat or lon coordinates, "
+
+            else:
+                flag = 1 # PASS
+        else:
+            flag = 9 # MISSING
+            report += "Missing one or both of the glider track lat and lon coordinates, "
+
+        ### Create location test variable to store the test flag
+        ndim = ncf.variables["profile_lat"].dimensions
+        location_flag_variable = self.create_location_flag_variable(ndim, flag)
+
+        # store location test variable under the ancillary_variables attribute
+        profile_lat.ancillary_variables = location_flag_variable.name
+        profile_lon.ancillary_variables = location_flag_variable.name
+
+        return report
+
     def check_time(self, ncfile, nc_path):
         '''
         Check the time array for data start time inconsistent with the deployment start time,
@@ -358,22 +424,36 @@ class GliderQC(object):
         return report
 
 # the main function
-def run_qc(config, ncfile, nc_path): #
+def run_qc(config, ncfile, nc_path):
     '''
     Runs IOOS QARTOD tests on a netCDF file
-
-    :param nc_path string defining path to the netcdf file
-    :param ncfile:
+    :param config: string defining path to the configuration file
+    :param nc_path: string defining path to the netCDF file
+    :param ncfile: netCDF4._netCDF4.Dataset
     '''
+    file_name = nc_path.split('/')[-1]
+
     xyz = GliderQC(ncfile, config)
 
     timedata = ncfile.variables['time']
     time_units = timedata.units
 
     # Check the Time Array
-    report = xyz.check_time(ncfile, nc_path)
+    try:
+        report = xyz.check_time(ncfile, nc_path)
+    except:
+        time_err = "Could not check times"
+        log.exception(f"{time_err}: ")
+        report = "{time_err}"
 
     if len(report) == 0:
+
+        # Check glider track coordinates
+        if 'qartod_location_test_flag' not in ncfile.variables:
+            try:
+                report = xyz.check_location(ncfile, report)
+            except Exception as e:
+                log.exception("Could not run location test:")
 
         # Loop through the legacy variables
         legacy_variables, note = xyz.find_geophysical_variables()
@@ -407,8 +487,8 @@ def run_qc(config, ncfile, nc_path): #
                 values = xyz.normalize_variable(values, var_data.units, var_data.standard_name)
             except:
                 log.exception("cf_units Problem Normalizing %s %s %s",  var_data.name, var_data.units, var_data.standard_name)
-                repot += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
-                raise
+                report += "cf_units Problem Normalizing" + var_data.name + var_data.units + var_data.standard_name
+                continue
 
             # Create the QARTOD variables
             qcvarname = xyz.create_qc_variables(var_data)
@@ -428,7 +508,11 @@ def run_qc(config, ncfile, nc_path): #
                              'flat_line_test',
                              'qc_rollup']:
 
-                qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
+                try:
+                    qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
+                except Exception as e:
+                    log.exception("Encountered error while attempting to run test '{testname}':")
+                    continue
 
                 # create the qartod variable name and get the config specs
                 if testname == 'qc_rollup':
@@ -444,12 +528,10 @@ def run_qc(config, ncfile, nc_path): #
                 log.info("Updating %s", qartodname)
                 qartod_var = ncfile.variables[qartodname]
                 qartod_var[:] = np.array(qc_test.results)
-                qartod_var.qartod_test = repr(testname)
-                ncfile.variables[qartodname].qartod_config =  repr(testconfig)
-        ncfile.dac_qc_comment = report
-        # maybe unnecessary with calling context handler, but had some files
-        # which had xattr set, but not updated with QC
-        ncfile.sync()
+                qartod_var.qartod_test = f"{testname}"
+                ncfile.variables[qartodname].qartod_config = "{" + ", ".join(f"{key}: {value}" for key, value in testconfig.items()) + "}"
+
+        ncfile.dac_qc_comment = '(' + file_name + ': ' + report + ') '
 
 def qc_task(nc_path, config):
     '''
@@ -461,12 +543,25 @@ def qc_task(nc_path, config):
     lock = lock_file(nc_path)
     if not lock.acquire():
         raise ProcessError("File lock already acquired by another process")
+    # Repeat xattr check.  Consider removing when inotify loop conditions
+    # where file is repeatedly picked are addressed.
+    try:
+        if os.getxattr(nc_path, "user.qc_run"):
+            return False
+    except OSError:
+        pass
     try:
         with Dataset(nc_path, 'r+') as nc:
             run_qc(config, nc, nc_path)
         os.setxattr(nc_path, "user.qc_run", b"true")
+    # set user_qc xattr to error to prevent continuous inotify looping on
+    # partially modified netCDF files
     except OSError:
         log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
+    except:
+        log.exception("Other unhandled error occurred during QC:")
+        os.setxattr(nc_path, "user.qc_run", b"error")
     finally:
         lock.release()
 
@@ -477,9 +572,8 @@ def lock_file(path):
     :param nc_path string defining path to the netcdf file
     '''
     rc = get_redis_connection()
-    digest = hashlib.sha1(path.encode("utf-8")).hexdigest()
-    key = 'gliderdac:%s' % digest
-    lock = rc.lock(key, blocking_timeout=60)
+    key = f"gliderdac:{path}"
+    lock = rc.lock(key, blocking_timeout=0)
     return lock
 
 def get_redis_connection():
@@ -510,7 +604,6 @@ def check_needs_qc(nc_path):
         if os.getxattr(nc_path, "user.qc_run"):
             return False
     except OSError:
-        log.exception(f"Exception occurred trying to get xattr at {nc_path}:")
         pass
     with Dataset(nc_path, 'r') as nc:
         qc = GliderQC(nc, None)

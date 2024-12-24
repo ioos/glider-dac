@@ -5,12 +5,12 @@ scripts/glider_qartod.py
 from argparse import ArgumentParser
 from netCDF4 import Dataset
 from glider_qc import glider_qc
-from rq import Queue, Connection, Worker
+from rq import Queue, Worker
 import logging
 import os
 import time
 
-from glider_dac.common import log_format_str
+from glider_dac import log_format_str
 
 APP = 'gliderdac'
 QC_KEY = APP + ':glider_qartod'
@@ -54,10 +54,8 @@ def main():
         clear_master_lock()
 
     if args.worker:
-        with Connection(glider_qc.get_redis_connection()):
-
-            worker = Worker(list(map(Queue, [APP])))
-            worker.work()
+        worker = Worker([APP], connection=glider_qc.get_redis_connection())
+        worker.work()
 
     lock = acquire_master_lock()
 
@@ -144,9 +142,6 @@ def get_files(netcdf_files):
                     file_paths.append(os.path.join(path, filename))
 
     return file_paths
-
-def setup_logging(default_level=logging.INFO):
-    """ Setup logging configuration """
 
 def setup_logging(
     default_path=None,
