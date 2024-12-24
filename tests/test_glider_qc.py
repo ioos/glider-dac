@@ -12,6 +12,7 @@ import tempfile
 import os
 import numpy as np
 import numpy.ma as ma
+import pandas as pd
 
 
 class TestGliderQC(TestCase):
@@ -66,12 +67,22 @@ class TestGliderQC(TestCase):
         with open('data/qc_config.yml') as yaml_content:
             qc_config = yaml.safe_load(yaml_content)
 
-        results_raw = qc.apply_qc(STATIC_FILES['murphy'], 'temperature', qc_config)
+        times = ncfile.variables['time']
+        values = ncfile.variables['temperature']
+        values = [x if x != '--' else np.nan for x in values[:]]
+        values, note = qc.normalize_variable(np.array(values[:]),
+                                             ncfile.variables['temperature'].units,
+                                             ncfile.variables['temperature'].standard_name)
+
+        df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temperature": values,},)
+
+        results_raw = qc.apply_qc(df, 'temperature', qc_config)
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temperature'}
+
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            results_dict['gross_range_test'])
+            results_dict['gross_range_test'][:])
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
@@ -112,7 +123,13 @@ class TestGliderQC(TestCase):
         qc_config["contexts"][0]["streams"]["temp"] = qc_config["contexts"][0]["streams"]["temperature"]
         del qc_config["contexts"][0]["streams"]["temperature"]
 
-        results_raw = qc.apply_qc(fake_file, 'temp', qc_config)
+        times = nc.variables['time']
+        values = nc.variables['temp']
+        values = [x if x != '--' else np.nan for x in values[:]]
+        values, note = qc.normalize_variable(np.array(values[:]), tempvar.units, tempvar.standard_name)
+
+        df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
+        results_raw = qc.apply_qc(df, 'temp', qc_config)
 
         results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
 
@@ -123,5 +140,5 @@ class TestGliderQC(TestCase):
         units = 'deg_F'
         standard_name = 'sea_water_temperature'
 
-        converted = GliderQC.normalize_variable(values, units, standard_name)
+        converted, note = GliderQC.normalize_variable(values, units, standard_name)
         np.testing.assert_almost_equal(np.array([0, 18.3333, 37.777778]), converted, 2)
