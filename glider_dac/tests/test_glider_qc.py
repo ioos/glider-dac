@@ -6,6 +6,7 @@ tests/test_glider_qc.py
 from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
+import glider_dac
 from glider_dac.tests.resources import STATIC_FILES
 import yaml
 import tempfile
@@ -15,6 +16,8 @@ import numpy.ma as ma
 
 
 class TestGliderQC(TestCase):
+
+    qc_conf_loc = os.path.join(os.path.dirname(glider_dac.__file__), 'data/qc_config.yml')
 
     def copy_ncfile(self, ncpath):
         fd, path = tempfile.mkstemp()
