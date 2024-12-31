@@ -23,4 +23,4 @@ jobs:
         run: docker run -u root glider-dac-build pip install --no-cache -r /glider-dac/test_requirements.txt
 
       - name: Run tests
-        run: docker run --rm glider-dac-build pytest /glider-dac/tests
+        run: docker run --rm glider-dac-build pytest /glider-dac/glider_dac/tests
