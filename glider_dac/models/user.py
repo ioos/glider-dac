@@ -9,8 +9,9 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
 
 class User(db.Model):
-    #user_id = db.Column(db.String(255), primary_key=True)
-    username = db.Column(db.String(255), primary_key=True, nullable=False)
+    _tablename='user'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255))
     admin = db.Column(db.Boolean, nullable=False, default=False)

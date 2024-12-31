@@ -27,7 +27,7 @@ def index():
     deployments = Deployment.query.order_by(Deployment.created.desc()).limit(20)
     user_deployments = (db.session.execute(select(User.name,
                                  func.count(Deployment.name)).join(User)
-                                 .group_by(Deployment.username)).all())
+                                 .group_by(Deployment.user_id)).all())
 
     operator_deployments = (db.session.execute(
                                     select(Deployment.operator, func.count())

@@ -38,9 +38,9 @@ import tempfile
 
 
 class Deployment(db.Model):
-    name = db.Column(db.String(255), unique=True, nullable=False, index=True,
-                     primary_key=True)
-    username = db.Column(db.String(255), db.ForeignKey("user.username"))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     user = db.relationship("User", lazy='joined', backref="deployment")
     # The operator of this Glider. Shows up in TDS as the title.
     operator = db.Column(db.String(255), nullable=True)#nullable=False)
@@ -94,7 +94,7 @@ class Deployment(db.Model):
         else:
             db.session.commit()
         # HACK: special logic for Navy gliders deployment
-        if self.username == "navoceano" and self.glider_name.startswith("ng"):
+        if self.user.username == "navoceano" and self.glider_name.startswith("ng"):
             glob_path = os.path.join(app.config.get('DATA_ROOT'),
                                      "hurricanes-20230601T000",
                                      f"{self.glider_name}*")
@@ -125,7 +125,7 @@ class Deployment(db.Model):
         Returns the THREDDS DAP URL to this deployment
         '''
         host = current_app.config['THREDDS']
-        user = self.username
+        user = self.user.username
         deployment = self.name
         dap_url = "http://" + host + "/thredds/dodsC/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
         return dap_url
@@ -136,7 +136,7 @@ class Deployment(db.Model):
         Returns the URL to the NcSOS endpoint
         '''
         host = current_app.config['THREDDS']
-        user = self.username
+        user = self.user.username
         deployment = self.name
         return "http://" + host + "thredds/sos/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
 
@@ -149,14 +149,14 @@ class Deployment(db.Model):
     @hybrid_property
     def thredds(self):
         host = current_app.config['THREDDS']
-        user = self.username
+        user = self.user.username
         deployment = self.name
         return "http://" + host + "/thredds/catalog/deployments/" + user + "/" + deployment + "/catalog.html?dataset=deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
 
     @hybrid_property
     def erddap(self):
         host = current_app.config['PRIVATE_ERDDAP']
-        user = self.username
+        user = self.user.username
         deployment = self.name
         return "http://" + host + "/erddap/tabledap/" + deployment + ".html"
 
@@ -165,7 +165,7 @@ class Deployment(db.Model):
         if self.operator is not None and self.operator != "":
             return self.operator
         else:
-            return self.username
+            return self.user.username
 
     @property
     def full_path(self):
@@ -350,7 +350,7 @@ class Deployment(db.Model):
                 query = query.filter_by(deployment_dir=deployment_dir)
 
         for deployment in query.all():
-            user = deployment.username
+            user = deployment.user.username
             user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
 
             try:
