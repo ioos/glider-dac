@@ -31,7 +31,7 @@ COMMON: &common
   #
   
   # IMPORTANT: Modification tracking must be set to True for certain parts of
-  # deployment lifecyle to work properly!
+  # deployment lifecycle to work properly!
   SQLALCHEMY_TRACK_MODIFICATIONS: True
 
   # Google Analytics
