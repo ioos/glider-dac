@@ -29,7 +29,7 @@ COMMON: &common
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
   #
-  
+
   # IMPORTANT: Modification tracking must be set to True for certain parts of
   # deployment lifecycle to work properly!
   SQLALCHEMY_TRACK_MODIFICATIONS: True
