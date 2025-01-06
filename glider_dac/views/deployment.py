@@ -125,7 +125,7 @@ def show_deployment(deployment_name):
                                           current_user == deployment.user)):
         kwargs['editable'] = True
         if current_user.is_authenticated and (current_user.admin or
-                                              current_user.username == deployment.username):
+                                              current_user.username == deployment.user.username):
             kwargs['admin'] = True
 
     current_app.logger.info(deployment.dap)
@@ -179,7 +179,7 @@ def new_deployment(username):
             # the deployment normally.
             deployment = Deployment()
             deployment.user = user
-            deployment.username = username
+            deployment.user.username = username
             deployment.deployment_dir = os.path.join(username, deployment_name)
             deployment.updated = datetime.utcnow()
             deployment.deployment_date = deployment_date
@@ -191,7 +191,7 @@ def new_deployment(username):
             db.session.commit()
             deployment.sync()
             flash("Deployment created", 'success')
-            send_registration_email(deployment.username, deployment)
+            send_registration_email(deployment.user.username, deployment)
         # TODO: handle prior to creation
         #except DuplicateKeyError:
         except Exception as e:
@@ -237,7 +237,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     deployment = Deployment()
     deployment.name = rt_deployment.name + '-delayed'
     #deployment.user_id = user.user_id
-    deployment.username = username
+    deployment.user.username = username
     deployment.operator = rt_deployment.operator
     deployment.deployment_dir = os.path.join(username, deployment_name)
     deployment.wmo_id = rt_deployment.wmo_id
@@ -249,7 +249,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     db.session.add(deployment)
     db.session.commit()
     flash("Deployment created", 'success')
-    send_registration_email(deployment.username, deployment)
+    send_registration_email(deployment.user.username, deployment)
 
     return redirect(url_for('deployment.list_user_deployments', username=username))
 
@@ -289,7 +289,7 @@ def post_deployment_file(username, deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
     user = User.query.filter_by(username=username).one_or_none()
 
-    if not (deployment and user and deployment.username == user.username and
+    if not (deployment and user and deployment.user.username == user.username and
             (current_user.admin or current_user == user)):
         raise Exception("Unauthorized")  # @TODO better response via ajax?
 

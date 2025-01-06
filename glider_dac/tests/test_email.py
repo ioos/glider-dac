@@ -45,7 +45,7 @@ def client():
 @patch("glider_dac.services.emails")
 def test_email_exception(client, deployment, caplog, monkeypatch):
     app = create_app()
-    username = deployment.username
+    username = deployment.user.username
     with app.app_context():
         app.config["MAIL_ENABLED"] = True
         def smtp_error_raiser(message):

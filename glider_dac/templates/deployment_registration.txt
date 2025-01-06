@@ -1,4 +1,4 @@
-A new Glider Deployment ({{ deployment.username }} / {{ deployment.name }}) has been created.
+A new Glider Deployment ({{ deployment.user.username }} / {{ deployment.name }}) has been created.
 
 DeploymentInfo:
     DEPLOYMENT URL: {{ url_for('deployment.show_deployment', username=username, deployment_name=deployment.name, _external=True) }}
