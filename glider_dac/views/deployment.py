@@ -370,6 +370,7 @@ def delete_deployment(username, deployment_name):
     return redirect(url_for("deployment.list_user_deployments", username=username))
 
 
+# TODO: Is this method even needed anymore?
 @deployment_bp.route('/api/deployment', methods=['GET'])
 @cross_origin()
 def get_deployments():
@@ -427,12 +428,12 @@ def get_deployments():
                                            Deployment.delayed_mode,
                                            Deployment.latest_file,
                                            Deployment.latest_file_mtime,
-                                           Deployment.compliance_check_passed,
-                                           Deployment.dap,
-                                           Deployment.sos,
-                                           Deployment.iso,
-                                           Deployment.erddap,
-                                           Deployment.thredds)
+                                           Deployment.compliance_check_pass)
+                                           #Deployment.dap,
+                                           #Deployment.sos,
+                                           #Deployment.iso,
+                                           #Deployment.erddap,
+                                           #Deployment.thredds)
 
     def parse_date(datestr):
         '''
