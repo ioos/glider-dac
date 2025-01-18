@@ -15,8 +15,6 @@ def get_config() -> dict:
     # merge in settings from config.local.yml, if it exists
     # TODO: Why does this not recognize top-level import when run in gunicorn?
     # config.local.yml, if it exists
-    # TODO: Why does this not recognize top-level import when run in gunicorn?
-    # config.local.yml, if it exists
     if os.environ.get("FLASK_ENV") != "TESTING" and os.path.exists(extra_config_path):
         with open(extra_config_path) as extra_config:
             config = {**config, **yaml.load(extra_config,
