@@ -428,7 +428,7 @@ def get_deployments():
                                            Deployment.delayed_mode,
                                            Deployment.latest_file,
                                            Deployment.latest_file_mtime,
-                                           Deployment.compliance_check_pass)
+                                           Deployment.compliance_check_passed)
                                            #Deployment.dap,
                                            #Deployment.sos,
                                            #Deployment.iso,
