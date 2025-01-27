@@ -130,6 +130,10 @@ class Deployment(db.Model):
         dap_url = "http://" + host + "/thredds/dodsC/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
         return dap_url
 
+    @dap.expression
+    def dap(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/dodsC/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+
     @hybrid_property
     def sos(self):
         '''
@@ -140,11 +144,19 @@ class Deployment(db.Model):
         deployment = self.name
         return "http://" + host + "thredds/sos/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
 
+    @sos.expression
+    def sos(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/sos/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
+
     @hybrid_property
     def iso(self):
         host = current_app.config['PRIVATE_ERDDAP']
         name = self.name
         return "http://" + host + "/erddap/tabledap/" + name + ".iso19115"
+
+    @iso.expression
+    def iso(cls):
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.iso19115"
 
     @hybrid_property
     def thredds(self):
@@ -153,12 +165,20 @@ class Deployment(db.Model):
         deployment = self.name
         return "http://" + host + "/thredds/catalog/deployments/" + user + "/" + deployment + "/catalog.html?dataset=deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
 
+    @thredds.expression
+    def thredds(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/catalog/deployments/{self.user.username}/{self.name}/catalog.html?dataset=deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+
     @hybrid_property
     def erddap(self):
         host = current_app.config['PRIVATE_ERDDAP']
         user = self.user.username
         deployment = self.name
         return "http://" + host + "/erddap/tabledap/" + deployment + ".html"
+
+    @erddap.expression
+    def erddap(cls):
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.html"
 
     @property
     def title(self):
