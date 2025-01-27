@@ -6,7 +6,7 @@ import shutil
 from glob import glob
 import json
 from flask_login import current_user
-from glider_dac import create_app
+import glider_dac
 from glider_dac.tests.resources import STATIC_FILES
 from glider_dac.extensions import db
 from glider_dac.models.user import User
@@ -17,7 +17,7 @@ from compliance_checker.suite import CheckSuite
 
 # Load all scenarios from the feature file
 # why is app context even needed here?
-with create_app().app_context():
+with glider_dac.create_app().app_context():
     scenarios("../features/deployment_operations.feature")
 
 @pytest.fixture(autouse=True)
@@ -26,7 +26,7 @@ def setup_test_env():
 
 @pytest.fixture
 def app(setup_test_env):
-    app = create_app()
+    app = glider_dac.create_app()
 
     # Create all database tables
     with app.app_context():
@@ -36,7 +36,7 @@ def app(setup_test_env):
 
 @pytest.fixture(autouse=True)
 def change_test_dir(request, monkeypatch):
-    monkeypatch.chdir(request.fspath.dirname)
+    monkeypatch.chdir(os.path.dirname(glider_dac.__file__))
 
 @pytest.fixture(autouse=True)
 def clear_database(app, change_test_dir):
@@ -111,7 +111,7 @@ def step_create_glider_deployment(create_deployment_and_capture_email):
 
 @then("the requisite folder hierarchy should be created in the submission folder")
 def deployment_folder_hierarchy(app):
-    deployment_dir_location = "tests/test_fs/data/submission/testuser/testdeployment-20240502T0000"
+    deployment_dir_location = f"{app.config['DATA_ROOT']}/testuser/testdeployment-20240502T0000"
     assert (os.path.exists(deployment_dir_location) and os.path.isdir(deployment_dir_location) and
             os.path.isfile(os.path.join(deployment_dir_location, "deployment.json")))
 
@@ -150,9 +150,9 @@ def deployment_created_and_ready_for_archival(create_deployment_and_capture_emai
     yield deployment
 
 @when("the deployment directory has one or more valid glider NetCDF files")
-def deployment_has_netcdf_files():
+def deployment_has_netcdf_files(app):
     # just copy our already existing private ERDDAP deployment
-    folder_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/"
+    folder_path = f"{app.config['PRIV_DATA_ROOT']}/testuser/testdeployment-20240502T0000/"
     os.makedirs(folder_path)
     ds_path = os.path.join(folder_path, "testdeployment-20240502T0000.nc")
     shutil.copy(os.path.join(os.getcwd(), "../..", STATIC_FILES['murphy']), ds_path)
@@ -161,14 +161,14 @@ def deployment_has_netcdf_files():
 
 
 @when("the deployment exists in ERDDAP")
-def erddap_deployment():
+def erddap_deployment(app):
     # TODO: find reasonable DAP approximation of ERDDAP
-    ds_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
+    ds_path = f"{app.config['PRIV_DATA_ROOT']}/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
     yield Dataset(ds_path, "r")
 
 @when("the IOOS Compliance Checker has run the CF compliance checks against the deployment aggregation in ERDDAP")
-def compliance_checker_run(mocker):
-    ds_path = "tests/test_fs/data/data/priv_erddap/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
+def compliance_checker_run(app, mocker):
+    ds_path = f"{app.config['PRIV_DATA_ROOT']}/testuser/testdeployment-20240502T0000/testdeployment-20240502T0000.nc"
     ds = Dataset(ds_path, "r")
 
     # TODO: normally this would be called through glider_deployment_check
@@ -183,19 +183,19 @@ def compliance_checker_run(mocker):
 
 
 @when("the single aggregated file exists in a folder with the NetCDF data")
-def aggregated_file_exists():
-    folder_path = "tests/test_fs/data/data/pub_erddap/testuser/testdeployment-20240502T0000/"
+def aggregated_file_exists(app):
+    folder_path = f"{app.config['PUBLIC_DATA_ROOT']}/testuser/testdeployment-20240502T0000/"
     os.makedirs(folder_path)
     shutil.copy(os.path.join(os.getcwd(), "../..", STATIC_FILES['murphy']), os.path.join(folder_path, "testdeployment-20240502T0000.ncCF.nc3.nc"))
 
 
 @then("the NCEI archival script will link the aggregated deployment file to the archival directory")
-def ncei_archival_script():
+def ncei_archival_script(app):
     # FIXME: import must go here due to config loading on module load, which is dependent on
     #        FLASK_ENV environment variable value
     from scripts import archive_datasets
     archive_datasets.main()
-    file_path = "tests/test_fs/data/data/archive/testdeployment-20240502T0000.ncCF.nc3.nc"
+    file_path = f"{app.config['ARCHIVE_PATH']}/testdeployment-20240502T0000.ncCF.nc3.nc"
     # TODO: test that file exists and is hard link
     assert (os.path.exists(file_path) and os.stat(file_path).st_nlink > 1 and
             os.path.exists(file_path + ".md5"))

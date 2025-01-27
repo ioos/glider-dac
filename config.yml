@@ -94,16 +94,16 @@ TESTING:
   SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
   WTF_CSRF_ENABLED: False
   # TODO: these directories need to be made relative to project root
-  path2priv: 'tests/test_fs/data/data/priv_erddap/'
-  path2pub: 'tests/test_fs/data/data/pub_erddap/'
+  path2priv: 'tests/test_fs/data/priv_erddap/'
+  path2pub: 'tests/test_fs/data/pub_erddap/'
   path2thredds: 'tests/test_fs/data/data/thredds/'
   flags_private: 'tests/test_fs/scratch/tomcat-erddap-private/flag'
   flags_public: 'tests/test_fs/scratch/tomcat-erddap-public/flag'
-  DATA_ROOT: tests/test_fs/data/submission
-  PRIV_DATA_ROOT: tests/test_fs/data/data/priv_erddap
-  PUBLIC_DATA_ROOT: tests/test_fs/data/data/pub_erddap
-  THREDDS_DATA_ROOT: tests/test_fs/data/data/thredds
-  ARCHIVE_PATH: tests/test_fs/data/data/archive
-  NCEI_DIR: tests/test_fs/data/data/archive
+  DATA_ROOT: tests/test_fs/submission
+  PRIV_DATA_ROOT: tests/test_fs/data/priv_erddap
+  PUBLIC_DATA_ROOT: tests/test_fs/data/pub_erddap
+  THREDDS_DATA_ROOT: tests/test_fs/data/thredds
+  ARCHIVE_PATH: tests/test_fs/data/archive
+  NCEI_DIR: tests/test_fs/data/archive
   SERVER: "http://localhost:8080/erddap"
   erddap_private: 'localhost:8080'
