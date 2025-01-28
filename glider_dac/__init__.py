@@ -50,7 +50,7 @@ def create_app():
     # this is mainly for test runners which may not be using the containerized versions
     # of Redis
     # TODO: Move elsewhere, perhaps in config module?
-    app.config.from_prefixed_env("REDIS")
+    app.config.from_prefixed_env("OVERRIDE")
     app.config["SESSION_TYPE"] = "redis"
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     app.json_encoder = LazyJSONEncoder
