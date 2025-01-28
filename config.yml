@@ -3,9 +3,6 @@ COMMON: &common
   HOST: localhost
   PORT: 5000
   DEBUG: False
-  MONGODB_HOST: mongo
-  MONGODB_PORT: 27017
-  MONGODB_DATABASE: gliderdac
 
   SERVER_NAME: "localhost:5000"
   APPLICATION_ROOT: "/"
