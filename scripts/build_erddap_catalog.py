@@ -214,7 +214,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
     Builds an ERDDAP dataset xml chunk.
 
     :param str data_root: The root directory where netCDF files are read from
-    :param mongo.Deployment deployment: Mongo deployment model
+    :param glider_dac.models.Deployment deployment: Glider DAC deployment model
     """
     deployment_dir = deployment.deployment_dir
     logger.info("Building ERDDAP catalog chunk for {}".format(deployment_dir))
