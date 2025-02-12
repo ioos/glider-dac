@@ -90,9 +90,9 @@ def admin():
     users = User.query.all()
 
     subquery = db.session.query(
-        Deployment.username,
+        Deployment.user.label("user_id"),
         func.count().label('deployments_count')
-    ).group_by(Deployment.username).subquery()
+    ).group_by(Deployment.user).subquery()
 
     # Query to join User table with the subquery
     user_deployment_counts = db.session.query(
@@ -101,7 +101,7 @@ def admin():
         User.email,
         User.organization,
         subquery.c.deployments_count
-    ).join(subquery, subquery.c.username == User.username).all()
+    ).join(subquery, subquery.user_id == User.id).all()
 
     current_app.logger.info(user_deployment_counts[0])
 
