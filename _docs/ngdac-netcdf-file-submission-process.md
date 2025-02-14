@@ -80,11 +80,13 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
     
 4. An additional field, attribution, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 
-5. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
+5. If the deployment is not current, select the **Delayed Mode?** checkbox. This will append _delayed to the deployment name, distinguishing **real-time (current)** data from **delayed (historical) data** for the same deployment.
+
+6. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
 
     **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
 
-6. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process#dataset-archiving) for more details on the NCEI archival process.
+7. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process#dataset-archiving) for more details on the NCEI archival process.
 
 ## Submission of NetCDF Files
 
