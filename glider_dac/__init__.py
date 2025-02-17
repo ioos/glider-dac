@@ -1,5 +1,6 @@
 import os
 import datetime
+import logging
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
@@ -87,10 +88,12 @@ if not os.path.exists(app.config.get('USER_DB_FILE')):
     UserDB.init_db(app.config.get('USER_DB_FILE'))
 
 # Create logging
+app.logger.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(log_formatter)
+app.logger.addHandler(stream_handler)
 if app.config.get('LOG_FILE') == True:
-    import logging
-    from logging import FileHandler
-    file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
+    file_handler = logging.FileHandler(os.path.join(os.path.dirname(__file__),
                                             '../logs/glider_dac.txt'))
     file_handler.setFormatter(log_formatter)
     file_handler.setLevel(logging.INFO)

@@ -8,7 +8,6 @@ COMMON: &common
 
   APPLICATION_PREFIX: "/gliders/"
   SECRET_KEY: thisisakey
-  LOG_FILE: yes
   WEB_PASSWORD: password
 
   MAIL_ENABLED: False
