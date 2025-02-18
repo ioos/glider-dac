@@ -14,7 +14,6 @@ WORKDIR /glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
 RUN cd /usr/local/src && pip install -U pip && \
-    pip install --no-cache Cython thredds_crawler numpy pytest && \
     pip install --no-cache -r /glider-dac/requirements.txt
 
 RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
