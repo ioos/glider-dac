@@ -91,17 +91,18 @@ def create_app():
     app.jinja_env.filters['padfit'] = util.padfit
 
     # Create logging
-    import logging
-    log_format_str = '%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s'
-    log_formatter = logging.Formatter(log_format_str)
+    app.logger.setLevel(logging.INFO)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(log_formatter)
+    app.logger.addHandler(stream_handler)
     if app.config.get('LOG_FILE') == True:
-        from logging import FileHandler
-        file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
+        file_handler = logging.FileHandler(os.path.join(os.path.dirname(__file__),
                                                 '../logs/glider_dac.txt'))
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
-        app.logger.info('Application Process Started')
+
+    app.logger.info('Application Process Started')
 
     app.register_blueprint(index_bp)
     app.register_blueprint(deployment_bp)

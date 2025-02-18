@@ -8,7 +8,7 @@ COMMON: &common
   APPLICATION_ROOT: "/"
   APPLICATION_PREFIX: "/"
   SECRET_KEY: thisisakey
-  LOG_FILE: yes
+  LOG_FILE: no
   WEB_PASSWORD: password
 
   MAIL_ENABLED: False
