@@ -43,13 +43,6 @@ services:
     command: python glider_dac_watchdog.py
     ports: []
 
-  glider-dac-cron:
-    <<: *provider_anchor
-    container_name: glider-dac-cron
-    user: root
-    command: cron -f
-    ports: []
-
   qartod-worker:
     build: .
     command: python /glider-dac/scripts/glider_qartod.py -w
