@@ -7,7 +7,7 @@ from glider_dac.models.deployment import Deployment
 from netCDF4 import Dataset
 # netcdftime was moving from main netCDF module
 # try both here
-from cftime import utime
+from cftime import num2date
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -34,9 +34,8 @@ def get_nc_time(nc_filepath):
             time_raw = time_var[-1]
             time_units = time_var.units
             time_calendar = getattr(time_var, 'calendar', 'gregorian')
-        time_conv = utime(time_units, time_calendar)
-
-        return time_conv.num2date(time_raw)._to_real_datetime()
+        return num2date(time_raw, time_units,
+                        time_calendar)._to_real_datetime()
     except Exception as e:
         print(str(e))
         return pd.NaT
