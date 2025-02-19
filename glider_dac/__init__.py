@@ -1,5 +1,6 @@
 import os
 import datetime
+import logging
 
 #from glider_dac.common import log_format_str
 from glider_dac.extensions import db, get_redis_connection_other
