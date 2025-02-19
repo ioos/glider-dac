@@ -14,7 +14,7 @@ geojson
 marshmallow
 marshmallow-sqlalchemy
 watchdog>=0.9.0
-lxml==4.8.0
+lxml==5.3.1
 Flask-Mail==0.9.0
 Flask-Script==2.0.5
 feedparser==6.0.1
@@ -26,7 +26,6 @@ Werkzeug<3.0.0
 thredds_crawler>=1.5.4
 Flask-Session
 pyyaml>=6.0
-#rq==1.3.0
 rq
 redis
 rq-dashboard==0.3.4
@@ -36,7 +35,7 @@ netCDF4>=1.5.8
 cf-units>=2.1.5
 # cftime needs to be frozen for utime.  Some scripts could be rewritten to use
 # newer functions
-cftime==1.4.1
+cftime==1.6.4.post1
 flask-cors==5.0.0
 compliance-checker>=5.0.0
 cc-plugin-glider>=2.0.3
