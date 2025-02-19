@@ -63,7 +63,6 @@ services:
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
 
-  # For John Kerfoot's new status page application -- move elsewhere if needed
   mysql:
     restart: unless-stopped
     image: mysql:8
