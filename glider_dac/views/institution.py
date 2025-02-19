@@ -9,7 +9,6 @@ from flask import (current_app, render_template, redirect, flash, url_for,
                    jsonify, request, Blueprint)
 from flask_cors import cross_origin
 from flask_login import current_user
-#from glider_dac import app, db
 from glider_dac import db
 from glider_dac.models.institution import Institution
 from flask_wtf import FlaskForm

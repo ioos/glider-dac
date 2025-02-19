@@ -8,7 +8,6 @@ from flask import (render_template, redirect, flash, url_for, request,
                    Blueprint, current_app)
 from sqlalchemy import func
 from flask_login import login_required, current_user
-#from glider_dac import app, db
 from glider_dac import db
 from glider_dac.models.user import User
 from flask_wtf import FlaskForm
