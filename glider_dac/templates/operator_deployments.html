@@ -20,8 +20,8 @@
     <tbody>
     {%- for m in deployments %}
     <tr>
-      <td><a href="{{ url_for('show_deployment', username=m.username, deployment_id=m._id) }}">{{ m.name }}</a></td>
-      <td><a href="{{ url_for('list_user_deployments', username=m.username) }}">{{ m.username }}</a></td>
+      <td><a href="{{ url_for('deployment.show_deployment', username='none', deployment_name=m.name) }}">{{ m.name }}</a></td>
+      <td><a href="{{ url_for('deployment.list_user_deployments', username=m.username) }}">{{ m.username }}</a></td>
       <td>{{ m.wmo_id }}</td>
       <td>{{ m.attribution }}</td>
       <td data-value="{{ m.updated }}"><abbr title="{{ m.updated | datetimeformat }} UTC">{{ m.updated | prettydate }}</abbr></td>

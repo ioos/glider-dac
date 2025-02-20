@@ -43,14 +43,15 @@ import sys
 from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
-from glider_dac import app, db
+from glider_dac.config import get_config
+from glider_dac.extensions import db
 from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
 from scripts.sync_erddap_datasets import sync_deployment
-from glider_dac.common import log_formatter
+from glider_dac import log_formatter
 
 
 logger = logging.getLogger(__name__)
@@ -61,20 +62,27 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 
-erddap_mapping_dict = defaultdict(lambda: 'String',
-                                  { np.int8: 'byte',
-                                    np.int16: 'short',
-                                    np.float32: 'float',
-                                    np.float64: 'double' })
+erddap_mapping_dict = defaultdict(lambda: "String",
+                                  {np.int8: "byte",
+                                   np.uint8: "ubyte",
+                                   np.int16: "short",
+                                   np.uint16: "ushort",
+                                   np.int32: "int",
+                                   np.uint32: "uint",
+                                   np.int64: "long",
+                                   np.uint64: "ulong",
+                                   np.float32: "float",
+                                   np.float64: "double"})
 
 # The directory where the XML templates exist
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
+config = get_config()
 redis_key = 'build_erddap_catalog_last_run_deployment'
-redis_host = app.config.get('REDIS_HOST', 'redis')
-redis_port = app.config.get('REDIS_PORT', 6379)
-redis_db = app.config.get('REDIS_DB', 0)
+redis_host = config.get('REDIS_HOST', 'redis')
+redis_port = config.get('REDIS_PORT', 6379)
+redis_db = config.get('REDIS_DB', 0)
 _redis = redis.Redis(
     host=redis_host,
     port=redis_port,
@@ -83,7 +91,7 @@ _redis = redis.Redis(
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(config["PRIVATE_ERDDAP"]),
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
@@ -103,13 +111,10 @@ def build_datasets_xml(data_root, catalog_root, force):
 
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    deployment_names = ((dep["name"], dep["deployment_dir"]) for dep in
-                         db.Deployment.find({}, {'name': True,
-                                                 'deployment_dir': True}))
-    for deployment_name, deployment_dir in deployment_names:
-        dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
+    for dep in Deployment.query.all():
+        dataset_chunk_path = os.path.join(data_root, dep.deployment_dir,
+                                          'dataset.xml')
         # base query to which we may add filtering to see if previously run
-        query = ({"name": deployment_name})
 
         # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
         # we want to run the "caching" logic only if force flag isn't set and
@@ -117,19 +122,14 @@ def build_datasets_xml(data_root, catalog_root, force):
         if not (force and os.path.exists(dataset_chunk_path)):
             # Get datasets that have been updated since the last time this script ran
             try:
-                last_run_ts = _redis.hget(redis_key, deployment_name) or 0
+                last_run_ts = _redis.hget(redis_key, dep.name) or 0
                 last_run = datetime.utcfromtimestamp(int(last_run_ts))
             except Exception:
                 logger.error("Error: Parsing last run for {}. ".format(deployment.name),
                              "Processing dataset anyway.")
-            else:
-                # there is a chance that the updated field won't be set if
-                # model.save() has no files
-                query['updated'] = {'$gte': last_run}
-        deployment = db.Deployment.find_one(query)
         # if we couldn't find the deployment, usually due to update time not
         # being recent, skip this deployment
-        if not deployment:
+        if dep.updated < last_run:
             continue
 
 
@@ -154,7 +154,7 @@ def build_datasets_xml(data_root, catalog_root, force):
     # store in buffer first to avoid writing unfinished XML to datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
     deployments_name_set = set()
-    deployments = db.Deployment.find()  # All deployments now
+    deployments = Deployment.query.all()  # All deployments now
     buf = StringIO()
     for line in fileinput.input([head_path]):
         buf.write(line)
@@ -214,7 +214,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
     Builds an ERDDAP dataset xml chunk.
 
     :param str data_root: The root directory where netCDF files are read from
-    :param mongo.Deployment deployment: Mongo deployment model
+    :param glider_dac.models.Deployment deployment: Glider DAC deployment model
     """
     deployment_dir = deployment.deployment_dir
     logger.info("Building ERDDAP catalog chunk for {}".format(deployment_dir))
@@ -239,7 +239,12 @@ def build_erddap_catalog_chunk(data_root, deployment):
             logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
-    latest_file = deployment.latest_file or get_latest_nc_file(dir_path)
+    if (deployment.latest_file is None or
+        not os.path.isfile(os.path.join(dir_path, deployment.latest_file))):
+        latest_file = get_latest_nc_file(dir_path)
+    else:
+        latest_file = deployment.latest_file
+
     if latest_file is None:
         raise IOError('No nc files found in deployment {}'.format(deployment_dir))
 
@@ -517,58 +522,139 @@ def build_erddap_catalog_chunk(data_root, deployment):
     </test>
     """).findall("dataVariable")
 
+    required_qartod_vars = {
+            'qartod_conductivity_flat_line_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_electrical_conductivity',
+                'standard_name': 'flat_line_test_quality_flag'
+            },
+            'qartod_conductivity_gross_range_flag': {
+                'long_name': 'QARTOD Gross Range Test for sea_water_electrical_conductivity',
+                'standard_name': 'gross_range_test_quality_flag'
+            },
+            'qartod_conductivity_rate_of_change_flag': {
+                'long_name': 'QARTOD Rate of Change Test for sea_water_electrical_conductivity',
+                'standard_name': 'rate_of_change_test_quality_flag'
+            },
+            'qartod_conductivity_spike_flag': {
+                'long_name': 'QARTOD Spike Test for sea_water_electrical_conductivity',
+                'standard_name': 'spike_test_quality_flag'
+            },
+            'qartod_conductivity_primary_flag': {
+                'long_name': 'QARTOD Primary Flag for sea_water_electrical_conductivity',
+                'standard_name': 'aggregate_quality_flag'
+            },
+            'qartod_density_flat_line_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
+                'standard_name': 'flat_line_test_quality_flag'
+            },
+            'qartod_density_gross_range_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
+                'standard_name': 'gross_range_test_quality_flag'
+            },
+            'qartod_density_primary_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
+                'standard_name': 'aggregate_quality_flag'
+            },
+            'qartod_density_rate_of_change_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
+                'standard_name': 'rate_of_change_test_quality_flag'
+            },
+            'qartod_density_spike_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_density',
+                'standard_name': 'spike_test_quality_flag'
+            },
+            'qartod_pressure_flat_line_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
+                'standard_name': 'flat_line_test_quality_flag'
+            },
+            'qartod_pressure_gross_range_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
+                'standard_name': 'gross_range_test_quality_flag'
+            },
+            'qartod_pressure_primary_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
+                'standard_name': 'aggregate_quality_flag'
+            },
+            'qartod_pressure_rate_of_change_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
+                'standard_name': 'rate_of_change_test_quality_flag'
+            },
+            'qartod_pressure_spike_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
+                'standard_name': 'spike_test_quality_flag'
+            },
+            'qartod_salinity_flat_line_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
+                'standard_name': 'flat_line_test_quality_flag'
+            },
+            'qartod_salinity_gross_range_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
+                'standard_name': 'gross_range_test_quality_flag'
+            },
+            'qartod_salinity_primary_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
+                'standard_name': 'aggregate_quality_flag'
+            },
+            'qartod_salinity_rate_of_change_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
+                'standard_name': 'rate_of_change_test_quality_flag'
+            },
+            'qartod_salinity_spike_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
+                'standard_name': 'spike_test_quality_flag'
+            },
+            'qartod_temperature_flat_line_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
+                'standard_name': 'flat_line_test_quality_flag'
+            },
+            'qartod_temperature_gross_range_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
+                'standard_name': 'gross_range_test_quality_flag'
+            },
+            'qartod_temperature_primary_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
+                'standard_name':  'aggregate_quality_flag'
+            },
+            'qartod_temperature_rate_of_change_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
+                'standard_name': 'rate_of_change_test_quality_flag'
+            },
+            'qartod_temperature_spike_flag': {
+                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
+                'standard_name': 'spike_test_quality_flag'
+            },
+            'qartod_location_test_flag': {
+                'long_name': 'QARTOD Location Test for longitude and latitude',
+                'standard_name': 'location_test_quality_flag'
+            },
+        }
 
-
-    required_qartod_vars = {"qartod_conductivity_flat_line_flag",
-                            "qartod_conductivity_gross_range_flag",
-                            "qartod_conductivity_primary_flag",
-                            "qartod_conductivity_rate_of_change_flag",
-                            "qartod_conductivity_spike_flag",
-                            "qartod_density_flat_line_flag",
-                            "qartod_density_gross_range_flag",
-                            "qartod_density_primary_flag",
-                            "qartod_density_rate_of_change_flag",
-                            "qartod_density_spike_flag",
-                            "qartod_monotonic_pressure_flag",
-                            "qartod_pressure_flat_line_flag",
-                            "qartod_pressure_gross_range_flag",
-                            "qartod_pressure_primary_flag",
-                            "qartod_pressure_rate_of_change_flag",
-                            "qartod_pressure_spike_flag",
-                            "qartod_salinity_flat_line_flag",
-                            "qartod_salinity_gross_range_flag",
-                            "qartod_salinity_primary_flag",
-                            "qartod_salinity_rate_of_change_flag",
-                            "qartod_salinity_spike_flag",
-                            "qartod_temperature_flat_line_flag",
-                            "qartod_temperature_gross_range_flag",
-                            "qartod_temperature_primary_flag",
-                            "qartod_temperature_rate_of_change_flag",
-                            "qartod_temperature_spike_flag"}
-
-
-    existing_varnames = {'trajectory', 'wmo_id', 'profile_id', 'profile_time',
-                         'profile_lat', 'profile_lon', 'time', 'depth',
-                         'pressure', 'temperature', 'conductivity', 'salinity',
-                         'density', 'lat', 'lon', 'time_uv', 'lat_uv',
-                         'lon_uv', 'u', 'v', 'platform', 'instrument_ctd'}
+    existing_varnames = {'trajectory', 'wmo_id', 'platform', 'instrument_ctd',
+                         'profile_id', 'profile_time', 'profile_lat', 'profile_lon',
+                         'time', 'depth', 'lat', 'lon',
+                         'pressure', 'temperature', 'conductivity', 'salinity', 'density',
+                         'time_uv', 'lat_uv', 'lon_uv', 'u', 'v'}
 
 
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
+
     with Dataset(nc_file, 'r') as ds:
 
         qartod_var_type = check_for_qartod_vars(ds)
 
-        exclude_vars = (existing_varnames |
-                        {'latitude', 'longitude'} |
-                        qartod_var_type['qartod'].keys())
+        exclude_vars = (existing_varnames | {'latitude', 'longitude'})
 
         all_other_vars = [add_erddap_var_elem(var) for var in
                           ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)]
 
         gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
 
-        qartod_vars_snippet = qartod_var_snippets(required_qartod_vars, qartod_var_type)
+        # Exclude automatic QARTOD variables if the dataset is delayed mode
+        # This will keep any user supplied QARTOD variables, they should be part of
+        # `all_other_vars` already
+        qartod_vars_snippet = (qartod_var_snippets(required_qartod_vars,
+                                                   qartod_var_type)
+                               if not deployment.delayed_mode else [])
 
         vars_sorted = sorted(common_variables +
                              qartod_vars_snippet + all_other_vars,
@@ -585,44 +671,44 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
         try:
             tree = etree.fromstring(rf"""
-                <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
-                    <!-- defaultDataQuery uses datasetID -->
-                    <!--
-                    <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
-                    <defaultGraphQuery>longitude,latitude,time&amp;.draw=markers&amp;.marker=2|5&.color=0xFFFFFF&.colorBar=|||||</defaultGraphQuery>
-                    -->
-                    {reload_settings}
-                    <updateEveryNMillis>-1</updateEveryNMillis>
-                    <!-- use datasetID as the directory name -->
-                    <fileDir>{dir_path}</fileDir>
-                    <recursive>false</recursive>
-                    <fileNameRegex>.*\.nc</fileNameRegex>
-                    <metadataFrom>last</metadataFrom>
-                    <sortedColumnSourceName>time</sortedColumnSourceName>
-                    <sortFilesBySourceNames>trajectory time</sortFilesBySourceNames>
-                    <fileTableInMemory>false</fileTableInMemory>
-                    <accessibleViaFiles>true</accessibleViaFiles>
-                    <addAttributes>
-                        <att name="cdm_data_type">trajectoryProfile</att>
-                        <att name="featureType">trajectoryProfile</att>
-                        <att name="cdm_trajectory_variables">trajectory,wmo_id</att>
-                        <att name="cdm_profile_variables">time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
-                        <att name="subsetVariables">wmo_id,trajectory,profile_id,time,latitude,longitude</att>
-
-                        <att name="Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
-                        <att name="keywords">AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity, glider, In Situ Ocean-based platforms > Seaglider, Spray, Slocum, trajectory, underwater glider, water, wmo</att>
-                        <att name="keywords_vocabulary">GCMD Science Keywords</att>
-                        <att name="Metadata_Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
-                        <att name="sourceUrl">(local files)</att>
-                        <att name="infoUrl">https://gliders.ioos.us/erddap/</att>
-                        <!-- title=datasetID -->
-                        <att name="title">{deployment.name}</att>
-                        <att name="ioos_dac_checksum">{checksum}</att>
-                        <att name="ioos_dac_completed">{completed}</att>
-                        <att name="gts_ingest">{gts_ingest}</att>
-                     </addAttributes>
-                </dataset>
+                    <dataset type="EDDTableFromNcFiles" datasetID="{deployment.name}" active="true">
+                        <!-- defaultDataQuery uses datasetID -->
+                        <!--
+                        <defaultDataQuery>&amp;trajectory={deployment.name}</defaultDataQuery>
+                        <defaultGraphQuery>longitude,latitude,time&amp;.draw=markers&amp;.marker=2|5&.color=0xFFFFFF&.colorBar=|||||</defaultGraphQuery>
+                        -->
+                        {reload_settings}
+                        <updateEveryNMillis>-1</updateEveryNMillis>
+                        <!-- use datasetID as the directory name -->
+                        <fileDir>{dir_path}</fileDir>
+                        <recursive>false</recursive>
+                        <fileNameRegex>.*\.nc</fileNameRegex>
+                        <metadataFrom>last</metadataFrom>
+                        <sortedColumnSourceName>time</sortedColumnSourceName>
+                        <sortFilesBySourceNames>trajectory time</sortFilesBySourceNames>
+                        <fileTableInMemory>false</fileTableInMemory>
+                        <accessibleViaFiles>true</accessibleViaFiles>
+                        <addAttributes>
+                            <att name="cdm_data_type">trajectoryProfile</att>
+                            <att name="featureType">trajectoryProfile</att>
+                            <att name="cdm_trajectory_variables">trajectory,wmo_id</att>
+                            <att name="cdm_profile_variables">time_uv,lat_uv,lon_uv,u,v,profile_id,time,latitude,longitude</att>
+                            <att name="subsetVariables">wmo_id,trajectory,profile_id,time,latitude,longitude</att>
+                            <att name="Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
+                            <att name="keywords">AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity, glider, In Situ Ocean-based platforms > Seaglider, Spray, Slocum, trajectory, underwater glider, water, wmo</att>
+                            <att name="keywords_vocabulary">GCMD Science Keywords</att>
+                            <att name="Metadata_Conventions">Unidata Dataset Discovery v1.0, COARDS, CF-1.6</att>
+                            <att name="sourceUrl">(local files)</att>
+                            <att name="infoUrl">https://gliders.ioos.us/erddap/</att>
+                            <!-- title=datasetID -->
+                            <att name="title">{deployment.name}</att>
+                            <att name="ioos_dac_checksum">{checksum}</att>
+                            <att name="ioos_dac_completed">{completed}</att>
+                            <att name="gts_ingest">{gts_ingest}</att>
+                        </addAttributes>
+                    </dataset>
                 """)
+
             for var in variable_order:
                 tree.append(var)
             for identifier, mod_attrs in extra_atts.items():
@@ -632,36 +718,40 @@ def build_erddap_catalog_chunk(data_root, deployment):
         finally:
             return etree.tostring(tree, encoding=str)
 
+
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
 
     var_list = []
-    for req_var in required_qartod_vars:
-        # If the required QARTOD QC variable isn't already defined,
+    for req_var, template in list(required_qartod_vars.items()):
+
+        # If the required QARTOD variable isn't already defined,
         # then supply a set of default attributes.
 
         if req_var in qartod_var_type['qartod']:
             continue
-
         else:
-
             flag_atts = """
-                  <att name="ioos_category">Quality</att>
-                  <att name="flag_values" type="byteList">1 2 3 4 9</att>
-                  <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
-                  <att name="valid_min" type="byte">1</att>
-                  <att name="valid_max" type="byte">9</att>
-                  <att name="dac_comment">ioos_qc_module_qartod</att>
-                  <att name="https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"></att>
-                  """
+                    <att name="_FillValue" type="byte">2</att>
+                    <att name="dac_comment">QARTOD TESTS NOT RUN</att>
+                    <att name="flag_values" type="byteList">1 2 3 4 9</att>
+                    <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
+                    <att name="ioos_category">Quality</att>
+                    <att name="references">https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf</att>
+                    <att name="units">1</att>
+                    <att name="valid_min" type="byte">1</att>
+                    <att name="valid_max" type="byte">9</att>
+                    """
 
         qartod_snip = f"""
             <dataVariable>
-               <sourceName>{req_var}</sourceName>
-               <destinationName>{req_var}</destinationName>
-               <dataType>byte</dataType>
-               <addAttributes>
-                  {flag_atts}
-               </addAttributes>
+                <sourceName>{req_var}</sourceName>
+                <destinationName>{req_var}</destinationName>
+                <dataType>byte</dataType>
+                <addAttributes>
+                    <att name="long_name">{template['long_name']}</att>
+                    <att name="standard_name"> {template['standard_name']} </att>
+                    {flag_atts}
+                </addAttributes>
             </dataVariable>
             """
 
@@ -776,5 +866,4 @@ if __name__ == "__main__":
     data_dir = os.path.realpath(args.data_dir)
     force = args.force
 
-    with app.app_context():
-        sys.exit(main(data_dir, catalog_dir, force))
+    sys.exit(main(data_dir, catalog_dir, force))

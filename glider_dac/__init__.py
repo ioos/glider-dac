@@ -1,197 +1,116 @@
 import os
 import datetime
+import logging
+
+#from glider_dac.common import log_format_str
+from glider_dac.extensions import db, get_redis_connection_other
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
 from flask_session import Session
 from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
+from flask_sqlalchemy import SQLAlchemy
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from glider_dac.reverse_proxy import ReverseProxied
+from glider_dac.models.user import User
+from sqlalchemy import event
+import os
+import os.path
 import redis
 import yaml
-from glider_dac.common import log_formatter
+import logging
+from rq import Queue, Worker
+from glider_dac.views.deployment import deployment_bp
+from glider_dac.views.index import index_bp
+from glider_dac.views.institution import institution_bp
+from glider_dac.views.user import user_bp
+from glider_dac.config import get_config
+import glider_dac.utilities as util
 
 
 csrf = CSRFProtect()
-
-# Create application object
-app = Flask(__name__)
-app.url_map.strict_slashes = False
-app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-csrf.init_app(app)
-app.config['SWAGGER'] = {
-    'title': 'glider-dac',
-    'uiversion': 3,
-    'openapi': '3.0.2'
-}
-app.json_encoder = LazyJSONEncoder
-template = dict(swaggerUiPrefix=LazyString(lambda : request.environ.get('HTTP_X_SCRIPT_NAME', '')))
-Swagger(app, template=template)
-
-cur_dir = os.path.dirname(__file__)
-with open(os.path.join(cur_dir, '..', 'config.yml')) as base_config:
-    config_dict = yaml.load(base_config, Loader=yaml.Loader)
-
-extra_config_path = os.path.join(cur_dir, '..', 'config.local.yml')
-# merge in settings from config.local.yml, if it exists
-if os.path.exists(extra_config_path):
-    with open(extra_config_path) as extra_config:
-        config_dict = {**config_dict, **yaml.load(extra_config,
-                                                  Loader=yaml.Loader)}
-
-try:
-    app.config.update(config_dict["PRODUCTION"])
-except KeyError:
-    app.config.update(config_dict["DEVELOPMENT"])
-
-app.secret_key = app.config["SECRET_KEY"]
-app.config["SESSION_TYPE"] = "redis"
-app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
-Session(app)
-
-import redis
-redis_pool = redis.ConnectionPool(host=app.config.get('REDIS_HOST'),
-                                  port=app.config.get('REDIS_PORT'),
-                                  db=app.config.get('REDIS_DB'))
-redis_connection = redis.Redis(connection_pool=redis_pool)
-strict_redis = redis.StrictRedis(connection_pool=redis_pool)
-
-
-
-
-from rq import Queue
-queue = Queue('default', connection=redis_connection)
-
-import sys
-
-from flask_mongokit import MongoKit
-import os
-db = MongoKit(app)
-
-# Mailer
-from flask_mail import Mail
-mail = Mail(app)
-
 # Login manager for frontend
 login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "index.login"
+log_format_str = '%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s'
+log_formatter = logging.Formatter(log_format_str)
+
+# Create application object
+def create_app():
+    app = Flask(__name__)
+
+    # TODO: Move elsewhere?
+    app.url_map.strict_slashes = False
+    app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+    csrf.init_app(app)
+    app.config.update(get_config())
+    # load REDIS prefixed environment variables
+    # this is mainly for test runners which may not be using the containerized versions
+    # of Redis
+    # TODO: Move elsewhere, perhaps in config module?
+    app.config.from_prefixed_env("OVERRIDE")
+    app.config["SESSION_TYPE"] = "redis"
+    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+    app.json_encoder = LazyJSONEncoder
+    template = dict(swaggerUiPrefix=LazyString(lambda: request.environ.get('HTTP_X_SCRIPT_NAME', '')))
+    Swagger(app, template=template)
+    app.secret_key = app.config["SECRET_KEY"]
+    app.config["SESSION_TYPE"] = "redis"
+    app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
+    Session(app)
 
 
-# User Auth DB file - create if not existing
-if not os.path.exists(app.config.get('USER_DB_FILE')):
-    from glider_util.bdb import UserDB
-    UserDB.init_db(app.config.get('USER_DB_FILE'))
+    redis_connection = get_redis_connection_other(app.config.get('REDIS_HOST'),
+                                                  app.config.get('REDIS_PORT'),
+                                                  app.config.get('REDIS_DB'))
+    app.queue = Queue('default', connection=redis_connection)
 
-# Create logging
-if app.config.get('LOG_FILE') == True:
-    import logging
-    from logging import FileHandler
-    file_handler = FileHandler(os.path.join(os.path.dirname(__file__),
-                                            '../logs/glider_dac.txt'))
-    file_handler.setFormatter(log_formatter)
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    # Mailer
+    from flask_mail import Mail
+    app.mail = Mail(app)
+
+    login_manager.init_app(app)
+
+    from .models.user import User
+    @login_manager.user_loader
+    def load_user(username):
+        return User.query.filter_by(username=username).one_or_none()
+
+    app.jinja_env.filters['datetimeformat'] = util.datetimeformat
+    app.jinja_env.filters['timedeltaformat'] = util.timedeltaformat
+    app.jinja_env.filters['prettydate'] = util.prettydate
+    app.jinja_env.filters['pluralize'] = util.pluralize
+    app.jinja_env.filters['padfit'] = util.padfit
+
+    # Create logging
+    app.logger.setLevel(logging.INFO)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(log_formatter)
+    app.logger.addHandler(stream_handler)
+    if app.config.get('LOG_FILE') == True:
+        file_handler = logging.FileHandler(os.path.join(os.path.dirname(__file__),
+                                                '../logs/glider_dac.txt'))
+        file_handler.setFormatter(log_formatter)
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
     app.logger.info('Application Process Started')
 
-# Create datetime jinja2 filter
-def datetimeformat(value, format='%a, %b %d %Y at %I:%M%p'):
-    if isinstance(value, datetime.datetime):
-        return value.strftime(format)
-    return value
+    app.register_blueprint(index_bp)
+    app.register_blueprint(deployment_bp)
+    app.register_blueprint(institution_bp)
+    app.register_blueprint(user_bp)
 
-def timedeltaformat(starting, ending):
-    if isinstance(starting, datetime.datetime) and isinstance(ending, datetime.datetime):
-        return ending - starting
-    return "unknown"
-
-def prettydate(d):
-    if d is None:
-        return "never"
-    utc_dt = datetime.datetime.utcnow()
-    #app.logger.info(utc_dt)
-    #app.logger.info(d)
-    if utc_dt > d:
-        return prettypastdate(d, utc_dt - d)
-    else:
-        return prettyfuturedate(d, d - utc_dt)
-
-# from http://stackoverflow.com/a/5164027/84732
-def prettypastdate(d, diff):
-    s = diff.seconds
-    if diff.days > 7:
-        return d.strftime('%Y %b %d')
-    elif diff.days > 1:
-        return '{} days ago'.format(diff.days)
-    elif diff.days == 1:
-        return '1 day ago'
-    elif s <= 1:
-        return 'just now'
-    elif s < 60:
-        return '{} seconds ago'.format(s)
-    elif s < 120:
-        return '1 minute ago'
-    elif s < 3600:
-        return '{} minutes ago'.format(s//60)
-    elif s < 7200:
-        return '1 hour ago'
-    else:
-        return '{} hours ago'.format(s//3600)
-
-def prettyfuturedate(d, diff):
-    s = diff.seconds
-    if diff.days > 7:
-        return d.strftime('%Y %b %d')
-    elif diff.days > 1:
-        return '{} days from now'.format(diff.days)
-    elif diff.days == 1:
-        return '1 day from now'
-    elif s <= 1:
-        return 'just now'
-    elif s < 60:
-        return '{} seconds from now'.format(s)
-    elif s < 120:
-        return '1 minute from now'
-    elif s < 3600:
-        return '{} minutes from now'.format(s/60)
-    elif s < 7200:
-        return '1 hour from now'
-    else:
-        return '{} hours from now'.format(s/3600)
-
-def pluralize(number, singular = '', plural = 's'):
-    if number == 1:
-        return singular
-    else:
-        return plural
-
-# pad/truncate filter (for making text tables)
-def padfit(value, size):
-    if len(value) <= size:
-        return value.ljust(size)
-
-    return value[0:(size-3)] + "..."
-
-app.jinja_env.filters['datetimeformat'] = datetimeformat
-app.jinja_env.filters['timedeltaformat'] = timedeltaformat
-app.jinja_env.filters['prettydate'] = prettydate
-app.jinja_env.filters['pluralize'] = pluralize
-app.jinja_env.filters['padfit'] = padfit
-
-def slugify(value):
-    """
-    Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
-    Pulled from Django
-    """
-    import unicodedata
-    import re
-    #value = str(value)
-    #value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore')
-    value = re.sub(r'[^\w\s-]', '', value).strip()
-    return re.sub(r'[-\s]+', '-', value)
+    return app
 
 # Import everything
 import glider_dac.views

@@ -1,14 +1,14 @@
 COMMON: &common
+  FLASK_APP: "glider_dac:create_app()"
   HOST: localhost
   PORT: 5000
   DEBUG: False
-  MONGODB_HOST: mongo
-  MONGODB_PORT: 27017
-  MONGODB_DATABASE: gliderdac
 
-  APPLICATION_PREFIX: "/gliders/"
+  SERVER_NAME: "localhost:5000"
+  APPLICATION_ROOT: "/"
+  APPLICATION_PREFIX: "/"
   SECRET_KEY: thisisakey
-  LOG_FILE: yes
+  LOG_FILE: no
   WEB_PASSWORD: password
 
   MAIL_ENABLED: False
@@ -25,6 +25,11 @@ COMMON: &common
   MAILER_DEBUG: 1
   MAIL_DEFAULT_TO: receiver@domain.com
   #MAIL_DEFAULT_LIST: YOUR_EMAIL
+  #
+
+  # IMPORTANT: Modification tracking must be set to True for certain parts of
+  # deployment lifecycle to work properly!
+  SQLALCHEMY_TRACK_MODIFICATIONS: True
 
   # Google Analytics
   GA_ENABLED: True
@@ -43,7 +48,6 @@ COMMON: &common
   INFLUXDB_PORT: 8086
   ADMINS:
    - admin
-  USER_DB_FILE: berkeleydb/users.db
 
   REDIS_HOST: redis
   REDIS_PORT: 6379
@@ -69,6 +73,34 @@ COMMON: &common
   PUBLIC_CATALOG: '/data/catalog/pub_erddap/datasets.xml'
   PRIVATE_CATALOG: '/data/catalog/priv_erddap/datasets.xml'
 
+  SQLALCHEMY_DATABASE_URI: mysql://username:password@mysql/gliderdac
+
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
+  PREFERRED_URL_SCHEME: http
+
+TESTING:
+  <<: *common
+  DEBUG: True
+  TESTING: True
+  PREFERRED_URL_SCHEME: http
+  # enable email for mock email testing
+  MAIL_ENABLED: True
+  # only use in memory DB for testing
+  SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
+  WTF_CSRF_ENABLED: False
+  # TODO: these directories need to be made relative to project root
+  path2priv: 'tests/test_fs/data/priv_erddap/'
+  path2pub: 'tests/test_fs/data/pub_erddap/'
+  path2thredds: 'tests/test_fs/data/data/thredds/'
+  flags_private: 'tests/test_fs/scratch/tomcat-erddap-private/flag'
+  flags_public: 'tests/test_fs/scratch/tomcat-erddap-public/flag'
+  DATA_ROOT: tests/test_fs/submission
+  PRIV_DATA_ROOT: tests/test_fs/data/priv_erddap
+  PUBLIC_DATA_ROOT: tests/test_fs/data/pub_erddap
+  THREDDS_DATA_ROOT: tests/test_fs/data/thredds
+  ARCHIVE_PATH: tests/test_fs/data/archive
+  NCEI_DIR: tests/test_fs/data/archive
+  SERVER: "http://localhost:8080/erddap"
+  erddap_private: 'localhost:8080'
