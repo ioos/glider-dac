@@ -48,7 +48,7 @@ The following is the list of required global attributes that must be included in
  - [**Climate and Forecast (CF)**](https://cfconventions.org/): Especially the section on Attributes (section 2.6, as of CF v1.10)
  - **[Attribute Convention for Data Discovery](http://wiki.esipfed.org/index.php?title=Attribute_Convention_for_Data_Discovery) (ACDD)**
  - **NOAA National Centers for Environmental Information (NCEI) netCDF Templates**: Guidance from NCEI on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.ncei.noaa.gov/netcdf-templates) and [global attribute suggestions](https://www.ncei.noaa.gov/netcdf-templates#guidancetable).
- - **Integrated Marine Observing System (IMOS)/Australian National Facility for Ocean Gliders (ANFOG)**: [Data Management User's Manual v5.1](http://imos.org.au/fileadmin/user_upload/shared/ANFOG/ANFOG_DataManagement_UsersManual_v5.1_21Aug2018.pdf)
+ - **Integrated Marine Observing System (IMOS)**: [Delayed Mode QA/QC Best Practice Manual](https://content.aodn.org.au/Documents/IMOS/Facilities/Ocean_glider/Delayed_Mode_QAQC_Best_Practice_Manual_OceanGliders_LATEST.pdf)
  - **IOOS**: Internal discussion within the IOOS Glider Data Team.
 
 ### Caveats
