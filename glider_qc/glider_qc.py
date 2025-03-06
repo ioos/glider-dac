@@ -6,7 +6,7 @@ glider_qc/glider_qc.py
 from cf_units import Unit
 from netCDF4 import num2date, Dataset
 import datetime
-from ioos_qc.qartod import aggregate
+from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
 from ioos_qc.results import collect_results, CollectedResult
 from ioos_qc.config import Config
@@ -430,35 +430,29 @@ class GliderQC(object):
 
         # Step 3: Run the QC tests
         try:
-            runner = list(qc_x.run(c_x))
+            results = qc_x.run(c_x)
         except Exception as e:
             log.error(f"Error running QC tests on {varname}: {e}")
             return []
 
-        # Step 4: Collect the results from the QC run
+        # Step 4: Store the results in another DataFrame
         try:
-            results = collect_results(runner, how='list')
+            store = PandasStore(results)
         except Exception as e:
             log.error(f"Error collecting QC results for {varname}: {e}")
-            return []
+            return []    
 
-        # Step 5: Add the qc_rollup results
+        # Step 5: Compute any aggregations 
         try:
-            agg = CollectedResult(
-                stream_id=varname,
-                package='qartod',
-                test='qc_rollup',
-                function=aggregate,
-                results=aggregate(results),
-                tinp=qc_x.time(),
-                data=qc_x.data(varname)
-            )
-            results.append(agg)
+            store.compute_aggregate(name='rollup_qc')  # Appends to the results internally
         except Exception as e:
-            log.error(f"Error adding qc_rollup for {varname}: {e}")
-            return []
-
-        return results
+            log.error(f"Error computing any aggregations for {varname}: {e}")
+            return []            
+        
+        # Step 6: Write only the test results to the store
+        results_store = store.save(write_data=False, write_axes=False)
+        
+        return results_store
 
     def check_geophysical_variables(self, var_name):
         '''
@@ -647,16 +641,17 @@ class GliderQC(object):
         return ' '.join(report_list)
 
 # the main function
-def run_qc(config, ncfile, nc_path):
+def run_qc(config, ncfile, ncfile_path):
     '''
     Runs IOOS QARTOD tests on a netCDF file
 
     :param config: string defining path to the configuration file
-    :param nc_path: string defining path to the netCDF file
+    :param ncfile_path: string defining path to the netCDF file
     :param ncfile: netCDF4._netCDF4.Dataset
     '''
     report_list = []
     xyz = GliderQC(ncfile, config)
+    deployment_name = ncfile_path.split('/')[-2]
     file_name = ncfile_path.split('/')[-1]
 
     times = ncfile.variables['time']
@@ -672,7 +667,7 @@ def run_qc(config, ncfile, nc_path):
     # log time array issues
     report = ' '.join(report_list).strip()
     if len(report.strip()) != 0:
-        ncfile.dac_qc_comment = file_name + ': ' + report
+        ncfile.dac_qc_comment = str(deployment_name) + ' (' + str(file_name) + ': ' + report + ')'
     else:
         log.info(" Running IOOS QARTOD tests on %s", file_name)
 
@@ -686,7 +681,7 @@ def run_qc(config, ncfile, nc_path):
                 report_list.append(f"{location_err}: {str(e)}")
 
         # Find geophysical variables
-        legacy_variables, note = xyz.find_geophysical_variables() #ncfile
+        legacy_variables, note = xyz.find_geophysical_variables()
         if not legacy_variables:
             log.info("No variables found.")
             report_list.append("No variables found.")
@@ -706,7 +701,7 @@ def run_qc(config, ncfile, nc_path):
 
                 # Check the Data Array
                 if xyz.check_geophysical_variables(var_name): #cfile,
-                    report_list.append(var_name + ': ' + xyz.check_geophysical_variables(var_name))
+                    report_list.append(xyz.check_geophysical_variables(var_name))
                     continue
 
                 # Check the mapping of standard names with units
@@ -739,31 +734,23 @@ def run_qc(config, ncfile, nc_path):
                     results = xyz.apply_qc(df,var_name, config_set)
                     log.info("Generated QC test results for %s", var_name)
 
-                    for testname in ['gross_range_test', 'spike_test', 'rate_of_change_test', 'flat_line_test',
-                                                 'qc_rollup']:
-                        try:
-                            qc_test = next(r for r in results if r.stream_id == var_name and r.test == testname)
-                        except Exception as e:
-                            test_err = "Unable to read qc test results"
-                            log.exception(f"{test_err}: {str(e)}")
-                            report_list.append(f"{test_err}: {str(e)}")
-                            continue
+                    for testname in results.columns:
 
                         # create the qartod variable name and get the config specs
-                        if testname == 'qc_rollup':
+                        if testname == 'qartod_rollup_qc':
                             qartodname = 'qartod_'+ var_name + '_primary_flag'
                             # Pass the config specs to a variable
                             testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
                         else:
-                            qartodname = 'qartod_'+ var_name + '_'+ testname.split('_test')[0]+'_flag'
+                            qartodname = 'qartod_'+ var_name + '_'+ testname.split('qartod_')[-1].split('_test')[0]+'_flag'
                             # Pass the config specs to a variable
-                            testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname]
+                            testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname.split('qartod_')[-1]]
 
                         # Update the qartod variable
                         log.info("Updating %s", qartodname)
                         qartod_var = ncfile.variables[qartodname]
-                        qartod_var[:] = np.array(qc_test.results)
-                        qartod_var.qartod_test = f"{testname}"
+                        qartod_var[:] = np.array(results[testname].values)
+                        qartod_var.qartod_test = f"{testname.split('qartod_')[-1]}"
 
                         # Set the dictionary as a string attribute to the variable
                         qartod_var.setncattr('qartod_config', json.dumps(testconfig))
@@ -772,10 +759,10 @@ def run_qc(config, ncfile, nc_path):
                         apply_qc_err = "apply_qc failed: could not calculate QC flags."
                         log.exception(f"{apply_qc_err}: ")
                         report_list.append(f"{apply_qc_err}: {str(e)}")
-                        continu
+                        continue
     # log issues qc
     report = ' '.join(report_list).strip()
-    ncfile.dac_qc_comment = '(' + file_name + ': ' + str(report) + ') '
+    ncfile.dac_qc_comment = str(deployment_name) + ' (' + str(file_name) + ': ' + str(report) + ')'
 
 def qc_task(nc_path, config):
     '''
@@ -856,6 +843,17 @@ def check_needs_qc(nc_path):
     # if this section was reached, QC has been run, but xattr remains unset
     try:
         os.setxattr(nc_path, "user.qc_run", b"true")
+
+        # TODO: Set time as the extended file attribute
+        # Get the current date-time in ISO format
+        #iso_date = datetime.datetime.utcnow().isoformat()
+
+        # Convert it to bytes
+        #iso_date_bytes = iso_date.encode("utf-8")
+
+        # Set the extended attribute
+        #os.setxattr(nc_path, "user.qc_run", iso_date_bytes)
+    
     except OSError:
         log.exception(f"Exception occurred trying to set xattr on already QCed file at {nc_path}:")
     return False
