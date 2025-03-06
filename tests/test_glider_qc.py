@@ -78,23 +78,21 @@ class TestGliderQC(TestCase):
 
         results_raw = qc.apply_qc(df, 'temperature', qc_config)
 
-        results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temperature'}
+        np.testing.assert_equal(
+            np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
+            results_raw['temperature_qartod_gross_range_test'][:])
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            results_dict['gross_range_test'][:])
+            results_raw['temperature_qartod_flat_line_test'])
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            results_dict['flat_line_test'])
-
-        np.testing.assert_equal(
-            np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
-            results_dict['rate_of_change_test'])
+            results_raw['temperature_qartod_rate_of_change_test'])
 
         np.testing.assert_equal(
             np.array([2, 1, 1, 1, 1, 1, 1, 2], dtype=np.int8),
-            results_dict['spike_test'])
+            results_raw['temperature_qartod_spike_test'])
 
     def test_units_qc(self):
         fd, fake_file = tempfile.mkstemp()
@@ -131,9 +129,7 @@ class TestGliderQC(TestCase):
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
         results_raw = qc.apply_qc(df, 'temp', qc_config)
 
-        results_dict = {r.test: r.results for r in results_raw if r.stream_id == 'temp'}
-
-        np.testing.assert_equal(results_dict['flat_line_test'][:], np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
+        np.testing.assert_equal(results_raw['temperature_qartod_flat_line_test'][:], np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
         values = np.array([32.0, 65.0, 100.0])
