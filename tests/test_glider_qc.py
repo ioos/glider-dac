@@ -129,7 +129,7 @@ class TestGliderQC(TestCase):
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
         results_raw = qc.apply_qc(df, 'temp', qc_config)
 
-        np.testing.assert_equal(np.array(results_raw['temperature_qartod_flat_line_test'].values), np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
+        np.testing.assert_equal(np.array(results_raw['temp_qartod_flat_line_test'].values), np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
 
     def test_normalize_variable(self):
         values = np.array([32.0, 65.0, 100.0])
