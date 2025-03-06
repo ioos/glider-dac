@@ -440,18 +440,18 @@ class GliderQC(object):
             store = PandasStore(results)
         except Exception as e:
             log.error(f"Error collecting QC results for {varname}: {e}")
-            return []    
+            return []
 
-        # Step 5: Compute any aggregations 
+        # Step 5: Compute any aggregations
         try:
             store.compute_aggregate(name='rollup_qc')  # Appends to the results internally
         except Exception as e:
             log.error(f"Error computing any aggregations for {varname}: {e}")
-            return []            
-        
+            return []
+
         # Step 6: Write only the test results to the store
         results_store = store.save(write_data=False, write_axes=False)
-        
+
         return results_store
 
     def check_geophysical_variables(self, var_name):
@@ -853,7 +853,7 @@ def check_needs_qc(nc_path):
 
         # Set the extended attribute
         #os.setxattr(nc_path, "user.qc_run", iso_date_bytes)
-    
+
     except OSError:
         log.exception(f"Exception occurred trying to set xattr on already QCed file at {nc_path}:")
     return False
