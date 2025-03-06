@@ -81,7 +81,7 @@ class TestGliderQC(TestCase):
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
             np.array(results_raw['temperature_qartod_gross_range_test'].values))
-                         
+
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
             np.array(results_raw['temperature_qartod_flat_line_test'].values))
