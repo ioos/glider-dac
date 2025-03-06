@@ -29,7 +29,7 @@ rq-dashboard==0.3.4
 ioos-qc==2.2.0
 netCDF4>=1.4.0
 cf-units>=2
-# cftime needs to be frozen for utime.  Some scripts could be rewritten to use
+# cftime needs to be frozen for utime. Some scripts could be rewritten to use
 # newer functions
 cftime==1.4.1
 flask-cors==4.0.1
