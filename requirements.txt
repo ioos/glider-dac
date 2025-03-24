@@ -29,11 +29,9 @@ pyyaml>=6.0
 rq
 redis
 rq-dashboard==0.3.4
-# pin IOOS QC to a particular commit on main until stable version with fixes is released
--e git+https://github.com/ioos/ioos_qc@57813de111af201f8d7b68c7fcd6337bf37dd6ed#egg=ioos_qc
+ioos-qc==2.2.0
 netCDF4>=1.5.8
 cf-units>=2.1.5
-# cftime needs to be frozen for utime.  Some scripts could be rewritten to use
 # newer functions
 cftime==1.6.4.post1
 flask-cors==5.0.0
