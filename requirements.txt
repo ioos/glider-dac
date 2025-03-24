@@ -20,7 +20,7 @@ sh==1.09
 passlib>=1.7.1
 requests>=2.20.0
 simplekv
-Werkzeug<3.0.0
+Werkzeug>=3.0.6
 thredds_crawler>=1.5.4
 -e git+https://github.com/pallets-eco/flask-session@a9d001ae9b40268c9189c468bb136e535d3358e1#egg=flask-session
 pyyaml>=5.2
