@@ -22,7 +22,7 @@ sh==1.09
 passlib>=1.7.4
 requests>=2.20.1
 simplekv
-Werkzeug<3.0.0
+Werkzeug>=3.0.6
 thredds_crawler>=1.5.4
 Flask-Session
 pyyaml>=6.0
