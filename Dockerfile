@@ -24,6 +24,10 @@ RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /data/catalog/priv_erddap && \
     chown -R glider:glider /glider-dac /data /usr/local/lib/python3.8/site-packages/compliance_checker/data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
+# HACK: Strip incompatible Sequence typing in ioos-qartod code for Py3.8 only.
+# We should migrate ASAP to the SQLAlchemy branch to use supported versions
+# of Python which don't need this workaround.
+RUN sed -Ei 's/:[^:]+Sequence.*\]//' /usr/local/lib/python3.8/site-packages/ioos_qc/qartod.py
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
 
