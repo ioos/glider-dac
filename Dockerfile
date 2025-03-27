@@ -13,7 +13,7 @@ WORKDIR /glider-dac
 # not clear why reinstalling Mongo-related dependencies is necessary under
 # Python 3, but this allows the service to run without import or runtime errors
 RUN pip install -U pip && \
-    pip install --no-cache Cython thredds_crawler numpy==1.19.5 pytest && \
+    pip install --no-cache Cython thredds_crawler pytest && \
     pip install --no-cache -r requirements.txt && \
     pip uninstall -y mongokit && \
     pip install --no-cache --force-reinstall mongokit-py3==0.9.1.1 && \
@@ -24,6 +24,10 @@ RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
              /data/catalog/priv_erddap && \
     chown -R glider:glider /glider-dac /data /usr/local/lib/python3.8/site-packages/compliance_checker/data && \
     ln -sf /glider-dac/scripts/crontab /etc/crontab
+# HACK: Strip incompatible Sequence typing in ioos-qartod code for Py3.8 only.
+# We should migrate ASAP to the SQLAlchemy branch to use supported versions
+# of Python which don't need this workaround.
+RUN sed -Ei 's/:[^:]+Sequence.*\]//' /usr/local/lib/python3.8/site-packages/ioos_qc/qartod.py
 USER glider
 ENV PYTHONPATH="${PYTHONPATH:-}:/glider-dac"
 
