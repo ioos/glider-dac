@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.13
 ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml \
     PYTHONPATH="/glider-dac" FLASK_APP=glider_dac:create_app
 COPY . /glider-dac
