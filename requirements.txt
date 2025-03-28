@@ -12,7 +12,6 @@ mysqlclient
 geojson
 marshmallow
 marshmallow-sqlalchemy
-numpy<2.0
 watchdog>=0.9.0
 lxml==5.3.1
 Flask-Mail==0.9.0
