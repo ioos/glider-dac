@@ -10,7 +10,7 @@ services:
     restart: always
     build: .
     ports:
-      - 5050:5000
+      - 5000:5000
     volumes:
       #- ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
