@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.13
 
 ARG glider_gid_uid=1000
 COPY . /glider-dac
