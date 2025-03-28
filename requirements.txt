@@ -30,7 +30,7 @@ netcdf4>=1.5.8
 passlib>=1.7.4
 pyyaml>=6.0
 quantities==0.14.1
-redis-py
+redis
 requests>=2.20.1
 rq
 rq-dashboard==0.3.4
