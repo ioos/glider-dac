@@ -1,6 +1,14 @@
-FROM python:3.11
+# Debian image already has an ENV var called
+# PYTHON_VESION, so use a different name
+# for interpolation in the FROM instruction
+# and VOLUME instruction corresponding to Compliance
+# Checker cache to avoid collision and using wrong
+# path for volume
+ARG PYTHON_VERSION_SHORT=3.11
+FROM python:$PYTHON_VERSION_SHORT
 ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml \
     PYTHONPATH="/glider-dac" FLASK_APP=glider_dac:create_app
+ARG PYTHON_VERSION_SHORT=3.11
 COPY . /glider-dac
 
 # Install system dependencies
@@ -14,7 +22,7 @@ RUN apt-get update && \
     apt-get -y remove libxml2-dev libudunits2-dev && rm -rf /var/lib/apt/lists/*
 
 # Volume and working directories
-VOLUME /glider-dac/logs/ /data /usr/local/lib/python3.11/site-packages/compliance_checker/data
+VOLUME /glider-dac/logs/ /data /usr/local/lib/python$PYTHON_VERSION_SHORT/site-packages/compliance_checker/data
 
 WORKDIR /glider-dac
 
