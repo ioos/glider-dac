@@ -1,17 +1,15 @@
 FROM python:3.11
-ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml \
-    PYTHONPATH="/glider-dac" FLASK_APP=glider_dac:create_app
+ENV PYTHONPATH="/glider-dac" FLASK_APP=glider_dac:create_app
 COPY . /glider-dac
 
 # Install system dependencies
 # Install cf-units FIRST (valid version, with source fallback)
 # Then install the remainder of the app requirements
 RUN apt-get update && \
-    apt-get -y install libxml2-dev libudunits2-dev netcdf-bin rsync && \
+    apt-get -y install rsync && \
     pip install --no-cache -U pip && \
-    pip install --no-cache cf-units==3.2.0 && \
     pip install --no-cache -r /glider-dac/requirements.txt && \
-    apt-get -y remove libxml2-dev libudunits2-dev && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
 
 # Volume and working directories
 VOLUME /glider-dac/logs/ /data /usr/local/lib/python3.11/site-packages/compliance_checker/data
