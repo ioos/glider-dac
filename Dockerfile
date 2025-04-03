@@ -1,4 +1,4 @@
-# Debian image already has an ENV var called
+# Debian Python image already has an ENV var called
 # PYTHON_VESION, so use a different name
 # for interpolation in the FROM instruction
 # and VOLUME instruction corresponding to Compliance
@@ -15,11 +15,10 @@ COPY . /glider-dac
 # Install cf-units FIRST (valid version, with source fallback)
 # Then install the remainder of the app requirements
 RUN apt-get update && \
-    apt-get -y install libxml2-dev libudunits2-dev netcdf-bin rsync && \
+    apt-get -y install rsync && \
     pip install --no-cache -U pip && \
-    pip install --no-cache cf-units==3.2.0 && \
     pip install --no-cache -r /glider-dac/requirements.txt && \
-    apt-get -y remove libxml2-dev libudunits2-dev && rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/*
 
 # Volume and working directories
 VOLUME /glider-dac/logs/ /data /usr/local/lib/python$PYTHON_VERSION_SHORT/site-packages/compliance_checker/data
