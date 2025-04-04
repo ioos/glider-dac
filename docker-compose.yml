@@ -10,11 +10,10 @@ services:
     restart: always
     build: .
     ports:
-      - 3000:5000
+      - 5000:5000
     volumes:
-    #  - ./config.local.yml:/glider-dac/config.local.yml
+      #- ./config.local.yml:/glider-dac/config.local.yml
       - log_volume:/glider-dac/logs
-      - berkeleydb_mount:/glider-dac/berkeleydb
       - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
       - ./datasets.xml:/data/catalog/priv_erddap/datasets.xml
@@ -23,12 +22,13 @@ services:
     #  - S3_ACCESS_KEY
     #  - S3_SECRET_KEY
     environment:
+      - FLASK_APP=glider_dac:create_app
       - DATA_ROOT=${DATA_ROOT}
       - DATA_VOLUME=${DATA_VOLUME}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
     depends_on:
-      - mongo
+      - mysql
       - redis
 
   glider-dac-worker:
@@ -43,19 +43,11 @@ services:
     command: python glider_dac_watchdog.py
     ports: []
 
-  glider-dac-cron:
-    <<: *provider_anchor
-    container_name: glider-dac-cron
-    user: root
-    command: cron -f
-    ports: []
-
   qartod-worker:
     build: .
     command: python /glider-dac/scripts/glider_qartod.py -w
     volumes:
       - ${DATA_VOLUME:-data_volume}:/data
-      - berkeleydb_mount:/glider-dac/berkeleydb
       - log_volume:/glider-dac/logs
     restart: always
     environment:
@@ -64,15 +56,6 @@ services:
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
 
-  mongo:
-    container_name: mongo
-    image: mongo:4
-    volumes:
-      - mongo_storage:/data/db
-      - mongo_config:/data/configdb
-    restart: always
-
-  # For John Kerfoot's new status page application -- move elsewhere if needed
   mysql:
     restart: unless-stopped
     image: mysql:8
@@ -88,7 +71,8 @@ services:
   # TODO: THREDDS and ERDDAP will need volume configurations
   thredds:
     container_name: thredds
-    image: unidata/thredds-docker:5.4
+    image: unidata/thredds-docker:5.6
+    platform: linux/amd64
     ports:
       - 8082:8080
     volumes:
@@ -120,17 +104,11 @@ services:
     image: redis
     volumes:
       - redis_data:/data
-    deploy:
-      restart_policy:
-        condition: always
 
 volumes:
   data_volume:
-  berkeleydb_mount:
   thredds_cache:
   thredds_logs:
-  mongo_storage:
-  mongo_config:
   redis_data:
   status_mysql:
   log_volume:
