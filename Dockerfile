@@ -11,11 +11,13 @@ ENV UDUNITS2_XML_PATH=/usr/share/xml/udunits/udunits2.xml \
 ARG PYTHON_VERSION_SHORT=3.11
 COPY . /glider-dac
 
+
+
 # Install system dependencies
 # Install cf-units FIRST (valid version, with source fallback)
 # Then install the remainder of the app requirements
 RUN apt-get update && \
-    apt-get -y install rsync && \
+    apt-get -y install rsync libudunits2-dev && \
     pip install --no-cache -U pip && \
     pip install --no-cache -r /glider-dac/requirements.txt && \
     rm -rf /var/lib/apt/lists/*
