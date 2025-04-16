@@ -13,11 +13,10 @@ config.local.yml
 ftp_temp
 tds_temp
 tds_catalogs
-data/
+glider_dac/tests/data/
+.pytest_cache
 secrets/
 
-# BerkeleyDB user database
-users.db
 .env
 .venv/
 activate

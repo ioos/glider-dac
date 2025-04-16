@@ -103,7 +103,7 @@
 
         $(this).addClass('uploading');
 
-        var url = "{{ url_for('post_deployment_file', username=username, deployment_id=deployment._id) }}";
+        var url = "{{ url_for('deployment.post_deployment_file', username=username, deployment_name=deployment.name) }}";
 
         var req = $.ajax({
           xhr: function() {
@@ -201,7 +201,7 @@
           var btn = $(this);
           btn.button('loading');
 
-          var url = "{{ url_for('delete_deployment_files', username=username, deployment_id=deployment._id) }}";
+          var url = "{{ url_for('deployment.delete_deployment_files', username=username, deployment_name=deployment.name) }}";
           var req = $.ajax({
             type: 'POST',
             url: url,
@@ -305,7 +305,7 @@
   <h3>Edit</h3>
   {% endif %}
 
-  <form name="deployment_edit" id="deployment_edit" method="POST" action="{{ url_for('edit_deployment', username=username, deployment_id=deployment._id) if editable}}">
+  <form name="deployment_edit" id="deployment_edit" method="POST" action="{{ url_for('deployment.edit_deployment', username=username, deployment_name=deployment.name) if editable}}">
     {{ form.hidden_tag() }}
     {{ render_field(form.operator, not editable) }}
     {{ render_field(form.attribution, not editable) }}
@@ -321,7 +321,7 @@
   <hr />
 
   <h3>Admin</h3>
-  <form method="POST" action="{{ url_for('delete_deployment', username=username, deployment_id=deployment._id) }}">
+  <form method="POST" action="{{ url_for('deployment.delete_deployment', username=username, deployment_name=deployment.name) }}">
     {{ form.hidden_tag() }}
     <button class="btn btn-danger">Delete Deployment</button>
   </form>
@@ -329,6 +329,4 @@
   {% endif %}
 
 </div>
-
-
 {% endblock %}
