@@ -86,12 +86,10 @@ def admin():
         flash("Account for '%s' created" % user.username, 'success')
         return redirect(url_for("user.admin"))
 
-    users = User.query.all()
-
     subquery = db.session.query(
-        Deployment.user.label("user_id"),
+        Deployment.user_id.label("user_id"),
         func.count().label('deployments_count')
-    ).group_by(Deployment.user).subquery()
+    ).group_by(Deployment.user_id).subquery()
 
     # Query to join User table with the subquery
     user_deployment_counts = db.session.query(
@@ -100,7 +98,7 @@ def admin():
         User.email,
         User.organization,
         subquery.c.deployments_count
-    ).join(subquery, subquery.user_id == User.id).all()
+    ).join(subquery, subquery.c.user_id == User.id).all()
 
     current_app.logger.info(user_deployment_counts[0])
 
