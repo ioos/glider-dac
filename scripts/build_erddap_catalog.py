@@ -138,7 +138,7 @@ def build_datasets_xml(data_root, catalog_root, force):
 
 
         try:
-            chunk_contents = build_erddap_catalog_chunk(data_root, deployment)
+            chunk_contents = build_erddap_catalog_chunk(data_root, dep)
         except Exception:
             logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
         # only attempt to write file if we were able to generate an XML snippet
