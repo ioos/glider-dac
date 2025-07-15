@@ -71,7 +71,11 @@ erddap_mapping_dict = defaultdict(lambda: "String",
                                    np.int64: "long",
                                    np.uint64: "ulong",
                                    np.float32: "float",
-                                   np.float64: "double"})
+                                   np.float64: "double",
+                                   # used with extra_atts.json
+                                   float: "double",
+                                   int: "int",
+                                   bool: "byte"})
 
 # The directory where the XML templates exist
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
@@ -812,6 +816,12 @@ def add_extra_attributes(tree, identifier, mod_atts):
         logger.info('Added "addAttributes" to xpath for {}'.format(xpath_expr))
 
     for att_name, value in mod_atts.items():
+        attr_type = None
+        if not isinstance(value, str):
+            attr_type = erddap_mapping_dict.get(type(value), None)
+            value_remap = str(value)
+        else:
+            value_remap = value
         # find the attribute
         found_elem = add_atts_elem.find(att_name)
         # attribute exists, update current value
@@ -820,7 +830,9 @@ def add_extra_attributes(tree, identifier, mod_atts):
         # attribute
         else:
             new_elem = etree.Element('att', {'name': att_name})
-            new_elem.text = value
+            if attr_type:
+                new_elem.attrib["type"] = attr_type
+            new_elem.text = value_remap
             add_atts_elem.append(new_elem)
 
 def check_for_qartod_vars(nc):
