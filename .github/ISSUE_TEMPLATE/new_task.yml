@@ -1,0 +1,33 @@
+name: New Task
+description: Request a new task in the IOOS GDAC
+title: "New Task: "
+labels: ["new task"]
+projects: ["ioos/6"]
+body:
+  - type: markdown
+    attributes:
+      value: To start the discussion and planning of a new task in the IOOS Glider Data Assembly Center, please fill out the questions below.
+  - type: input
+    id: who
+    attributes:
+      label: Who is requesting this?
+  - type: textarea
+    id: what
+    attributes:
+      label: What is being requested?
+  - type: input
+    id: when
+    attributes:
+      label: What is the requested deadline and why?
+  - type: textarea
+    id: statusquo
+    attributes:
+      label: What is the current status quo (i.e., what happens if this does not get done)?
+  - type: textarea
+    id: doneindicate
+    attributes:
+      label: What indicates this is done (i.e., how do we know this is complete)?     
+  - type: textarea
+    id: description
+    attributes:
+      label: Provide a description or any other important information.
