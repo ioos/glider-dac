@@ -68,8 +68,6 @@ class GliderQC(object):
         valid_variables = []
         ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
         if ancillary_variables is None:
-            # create an ancillary variable
-            ncvariable.ancillary_variables = ''
             log.info("Missing ancillary_variables for %s added", ncvariable.name)
             return []
 
