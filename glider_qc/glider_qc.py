@@ -68,6 +68,7 @@ class GliderQC(object):
         valid_variables = []
 
         # Process the ancillary_variables if it's a valid non-empty string
+        ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
         if isinstance(ancillary_variables, str) and ancillary_variables.strip():
             ancillary_variables = ancillary_variables.split()
         else:
