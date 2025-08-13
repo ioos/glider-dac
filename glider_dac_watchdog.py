@@ -62,7 +62,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 navo_deployment_directory = None
                 for maybe_dir in possible_existing_dirs:
                     if os.path.isdir(maybe_dir):
-                        dir_date_part = maybe_dir.rsplit("-", 1)[0]
+                        dir_date_part = maybe_dir.rsplit("-", 1)[-1]
                         # get most recent matching directory
                         if date_str >= dir_date_part:
                             navo_deployment_directory = maybe_dir
