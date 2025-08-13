@@ -184,30 +184,35 @@ def get_deployments():
     return deployments
 
 
+# TODO: Develop method with better synchronization with changed ERDDAP results
 def get_mod_time(name):
 
-    jsonFile = os.path.join(config["PRIV_DATA_ROOT"], name + '/deployment.json')
+
+    json_file = os.path.join(app.config["PRIV_DATA_ROOT"], name, 'deployment.json')
     log.info("Inspecting %s", jsonFile)
 
     try:
-        newest = max(glob.iglob(config["PRIV_DATA_ROOT"] + name + '/' + '*.nc'),
-                     key=os.path.getmtime)
-        ncTime = os.path.getmtime(newest)
+        files = glob.glob(app.config["PRIV_DATA_ROOT"] + name + '/' + '*.nc')
+        extra_atts_file = os.path.join(app.config["PRIV_DATA_ROOT"], name, "extra_atts.json")
+        if os.path.exists(extra_atts_file):
+            files.append(extra_atts_file)
+        newest = max(files, key=os.path.getmtime)
+        latest_file_time = os.path.getmtime(newest)
     # if there are no nc files, arbitrarily set time as 0
     except ValueError:
-        ncTime = 0
+        latest_file_time = 0
 
-    if not os.path.exists(jsonFile):
-        log.info( "JSON file does not exist.")
-        with open(jsonFile, 'w') as outfile:
-            json.dump({'updated': ncTime * 1000}, outfile)
-        log.info("Initiated JSON file")
+    if not os.path.exists(json_file):
+        log.info("Deployment JSON file does not exist.")
+        with open(json_file, 'w') as outfile:
+            json.dump({'updated': latest_file_time * 1000}, outfile)
+        log.info("Initiated deployment JSON file")
 
-    with open(jsonFile, 'r') as fid:
+    with open(json_file, 'r') as fid:
         dataset = json.load(fid)
     # get the max time reported between the netCDF files and the update time
     # in the deployments json file
-    update_time = max(ncTime * 1000, dataset['updated'])
+    update_time = max(latest_file_time * 1000, dataset['updated'])
     update_timestring = datetime.fromtimestamp(update_time / 1000).isoformat()
     log.info("Dataset {} last updated {}".format(name, update_timestring))
     return update_time / 1000
