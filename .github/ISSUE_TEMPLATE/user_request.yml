@@ -19,6 +19,10 @@ body:
     id: why
     attributes:
       label: How would this request improve your current workflow?
+  - type: textarea
+    id: alt
+    attributes:
+      label: Any alternative approaches or workarounds?
   - type: input
     id: contact
     attributes:
