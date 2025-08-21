@@ -1,0 +1,25 @@
+name: Bug Report
+description: Help us resolve a bug
+title: "Bug Report: "
+labels: ["bug"]
+projects: ["ioos/6"]
+body:
+  - type: markdown
+    attributes:
+      value: Please complete all sections so we can reproduce the bug quickly.
+  - type: textarea
+    id: description
+    attributes:
+      label: Briefly describe the issue
+  - type: textarea
+    id: steps
+    attributes:
+      label: Provide clear, step-by-step instructions
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+  - type: textarea
+    id: Environment
+    attributes:
+      label: OS, browser, version, etc.   
