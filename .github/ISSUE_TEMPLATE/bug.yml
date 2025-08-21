@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: Please complete all sections so we can reproduce the bug quickly.
-  - type: input
+  - type: textarea
     id: description
     attributes:
       label: Briefly describe the issue
@@ -15,7 +15,7 @@ body:
     id: steps
     attributes:
       label: Provide clear, step-by-step instructions
-  - type: input
+  - type: textarea
     id: expected
     attributes:
       label: Expected behavior
