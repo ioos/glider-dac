@@ -214,12 +214,14 @@ def process_deployment(dep):
 
 def notify_incomplete_deployments(username):
     # Calculate the date two weeks ago
-    two_weeks_ago = datetime.now() - timedelta(weeks=2)
+    dt_run = datetime.now()
+    soft_time_limit = dt_run - timedelta(days=30)
+    hard_time_limit = dt_run - timedelta(days=90)
 
     # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
     incomplete_deployments = db.deployments.find({
         'completed': False,
-        'updated': {'$lt': two_weeks_ago},
+        'updated': {'$lt': soft_time_limit},
         'username': username  # Filter by username
     }).sort('updated', pymongo.ASCENDING)
 
@@ -234,23 +236,34 @@ def notify_incomplete_deployments(username):
     subject = f"Reminder: Incomplete Deployments for {username}"
 
     # Start building the HTML table
+
+
+
+
     body = f"""
     <html>
     <body>
-        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
-           Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
+        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than 30 days ago.
+           Please mark the following deployment(s) as complete if the associated deployments have finished.  Incomplete deployments older than 90 days will be automatically marked as completed</p>
         <table border="1" style="border-collapse: collapse;">
             <tr>
                 <th>Deployment Name</th>
                 <th>Last Updated</th>
+                <th>Older than 90 days, automatically marked as completed?</th>
             </tr>
     """
 
     for deployment in deployments:
+        exceeds_hard_limit = False
+        if deployment["updated"] <= hard_time_limit:
+            exceeds_hard_limit = True
+            deployment.completed = True
+            deployment.save()
         body += f"""
             <tr>
                 <td>{deployment['name']}</td>
                 <td>{deployment['updated'].strftime('%Y-%m-%d %H:%M:%S')}</td>
+                <td>{"✓" if exceeds_hard_limit else ""}</td>
             </tr>
         """
 
