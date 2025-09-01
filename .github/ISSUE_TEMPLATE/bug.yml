@@ -22,4 +22,4 @@ body:
   - type: textarea
     id: Environment
     attributes:
-      label: OS, browser, version, etc.   
+      label: OS, browser, version, etc.
