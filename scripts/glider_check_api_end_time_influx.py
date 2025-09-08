@@ -103,7 +103,7 @@ def process_deployment(dep_subdir):
     start_time, end_time = get_glider_api_times(identifier)  # getting start and end time from api
 
     data = {
-        "measurement": "glider_data",   
+        "measurement": "glider_data",
         "tags": {
             "identifier": identifier
         },
