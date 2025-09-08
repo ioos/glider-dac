@@ -1,6 +1,6 @@
 import os
 from flask_mail import Message
-from flask import render_template
+from flask import render_template, url_for
 from glider_dac import app, mail, db
 from datetime import datetime, timedelta
 from compliance_checker.suite import CheckSuite
@@ -243,14 +243,32 @@ def notify_incomplete_deployments(username):
     body = f"""
     <html>
     <body>
-        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than 30 days ago.
-           Please mark the following deployment(s) as complete if the associated deployments have finished.  Incomplete deployments older than 90 days will be automatically marked as completed</p>
-        <table border="1" style="border-collapse: collapse;">
-            <tr>
-                <th>Deployment Name</th>
-                <th>Last Updated</th>
-                <th>Older than 90 days, automatically marked as completed?</th>
-            </tr>
+    <p>Hello,</p>
+
+    <p>This is an automated notification for user {username} regarding your glider deployment(s) on the IOOS Glider DAC.
+    Our records indicate that the following deployments have had no activity for more than 30 days. To maintain accurate records, we request that providers mark completed deployments as "complete" in the system.</p>
+
+    <h3><em>What happens next?</em></h3>
+
+    <p>After 90 days of total inactivity, this deployment will be automatically marked as "complete."</p>
+
+    <p>
+    If your deployments are still active, please ignore this message as your next data submission will reset the timer.
+    If you wish to keep the deployment open but inactive, or have any questions, please contact us at <a href="mailto:glider.dac.support@noaa.gov">glider.dac.support@noaa.gov</a>
+    Please visit our <a href="https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process.html#dataset-archiving">documentation</a> for more information on marking deployments as complete and submitting data to the National Centers for Environmental Information (NCEI) for archiving.
+    </p>
+
+    <p>
+    Thank you,
+    The IOOS Glider DAC Team
+    </p>
+
+    <table border="1" style="border-collapse: collapse;">
+        <tr>
+            <th>Deployment Name</th>
+            <th>Last Updated</th>
+            <th>Older than 90 days, automatically marked as completed?</th>
+        </tr>
     """
 
     for deployment in deployments:
@@ -259,11 +277,13 @@ def notify_incomplete_deployments(username):
             exceeds_hard_limit = True
             deployment.completed = True
             deployment.save()
+        # FIXME: url_for is repeated in views/deployment.py under show_deployment_no_username
+        #        can't import due to circular imports -- consider moving to views instead
         body += f"""
             <tr>
-                <td>{deployment['name']}</td>
+                <td><a href={url_for('show_deployment', username=username, deployment_id=deployment._id)}>{deployment['name']}</a></td>
                 <td>{deployment['updated'].strftime('%Y-%m-%d %H:%M:%S')}</td>
-                <td>{"✓" if exceeds_hard_limit else ""}</td>
+                <td>{"X" if exceeds_hard_limit else ""}</td>
             </tr>
         """
 
