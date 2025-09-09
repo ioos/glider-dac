@@ -281,7 +281,7 @@ def notify_incomplete_deployments(username):
         #        can't import due to circular imports -- consider moving to views instead
         body += f"""
             <tr>
-                <td><a href={url_for('show_deployment', username=username, deployment_id=deployment._id)}>{deployment.name}</a></td>
+                <td><a href="{url_for('show_deployment', username=username, deployment_id=deployment._id)}">{deployment.name}</a></td>
                 <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
                 <td>{"X" if exceeds_hard_limit else ""}</td>
             </tr>
