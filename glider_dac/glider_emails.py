@@ -219,7 +219,7 @@ def notify_incomplete_deployments(username):
     hard_time_limit = dt_run - timedelta(days=90)
 
     # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
-    incomplete_deployments = db.deployments.find({
+    incomplete_deployments = db.Deployment.find({
         'completed': False,
         'updated': {'$lt': soft_time_limit},
         'username': username  # Filter by username
@@ -273,7 +273,7 @@ def notify_incomplete_deployments(username):
 
     for deployment in deployments:
         exceeds_hard_limit = False
-        if deployment["updated"] <= hard_time_limit:
+        if deployment.updated <= hard_time_limit:
             exceeds_hard_limit = True
             deployment.completed = True
             deployment.save()
@@ -281,8 +281,8 @@ def notify_incomplete_deployments(username):
         #        can't import due to circular imports -- consider moving to views instead
         body += f"""
             <tr>
-                <td><a href={url_for('show_deployment', username=username, deployment_id=deployment._id)}>{deployment['name']}</a></td>
-                <td>{deployment['updated'].strftime('%Y-%m-%d %H:%M:%S')}</td>
+                <td><a href={url_for('show_deployment', username=username, deployment_id=deployment._id)}>{deployment.name}</a></td>
+                <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
                 <td>{"X" if exceeds_hard_limit else ""}</td>
             </tr>
         """
