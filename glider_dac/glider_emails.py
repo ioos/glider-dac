@@ -297,4 +297,5 @@ def notify_incomplete_deployments(username):
     msg = Message(subject, recipients=[user_email])
     msg.html = body
 
+    app.logger.info(body)
     send_email_wrapper(msg)
