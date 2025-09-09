@@ -6,7 +6,9 @@ COMMON: &common
   MONGODB_PORT: 27017
   MONGODB_DATABASE: gliderdac
 
-  APPLICATION_PREFIX: "/gliders/"
+  # if running a reverse proxy/subdirectory setup, will
+  # probably want to change this, e.g. /providers/
+  APPLICATION_ROOT: "/"
   SECRET_KEY: thisisakey
   WEB_PASSWORD: password
 
