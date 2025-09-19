@@ -71,40 +71,35 @@ def make_copy(filepath):
     logger.info("Running archival for {}".format(filepath))
     filename = os.path.basename(filepath)
     target = os.path.join(app.config["NCEI_DIR"], filename)
-    do_not_archive_filename = target + DNA_SUFFIX
     source = filepath
+    logger.info("Creating archive dataset")
+    if os.path.exists(target) and not os.path.islink(target):
+        logger.info("Removing non-symlink archive dataset")
+        os.unlink(target)
     if not os.path.exists(target):
-        logger.info("Creating archive dataset")
         try:
-            os.link(source, target)
+            os.symlink(source, target)
         except (IOError, OSError):
             logger.exception("Could not hard link to file {}".format(source))
             return
-    try:
-        md5sum_xattr = os.getxattr(filepath, "user.md5sum")
-    # IOError here indicates that the xattr for the md5sum hasn't been written
-    # yet, so start processing the hash
-    except OSError:
-        generate_hash(target)
-    else:
-        with open("{}.md5".format(target), "rb") as f:
-            md5sum_file_contents = f.read()
-        # Does the md5sum in the dedicated file match the xattr value?
-        # If yes, we already have this file.
-        # If no, we need to process this file as the contents have likely
-        # changed.
-        if md5sum_file_contents != md5sum_xattr:
+        try:
+            md5sum_xattr = os.getxattr(filepath, "user.md5sum")
+        # IOError here indicates that the xattr for the md5sum hasn't been written
+        # yet, so start processing the hash
+        except OSError:
             generate_hash(target)
         else:
-            logger.info("MD5 hash contents for {} already exist and are "
-                        "unchanged, skipping...".format(target))
-
-    if os.path.exists(do_not_archive_filename):
-        try:
-            logger.info("Removing DO NOT ARCHIVE File")
-            os.unlink(do_not_archive_filename)
-        except OSError:
-            logger.exception("Could not remove {}".format(do_not_archive_filename))
+            with open("{}.md5".format(target), "rb") as f:
+                md5sum_file_contents = f.read()
+            # Does the md5sum in the dedicated file match the xattr value?
+            # If yes, we already have this file.
+            # If no, we need to process this file as the contents have likely
+            # changed.
+            if md5sum_file_contents != md5sum_xattr:
+                generate_hash(target)
+            else:
+                logger.info("MD5 hash contents for {} already exist and are "
+                            "unchanged, skipping...".format(target))
 
 
 def generate_hash(filepath):
@@ -113,14 +108,15 @@ def generate_hash(filepath):
 
     :param str filepath: Path to the file to be hashed
     '''
+    real_path = os.path.realpath(filepath)
     hasher = hashlib.md5()
-    hashfile(filepath, hasher)
+    hashfile(real_path, hasher)
     md5sum = filepath + '.md5'
     hash_value = hasher.hexdigest()
     with open(md5sum, 'w') as f:
         f.write(hash_value)
     # must write xattr value as bytes
-    os.setxattr(filepath, "user.md5sum", bytes(hash_value, "utf-8"))
+    os.setxattr(real_path, "user.md5sum", bytes(hash_value, "utf-8"))
     logger.info("Hash generated")
 
 
