@@ -344,7 +344,7 @@ The **trajectory** variable stores a character array that identifies the deploym
 
 
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  char trajectory(traj_strlen) ;
@@ -370,7 +370,7 @@ The following variables are dimensioned along the time axis.
 | **Value Type** | array |
 | **Description** | An array containing the time stamp corresponding to the acquisition of the sensor data for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double time(time) ;
@@ -395,7 +395,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **time** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte time_qc(time) ;
@@ -419,7 +419,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the time-series of measured and/or interpolated latitudes for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double lat(time) ;
@@ -448,7 +448,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **lat** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte latitude_qc(time) ;
@@ -472,7 +472,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the time-series of measured and/or interpolated longitudes for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double lon(time) ;
@@ -501,7 +501,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **lon** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte lon_qc(time) ;
@@ -525,7 +525,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the time-series of measured and/or interpolated pressures for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double pressure(time) ;
@@ -560,7 +560,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **pressure** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte pressure_qc(time) ;
@@ -584,7 +584,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the time-series of measured and/or interpolated depths for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double depth(time) ;
@@ -617,7 +617,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **depth** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte depth_qc(time) ;
@@ -641,7 +641,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the temperature time-series for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double temperature(time) ;
@@ -671,7 +671,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **temperature** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte temperature_qc(time) ;
@@ -695,7 +695,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the conductivity time-series for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double conductivity(time) ;
@@ -725,7 +725,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **conductivity** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte conductivity_qc(time) ;
@@ -749,7 +749,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the conductivity time-series for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double salinity(time) ;
@@ -779,7 +779,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **salinity** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte salinity_qc(time) ;
@@ -803,7 +803,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -999. |
 | **Description** | An array containing the conductivity time-series for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double density(time) ;
@@ -833,7 +833,7 @@ The following variables are dimensioned along the time axis.
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the values in the **density** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte density_qc(time) ;
@@ -861,7 +861,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999 |
 | **Description** | Unique identifier for the profile. The numbering can begin at 1 and be incremented for each successive profile contained in the trajectory or can contain the timestamp corresponding to the mid-point of the profile.
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  int profile_id ;
@@ -883,7 +883,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The time stamp at the mid-point of the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double profile_time ;
@@ -908,7 +908,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **profile_time** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte profile_time_qc ;
@@ -932,7 +932,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The latitude at the mid-point of the profile. Since the glider is underwater at this point, this value is interpolated with the interpolation method left up to the data provider. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double profile_lat ;
@@ -958,7 +958,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **profile_lat** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte profile_lat_qc ;
@@ -982,7 +982,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The longitude at the mid-point of the profile. Since the glider is underwater at this point, this value is interpolated with the interpolation method left up to the data provider. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double profile_lon ;
@@ -1008,7 +1008,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **profile_lon** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte profile_lon_qc ;
@@ -1032,7 +1032,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The time stamp of the calculated depth-averaged current for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double time_uv ;
@@ -1056,7 +1056,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **time_uv** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte time_uv_qc ;
@@ -1080,7 +1080,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The latitude of the calculated depth-averaged current for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double lat_uv ;
@@ -1106,7 +1106,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **lat_uv** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte lat_uv_qc ;
@@ -1130,7 +1130,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The longitude of the calculated depth-averaged current for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double lon_uv ;
@@ -1156,7 +1156,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **lon_uv** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte lon_uv_qc ;
@@ -1180,7 +1180,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The eastward velocity component of the calculated depth-averaged current for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double u ;
@@ -1206,7 +1206,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **u** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte u_qc ;
@@ -1230,7 +1230,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -999. |
 | **Description** | The northward velocity component of the calculated depth-averaged current for the profile. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  double v ;
@@ -1256,7 +1256,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **_FillValue** | -127b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **v** variable. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
 ```
  byte v_qc ;
@@ -1284,7 +1284,7 @@ The following variables are dimensionless container variables used to store meta
 | **_FillValue** | -999 |
 | **Description** | Variable to store meta data about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED</b>. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID</b>. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
 ```
  int platform ;
@@ -1308,7 +1308,7 @@ The following variables are dimensionless container variables used to store meta
 | **_FillValue** | -999 |
 | **Description** | Variable to store meta data about the CTD. The data provider should make an effort to include values for as many attributes as possible to create a complete meta data record, but are not required. |
 
-[**CDL**](https://www.unidata.ucar.edu/software/netcdf/docs/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
+[**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
 ```
  int instrument_ctd ;
