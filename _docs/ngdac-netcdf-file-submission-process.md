@@ -36,7 +36,7 @@ and all user account requests should be emailed to:
 Data providers can register deployments after the user account has been created.  New deployment registration is a 1 or 2 step process, depending on whether the deployment is current or historical.  If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must request a WMO ID for the glider.  This ID must be referenced as a [global](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes) attribute as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
 
 **IMPORTANT**:
-    For NDBC to pull a dataset to the GTS, the dataset must include a global attribute called gts_ingest set to "true". Additionally, any variables the data provider wants to send to NDBC should also have the gts_ingest attribute set to "true". More information are found under the IOOS Metadata Profile Document: [Requirements For IOOS Dataset NDBC/GTS Ingest](https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2#requirements-for-ioos-dataset-ndbcgts-ingest).
+To enable NDBC to send a dataset to the GTS, the dataset must include a global attribute gts_ingest set to "true". NDBC then uses QARTOD flags as the primary method for determining which variables to exclude from GTS ingestion.
 
 The next step is to register the deployment with the **NGDAC**.
 
