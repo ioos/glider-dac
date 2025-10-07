@@ -15,7 +15,7 @@ This page provides an in-depth description of the NetCDF file format specificati
 
 **Examples** of the file specification are available as [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template).
 
-The NetCDF file specification detailed below serves 2 primary purposes:
+The NetCDF file specification detailed below serves three primary purposes:
  + Provide a complete metadata record for all glider data submitted to the **NGDAC** that can be harvested and stored by existing catalogs and registries.
  + Provide a simple file format that is easily created by glider operators and data managers. The flexibility provided by this specification allows for the creation of compound data products that result in easier, more intuitive methods of access by a wide range of end-users and in a variety of formats (i.e.: [**csv**](http://en.wikipedia.org/wiki/Comma-separated_values), [**tsv**](http://en.wikipedia.org/wiki/Tab-separated_values), [**json**](http://en.wikipedia.org/wiki/JSON), [**geoJson**](http://en.wikipedia.org/wiki/GeoJSON), etc.).
  + Preserve the original resolution of the data sets.
@@ -49,7 +49,6 @@ The following is the list of required global attributes that must be included in
  - **[Attribute Convention for Data Discovery](http://wiki.esipfed.org/index.php?title=Attribute_Convention_for_Data_Discovery) (ACDD)**
  - **NOAA National Centers for Environmental Information (NCEI) netCDF Templates**: Guidance from NCEI on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.ncei.noaa.gov/netcdf-templates) and [global attribute suggestions](https://www.ncei.noaa.gov/netcdf-templates#guidancetable).
  - **Integrated Marine Observing System (IMOS)**: [Delayed Mode QA/QC Best Practice Manual](https://content.aodn.org.au/Documents/IMOS/Facilities/Ocean_glider/Delayed_Mode_QAQC_Best_Practice_Manual_OceanGliders_LATEST.pdf)
- - **IOOS**: Internal discussion within the IOOS Glider Data Team.
 
 ### Caveats
 
@@ -144,7 +143,7 @@ Value:
 
 #### _history_
 
-This is a String with one or more lines, each of which has the [ISO 8601:2004](http://en.wikipedia.org/wiki/ISO_8601) Extended Date/Time Format (EDTF) and the name and command line parameters of the program used to create or change the data and/or other information about the change.
+This is a string with one or more lines, each of which has the [ISO 8601:2004](http://en.wikipedia.org/wiki/ISO_8601) Extended Date/Time Format (EDTF) and the name and command line parameters of the program used to create or change the data and/or other information about the change.
 
 Example:
 : "2014-07-21T00:00:00Z: /bin/writeIoosNc.py"
@@ -164,12 +163,19 @@ Example:
 
 Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [https://gliders.ioos.us/providers](https://gliders.ioos.us/providers/) data providers page.
 
+Data providers should refer to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the Keywords tab of the [https://gliders.ioos.us/providers/](NCEI’s landing page for the NGDAC archive collection). Search for the appropriate institution in this list. 
+- If the institution is present: use NCEI’s spelling of the institution name to populate the global attribute “institution” in the NetCDF files to be submitted for archival. 
+- If the institution is not present: 
+ - Check if the institution has a ROR ID (at https://ror.org), and if so, use the name associated with that ROR ID. If the institution does not have its own ROR ID, but is nested within a parent institution that does have its own ROR ID, consider using the parent institution name.
+ - Otherwise, use the name that the organization itself recommends for use (by checking the organization website, for example).
+
+
 Example:
 : "Rutgers University"
 
 #### _keywords_
 
-A comma separated list of keywords coming from the **keywords_vocabulary</b>.
+A comma separated list of keywords coming from the **keywords_vocabulary**.
 
 Example:
 : "AUVS > Autonomous Underwater Vehicles, Oceans > Ocean Pressure > Water Pressure, Oceans > Ocean Temperature > Water Temperature, Oceans > Salinity/Density > Conductivity, Oceans > Salinity/Density > Density, Oceans > Salinity/Density > Salinity"
@@ -218,7 +224,9 @@ Example:
 
 #### _project_
 
-Project the data was collected under.
+The project under which the data was collected.
+
+To ensure the findability of datasets within the same project, make sure to spell the project name consistently across datasets. To verify the spelling of a project's name that has already had at least one dataset archived at NCEI, find the project name by going to NCEI’s landing page for the NGDAC archive collection, clicking on the Keywords tab, and then scrolling down to the "NODC PROJECT NAMES THESAURUS," which lists all of the projects for which data has been archived at NCEI.
 
 Example:
 : "TEMPESTS"
@@ -340,7 +348,7 @@ The **trajectory** variable stores a character array that identifies the deploym
 | **Data Type** | string stored as char array |
 | **Value Type** | array |
 | **_FillValue** | "" |
-| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMM</b>. |
+| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMM**. |
 
 
 
@@ -360,7 +368,7 @@ The following variables are dimensioned along the time axis.
 
 #### <i>time</i>
 
-**IMPORTANT: The CF specification does not allow coordinate variables to contain missing/_FillValue values.</b>
+**IMPORTANT: The CF specification does not allow coordinate variables to contain missing/_FillValue values.**
 
 
 | | |
@@ -1282,7 +1290,7 @@ The following variables are dimensionless container variables used to store meta
 | **Data Type** | int |
 | **Value Type** | Scalar |
 | **_FillValue** | -999 |
-| **Description** | Variable to store meta data about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED</b>. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID</b>. |
+| **Description** | Variable to store meta data about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED**. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID**. |
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
