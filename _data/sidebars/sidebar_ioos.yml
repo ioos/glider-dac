@@ -46,9 +46,6 @@ entries:
     - title: Dataset Archiving
       url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
       output: web
-    - title: NCEI Authority Tables
-      url: /ngdac-netcdf-file-submission-process.html#ncei-authority-tables
-      output: web
 #
   - title: NetCDF File Format Description
     output: web
@@ -67,6 +64,18 @@ entries:
       output: web
     - title: Dimensions
       url: /ngdac-netcdf-file-format-version-2.html#dimensions
+      output: web
+    - title: Trajectory Variables
+      url: /ngdac-netcdf-file-format-version-2.html#trajectory-variables
+      output: web
+    - title: Time-Series Variables
+      url: /ngdac-netcdf-file-format-version-2.html#time-series-variables
+      output: web
+    - title: Dimensionless Profile Variables
+      url: /ngdac-netcdf-file-format-version-2.html#dimensionless-profile-variables
+      output: web
+    - title: Dimensionless Container Variables
+      url: /ngdac-netcdf-file-format-version-2.html#dimensionless-container-variables
       output: web
 #
   - title: Useful Links

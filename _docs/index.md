@@ -19,7 +19,16 @@ The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b>:
  + Facilitate the distribution of glider data sets on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts).
  + Work with the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) to create a permanent data archive.
 
-The **NGDAC** accepts a [simple NetCDF file](ngdac-netcdf-file-format-version-2) containing water column measurements collected by a glider during a single profile (see glider sampling terminology [here](glider-background-and-sampling-terminology#sampling-pattern-terminology)).  Groups of these NetCDF files, gathered during a deployment (also known as a [**trajectory**](glider-background-and-sampling-terminology#sampling-pattern-terminology)), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**, the files are validated for compliance, aggregated into a single dataset representing the **deployment/trajectory** and distributed via [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](https://www.unidata.ucar.edu/software/tds/) end-points.  The data sets served by the **NGDAC** provide access to the **trajectory/deployment** data both as time-series and on a profile-by-profile basis.
+The **NGDAC** accepts a [simple NetCDF file](ngdac-netcdf-file-format-version-2) containing water column measurements collected by a glider during a single profile (see glider sampling terminology [here](glider-background-and-sampling-terminology#sampling-pattern-terminology)).  Groups of these NetCDF files, gathered during a deployment (also known as a [**trajectory**](glider-background-and-sampling-terminology#sampling-pattern-terminology)), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**
+
+- the files are validated for compliance,
+- aggregated into a single dataset representing the entire **deployment/trajectory** via  [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html), and 
+- made publicly accessible via [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](https://www.unidata.ucar.edu/software/tds/) end-points.
+
+The data sets served by the **NGDAC** provide access to the **trajectory/deployment** data both as time-series and on a profile-by-profile basis.
+The files submitted by glider operators are archived by the **NGDAC**, but are **not** available for public access in their original form. The **NGDAC** uses a private [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html) server to aggregate the individual files into a single file representing the **trajectory**, in which all original metadata and sampling resolution is preserved.
+
+
 
 Transmission of the data sets via the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts) is made possible by the [National Data Buoy Center](http://www.ndbc.noaa.gov/), which accesses the data sets from the **ERDDAP** and/or **THREDDS** end-points. After performing some internal quality checks, the profiles are encoded into [BUFR](http://en.wikipedia.org/wiki/BUFR) format and released on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts), making them available for assimilation by regional and global scale ocean forecasting models.
 
