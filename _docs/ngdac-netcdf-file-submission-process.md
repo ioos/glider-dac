@@ -206,6 +206,7 @@ The attribute key and value are supplied below
      "standard_name": "sea_water_temperature",
      "long_name": "Temperature sensor"
    }
+}
 ```
 
 ## NCEI Authority Tables
