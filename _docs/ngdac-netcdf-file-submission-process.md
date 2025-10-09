@@ -186,6 +186,27 @@ There are typically 2 reasons that a deployment fails an NCEI check.
 
 2. The NCEI tables need to be updated to include your new project, institution, instruments, or platforms. If you feel this is the case please email [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=NCEI%20Authority%20Tables) to initiate that process.
 
+## Modifying metadata after submission
+
+In addition to resubmitting files with modified Metadata can be modified by
+submitting an `extra_atts.json` file in the submission folder. Note that this will only
+change metadata in the netCDF aggregation, not the submitted netCDF files themselves.
+
+The file can change either global attributes with the `_global_attrs` key or variable names.
+The attribute key and value are supplied below
+
+### An example of metadata modification
+
+```
+{
+  "global_attrs": {
+     "title": "Glider deployment GX201, southwest of San Diego"
+   },
+   "temperature": {
+     "standard_name": "sea_water_temperature",
+     "long_name": "Temperature sensor"
+   }
+```
 
 ## NCEI Authority Tables
 The [National Centers for Environmental Information](https://www.ncei.noaa.gov/) authority tables are available here:
