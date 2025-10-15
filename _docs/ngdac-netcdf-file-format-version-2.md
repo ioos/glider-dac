@@ -11,7 +11,7 @@ summary: A description of the NetCDF file format specification.
 
 ## Introduction
 
-This page provides an in-depth description of the NetCDF file format specification requirements of the U.S. IOOS National Glider Data Assembly Center to archive and distribute real-time and delayed-mode glider data sets.
+This page provides an in-depth description of the NetCDF file format specification requirements of the U.S. IOOS National Glider Data Assembly Center.
 
 The NetCDF file specification detailed below serves three primary purposes:
 
@@ -312,19 +312,21 @@ The NetCDF file specification contains 3 core variable types which relate to how
 
  + [time-series](#time-series-variables): dimensioned along the time axis to provide access to the data as time-series.
  + [profile](#dimensionless-profile-variables): dimensionless variables that provide access to data on a profile-by-profile basis
- + [container](#dimensionless-container-variables): dimensionless variables used to capture meta data regarding the platform and instrumentation on board the glider.
+ + [container](#dimensionless-container-variables): dimensionless variables used to capture metadata regarding the platform and instrumentation on board the glider.
 
-Most of the time-series variables and many of thes profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. The dimensions of these variables are the same as the variables they convey quality information about.
+Most of the time-series variables and many of the profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. Each variable has the same dimension as its associated quality control variable. While no CF standard names exist for these quality control variables, CF conventions allow the use of a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) to be appended to the corresponding variable's standard name to create the standard name for the quality control flag.
 
-While no CF standard names exist for these quality control variables, CF conventions allow the use of a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) to be appended to the corresponding variable's standard name to create the standard name for the quality control flag. For example, the *temperature* variable has a corresponding data quality variable *temperature_qc*. The *standard_name* attribute of that variable then contains the CF standard name of the variable it references with "status_flag"" appended, i.e. "sea_water_temperature status_flag," as seen below:
+For example, as seen in the CDL example below, the *temperature* variable has a corresponding data quality variable *temperature_qc*. The *standard_name* attribute of that quality control variable contains the CF standard name of the variable it references with "status_flag" appended, i.e. "sea_water_temperature status_flag." Both variables have the same dimension, *time*.
 
 ```
+ double temperature(time) ;
+        temperature:ancillary_variables = "temperature_qc" ;
  byte temperature_qc(time) ;
         temperature_qc:standard_name = "sea_water_temperature status_flag" ;
 ```
 
 
-The following is a list and description of all variables and corresponding variable attributes that are **REQUIRED** for the file to be accepted by the NGDAC. A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following attributes:
+**The following is a list and description of all variables and corresponding variable attributes that are REQUIRED for the file to be accepted by the NGDAC.** A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following attributes:
 
  + *comment*,
  + *valid_min*,
@@ -341,23 +343,23 @@ The following is a list and description of all variables and corresponding varia
 
 ### Dimensions
 
-NetCDF files submitted by the individual glider operators contain 2 dimension variables:
+NetCDF files submitted by the individual glider operators contain two dimension variables:
 
- + *time*: time when the individual sensor record was recorded.
- + *traj_strlen*: string specifying the trajectory name.
+ - *time*: time when the individual sensor record was recorded.
+ - *traj_strlen*: string specifying the trajectory name.
 
 According to [CF Conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch02s05.html), dimension variables are not allowed to have missing values (i.e.: *_FillValue*).
 
 The aggregated data sets created by the NGDAC contain the following additional dimensions to increase the data access methods and are **NOT** included in the individual profile NetCDF files submitted by the glider operators:
 
- + *trajectory*
- + *profile*
- + *obs*
- + *wmo_id_strlen*
+ - *trajectory*,
+ - *profile*,
+ - *obs*, and
+ - *wmo_id_strlen*.
 
 ### Trajectory Variables
 
-The *trajectory* variable stores a character array that identifies the deployment during which the data was gathered. This variable is used by the DAC to aggregate all individual NetCDF profiles containing the same trajectory value into a single trajectory profile data set. This value should be a character array that uniquely identifies the deployment. Each individual NetCDF file from the deployment data set must have the same value.
+The *trajectory* variable stores a character array that identifies the deployment during which the data was gathered. This variable is used by the NGDAC to aggregate all individual NetCDF profiles containing the same trajectory value into a single trajectory profile data set. This value should be a character array that uniquely identifies the deployment. Each individual NetCDF file from the deployment data set must have the same value.
 
 #### _trajectory_
 
@@ -387,7 +389,7 @@ The following variables are dimensioned along the time axis.
 
 #### <i>time</i>
 
-**IMPORTANT: The CF specification does not allow coordinate variables to contain missing/_FillValue values.**
+**IMPORTANT: The CF specification does not allow coordinate variables to contain missing *_FillValue* values.**
 
 
 | | |
@@ -876,7 +878,7 @@ The following variables are dimensioned along the time axis.
 
 ### Dimensionless Profile Variables
 
-The following variables are dimensionless and are used by the NGDAC to provide access to individual profiles from within the aggregated data sets. The NGDAC uses these variables to create a **profile** dimension in the aggregated data sets to provide access to the data on a profile-by-profile basis.
+The following variables are dimensionless and are used by the NGDAC to provide access to individual profiles from within the aggregated data sets. The NGDAC uses these variables to create a *profile* dimension in the aggregated data sets to provide access to the data on a profile-by-profile basis.
 
 #### <i>profile_id</i>
 
@@ -1299,7 +1301,7 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 
 ### Dimensionless Container Variables
 
-The following variables are dimensionless container variables used to store meta data about the glider and instrumentation.
+The following variables are dimensionless container variables used to store metadata about the glider and instrumentation.
 
 #### <i>platform</i>
 
@@ -1309,7 +1311,7 @@ The following variables are dimensionless container variables used to store meta
 | **Data Type** | int |
 | **Value Type** | Scalar |
 | **_FillValue** | -999 |
-| **Description** | Variable to store meta data about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED**. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID**. |
+| **Description** | Variable to store metadata about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED**. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID**. |
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
@@ -1333,7 +1335,7 @@ The following variables are dimensionless container variables used to store meta
 | **Data Type** | int |
 | **Value Type** | Scalar |
 | **_FillValue** | -999 |
-| **Description** | Variable to store meta data about the CTD. The data provider should make an effort to include values for as many attributes as possible to create a complete meta data record, but are not required. |
+| **Description** | Variable to store metadata about the CTD. The data provider should make an effort to include values for as many attributes as possible to create a complete metadata record, but are not required. |
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
