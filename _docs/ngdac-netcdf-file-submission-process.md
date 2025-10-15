@@ -9,8 +9,7 @@ toc: false
 summary: This page provides a detailed description of the end-to-end process of becoming a data provider, registering new glider deployments and submitting NetCDF files to the U.S. IOOS National Glider Data Assembly Center.
 ---
 
-All additional questions or feedback should be directed to:
-
+All additional questions or feedback should be directed to: 
 [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 A consolidated list of the links referenced below can be found [here](useful-links).
@@ -21,13 +20,11 @@ A consolidated list of the links referenced below can be found [here](useful-lin
 You must register as a data provider and receive a user account in order to contribute data sets to the **IOOS Glider Data Assembly Center**.  The following contact information is required:
 
  + Contact name
- + Contact organization
+ + Contact institution (please see [special guidance on how to specify the institution name](ngdac-netcdf-file-format-version-2#institution))
  + Email address
  + Telephone number
 
-and all user account requests should be emailed to:
-
-[glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
+and all user account requests should be emailed to: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 **New user accounts are typically created the same day they are received**.
 
@@ -50,8 +47,7 @@ A WMO ID is required to release real-time glider profiles to the [Global Telecom
 <glider.dac.support@noaa.gov>
 
 Please provide the following **required** information:
-- Program (typically the provider's institution, NOT the project, as a glider can be used for multiple different projects over its lifetime)
-  - 
+- Program (typically the provider's institution, NOT the project, as a glider can be used for multiple different projects over its lifetime; please see [special guidance on how to specify the institution name](ngdac-netcdf-file-format-version-2#institution))
 - Glider Model (e.g. Slocum G2, Spray, Seaglider, etc)
 - Glider Name 
 - Glider Serial # (if not available, then the Glider Call Sign will be used)
@@ -78,8 +74,8 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
     **YYYYmmddTHHMM**
 
-    - where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to the DAC.  
-    - **IMPORTANT**: This WMO ID must be included as the [global attribute](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes)  **wmo_id** as well as an attribute (**wmo_id**) of the file's [platform](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    - where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to NGDAC.  
+    - **IMPORTANT**: This WMO ID must be included as the [global attribute](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes)  *wmo_id* as well as an attribute (*wmo_id*) of the file's [*platform*](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
     
 4. An additional field, **attribution**, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 

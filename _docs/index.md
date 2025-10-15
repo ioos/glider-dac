@@ -11,12 +11,12 @@ summary: This wiki is a collection of documents and resources describing the Net
 
 ## Introduction
 
-The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b>:
+The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b> are to:
 
- + Develop a simple, fully self-describing [NetCDF](https://docs.unidata.ucar.edu/netcdf-c/current/) file specification that preserves the resolution of the original glider data sets.
- + Provide glider operators with a simple process for registering and submitting glider data sets to a centralized storage location.
- + Provide public access to glider data sets via existing web services and standards, in a variety of well-known formats.
- + Facilitate the distribution of glider data sets on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts).
+ + Develop a simple, fully self-describing [NetCDF](https://docs.unidata.ucar.edu/netcdf-c/current/) file specification that preserves the resolution of the original glider data sets,
+ + Provide glider operators with a simple process for registering and submitting glider data sets to a centralized storage location,
+ + Provide public access to glider data sets via existing web services and standards, in a variety of well-known formats,
+ + Facilitate the distribution of glider data sets on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts), and
  + Work with the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) to create a permanent data archive.
 
 The **NGDAC** accepts a [simple NetCDF file](ngdac-netcdf-file-format-version-2) containing water column measurements collected by a glider during a single profile (see glider sampling terminology [here](glider-background-and-sampling-terminology#sampling-pattern-terminology)).  Groups of these NetCDF files, gathered during a deployment (also known as a [**trajectory**](glider-background-and-sampling-terminology#sampling-pattern-terminology)), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**

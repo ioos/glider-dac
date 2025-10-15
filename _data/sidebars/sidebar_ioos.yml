@@ -53,6 +53,9 @@ entries:
     - title: Introduction
       url: /ngdac-netcdf-file-format-version-2.html
       output: web      
+    - title: Examples
+      url: /ngdac-netcdf-file-format-version-2.html#examples
+      output: web           
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
       output: web           

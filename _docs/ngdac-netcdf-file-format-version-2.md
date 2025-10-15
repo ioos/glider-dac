@@ -15,9 +15,9 @@ This page provides an in-depth description of the NetCDF file format specificati
 
 The NetCDF file specification detailed below serves three primary purposes:
 
-- Provide a complete metadata record for all glider data submitted to the NGDAC that can be harvested and stored by existing catalogs and registries.
-- Provide a simple file format that is easily created by glider operators and data managers. The flexibility provided by this specification allows for the creation of compound data products that result in easier, more intuitive methods of access by a wide range of end-users and in a variety of formats (i.e.: [**csv**](http://en.wikipedia.org/wiki/Comma-separated_values), [**tsv**](http://en.wikipedia.org/wiki/Tab-separated_values), [**json**](http://en.wikipedia.org/wiki/JSON), [**geoJson**](http://en.wikipedia.org/wiki/GeoJSON), etc.).
-- Preserve the original resolution of the data sets.
+- It helps to ensure that glider data submitted to the NGDAC contain complete metadata records that can be harvested and stored by existing catalogs and registries.
+- It provides a simple file format that is easily created by glider operators and data managers. The flexibility provided by this specification allows for the creation of compound data products that result in easier, more intuitive methods of access by a wide range of end-users and in a variety of formats (i.e.: [**csv**](http://en.wikipedia.org/wiki/Comma-separated_values), [**tsv**](http://en.wikipedia.org/wiki/Tab-separated_values), [**json**](http://en.wikipedia.org/wiki/JSON), [**geoJson**](http://en.wikipedia.org/wiki/GeoJSON), etc.).
+- It preserves the original resolution of the data sets.
 
 
 **A thorough reading is strongly recommended prior to beginning the [submission](ngdac-netcdf-file-submission-process) process.** File specification and metadata requirements are organized into the following sections:
@@ -338,8 +338,6 @@ For example, as seen in the CDL example below, the *temperature* variable has a 
  + *platform:id*,
  + *platform:long_name*, and
  + All *instrument_ctd* attributes, except *instrument_ctd:platform*.
-
-**Examples** of the file specification are available as [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.ncml) are available [**here**](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template).
 
 ### Dimensions
 
