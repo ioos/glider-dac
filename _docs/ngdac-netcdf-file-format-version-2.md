@@ -6,7 +6,7 @@ tags: [getting_started, about, overview]
 toc: false
 #search: exclude
 #permalink: index.html
-summary: A description of the NetCDF file format specification.
+summary: A description of the NetCDF file format specification for glider data.
 ---
 
 ## Introduction
@@ -31,6 +31,7 @@ The NetCDF file specification detailed below serves three primary purposes:
   - [Dimensionless Profile Variables](#dimensionless-profile-variables), and
   - [Dimensionless Container Variables](#dimensionless-container-variables).
 
+For convenience, an [index of required attributes and variables](#index-of-required-global-attributes-and-variables) (linking to descriptions in the text) is provided at the bottom of this page.
 
 ## Examples
 
@@ -1351,10 +1352,10 @@ The following variables are dimensionless container variables used to store meta
         instrument_ctd:type = "platform" ;
 ```
 
-## Index by Attribute Name
+## Index of Required Global Attributes and Variables
 
 [Conventions](#conventions) \
-[Metadata_Conventions](#Metadata_Conventions) \
+[Metadata_Conventions](#metadata_conventions) \
 [acknowledgement](#acknowledgement) \
 [comment](#comment) \
 [contributor_name](#contributor_name) \
@@ -1428,5 +1429,5 @@ trajectory (described [here](#dimensions) and [here](#trajectory)) \
 [v](#v) \
 [v_qc](#v_qc) \
 platform (described [here](#variables) and [here](#platform)) \
-instrument_ctd (described [here](#variables) and [here](#instrument_ctd)) \
+instrument_ctd (described [here](#variables) and [here](#instrument_ctd))
 

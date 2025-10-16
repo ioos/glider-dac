@@ -80,6 +80,11 @@ entries:
     - title: Dimensionless Container Variables
       url: /ngdac-netcdf-file-format-version-2.html#dimensionless-container-variables
       output: web
+    - title: Index of Required Attributes and Variables
+      url: /ngdac-netcdf-file-format-version-2.html#index-of-required-global-attributes-and-variables
+      output: web     
+
+      
 #
   - title: Useful Links
     url: /useful-links.html
