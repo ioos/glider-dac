@@ -262,7 +262,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     <test>
     <dataVariable>
         <sourceName>trajectory</sourceName>
-        <destinationName>trajectory</destinationName>
         <dataType>String</dataType>
         <addAttributes>
             <att name="comment">A trajectory is one deployment of a glider.</att>
@@ -284,7 +283,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>profile_id</sourceName>
-        <destinationName>profile_id</destinationName>
         <dataType>int</dataType>
         <addAttributes>
             <att name="cf_role">profile_id</att>
@@ -336,7 +334,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>depth</sourceName>
-        <destinationName>depth</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">2000.0</att>
@@ -353,7 +350,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
     <test>
     <dataVariable>
         <sourceName>pressure</sourceName>
-        <destinationName>pressure</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">2000.0</att>
@@ -365,7 +361,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>temperature</sourceName>
-        <destinationName>temperature</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">32.0</att>
@@ -377,7 +372,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>conductivity</sourceName>
-        <destinationName>conductivity</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">9.0</att>
@@ -389,7 +383,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>salinity</sourceName>
-        <destinationName>salinity</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">37.0</att>
@@ -401,7 +394,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>density</sourceName>
-        <destinationName>density</destinationName>
         <dataType>float</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">1032.0</att>
@@ -450,7 +442,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>time_uv</sourceName>
-        <destinationName>time_uv</destinationName>
         <dataType>double</dataType>
         <addAttributes>
             <att name="ioos_category">Time</att>
@@ -472,7 +463,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>lon_uv</sourceName>
-        <destinationName>lon_uv</destinationName>
         <dataType>double</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">180.0</att>
@@ -484,7 +474,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>u</sourceName>
-        <destinationName>u</destinationName>
         <dataType>double</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">0.5</att>
@@ -497,7 +486,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>v</sourceName>
-        <destinationName>v</destinationName>
         <dataType>double</dataType>
         <addAttributes>
             <att name="colorBarMaximum" type="double">0.5</att>
@@ -510,7 +498,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>platform</sourceName>
-        <destinationName>platform_meta</destinationName>
         <dataType>byte</dataType>
         <addAttributes>
             <att name="ioos_category">Identifier</att>
@@ -521,7 +508,6 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     <dataVariable>
         <sourceName>instrument_ctd</sourceName>
-        <destinationName>instrument_ctd</destinationName>
         <dataType>byte</dataType>
         <addAttributes>
             <att name="ioos_category">Identifier</att>
@@ -755,7 +741,6 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
         qartod_snip = f"""
             <dataVariable>
                 <sourceName>{req_var}</sourceName>
-                <destinationName>{req_var}</destinationName>
                 <dataType>byte</dataType>
                 <addAttributes>
                     <att name="long_name">{template['long_name']}</att>
