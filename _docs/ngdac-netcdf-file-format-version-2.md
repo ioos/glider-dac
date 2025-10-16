@@ -173,7 +173,7 @@ Example:
 
 Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [https://gliders.ioos.us/providers](https://gliders.ioos.us/providers/) data providers page.
 
-To maximize the findability of glider data submitted by a single institution, data providers should ensure that they consistently use the same spelling and formatting of an institution's name in each data submission.
+To maximize the findability of glider data submitted by a single institution, data providers should ensure that they consistently use the same spelling of an institution's name in each data submission.
 Before submitting data to NGDAC, data providers can verify that the institution value matches that already associated with NCEI-archived datasets by referring to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the Keywords tab of the [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
 If the institution is present in that list, use NCEI’s spelling of the institution name to populate the global attribute “institution” in the NetCDF files to be submitted for archival. 
 If the institution is *not* present, check if the institution has a ROR ID (at [https://ror.org](https://ror.org)).
@@ -237,7 +237,7 @@ Example:
 
 The project under which the data was collected.
 
-To maximize the findability of glider data collected within the same project, data providers should ensure that they consistently use the same spelling and formatting of a project's name in each data submission.
+To maximize the findability of glider data collected within the same project, data providers should ensure that they consistently use the same spelling of a project's name in each data submission.
 Before submitting data to NGDAC, data providers can verify that the project value matches that already associated with NCEI-archived datasets by referring to the NODC PROJECT NAMES THESAURUS value list provided on the Keywords tab of the [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
 If the project is present in that list, use NCEI’s spelling of the project name to populate the global attribute “project” in the NetCDF files to be submitted for archival. 
 
@@ -326,7 +326,7 @@ For example, as seen in the CDL example below, the *temperature* variable has a 
 ```
 
 
-**The following is a list and description of all variables and corresponding variable attributes that are REQUIRED for the file to be accepted by the NGDAC.** A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following attributes:
+**The following is a list and description of all variables and corresponding variable attributes that are REQUIRED for the file to be accepted by the NGDAC.** A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following variable attributes:
 
  + *comment*,
  + *valid_min*,
@@ -1350,3 +1350,83 @@ The following variables are dimensionless container variables used to store meta
         instrument_ctd:serial_number = " " ; # Provide serial number if available
         instrument_ctd:type = "platform" ;
 ```
+
+## Index by Attribute Name
+
+[Conventions](#conventions) \
+[Metadata_Conventions](#Metadata_Conventions) \
+[acknowledgement](#acknowledgement) \
+[comment](#comment) \
+[contributor_name](#contributor_name) \
+[contributor_role](#contributor_role) \
+[creator_email](#creator_email) \
+[creator_name](#creator_name) \
+[creator_url](#creator_url) \
+[date_created](#date_created) \
+[date_issued](#date_issued) \
+[date_modified](#date_modified) \
+[format_version](#format_version) \
+[history](#history) \
+[id](#id) \
+[institution](#institution) \
+[keywords](#keywords) \
+[keywords_vocabulary](#keywords_vocabulary) \
+[license](#license) \
+[metadata_link](#metadata_link) \
+[naming_authority](#naming_authority) \
+[platform_type](#platform_type) \
+[processing_level](#processing_level) \
+[project](#project) \
+[publisher_email](#publisher_email) \
+[publisher_name](#publisher_name) \
+[publisher_url](#publisher_url) \
+[references](#references) \
+[sea_name](#sea_name) \
+[source](#source) \
+[standard_name_vocabulary](#standard_name_vocabulary) \
+[summary](#summary) \
+[title](#title) \
+[wmo_id](#wmo_id) \
+time (described [here](#dimensions) and [here](#time)) \
+[traj_strlen](#dimensions) \
+trajectory (described [here](#dimensions) and [here](#trajectory)) \
+[profile](#dimensions) \
+[obs](#dimensions) \
+[wmo_id_strlen](#dimensions) \
+[time_qc](#time_qc) \
+[lat](#lat) \
+[lat_qc](#lat_qc) \
+[lon](#lon) \
+[lon_qc](#lon_qc) \
+[pressure](#pressure) \
+[pressure_qc](#pressure_qc) \
+[depth](#depth) \
+[depth_qc](#depth_qc) \
+[temperature](#temperature) \
+[temperature_qc](#temperature_qc) \
+[conductivity](#conductivity) \
+[conductivity_qc](#conductivity_qc) \
+[salinity](#salinity) \
+[salinity_qc](#salinity_qc) \
+[density](#density) \
+[density_qc](#density_qc) \
+[profile_id](#profile_id) \
+[profile_time](#profile_time) \
+[profile_time_qc](#profile_time_qc) \
+[profile_lat](#profile_lat) \
+[profile_lat_qc](#profile_lat_qc) \
+[profile_lon](#profile_lon) \
+[profile_lon_qc](#profile_lon_qc) \
+[time_uv](#time_uv) \
+[time_uv_qc](#time_uv_qc) \
+[lat_uv](#lat_uv) \
+[lat_uv_qc](#lat_uv_qc) \
+[lon_uv](#lon_uv) \
+[lon_uv_qc](#lon_uv_qc) \
+[u](#u) \
+[u_qc](#u_qc) \
+[v](#v) \
+[v_qc](#v_qc) \
+platform (described [here](#variables) and [here](#platform)) \
+instrument_ctd (described [here](#variables) and [here](#instrument_ctd)) \
+
