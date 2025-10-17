@@ -175,11 +175,12 @@ Example:
 Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [https://gliders.ioos.us/providers](https://gliders.ioos.us/providers/) data providers page.
 
 To maximize the findability of glider data submitted by a single institution, data providers should ensure that they consistently use the same spelling of an institution's name in each data submission.
-Before submitting data to NGDAC, data providers can verify that the institution value matches that already associated with NCEI-archived datasets by referring to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the Keywords tab of the [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
-If the institution is present in that list, use NCEI’s spelling of the institution name to populate the global attribute “institution” in the NetCDF files to be submitted for archival. 
-If the institution is *not* present, check if the institution has a ROR ID (at [https://ror.org](https://ror.org)).
-If it does, use the name associated with that ROR ID. If the institution does not have its own ROR ID, but is nested within a parent institution that *does* have its own ROR ID, consider using the parent institution name.
-Otherwise, use the name that the organization itself recommends for use (by checking the organization website, for example).
+Before submitting data to NGDAC, data providers can verify that the institution value matches that already associated with NCEI-archived datasets by referring to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the *Keywords* tab of [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
+
+- If the institution is present in that list, use NCEI’s spelling of the institution name to populate the global attribute *institution* in the NetCDF files to be submitted for archival. 
+- If the institution is *not* present, check if the institution has a ROR ID (at [https://ror.org](https://ror.org)).
+  - If it does, use the name associated with that ROR ID. If the institution does not have its own ROR ID, but is nested within a parent institution that *does* have its own ROR ID, consider using the parent institution name.
+  - Otherwise, use the name that the organization itself recommends for use (by checking the organization website, for example).
 
 
 Example:
@@ -239,8 +240,12 @@ Example:
 The project under which the data was collected.
 
 To maximize the findability of glider data collected within the same project, data providers should ensure that they consistently use the same spelling of a project's name in each data submission.
-Before submitting data to NGDAC, data providers can verify that the project value matches that already associated with NCEI-archived datasets by referring to the NODC PROJECT NAMES THESAURUS value list provided on the Keywords tab of the [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
-If the project is present in that list, use NCEI’s spelling of the project name to populate the global attribute “project” in the NetCDF files to be submitted for archival. 
+Before submitting data to NGDAC, data providers can verify that the project value matches that already associated with NCEI-archived datasets by referring to the NODC PROJECT NAMES THESAURUS value list provided on the *Keywords* tab of [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
+
+- If the project is present in that list, use NCEI’s spelling of the project name to populate the global attribute “project” in the NetCDF files to be submitted for archival.
+- If the project is *not* present in that list, check if it's present in the *Provider Project Names* list, also on the *Keywords* tab of [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC)
+  - If it is present on that list, use that spelling of the project name to populate the global attribute *project* in the NetCDF files to be submitted for archival.
+  - If it is not, you can use any project name that you consider suitable for your data.
 
 Example:
 : "TEMPESTS"
@@ -888,6 +893,8 @@ The following variables are dimensionless and are used by the NGDAC to provide a
 | **Value Type** | Scalar |
 | **_FillValue** | -999 |
 | **Description** | Unique identifier for the profile. The numbering can begin at 1 and be incremented for each successive profile contained in the trajectory or can contain the timestamp corresponding to the mid-point of the profile.
+
+The *standard_name* variable attribute **should not be included** for the *profile_id* variable, as no corresponding CF standard name exists for this variable.
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
