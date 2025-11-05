@@ -42,27 +42,29 @@ The next step is to register the deployment with the **NGDAC**.
 
 ### Requesting a WMO ID
 
-A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). WMO IDs that have previously been assigned to a glider for one deployment region can now be used regardless of the new deployment location. So, if a glider has been assigned a WMO ID, it may continue to be used for that glider deployed anywhere in the world.  
+A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). Once assigned, a WMO ID remains valid for that glider regardless of its deployment region—if you have already received an ID for a vehicle, you may continue to use it anywhere in the world.  
 
 **Submit new WMO ID requests to:**
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;glider.dac.support@noaa.gov
 
-Please provide the following **required** information:
-+ Program (typically the provider's institution; NOT the project, as a glider can be used for multiple different projects over its lifetime)
-+ Glider Model (e.g. Slocum G2, Spray, Seaglider, etc)
-+ Glider Name 
-+ Glider Serial # (if not available, then the Glider Call Sign will be used)
-
-We also recommend providing:
-+ Glider Call Sign
+Required information (please supply in every request):
++ Program (your institution; NOT the project, as a glider can be used for multiple different projects over its lifetime)
++ Glider Model (e.g. Slocum G2, Spray, Seaglider)
++ Glider Serial number (manufacturer-assigned; do not substitute a call sign or glider name)
 + Approximate deployment date
 + Approximate deployment location (GPS coordinates)
 + Provider name
 
-Once the request is received, it will be promptly submitted by the GDAC Team to the [OceanOPS](https://www.ocean-ops.org/) / [OceanGliders Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders). The assigned WMO ID will be sent to the requester/data provider, typically in 1 business day.  
+Recommended supplemental details:
++ Glider Name (informal label) 
++ Glider Call Sign (informal label)
 
-**Note:** OceanOPS enables providers to submit a WMO ID request directly through the OceanGliders Request Identifiers Interface, following the [OceanOPS guidelines](https://www.ocean-ops.org/metadata/#howtorequestids); however, this practice is discouraged, as it requires a user to be declared as a contact point of the US Glider DAC program and the GDAC already provides this WMO ID assignment as a centralized service. IOOS **highly recommends** that users request new WMO IDs via the GDAC rather than directly through OceanOPS.
+**IMPORTANT:** always provide the manufacturer’s serial number as the sole authoritative ID for WMO requests to avoid conflicts and speed processing. If the serial number cannot be located, please explain why and provide your best alternative identifier; GDAC will reach out to confirm before issuing an ID.
+
+**Process & Timeline:**
+
+Upon receipt, the GDAC Team submits your WMO ID request to the [OceanOPS Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders), and you will typically receive your ID within one business day. Please use the GDAC’s centralized service (glider.dac.support@noaa.gov) rather than submitting directly via OceanOPS — direct submissions require US Glider DAC registration.
 
 ### Deployment Creation
 
@@ -147,8 +149,8 @@ The resulting deployment directory structure will look something like this:
 ```
 
 A generic [ftp script](https://raw.githubusercontent.com/ioos/ioosngdac/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
- + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
- + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
+ + [Readonly](https://metacpan.org/pod/Readonly)
+ + [Net::FTP](https://metacpan.org/pod/Net::FTP)
 
 **You must specify your credentials in the $USER and $PASS variables contained in the script**.
 
