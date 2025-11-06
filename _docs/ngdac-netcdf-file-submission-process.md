@@ -40,27 +40,29 @@ The next step is to register the deployment with the **NGDAC**.
 
 ### Requesting a WMO ID
 
-A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). WMO IDs that have previously been assigned to a glider for one deployment region can now be used regardless of the new deployment location. So, if a glider has been assigned a WMO ID, it may continue to be used for that glider deployed anywhere in the world.  
+A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). Once assigned, a WMO ID remains valid for that glider regardless of its deployment region—if you have already received an ID for a vehicle, you may continue to use it anywhere in the world.  
 
 **Submit new WMO ID requests to:**
 
 <glider.dac.support@noaa.gov>
 
-Please provide the following **required** information:
-- Program (typically the provider's institution, NOT the project, as a glider can be used for multiple different projects over its lifetime; please see [special guidance on how to specify the institution name](ngdac-netcdf-file-format-version-2#institution))
-- Glider Model (e.g. Slocum G2, Spray, Seaglider, etc)
-- Glider Name 
-- Glider Serial # (if not available, then the Glider Call Sign will be used)
+Required information (please supply in every request):
++ Program (your institution; NOT the project, as a glider can be used for multiple different projects over its lifetime)
++ Glider Model (e.g. Slocum G2, Spray, Seaglider)
++ Glider Serial number (manufacturer-assigned; do not substitute a call sign or glider name)
++ Approximate deployment date
++ Approximate deployment location (GPS coordinates)
++ Provider name
 
-We also recommend providing:
-- Glider Call Sign
-- Approximate deployment date
-- Approximate deployment location (GPS coordinates)
-- Provider name
+Recommended supplemental details:
++ Glider Name (informal label) 
++ Glider Call Sign (informal label)
 
-Once the request is received, it will be promptly submitted by the GDAC Team to the [OceanOPS](https://www.ocean-ops.org/) / [OceanGliders Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders). The assigned WMO ID will be sent to the requester/data provider, typically in 1 business day.  
+**IMPORTANT:** always provide the manufacturer’s serial number as the sole authoritative ID for WMO requests to avoid conflicts and speed processing. If the serial number cannot be located, please explain why and provide your best alternative identifier; GDAC will reach out to confirm before issuing an ID.
 
-**Note:** OceanOPS enables providers to submit a WMO ID request directly through the OceanGliders Request Identifiers Interface, following the [OceanOPS guidelines](https://www.ocean-ops.org/metadata/#howtorequestids); however, this practice is discouraged, as it requires a user to be declared as a contact point of the US Glider DAC program and the GDAC already provides this WMO ID assignment as a centralized service. IOOS **highly recommends** that users request new WMO IDs via the GDAC rather than directly through OceanOPS.
+**Process & Timeline:**
+
+Upon receipt, the GDAC Team submits your WMO ID request to the [OceanOPS Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders), and you will typically receive your ID within one business day. Please use the GDAC’s centralized service (glider.dac.support@noaa.gov) rather than submitting directly via OceanOPS — direct submissions require US Glider DAC registration.
 
 ### Deployment Creation
 
@@ -143,8 +145,8 @@ The resulting deployment directory structure will look something like this:
 ```
 
 A generic [ftp script](https://raw.githubusercontent.com/ioos/ioosngdac/master/util/ncFtp2ngdac.pl), written in [Perl](http://www.perl.org/) is contained in the repository and may be used to upload the files to the **NGDAC**.  The script requires the following Perl non-core modules:
- + [Readonly](http://search.cpan.org/~roode/Readonly-1.03/Readonly.pm)
- + [Net::FTP](http://search.cpan.org/~shay/libnet-1.25/Net/FTP.pm)
+ + [Readonly](https://metacpan.org/pod/Readonly)
+ + [Net::FTP](https://metacpan.org/pod/Net::FTP)
 
 **You must specify your credentials in the $USER and $PASS variables contained in the script**.
 
@@ -174,6 +176,27 @@ Here's how to mark a deployment as complete and submit the dataset to NCEI:
 
 Once submitted, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with the [current version of the IOOS Metadata Profile](https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2). The results of these checks will be emailed on completion. If any of these checks have failed, NCEI may not archive the deployment data until metadata issues are corrected.
 
-To fix metadata issues, check the tables to see if there is an existing entry that can be used instead.
+## Modifying metadata after submission
+
+In addition to resubmitting files with modified Metadata can be modified by
+submitting an `extra_atts.json` file in the submission folder. Note that this will only
+change metadata in the netCDF aggregation, not the submitted netCDF files themselves.
+
+The file can change either global attributes with the `_global_attrs` key or variable names.
+The attribute key and value are supplied below
+
+### An example of metadata modification
+
+```
+{
+  "global_attrs": {
+     "title": "Glider deployment GX201, southwest of San Diego"
+   },
+   "temperature": {
+     "standard_name": "sea_water_temperature",
+     "long_name": "Temperature sensor"
+   }
+}
+```
 
 **NOTE:** ERDDAP uses the metadata from the latest file in a deployment to create an aggregation. So data providers only need to fix metadata on the latest file for the changes to be reflected in ERDDAP.
