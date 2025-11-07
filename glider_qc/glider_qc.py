@@ -13,6 +13,7 @@ from ioos_qc.config import Config
 import numpy as np
 import pandas as pd
 import json
+import math
 import numpy.ma as ma
 import quantities as pq
 import yaml
@@ -20,6 +21,7 @@ import logging
 import redis
 import os
 import hashlib
+from shapely.geometry import Point, Polygon
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -556,21 +558,19 @@ class GliderQC(object):
 
         # Check if lat/lon are not NaN or masked
         if not (np.isnan(profile_lat) or np.ma.is_masked(profile_lat) or np.isnan(profile_lon) or np.ma.is_masked(profile_lon)):
+            poly = self.watch_circle(np.nanmean(lat), np.nanmean(lon), 2.0, num_points=72)
+            set_flag = self.is_point_outside_polygon(profile_lat, profile_lon, poly)
 
-            # Calculate standard deviation and mean for lat/lon
-            num_std_lat = np.abs((profile_lat - np.nanmean(lat)) / np.nanstd(lat))
-            num_std_lon = np.abs((profile_lon - np.nanmean(lon)) / np.nanstd(lon))
-
-            # Flag as FAIL if more than 3 standard deviations
-            if num_std_lat > 3 or num_std_lon > 3:
+            if set_flag:
                 flag = 4  # FAIL
-                log.info("Error in glider track lon/lat: %s, %s", profile_lat, profile_lon)
+                log.info(f"profile_lat={profile_lat}, profile_lon={profile_lon} are outside the polygon")
                 report_list.append("error in glider track lat/lon")
             else:
                 flag = 1  # PASS
+                report_list.append(f"profile_lat={profile_lat}, profile_lon={profile_lon} are inside the polygon")
         else:
             flag = 9  # MISSING
-            report_list.append("missing glider track lat or lon")
+            report_list.append(f"profile_lat={profile_lat}, profile_lon={profile_lon} are missing")
 
         # Create location test variable to store the test flag
         ndim = self.ncfile.variables["profile_lat"].dimensions
@@ -581,6 +581,45 @@ class GliderQC(object):
         self.ncfile.variables['profile_lon'].ancillary_variables = location_flag_variable.name
 
         return ' '.join(report_list)
+
+    def watch_circle(self, center_lat, center_lon, radius_miles, num_points=128):
+        """
+        Approximate a small geodesic circle around (center_lat, center_lon).
+        Returns list of (lat, lon) tuples (closed: first == last).
+        Suitable for small radii like 2 miles.
+        """
+        # 1 degree latitude ≈ 69.172 miles
+        miles_per_deg_lat = 69.172
+        delta_lat_deg = radius_miles / miles_per_deg_lat
+
+        lat_rad = math.radians(center_lat)
+        cos_lat = math.cos(lat_rad)
+        # avoid zero
+        miles_per_deg_lon = miles_per_deg_lat * max(abs(cos_lat), 1e-12)
+        delta_lon_deg = radius_miles / miles_per_deg_lon
+
+        points = []
+        for i in range(num_points):
+            theta = 2 * math.pi * i / num_points
+            dlat = delta_lat_deg * math.sin(theta)
+            dlon = delta_lon_deg * math.cos(theta)
+            lat = center_lat + dlat
+            lon = center_lon + dlon
+            # normalize lon
+            if lon > 180: lon -= 360
+            if lon < -180: lon += 360
+            points.append((lat, lon))
+        points.append(points[0])
+        return points
+
+    def is_point_outside_polygon(self, point_lat, point_lon, polygon_points):
+        '''
+        polygon_points: list of (lat, lon) tuples (closed: first==last or not)
+        shapely expects (lon, lat) ordering
+        '''
+        poly = Polygon([(lon, lat) for lat, lon in polygon_points])
+        pt = Point(point_lon, point_lat)
+        return not poly.contains(pt)
 
     def check_time(self, tnp, nc_path):
         '''
