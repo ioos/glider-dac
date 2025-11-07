@@ -77,29 +77,34 @@ def make_copy(filepath):
         logger.info("Removing non-symlink archive dataset")
         os.unlink(target)
     if not os.path.exists(target):
+        logger.info("Creating initial symlink")
         try:
             os.symlink(source, target)
         except (IOError, OSError):
             logger.exception("Could not hard link to file {}".format(source))
             return
-        try:
-            md5sum_xattr = os.getxattr(filepath, "user.md5sum")
-        # IOError here indicates that the xattr for the md5sum hasn't been written
-        # yet, so start processing the hash
-        except OSError:
-            generate_hash(target)
-        else:
-            with open("{}.md5".format(target), "rb") as f:
-                md5sum_file_contents = f.read()
-            # Does the md5sum in the dedicated file match the xattr value?
-            # If yes, we already have this file.
-            # If no, we need to process this file as the contents have likely
-            # changed.
-            if md5sum_file_contents != md5sum_xattr:
-                generate_hash(target)
-            else:
-                logger.info("MD5 hash contents for {} already exist and are "
-                            "unchanged, skipping...".format(target))
+    try:
+        md5sum_xattr = os.getxattr(filepath, "user.md5sum")
+    # IOError here indicates that the xattr for the md5sum hasn't been written
+    # yet, so start processing the hash
+    except OSError:
+        logger.info("Generating MD5 sums")
+        generate_hash(target)
+        return
+
+    with open("{}.md5".format(target), "rb") as f:
+        md5sum_file_contents = f.read()
+    # Does the md5sum in the dedicated file match the xattr value?
+    # If yes, we already have this file.
+    # If no, we need to process this file as the contents have likely
+    # changed.
+    if md5sum_file_contents != md5sum_xattr:
+        logger.info("Hash contents for {} mismatched, "
+                    "regenerating".format(target))
+        generate_hash(target)
+    else:
+        logger.info("MD5 hash contents for {} already exist and are "
+                    "unchanged, skipping...".format(target))
 
 
 def generate_hash(filepath):
