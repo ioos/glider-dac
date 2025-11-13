@@ -238,31 +238,7 @@ def notify_incomplete_deployments(username):
     # Start building the HTML table
 
 
-
-
-    body = f"""
-    <html>
-    <body>
-    <p>Hello,</p>
-
-    <p>This is an automated notification for user {username} regarding your glider deployment(s) on the IOOS Glider DAC.
-    Our records indicate that the following deployments have had no activity for more than 30 days. To maintain accurate records, we request that providers mark completed deployments as "complete" in the system.</p>
-
-    <h3><em>What happens next?</em></h3>
-
-    <p>After 90 days of total inactivity, this deployment will be automatically marked as "complete."</p>
-
-    <p>
-    If your deployments are still active, please ignore this message as your next data submission will reset the timer.
-    If you wish to keep the deployment open but inactive, or have any questions, please contact us at <a href="mailto:glider.dac.support@noaa.gov">glider.dac.support@noaa.gov</a>
-    Please visit our <a href="https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process.html#dataset-archiving">documentation</a> for more information on marking deployments as complete and submitting data to the National Centers for Environmental Information (NCEI) for archiving.
-    </p>
-
-    <p>
-    Thank you,
-    The IOOS Glider DAC Team
-    </p>
-
+    table_snippet = """
     <table border="1" style="border-collapse: collapse;">
         <tr>
             <th>Deployment Name</th>
@@ -279,7 +255,7 @@ def notify_incomplete_deployments(username):
             deployment.save()
         # FIXME: url_for is repeated in views/deployment.py under show_deployment_no_username
         #        can't import due to circular imports -- consider moving to views instead
-        body += f"""
+        table_snippet += f"""
             <tr>
                 <td><a href="{url_for('show_deployment', username=username, deployment_id=deployment._id)}">{deployment.name}</a></td>
                 <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
@@ -287,8 +263,39 @@ def notify_incomplete_deployments(username):
             </tr>
         """
 
-    body += """
+    table_snippet += """
         </table>
+    """
+
+
+    body = f"""
+    <html>
+    <body>
+    <p>Hello,</p>
+
+    <p>This is an automated notification for user {username} regarding your glider deployment(s) on the IOOS Glider DAC.
+    Our records indicate that the following deployments have had no activity for more than 30 days. To maintain accurate records, we request that providers mark completed deployments as "complete" in the system.</p>{table_snippet}
+
+    <h3><em>What happens next?</em></h3>
+
+    <ul>
+      <li>You will receive reminders every 30 days.</li>
+      <li>After 90 days of total inactivity, this deployment will be automatically marked as "complete."</li>
+    </ul>
+    <h3><em>Need to change this?</em></h3>
+
+    <ul>
+      <li>If this deployment is still active, please ignore this message (your next data submission will reset the timer).</li>
+      <li>If you wish to keep the deployment open but inactive, or have any questions, please contact us at glider.dac.support@noaa.gov.</li>
+    </ul>
+
+    <p> Please visit our <a href="https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process.html#dataset-archiving">documentation</a> for more information on marking deployments as complete and submitting data to the National Centers for Environmental Information (NCEI) for archiving.</p>
+
+    <p>
+    Thank you,
+    The IOOS Glider DAC Team
+    </p>
+
     </body>
     </html>
     """
