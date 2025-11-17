@@ -5,8 +5,9 @@ COMMON: &common
   DEBUG: False
 
   SERVER_NAME: "localhost:5000"
+  # if running a reverse proxy/subdirectory setup, will
+  # probably want to change this, e.g. /providers/
   APPLICATION_ROOT: "/"
-  APPLICATION_PREFIX: "/"
   SECRET_KEY: thisisakey
   LOG_FILE: no
   WEB_PASSWORD: password

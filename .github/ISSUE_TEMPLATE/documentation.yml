@@ -1,0 +1,33 @@
+name: Documentation
+description: Help us improve the documentation
+title: "Summary: "
+labels: ["documentation"]
+projects: ["ioos/6"]
+body:
+  - type: markdown
+    attributes:
+      value: Describe what needs to be updated, suggest improvements, fixes, etc, by filling out the questions below.
+  - type: input
+    id: who
+    attributes:
+      label: Who is requesting this?
+  - type: textarea
+    id: what
+    attributes:
+      label: What is wrong or unclear in the current documentation?
+  - type: input
+    id: when
+    attributes:
+      label: Link or path to the documentation
+  - type: textarea
+    id: statusquo
+    attributes:
+      label: How will this improve your workflow?
+  - type: textarea
+    id: doneindicate
+    attributes:
+      label: How should the documentation be improved?
+  - type: textarea
+    id: description
+    attributes:
+      label: Provide a description or any other important information.

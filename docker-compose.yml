@@ -87,7 +87,7 @@ services:
 
   erddap:
     container_name: erddap
-    image: axiom/docker-erddap:2.25.1-jdk21-openjdk
+    image: axiom/docker-erddap:v2.28.1
     ports:
       - 8080:8080
     restart: always
