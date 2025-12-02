@@ -24,13 +24,12 @@ def update_db(src, dest):
     with app.app_context():
         provider, deployment_name = deployment_split(src)
         d_provider, d_deployment_name = deployment_split(dest)
-        deployments = list(db.Deployment.find({'name':deployment_name}))
-        for dep in deployments:
-            print(dep.name, '->', d_deployment_name)
-            dep.name = str(d_deployment_name)
-            print(dep.deployment_dir, '->', dest)
-            dep.deployment_dir = str(dest)
-            dep.save()
+        dep = Deployment.query.filter_by(name=deployment_name).one()
+        print(dep.name, '->', d_deployment_name)
+        dep.name = str(d_deployment_name)
+        print(dep.deployment_dir, '->', dest)
+        dep.deployment_dir = str(dest)
+        db.session.commit()
 
 def update_catalog(catalog_loc, src, dest):
     catalog_dir, xml_file = os.path.split(catalog_loc)

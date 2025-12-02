@@ -1,5 +1,0 @@
-*/10  * * * * root /glider-dac/scripts/sync_deployments.sh
-*/15 * * * * glider /glider-dac/scripts/create_data_dirs /data/data/priv_erddap /data/data/pub_erddap /data/data/thredds
-*/15 * * * * glider python /glider-dac/scripts/build_erddap_catalog.py /data/data/priv_erddap /data/catalog/priv_erddap
-15 */2 * * * glider python /glider-dac/scripts/replicatePrivateErddapDeployments.py
-35 * * * * glider python /glider-dac/scripts/sync_erddap_datasets.py
