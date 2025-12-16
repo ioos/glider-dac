@@ -306,7 +306,7 @@ Example:
 
 #### _wmo_id_
 
-String specifying the [WMO ID](https://community.wmo.int/en/rules-allocating-wmo-numbers) used to identify this platform. Must be specified as a string attribute. Each [WMO ID](https://community.wmo.int/en/rules-allocating-wmo-numbers) is unique to an individual glider deployed in a specific location and must be requested from the NGDAC administrator.
+String specifying the [WMO ID](https://public.wmo.int/rules-allocating-wmo-numbers) used to identify this platform. Must be specified as a string attribute. Each [WMO ID](https://public.wmo.int/rules-allocating-wmo-numbers) is unique to an individual glider deployed in a specific location and must be requested from the NGDAC administrator.
 
 Example:
 : "4801518"
