@@ -98,38 +98,22 @@ The data provider user account provides ftp push access to the directories creat
 Here's an example of the ftp login process and the resulting directory structure:
 
 ```
-    $ ftp -i gliders.ioos.us
-    Connected to gliders.ioos.us (54.204.42.247).
-    220 Welcome to the IOOS Glider DAC FTP Server
-    Name (gliders.ioos.us:kerfoot): rutgers
-    331 Please specify the password.
-    Password:
-    230 Login successful.
-    Remote system type is UNIX.
-    Using binary mode to transfer files.
-    ftp> pwd
-    257 "/"
-    ftp> dir
-    200 PORT command successful. Consider using PASV.
-    150 Here comes the directory listing.
-    drwxr-xr-x    2 ftp      ftp         77824 Dec 08 16:40 ru01-20140104T1621
-    drwxr-xr-x    2 ftp      ftp          4096 Dec 08 16:41 ru01-20140120T1444
-    drwxr-xr-x    2 ftp      ftp         57344 Dec 08 16:41 ru01-20140123T1250
-    drwxr-xr-x    2 ftp      ftp         65536 Dec 08 16:41 ru01-20140217T1244
-    drwxr-xr-x    2 ftp      ftp         36864 Jan 15 16:07 ru05-20150105T1600
-    drwxr-xr-x    2 ftp      ftp         65536 Feb 02 13:41 ru05-20150115T1443
-
-    226 Directory send OK.
+    $ lftp -u user -e "set ftp:ssl-force true; set ftp:ssl-protect-data true" gliders.ioos.us
+    Password: 
+    lftp user@gliders.ioos.us:~> ls
+    drwxrwxr-x    2 ftp      ftp          4096 Jul 12  2024 user-20240527T0000
+    drwxrwxr-x    2 ftp      ftp          4096 Jul 12  2024 user-20240711T0000
 ```
 
-New NetCDF files should be uploaded to the directory [created above](#deployment-creation).  For example, uploading files to the *ru05-20150115T1443* deployment is done as follows:
+New NetCDF files should be uploaded to the directory [created above](#deployment-creation).  For example, uploading files to the example *user-20240527T0000* deployment is done as follows:
 
 ```
-    ftp> cd ru05-20150115T1443
-    250 Directory successfully changed.
-    ftp> lcd LOCAL_DIRECTORY
-    Local directory now LOCAL_DIRECTORY
-    ftp> mput *.nc
+    lftp user@gliders.ioos.us:/> cd user-20240527T0000/
+    lftp user@gliders.ioos.us:/user-20240527T0000> ls
+    -rw-r--r--    1 ftp      ftp           615 May 28  2024 deployment.json
+    lftp user@gliders.ioos.us:/user-20240527T0000> lcd /mydir
+    lcd ok, local cwd=/mydir
+    lftp user@gliders.ioos.us:/user-20240527T0000> mput *.nc
 ```
 
 Please remember to use the [proper](ngdac-netcdf-file-format-version-2#file-naming-conventions) file naming convention.
@@ -199,4 +183,4 @@ The attribute key and value are supplied below
 }
 ```
 
-**NOTE:** ERDDAP uses the metadata from the latest file in a deployment to create an aggregation. So data providers only need to fix metadata on the latest file for the changes to be reflected in ERDDAP.
+**NOTE:** ERDDAP uses the metadata from the latest file in a deployment to create an aggregation, so data providers only need to fix metadata on the latest file for the changes to be reflected in ERDDAP.
