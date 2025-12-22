@@ -43,14 +43,15 @@ import sys
 from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
-from glider_dac import app, db
+from glider_dac.config import get_config
+from glider_dac.extensions import db
 from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
 from scripts.sync_erddap_datasets import sync_deployment
-from glider_dac.common import log_formatter
+from glider_dac import log_formatter
 
 
 logger = logging.getLogger(__name__)
@@ -81,10 +82,11 @@ erddap_mapping_dict = defaultdict(lambda: "String",
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
+config = get_config()
 redis_key = 'build_erddap_catalog_last_run_deployment'
-redis_host = app.config.get('REDIS_HOST', 'redis')
-redis_port = app.config.get('REDIS_PORT', 6379)
-redis_db = app.config.get('REDIS_DB', 0)
+redis_host = config.get('REDIS_HOST', 'redis')
+redis_port = config.get('REDIS_PORT', 6379)
+redis_db = config.get('REDIS_DB', 0)
 _redis = redis.Redis(
     host=redis_host,
     port=redis_port,
@@ -93,7 +95,7 @@ _redis = redis.Redis(
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(app.config["PRIVATE_ERDDAP"]),
+        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(config["PRIVATE_ERDDAP"]),
                             timeout=10)
         resp.raise_for_status()
         # contents of erddap datasets
@@ -113,13 +115,10 @@ def build_datasets_xml(data_root, catalog_root, force):
 
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    deployment_names = ((dep["name"], dep["deployment_dir"]) for dep in
-                         db.Deployment.find({}, {'name': True,
-                                                 'deployment_dir': True}))
-    for deployment_name, deployment_dir in deployment_names:
-        dataset_chunk_path = os.path.join(data_root, deployment_dir, 'dataset.xml')
+    for dep in Deployment.query.all():
+        dataset_chunk_path = os.path.join(data_root, dep.deployment_dir,
+                                          'dataset.xml')
         # base query to which we may add filtering to see if previously run
-        query = ({"name": deployment_name})
 
         # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
         # we want to run the "caching" logic only if force flag isn't set and
@@ -127,24 +126,19 @@ def build_datasets_xml(data_root, catalog_root, force):
         if not (force and os.path.exists(dataset_chunk_path)):
             # Get datasets that have been updated since the last time this script ran
             try:
-                last_run_ts = _redis.hget(redis_key, deployment_name) or 0
+                last_run_ts = _redis.hget(redis_key, dep.name) or 0
                 last_run = datetime.utcfromtimestamp(int(last_run_ts))
             except Exception:
                 logger.error("Error: Parsing last run for {}. ".format(deployment.name),
                              "Processing dataset anyway.")
-            else:
-                # there is a chance that the updated field won't be set if
-                # model.save() has no files
-                query['updated'] = {'$gte': last_run}
-        deployment = db.Deployment.find_one(query)
         # if we couldn't find the deployment, usually due to update time not
         # being recent, skip this deployment
-        if not deployment:
+        if dep.updated < last_run:
             continue
 
 
         try:
-            chunk_contents = build_erddap_catalog_chunk(data_root, deployment)
+            chunk_contents = build_erddap_catalog_chunk(data_root, dep)
         except Exception:
             logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
         # only attempt to write file if we were able to generate an XML snippet
@@ -164,7 +158,7 @@ def build_datasets_xml(data_root, catalog_root, force):
     # store in buffer first to avoid writing unfinished XML to datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
     deployments_name_set = set()
-    deployments = db.Deployment.find()  # All deployments now
+    deployments = Deployment.query.all()  # All deployments now
     buf = StringIO()
     for line in fileinput.input([head_path]):
         buf.write(line)
@@ -224,7 +218,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
     Builds an ERDDAP dataset xml chunk.
 
     :param str data_root: The root directory where netCDF files are read from
-    :param mongo.Deployment deployment: Mongo deployment model
+    :param glider_dac.models.Deployment deployment: Glider DAC deployment model
     """
     deployment_dir = deployment.deployment_dir
     logger.info("Building ERDDAP catalog chunk for {}".format(deployment_dir))
@@ -869,5 +863,4 @@ if __name__ == "__main__":
     data_dir = os.path.realpath(args.data_dir)
     force = args.force
 
-    with app.app_context():
-        sys.exit(main(data_dir, catalog_dir, force))
+    sys.exit(main(data_dir, catalog_dir, force))

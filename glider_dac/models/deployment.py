@@ -4,68 +4,70 @@
 glider_dac/models/deployment.py
 Model definition for a Deployment
 '''
-from glider_dac import app, db, slugify, queue, redis_connection
-from glider_dac.glider_emails import glider_deployment_check
+from flask import current_app, render_template
+from flask_mail import Message
 from datetime import datetime, timedelta
-from flask_mongokit import Document
-from bson.objectid import ObjectId
+from glider_dac.utilities import (slugify, slugify_sql,
+                                  email_exception_logging_wrapper,
+                                  get_thredds_catalog_url,
+                                  get_erddap_catalog_url)
+from glider_dac.extensions import db
+from glider_qc.glider_qc import get_redis_connection
+import json
+import geojson
+from compliance_checker.suite import CheckSuite
+from flask_sqlalchemy.track_modifications import models_committed
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, relationship
+from marshmallow.fields import Field, Method
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy.convert import ModelConverter
+from datetime import datetime
+from rq import Queue, Worker
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
+#from glider_dac.services.emails import glider_deployment_check
 from shutil import rmtree
 import os
 import glob
 import hashlib
+from compliance_checker.runner import ComplianceChecker
+from collections import OrderedDict
+import tempfile
 
 
-@db.register
-class Deployment(Document):
-    __collection__ = 'deployments'
-    use_dot_notation = True
-    use_schemaless = True
 
-    structure = {
-        'name': str,
-        'user_id': ObjectId,
-        'username': str,  # The cached username to lightly DB load
-        # The operator of this Glider. Shows up in TDS as the title.
-        'operator': str,
-        'deployment_dir': str,
-        'estimated_deploy_date': datetime,
-        'estimated_deploy_location': str,  # WKT text
-        'wmo_id': str,
-        'completed': bool,
-        'created': datetime,
-        'updated': datetime,
-        'glider_name': str,
-        'deployment_date': datetime,
-        'archive_safe': bool,
-        'checksum': str,
-        'attribution': str,
-        'delayed_mode': bool,
-        'latest_file': str,
-        'latest_file_mtime': datetime,
-    }
+class Deployment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user = db.relationship("User", lazy='joined', backref="deployment")
+    # The operator of this Glider. Shows up in TDS as the title.
+    operator = db.Column(db.String(255), nullable=True)#nullable=False)
+    deployment_dir = db.Column(db.String(255), nullable=False)
+    #estimated_deploy_location = db.Column(Geometry(geometry_type='POINT',
+    #                                               srid=4326))
+    # TODO: Add constraints for WMO IDs??
+    wmo_id = db.Column(db.String(7))
+    completed = db.Column(db.Boolean, nullable=False, default=False)
+    created = db.Column(db.DateTime(timezone=True), nullable=False,
+                        default=datetime.utcnow)
+    updated = db.Column(db.DateTime(timezone=True), nullable=False)
+    glider_name = db.Column(db.String(255), nullable=False)
+    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True) # nullable=
+    archive_safe = db.Column(db.Boolean, nullable=False, default=True)
+    checksum = db.Column(db.String(255))
+    attribution = db.Column(db.Text)
+    delayed_mode = db.Column(db.Boolean, nullable=True, default=False)
+    latest_file = db.Column(db.String(255))
+    latest_file_mtime = db.Column(db.DateTime(timezone=True))
+    compliance_check_passed = db.Column(db.Boolean, nullable=False,
+                                        default=False)
+    compliance_check_report = db.Column(db.JSON, nullable=True)
+    cf_standard_names_valid = db.Column(db.Boolean, nullable=True)
 
-    default_values = {
-        'created': datetime.utcnow,
-        'completed': False,
-        'archive_safe': True,
-        'delayed_mode': False,
-    }
-
-    indexes = [
-        {
-            'fields': 'name',
-            'unique': True,
-        },
-    ]
 
     def save(self):
-        if self.username is None or self.username == '':
-            user = db.User.find_one({'_id': self.user_id})
-            self.username = user.username
-
-
         # Update the stats on the latest profile file
         modtime = None
         latest_file = self.get_latest_nc_file()
@@ -78,21 +80,21 @@ class Deployment(Document):
         self.sync()
         self.updated = datetime.utcnow()
         app.logger.info("Update time is %s", self.updated)
-        update_vals = dict(self)
         try:
             doc_id = update_vals.pop("_id")
         # if we get a KeyError, this is a new deployment that hasn't been entered into the database yet
         # so we need to save it.  This is when you add "New deployment" while logged in -- files must
         # later be added
         except KeyError:
-            Document.save(self)
+            # TODO: Update for SQLAlchemy
+            pass
         # otherwise, need to use update/upsert via Pymongo in case of queued job for
         # compliance so that result does not get clobbered.
         # use $set instead of replacing document
         else:
-            db.deployments.update({"_id": doc_id}, {"$set": update_vals}, upsert=True)
+            db.session.commit()
         # HACK: special logic for Navy gliders deployment
-        if self.username == "navoceano" and self.glider_name.startswith("ng"):
+        if self.user.username == "navoceano" and self.glider_name.startswith("ng"):
             glob_path = os.path.join(app.config.get('DATA_ROOT'),
                                      "hurricanes-20230601T000",
                                      f"{self.glider_name}*")
@@ -104,86 +106,101 @@ class Deployment(Document):
                 except OSError:
                     app.logger.exception(f"Could not symlink {symlink_dest}")
 
-    def delete(self):
+    def delete_deployment(self):
+        self.delete_files()
+        db.session.delete(self)
+        db.session.commit()
+
+    def delete_files(self):
         if os.path.exists(self.full_path):
             rmtree(self.full_path)
         if os.path.exists(self.public_erddap_path):
             rmtree(self.public_erddap_path)
         if os.path.exists(self.thredds_path):
             rmtree(self.thredds_path)
-        Document.delete(self)
 
-    @property
+    @hybrid_property
     def dap(self):
         '''
         Returns the THREDDS DAP URL to this deployment
         '''
-        args = {
-            'host': app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        dap_url = "http://%(host)s/thredds/dodsC/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
+        host = current_app.config['THREDDS']
+        user = self.user.username
+        deployment = self.name
+        dap_url = "http://" + host + "/thredds/dodsC/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
         return dap_url
 
-    @property
+    @dap.expression
+    def dap(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/dodsC/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+
+    @hybrid_property
     def sos(self):
         '''
         Returns the URL to the NcSOS endpoint
         '''
-        args = {
-            'host': app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        sos_url = "http://%(host)s/thredds/sos/deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0" % args
-        return sos_url
+        host = current_app.config['THREDDS']
+        user = self.user.username
+        deployment = self.name
+        return "http://" + host + "thredds/sos/deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
 
-    @property
+    @sos.expression
+    def sos(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/sos/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
+
+    @hybrid_property
     def iso(self):
-        name = slugify(self.name)
-        iso_url = 'http://%(host)s/erddap/tabledap/%(name)s.iso19115' % {
-            'host': app.config['PUBLIC_ERDDAP'], 'name': name}
-        return iso_url
+        host = current_app.config['PRIVATE_ERDDAP']
+        name = self.name
+        return "http://" + host + "/erddap/tabledap/" + name + ".iso19115"
 
-    @property
+    @iso.expression
+    def iso(cls):
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.iso19115"
+
+    @hybrid_property
     def thredds(self):
-        args = {
-            'host': app.config['THREDDS'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        thredds_url = "http://%(host)s/thredds/catalog/deployments/%(user)s/%(deployment)s/catalog.html?dataset=deployments/%(user)s/%(deployment)s/%(deployment)s.nc3.nc" % args
-        return thredds_url
+        host = current_app.config['THREDDS']
+        user = self.user.username
+        deployment = self.name
+        return "http://" + host + "/thredds/catalog/deployments/" + user + "/" + deployment + "/catalog.html?dataset=deployments/" + user + "/" + deployment + "/" + deployment + ".nc3.nc"
 
-    @property
+    @thredds.expression
+    def thredds(cls):
+        return f"http://{current_app.config['THREDDS']}/thredds/catalog/deployments/{self.user.username}/{self.name}/catalog.html?dataset=deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+
+    @hybrid_property
     def erddap(self):
-        args = {
-            'host': app.config['PUBLIC_ERDDAP'],
-            'user': slugify(self.username),
-            'deployment': slugify(self.name)
-        }
-        erddap_url = "http://%(host)s/erddap/tabledap/%(deployment)s.html" % args
-        return erddap_url
+        host = current_app.config['PRIVATE_ERDDAP']
+        user = self.user.username
+        deployment = self.name
+        return "http://" + host + "/erddap/tabledap/" + deployment + ".html"
+
+    @erddap.expression
+    def erddap(cls):
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.html"
 
     @property
     def title(self):
         if self.operator is not None and self.operator != "":
             return self.operator
         else:
-            return self.username
+            return self.user.username
 
     @property
     def full_path(self):
-        return os.path.join(app.config.get('DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('DATA_ROOT'),
+                            self.deployment_dir)
 
     @property
     def public_erddap_path(self):
-        return os.path.join(app.config.get('PUBLIC_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('PUBLIC_DATA_ROOT'),
+                            self.deployment_dir)
 
     @property
     def thredds_path(self):
-        return os.path.join(app.config.get('THREDDS_DATA_ROOT'), self.deployment_dir)
+        return os.path.join(current_app.config.get('THREDDS_DATA_ROOT'),
+                            self.deployment_dir)
 
     def on_complete(self):
         """
@@ -269,7 +286,7 @@ class Deployment(Document):
         self.checksum = md5.hexdigest()
 
     def sync(self):
-        if app.config.get('NODATA'):
+        if current_app.config.get('NODATA'):
             return
         if not os.path.exists(self.full_path):
             try:
@@ -284,8 +301,9 @@ class Deployment(Document):
 
         # Serialize Deployment model to disk
         json_file = os.path.join(self.full_path, "deployment.json")
+        schema = DeploymentSchema()
         with open(json_file, 'w') as f:
-            f.write(self.to_json())
+            f.write(json.dumps(schema.dump(self)))
 
     def update_wmoid_file(self):
         # Keep the WMO file updated if it is edited via the web form
@@ -301,11 +319,172 @@ class Deployment(Document):
                 # Write the new wmo_id to file if new
                 with open(wmo_id_file, 'w') as f:
                     f.write(self.wmo_id)
-    @classmethod
-    def get_deployment_count_by_operator(cls):
-        return [count for count in db.deployments.aggregate({'$group': {'_id':
-                                                                        '$operator',
-                                                                        'count':
-                                                                        {'$sum':
-                                                                         1}}},
-                                                            cursor={})]
+
+    @email_exception_logging_wrapper
+    def send_deployment_cchecker_email(self, user, failing_deployments, attachment_msgs):
+        if not app.config.get('MAIL_ENABLED', False): # Mail is disabled
+            app.logger.info("Email is disabled")
+            return
+        # sender comes from MAIL_DEFAULT_SENDER in env
+
+        app.logger.info("Sending email about deployment compliance checker to {}".format(user['username']))
+        subject        = "Glider DAC Compliance Check on Deployments for user %s" % user['username']
+        recipients     = [user['email']] #app.config.get('MAIL_DEFAULT_TO')]
+        msg            = Message(subject, recipients=recipients)
+        if len(failing_deployments) > 0:
+            message = ("The following glider deployments failed compliance check:"
+                    "\n{}\n\nPlease see attached file for more details. "
+                    "Valid CF standard names are required for NCEI archival."
+                    .format("\n".join(d['name'] for d in failing_deployments)))
+            date_str_today = datetime.today().strftime("%Y-%m-%d")
+            attachment_filename = "failing_glider_md_{}".format(date_str_today)
+            msg.attach(attachment_filename, 'text/plain', data=attachment_msgs)
+        else:
+            return
+        msg.body       = message
+
+        current_app.mail.send(msg)
+
+    def glider_deployment_check(self, data_type=None, completed=True, force=False,
+                                deployment_dir=None, username=None):
+        """
+        """
+        # TODO: move this functionality to another module as compliance checks
+        #       no longer send emails.
+        cs = CheckSuite()
+        cs.load_all_available_checkers()
+        query = Deployment.query
+        with current_app.app_context():
+            if data_type is not None:
+                query = query.filter(Deployment.completed==completed,
+                                                func.coalesce(Deployment.delayed_mode,
+                                                            False) == is_delayed_mode)
+                # TODO: force not null constraints in model on this field
+                if not force:
+                    query = query.filter(compliance_check_passed != True)
+
+            if username:
+                query = query.filter_by(username=username)
+            # a particular deployment has been specified
+            elif deployment_dir:
+                query = query.filter_by(deployment_dir=deployment_dir)
+
+        for deployment in query.all():
+            user = deployment.user.username
+            user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
+
+            try:
+                dep_passed, dep_messages = self.process_deployment()
+                if not dep_passed:
+                    user_errors[user]["failed_deployments"].append(deployment.name)
+                user_errors[user]["messages"].extend(dep_messages)
+            except Exception as e:
+                root_logger.exception("Exception occurred while processing deployment {}".format(deployment.name))
+
+            # TODO: Allow for disabling of sending compliance checker emails
+            for username, results_dict in user_errors.items():
+                send_deployment_cchecker_email(username,
+                                            results_dict["failed_deployments"],
+                                            "\n".join(results_dict["messages"]))
+
+    def process_deployment(self):
+        deployment_issues = "Deployment {}".format(os.path.basename(self.name))
+        groups = OrderedDict()
+        erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
+        base_url = current_app.config["PRIVATE_ERDDAP"]
+        # FIXME: determine a more robust way of getting scheme
+        if not base_url.startswith("http"):
+            base_url = "http://{}".format(base_url)
+        url_path = "/".join([base_url,
+                            erddap_fmt_string.format(self.name)])
+        # TODO: would be better if we didn't have to write to a temp file
+        outhandle, outfile = tempfile.mkstemp()
+        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                    checker_names=['gliderdac'], verbose=True,
+                                    criteria='lenient', output_format='json',
+                                    output_filename=outfile)
+        with open(outfile, 'r') as f:
+            errs = json.load(f)["gliderdac"]
+
+        compliance_passed = errs['scored_points'] == errs['possible_points']
+
+        self.compliance_check_passed = compliance_passed
+        standard_name_errs = []
+        if compliance_passed:
+            final_message = "All files passed compliance check on glider deployment {}".format(self.name)
+        else:
+            error_list = [err_msg for err_severity in ("high_priorities",
+                "medium_priorities", "low_priorities") for err_section in
+                errs[err_severity] for err_msg in err_section["msgs"]]
+            self.compliance_check_report = errs
+
+            for err in errs["high_priorities"]:
+                if err["name"] == "Standard Names":
+                    standard_name_errs.extend(err["msgs"])
+
+            if not standard_name_errs:
+                final_message = "All files passed compliance check on glider deployment {}".format(self.name)
+                self.cf_standard_names_valid = True
+            else:
+                root_logger.info(standard_name_errs)
+                final_message = ("Deployment {} has issues:\n{}".format(self.name,
+                                "\n".join(standard_name_errs)))
+                self.cf_standard_names_valid = False
+
+        db.session.commit()
+        return final_message.startswith("All files passed"), final_message
+
+class GeoJSONField(Field):
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return None
+        # Convert GeoAlchemy geometry to GeoJSON format
+        return geojson.loads(db.session.scalar(value.ST_AsGeoJSON()))
+
+
+class DeploymentModelConverter(ModelConverter):
+        SQLA_TYPE_MAPPING = {
+            **ModelConverter.SQLA_TYPE_MAPPING
+            #**{Geometry: Field}
+        }
+
+class DeploymentSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Deployment
+        model_converter = DeploymentModelConverter
+
+    estimated_deploy_location = GeoJSONField()
+
+    # TODO?: Aggressively Java-esque -- is there a better way to get these
+    # hybrid properties?
+    dap = Method("get_dap")
+    sos = Method("get_sos")
+    iso = Method("get_iso")
+    thredds = Method("get_thredds")
+    erddap = Method("get_erddap")
+
+    def get_dap(self, obj):
+        return obj.dap
+
+    def get_sos(self, obj):
+        return obj.sos
+
+    def get_iso(self, obj):
+        return obj.iso
+
+    def get_thredds(self, obj):
+        return obj.thredds
+
+    def get_erddap(self, obj):
+        return obj.erddap
+
+
+def on_models_committed(sender, changes):
+    for model, operation in changes:
+        if isinstance(model, Deployment):
+            if operation == "insert" or operation == "update":
+                if isinstance(model, (Deployment, User)):
+                    model.save()
+            elif operation == "delete":
+                if isinstance(model, Deployment):
+                    model.delete()

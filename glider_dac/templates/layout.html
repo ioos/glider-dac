@@ -3,14 +3,14 @@
   <head>
     <title>Glider DAC - {% block title %}{% endblock %}</title>
     {%- block javascript %}
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/moment.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/moment.min.js') }}"></script>
     {%- endblock %}
     {%- block css %}
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap.min.css') }}">
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/glider-style.css') }}">
-    <link rel=stylesheet type=text/css href="{{ url_for('.static', filename='css/bootstrap-sortable.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/glider-style.css') }}">
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap-sortable.css') }}">
     {% if config.GA_ENABLED -%}
       <!-- Global site tag (gtag.js) - Google Analytics -->
 
@@ -29,7 +29,7 @@
       <div class="container">
         <div class="navbar-header">
           <a class="navbar-img-brand" href="http://ioos.noaa.gov/">
-            <img src="{{ url_for('.static', filename='img/ioos.png') }}" alt="IOOS Glider DAC" />
+            <img src="{{ url_for('static', filename='img/ioos.png') }}" alt="IOOS Glider DAC" />
           </a>
           <a class="navbar-brand" href="http://gliders.ioos.us/providers/">
             Glider DAC v2
@@ -37,23 +37,23 @@
         </div>
         <ul class="navbar-nav nav">
           {%- if current_user.is_active %}
-          <li><a href="{{ url_for('list_user_deployments', username=current_user.username) }}">Your Deployments</a></li>
+          <li><a href="{{ url_for('deployment.list_user_deployments', username=current_user.username) }}">Your Deployments</a></li>
           {%- endif %}
         </ul>
         <ul class="nav navbar-nav navbar-right">
           {%- if current_user.is_active %}
-            {%- if current_user.is_admin %}
-            <li><p class="navbar-text"><a href="{{url_for('admin')}}"><span class="label label-success">ADMIN</span></a></p></li>
+            {%- if current_user.admin %}
+            <li><p class="navbar-text"><a href="{{url_for('user.admin')}}"><span class="label label-success">ADMIN</span></a></p></li>
             {%- endif %}
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ current_user.username }} <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="{{ url_for('edit_user', username=current_user.username) }}">Account</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                <li><a href="{{ url_for('user.edit_user', username=current_user.username) }}">Account</a></li>
+                <li><a href="{{ url_for('index.logout') }}">Logout</a></li>
               </ul>
             </li>
           {%- else %}
-            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('index.login') }}">Login</a></li>
           {%- endif %}
         </ul>
       </div>
@@ -75,6 +75,6 @@
 
     </div>
 
-    <script type="text/javascript" src="{{ url_for('.static', filename='js/bootstrap-sortable.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap-sortable.js') }}"></script>
   </body>
 </html>

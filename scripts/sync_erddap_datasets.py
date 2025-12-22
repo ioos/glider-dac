@@ -8,8 +8,11 @@ import os
 import redis
 import sys
 from datetime import datetime, timezone, timedelta
-from glider_dac import app, db
-from glider_dac.common import log_formatter
+from flask import current_app
+from glider_dac import db
+from glider_dac.config import get_config
+from glider_dac.models.deployment import Deployment
+from glider_dac import log_formatter
 
 logger = logging.getLogger(__name__)
 ch = logging.StreamHandler()
@@ -19,10 +22,11 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 # Connect to redis to keep track of the last time this script ran
+config = get_config()
 redis_key = 'sync_erddap_datasets_last_run'
-redis_host = app.config.get('REDIS_HOST', 'redis')
-redis_port = app.config.get('REDIS_PORT', 6379)
-redis_db = app.config.get('REDIS_DB', 0)
+redis_host = config.get('REDIS_HOST', 'redis')
+redis_port = config.get('REDIS_PORT', 6379)
+redis_db = config.get('REDIS_DB', 0)
 _redis = redis.Redis(
     host=redis_host,
     port=redis_port,
@@ -86,7 +90,7 @@ def sync_deployment(deployment):
     logger.info( "Synchronizing at %s", datetime.utcnow().isoformat())
     deployment_name = deployment.split('/')[-1]
 
-    touch_erddap(deployment_name, app.config["flags_private"])
+    touch_erddap(deployment_name, current_app.config["flags_private"])
 
 
 def get_delayed_mode_deployments(force=False):
@@ -103,12 +107,13 @@ def get_delayed_mode_deployments(force=False):
             dt_yesterday = datetime.now(tz=timezone.utc) - timedelta(days=1)
             last_run_ts = _redis.get(redis_key) or dt_yesterday.timestamp()
             last_run = datetime.utcfromtimestamp(int(last_run_ts))
-            query['updated'] = {'$gte': last_run}
+            update_time = last_run
         except Exception:
             logger.error("Error: Parsing last run from redis. Processing Datasets from last 24 hrs")
-            query['updated'] = {'$gte': dt_yesterday}
+            update_time = dt_yesterday
 
-    deployments = db.Deployment.find(query)
+    deployments = Deployment.query(query).filter(Deployment.updated >=
+                                                 update_time).all()
 
     return [d.deployment_dir for d in deployments]
 
@@ -150,5 +155,5 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--deployment', help="Manually load a specific deployment")
     parser.add_argument('-v', '--verbose', action="store_true", help="Sets log level to debug")
     args = parser.parse_args()
-    with app.app_context():
+    with current_app.app_context():
         sys.exit(main(args))
