@@ -21,7 +21,7 @@ jobs:
           persist-credentials: false
 
       - name: Start Redis
-        uses: supercharge/redis-github-action@1.7.0
+        uses: supercharge/redis-github-action@bc274cb7238cd63a45029db04ee48c07a72609fd # v1.8.1
         with:
           redis-version: 7
 
