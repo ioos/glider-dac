@@ -1,5 +1,8 @@
 name: Run pytest
 
+# no permissions by default
+permissions: {}
+
 on:
   push:
     branches:
@@ -12,7 +15,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Start Redis
         uses: supercharge/redis-github-action@1.7.0

@@ -55,7 +55,6 @@ services:
       - DATA_ROOT=${DATA_ROOT}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
-
   mysql:
     restart: unless-stopped
     image: mysql:8
