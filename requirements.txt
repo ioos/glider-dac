@@ -40,4 +40,4 @@ cc-plugin-glider>=2.1.0
 -e git+https://github.com/flasgger/flasgger.git@master#egg=flasgger
 multidict
 influxdb>=5.3.1
-quantities==0.14.1
+quantities==0.16.4
