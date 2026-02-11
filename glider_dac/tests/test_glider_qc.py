@@ -107,12 +107,10 @@ class TestGliderQC(TestCase):
         timevar = nc.createVariable('time', np.float64, ('time',), fill_value=-9999.)
         timevar.standard_name = 'time'
         timevar.units = 'seconds since 1970-01-01T00:00:00Z'
-        timevar[np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])] =  np.array(np.arange(
-                                                                                "2015-01-01 00:00:00",
-                                                                                "2015-01-01 03:30:00",
-                                                                                step=np.timedelta64(21, "m"),
-                                                                                dtype=np.datetime64,
-                                                                            ))
+        timevar[:] = np.arange("2015-01-01 00:00:00", "2015-01-01 03:30:00",
+                               step=np.timedelta64(21, "m"),
+                               dtype=np.datetime64).astype("float64")
+
         tempvar = nc.createVariable('temp', np.float32, ('time',), fill_value=-9999.)
         tempvar.standard_name = 'sea_water_temperature'
         tempvar.units = 'deg_F'
