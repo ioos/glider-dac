@@ -102,7 +102,7 @@ class Deployment(db.Model):
                 symlink_dest = os.path.join('deployment_dir',
                                             deployment_file.name.replace("_", "-"))
                 try:
-                    os.symlink(deployment_file, symlink_dest)
+                    os.symlink(os.path.abspath(deployment_file), symlink_dest)
                 except OSError:
                     app.logger.exception(f"Could not symlink {symlink_dest}")
 

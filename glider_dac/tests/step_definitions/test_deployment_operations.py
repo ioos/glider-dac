@@ -196,6 +196,7 @@ def ncei_archival_script(app):
     from scripts import archive_datasets
     archive_datasets.main()
     file_path = f"{app.config['ARCHIVE_PATH']}/testdeployment-20240502T0000.ncCF.nc3.nc"
-    # TODO: test that file exists and is hard link
-    assert (os.path.exists(file_path) and os.stat(file_path).st_nlink > 1 and
-            os.path.exists(file_path + ".md5"))
+    # TODO: test that file exists and is working symlink
+    assert os.path.islink(file_path)
+    assert os.path.exists(file_path) # link actual has valid contents
+    assert os.path.exists(file_path + ".md5")
