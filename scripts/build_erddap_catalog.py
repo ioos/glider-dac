@@ -45,13 +45,14 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from glider_dac.config import get_config
 from glider_dac.extensions import db
+from glider_dac.models.deployment import Deployment
 from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
 import requests
 from scripts.sync_erddap_datasets import sync_deployment
-from glider_dac import log_formatter
+from glider_dac import create_app, log_formatter
 
 
 logger = logging.getLogger(__name__)
@@ -115,7 +116,10 @@ def build_datasets_xml(data_root, catalog_root, force):
 
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
-    for dep in Deployment.query.all():
+    app = create_app()
+    with app.app_context():
+        deps = Deployment.query.all()
+    for dep in deps:
         dataset_chunk_path = os.path.join(data_root, dep.deployment_dir,
                                           'dataset.xml')
         # base query to which we may add filtering to see if previously run
@@ -140,7 +144,7 @@ def build_datasets_xml(data_root, catalog_root, force):
         try:
             chunk_contents = build_erddap_catalog_chunk(data_root, dep)
         except Exception:
-            logger.exception("Error: creating dataset chunk for {}".format(deployment_dir))
+            logger.exception(f"Error: creating dataset chunk for {dep.deployment_dir}")
         # only attempt to write file if we were able to generate an XML snippet
         # successfully
         else:
@@ -149,7 +153,7 @@ def build_datasets_xml(data_root, catalog_root, force):
                     f.write(chunk_contents)
                     # Set the timestamp of this deployment run in redis
                 dt_now = datetime.now(tz=timezone.utc)
-                _redis.hset(redis_key, deployment_name, int(dt_now.timestamp()))
+                _redis.hset(redis_key, dep.name, int(dt_now.timestamp()))
             except:
                 logger.exception("Could not write ERDDAP dataset snippet XML file {}".format(dataset_chunk_path))
 
@@ -158,12 +162,11 @@ def build_datasets_xml(data_root, catalog_root, force):
     # store in buffer first to avoid writing unfinished XML to datasets.xml
     ds_path = os.path.join(catalog_root, 'datasets.xml')
     deployments_name_set = set()
-    deployments = Deployment.query.all()  # All deployments now
     buf = StringIO()
     for line in fileinput.input([head_path]):
         buf.write(line)
     # for each deployment, get the dataset chunk
-    for deployment in deployments:
+    for deployment in deps:
         deployments_name_set.add(deployment.name)
         # First check that a chunk exists
         dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir,
@@ -192,7 +195,7 @@ def build_datasets_xml(data_root, catalog_root, force):
     finally:
          del buf
 
-    logger.info("Wrote {} from {} deployments".format(ds_path, deployments.count()))
+    logger.info("Wrote {} from {} deployments".format(ds_path, len(deps)))
     # issue flag refresh to remove inactive deployments after datasets.xml written
     for inactive_deployment_name in inactive_deployment_names:
         sync_deployment(inactive_deployment_name)
@@ -704,7 +707,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
             for identifier, mod_attrs in extra_atts.items():
                 add_extra_attributes(tree, identifier, mod_attrs)
         except Exception:
-            logger.exception("Exception occurred while adding atts to template: {}".format(deployment_dir))
+            logger.exception(f"Exception occurred while adding atts to template: {dep.deployment_dir}")
         finally:
             return etree.tostring(tree, encoding=str)
 
