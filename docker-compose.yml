@@ -9,7 +9,8 @@ services:
     container_name: glider-dac-providers-app
     develop:
       watch:
-        - action: sync
+        - action: sync+restart
+          initial_sync: true
           path: .
           target: /glider-dac
     restart: always
