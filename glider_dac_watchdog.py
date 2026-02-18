@@ -7,48 +7,54 @@ import argparse
 import glob
 import sys
 from rq import Queue
-from flask import current_app
+
+# from flask import current_app
 from glider_qc import glider_qc
 from datetime import datetime
 import logging
+from glider_dac import create_app
 from glider_dac.extensions import db
+from glider_dac.models.deployment import Deployment
 from flask import current_app
-from watchdog.events import (FileSystemEventHandler,
-                             DirCreatedEvent, DirDeletedEvent,
-                             FileCreatedEvent, FileMovedEvent, FileModifiedEvent)
+from netCDF4 import Dataset
+from watchdog.events import (
+    FileSystemEventHandler,
+    DirCreatedEvent,
+    DirDeletedEvent,
+    FileCreatedEvent,
+    FileMovedEvent,
+    FileModifiedEvent,
+)
 from watchdog.observers import Observer
 
 log = logging.getLogger(__name__)
 
 
-
 class HandleDeploymentDB(FileSystemEventHandler):
-    def __init__(self, base, flagsdir):
+    def __init__(self, base, flagsdir, app):
         self.base = base
         self.flagsdir = flagsdir  # path to ERDDAP flags folder
         # TODO: possibly create multiple priority queues depending on whether
         # or not delayed mode datasets are used.
-        self.queue = Queue("gliderdac",
-                           connection=glider_qc.get_redis_connection())
+        self.queue = Queue("gliderdac", connection=glider_qc.get_redis_connection())
+        self.app = app
 
     def file_moved_or_created(self, event):
-        log.info('%s %s', self.base, event.src_path)
-        if self.base not in event.src_path:
-            return
+        log.info("%s %s", self.base, event.src_path)
+        with self.app.app_context():
+            if self.base not in event.src_path:
+                return
 
-        rel_path = os.path.relpath(event.src_path, self.base)
-        if isinstance(event, FileMovedEvent):
-            rel_path = os.path.relpath(event.dest_path, self.base)
-        path_parts = os.path.split(rel_path)
-        log.info("%s %s", type(event), path_parts)
-        current_app.logger.info("%s %s", type(event), path_parts)
+            rel_path = os.path.relpath(event.src_path, self.base)
+            if isinstance(event, FileMovedEvent):
+                rel_path = os.path.relpath(event.dest_path, self.base)
+            path_parts = os.path.split(rel_path)
+            log.info("%s %s", type(event), path_parts)
 
-        # ignore if a dotfile
-        if path_parts[1].startswith('.'):
-            return
+            # ignore if a dotfile
+            if path_parts[1].startswith("."):
+                return
 
-        with current_app.app_context():
-            # navoceano unsorted deployments
             if path_parts[0] == "navoceano/hurricanes-20230601T0000":
                 if not path_parts[-1].endswith(".nc"):
                     return
@@ -58,13 +64,18 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     # when sylinking the deployment
                     glider_callsign, date_str_tz = deployment_name_raw.split("_", 1)
                 except ValueError:
-                    log.exception("Cannot split NAVOCEANO hurricane glider filename into callsign and timestamp components: ")
-                date_str = (date_str_tz[:-1] if date_str_tz.endswith("Z") else
-                            date_str_tz)
+                    log.exception(
+                        "Cannot split NAVOCEANO hurricane glider filename into callsign and timestamp components: "
+                    )
+                date_str = (
+                    date_str_tz[:-1] if date_str_tz.endswith("Z") else date_str_tz
+                )
                 # remove trailing Z from deployment name
                 navo_directory = os.path.join(self.base, "navoceano")
                 navo_deployment_directory = None
-                possible_existing_dirs = sorted(glob.glob(os.path.join(navo_directory, f"{glider_callsign}*")))
+                possible_existing_dirs = sorted(
+                    glob.glob(os.path.join(navo_directory, f"{glider_callsign}*"))
+                )
                 # Use an already existing directory if there is one for the the deployment
                 navo_deployment_directory = None
                 for maybe_dir in possible_existing_dirs:
@@ -75,19 +86,29 @@ class HandleDeploymentDB(FileSystemEventHandler):
                             navo_deployment_directory = maybe_dir
 
                 if not navo_deployment_directory:
-                    navo_deployment_directory = os.path.join(self.base, f"navoceano/{glider_callsign}-{date_str}")
+                    navo_deployment_directory = os.path.join(
+                        self.base, f"navoceano/{glider_callsign}-{date_str}"
+                    )
                 # Directory could exist, but no deployment in DB!
                 try:
-                    os.makedirs(navo_deployment_directory,
-                                exist_ok=True)
+                    os.makedirs(navo_deployment_directory, exist_ok=True)
                     # should now fire another inotify filesystem event upon symlink creation
-                    os.symlink(os.path.join(self.base, rel_path),
-                               os.path.join(navo_deployment_directory, f"{glider_callsign}_{date_str}{extension}"))
+                    os.symlink(
+                        os.path.join(self.base, rel_path),
+                        os.path.join(
+                            navo_deployment_directory,
+                            f"{glider_callsign}_{date_str}{extension}",
+                        ),
+                    )
                 except OSError:
-                    log.exception("Could not create new deployment file for NAVOCEANO: ")
+                    log.exception(
+                        "Could not create new deployment file for NAVOCEANO: "
+                    )
                 return
 
-            deployment = Deployment.query.filter_by(deployment_dir=path_parts[0]).one_or_none()
+            deployment = Deployment.query.filter_by(
+                deployment_dir=path_parts[0]
+            ).one_or_none()
             if deployment is None:
                 log.error("Cannot find deployment for %s", path_parts[0])
                 return
@@ -96,7 +117,10 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 rel_path = os.path.relpath(event.src_path, self.base)
                 log.info("New wmoid.txt in %s", rel_path)
                 if deployment.wmo_id:
-                    log.info("Deployment already has wmoid %s.  Updating value with new file.", deployment.wmo_id)
+                    log.info(
+                        "Deployment already has wmoid %s.  Updating value with new file.",
+                        deployment.wmo_id,
+                    )
                 with open(event.src_path) as wf:
                     deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
@@ -117,7 +141,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     log.info("Updated deployment %s", path_parts[0])
                     # touch the ERDDAP flag (realtime data only)
                     if not deployment.delayed_mode:
-                        deployment_name = path_parts[0].split('/')[-1]
+                        deployment_name = path_parts[0].split("/")[-1]
                         self.touch_erddap(deployment_name)
                     # kick off QARTOD job
                     if isinstance(event, (FileModifiedEvent, FileCreatedEvent)):
@@ -127,33 +151,38 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     # TODO: DRY/refactor with batch QARTOD job?
                     try:
                         if self.queue.connection.exists(f"gliderdac:{file_path}"):
-                            app.logger.info(f"File {file_path} already has lock in Redis")
+                            log.info(f"File {file_path} already has lock in Redis")
                             return
                         if glider_qc.check_needs_qc(file_path):
-                            log.info("Enqueueing QARTOD job for file %s",
-                                            file_path)
-                            self.queue.enqueue(glider_qc.qc_task, file_path,
-                                               os.path.join(
-                                                 os.path.dirname(
-                                                   os.path.realpath(__file__)
-                                                 ), "data/qc_config.yml"))
+                            log.info("Enqueueing QARTOD job for file %s", file_path)
+                            self.queue.enqueue(
+                                glider_qc.qc_task,
+                                file_path,
+                                os.path.join(
+                                    os.path.dirname(os.path.realpath(__file__)),
+                                    "data/qc_config.yml",
+                                ),
+                            )
                         else:
                             log.info(f"File {file_path} already has QC")
                     except OSError:
-                        log.exception("Exception occurred while "
-                                             "attempting to inspect file %s "
-                                             "for QC variables: ", file_path)
+                        log.exception(
+                            "Exception occurred while "
+                            "attempting to inspect file %s "
+                            "for QC variables: ",
+                            file_path,
+                        )
 
     def touch_erddap(self, deployment_name):
-        '''
+        """
         Creates a flag file for ERDDAP's file monitoring thread so that it reloads
         the dataset
-        '''
+        """
         full_path = os.path.join(self.flagsdir, deployment_name)
         log.info("Touching ERDDAP flag file at {}".format(full_path))
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
-        with open(full_path, 'w') as f:
+        with open(full_path, "w") as f:
             pass  # Causes file creation (touch)
 
     def on_moved(self, event):
@@ -166,7 +195,6 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
     def on_created(self, event):
         if isinstance(event, DirCreatedEvent):
-
             if self.base not in event.src_path:
                 return
 
@@ -184,7 +212,6 @@ class HandleDeploymentDB(FileSystemEventHandler):
         elif isinstance(event, FileCreatedEvent):
             self.file_moved_or_created(event)
 
-
     def on_deleted(self, event):
         if isinstance(event, DirDeletedEvent):
             if self.base not in event.src_path:
@@ -201,10 +228,11 @@ class HandleDeploymentDB(FileSystemEventHandler):
 
             log.info("Removed deployment directory: %s", rel_path)
 
-            with current_app.app_context():
-                deployment = Deployment.query.filter_by(deployment_dir=event.src_path).one_or_none()
-                if deployment:
-                    deployment.delete()
+            deployment = Deployment.query.filter_by(
+                deployment_dir=event.src_path
+            ).one_or_none()
+            if deployment:
+                deployment.delete()
 
 
 def main(handler):
@@ -225,24 +253,19 @@ def main(handler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        'basedir',
-        default=os.environ.get('DATA_ROOT', '.'),
-        nargs='?'
-    )
-    parser.add_argument(
-        'flagsdir',
-        default=os.environ.get('FLAGS_DIR', '.'),
-        nargs='?'
-    )
+    parser.add_argument("basedir", default=os.environ.get("DATA_ROOT", "."), nargs="?")
+    parser.add_argument("flagsdir", default=os.environ.get("FLAGS_DIR", "."), nargs="?")
     args = parser.parse_args()
 
     base = os.path.realpath(args.basedir)
     flagsdir = os.path.realpath(args.flagsdir)
-    try:
-        main(HandleDeploymentDB(base, flagsdir))
-    except OSError:
-        with current_app.app_context():
-            log.exception("Exception occurred attempting to set up file "
-                                 f"watch on directory {base}")
-        sys.exit(1)
+    app = create_app()
+    with app.app_context():
+        try:
+            main(HandleDeploymentDB(base, flagsdir, app))
+        except OSError:
+            log.exception(
+                "Exception occurred attempting to set up file "
+                f"watch on directory {base}"
+            )
+            sys.exit(1)
