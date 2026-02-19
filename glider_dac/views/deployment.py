@@ -113,8 +113,33 @@ def show_deployment(deployment_name):
 
     files = []
     for f in dep_path.glob("*.nc"):
-        files.append((f, datetime.utcfromtimestamp(os.path.getmtime(f))))
+        file_loc = Path(
+            current_app.config["PRIV_DATA_ROOT"],
+            os.path.relpath(deployment.full_path, current_app.config["DATA_ROOT"]),
+            f
+        )
+        current_app.logger.info(file_loc)
+        file_exists = file_loc.exists()
+        try:
+            file_status = os.getxattr(file_loc, "user.file_status")
+        except OSError:
+            file_status = None
 
+        try:
+            qc_status = os.getxattr(file_loc, "user.qc_run") not in (None, "error")
+        except OSError:
+            qc_status = False
+
+        files.append(
+            (
+                f,
+                file_exists,
+                file_status,
+                qc_status,
+            )
+        )
+
+    # sort by mtime
     files.sort(key=lambda a: a[1])
 
     kwargs = {}

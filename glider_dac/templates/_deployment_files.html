@@ -5,5 +5,8 @@
     {% endif %}
     <td>{{ f[0].name }}</td>
     <td data-value="{{ f[1] }}"><abbr title="{{ f[1] | datetimeformat }} UTC">{{ f[1] | prettydate }}</abbr></td>
+    <td>{% if f[2] %}✓{% else %}✗{% endif %}</td>
+    <td>{% if f[3] and f[3].decode("utf-8") == "Valid file" %}✓{% elif f[3] and f[3].decode("utf8") == "Invalid file" %}✗{% else %}?{% endif %}</td>
+    <td>{% if f[4] %}✓{% else %}✗{% endif %}</td>
   </tr>
 {% endfor %}

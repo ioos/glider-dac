@@ -11,14 +11,16 @@ def datetimeformat(value, format='%a, %b %d %Y at %I:%M%p'):
     return value
 
 def timedeltaformat(starting, ending):
-    if isinstance(starting, datetime.datetime) and isinstance(ending, datetime.datetime):
+    if isinstance(starting, datetime.datetime) and isinstance(
+        ending, datetime.datetime
+    ):
         return ending - starting
     return "unknown"
 
 def prettydate(d):
     if d is None:
         return "never"
-    utc_dt = datetime.datetime.utcnow()
+    utc_dt = datetime.datetime.now(datetime.timezone.utc)
     if utc_dt > d:
         return prettypastdate(d, utc_dt - d)
     else:
