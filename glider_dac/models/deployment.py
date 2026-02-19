@@ -7,7 +7,7 @@ Model definition for a Deployment
 
 from flask import current_app, render_template
 from flask_mail import Message
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from glider_dac.utilities import (
     slugify,
     slugify_sql,
@@ -53,11 +53,12 @@ class Deployment(db.Model):
     wmo_id = db.Column(db.String(7))
     completed = db.Column(db.Boolean, nullable=False, default=False)
     created = db.Column(
-        db.DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        db.DateTime(timezone=True), nullable=False,
+        default=datetime.now(tz=timezone.utc)
     )
     updated = db.Column(db.DateTime(timezone=True), nullable=False)
     glider_name = db.Column(db.String(255), nullable=False)
-    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True)  # nullable=
+    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True)
     archive_safe = db.Column(db.Boolean, nullable=False, default=True)
     checksum = db.Column(db.String(255))
     attribution = db.Column(db.Text)
@@ -79,7 +80,7 @@ class Deployment(db.Model):
         self.latest_file_mtime = modtime
 
         self.sync()
-        self.updated = datetime.utcnow()
+        self.updated = datetime.now(tz=timezone.utc)
         current_app.logger.info("Update time is %s", self.updated)
         db.session.commit()
         # HACK: special logic for Navy gliders deployment

@@ -17,57 +17,64 @@ def timedeltaformat(starting, ending):
         return ending - starting
     return "unknown"
 
-def prettydate(d):
-    if d is None:
+
+def prettydate(dt):
+    if dt is None:
         return "never"
-    utc_dt = datetime.datetime.now(datetime.timezone.utc)
-    if utc_dt > d:
-        return prettypastdate(d, utc_dt - d)
+    if dt.tzinfo is None:
+        dt_compare = dt.replace(tzinfo=datetime.timezone.utc)
     else:
-        return prettyfuturedate(d, d - utc_dt)
+        dt_compare = dt.astimezone(datetime.timezone.utc)
+    utc_dt = datetime.datetime.now(datetime.timezone.utc)
+    if utc_dt > dt_compare:
+        return prettypastdate(dt_compare, utc_dt - dt_compare)
+    else:
+        return prettyfuturedate(dt_compare, dt_compare - utc_dt)
+
 
 # from http://stackoverflow.com/a/5164027/84732
-def prettypastdate(d, diff):
+def prettypastdate(dt, diff):
     s = diff.seconds
     if diff.days > 7:
-        return d.strftime('%Y %b %d')
+        return dt.strftime("%Y %b %d")
     elif diff.days > 1:
-        return '{} days ago'.format(diff.days)
+        return "{} days ago".format(diff.days)
     elif diff.days == 1:
-        return '1 day ago'
+        return "1 day ago"
     elif s <= 1:
-        return 'just now'
+        return "just now"
     elif s < 60:
-        return '{} seconds ago'.format(s)
+        return "{} seconds ago".format(s)
     elif s < 120:
-        return '1 minute ago'
+        return "1 minute ago"
     elif s < 3600:
-        return '{} minutes ago'.format(s//60)
+        return "{} minutes ago".format(s // 60)
     elif s < 7200:
-        return '1 hour ago'
+        return "1 hour ago"
     else:
-        return '{} hours ago'.format(s//3600)
+        return "{} hours ago".format(s // 3600)
 
-def prettyfuturedate(d, diff):
+
+def prettyfuturedate(dt, diff):
     s = diff.seconds
     if diff.days > 7:
-        return d.strftime('%Y %b %d')
+        return d.strftime("%Y %b %d")
     elif diff.days > 1:
-        return '{} days from now'.format(diff.days)
+        return "{} days from now".format(diff.days)
     elif diff.days == 1:
-        return '1 day from now'
+        return "1 day from now"
     elif s <= 1:
-        return 'just now'
+        return "just now"
     elif s < 60:
-        return '{} seconds from now'.format(s)
+        return "{} seconds from now".format(s)
     elif s < 120:
-        return '1 minute from now'
+        return "1 minute from now"
     elif s < 3600:
-        return '{} minutes from now'.format(s/60)
+        return "{} minutes from now".format(s / 60)
     elif s < 7200:
-        return '1 hour from now'
+        return "1 hour from now"
     else:
-        return '{} hours from now'.format(s/3600)
+        return "{} hours from now".format(s / 3600)
 
 def pluralize(number, singular = '', plural = 's'):
     if number == 1:
