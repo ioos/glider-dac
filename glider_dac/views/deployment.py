@@ -18,6 +18,7 @@ from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from glider_dac.services.emails import send_registration_email
 from multidict import CIMultiDict
+from pathlib import Path
 from wtforms import StringField, SubmitField, BooleanField, validators
 from flask import Blueprint
 import re
@@ -104,16 +105,15 @@ def list_operator_deployments(operator):
                            deployments=deployments)
 
 
-@deployment_bp.route('/deployment/<path:deployment_name>')
+@deployment_bp.route("/deployment/<path:deployment_name>")
 def show_deployment(deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    # TODO: consider refactoring model property to return Path instead
+    dep_path = Path(deployment.full_path)
 
     files = []
-    for dirpath, dirnames, filenames in os.walk(deployment.full_path):
-        for f in filenames:
-            if f.endswith('.nc'):
-                files.append((f, datetime.utcfromtimestamp(
-                    os.path.getmtime(os.path.join(dirpath, f)))))
+    for f in dep_path.glob("*.nc"):
+        files.append((f, datetime.utcfromtimestamp(os.path.getmtime(f))))
 
     files.sort(key=lambda a: a[1])
 
