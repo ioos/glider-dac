@@ -5,6 +5,7 @@ glider_qc/glider_qc.py
 '''
 from cf_units import Unit
 from netCDF4 import num2date, Dataset
+from pathlib import Path
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
@@ -166,7 +167,7 @@ class GliderQC(object):
         :raises FileNotFoundError: If the file cannot be found at the specified path.
         :raises yaml.YAMLError: If the file contains invalid YAML.
         '''
-        path = path or '/data/qc_config.yml'
+        path = path or Path(__file__).parent.absolute() / "qc_config.yml"
         log.info("Loading config from %s", path)
         try:
             with open(path, 'r') as f:

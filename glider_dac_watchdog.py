@@ -160,7 +160,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                                 file_path,
                                 os.path.join(
                                     os.path.dirname(os.path.realpath(__file__)),
-                                    "data/qc_config.yml",
+                                    "glider_qc/qc_config.yml",
                                 ),
                             )
                         else:
