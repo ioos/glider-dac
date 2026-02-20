@@ -18,7 +18,7 @@ import pandas as pd
 
 class TestGliderQC(TestCase):
 
-    qc_conf_loc = os.path.join(os.path.dirname(glider_dac.__file__), 'data/qc_config.yml')
+    qc_conf_loc = os.path.join(os.path.dirname(glider_dac.__file__), "glider_qc/qc_config.yml")
 
     def copy_ncfile(self, ncpath):
         fd, path = tempfile.mkstemp()
