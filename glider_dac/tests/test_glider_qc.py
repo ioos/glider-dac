@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-'''
+"""
 tests/test_glider_qc.py
-'''
+"""
 
 from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
+import importlib
 import glider_dac
 from glider_dac.tests.resources import STATIC_FILES
 import yaml
@@ -17,8 +18,8 @@ import pandas as pd
 
 
 class TestGliderQC(TestCase):
-
-    qc_conf_loc = os.path.join(os.path.dirname(glider_dac.__file__), "glider_qc/qc_config.yml")
+    qc_module = importlib.import_module(GliderQC.__module__)
+    qc_conf_loc = os.path.join(os.path.dirname(qc_module.__file__), "qc_config.yml")
 
     def copy_ncfile(self, ncpath):
         fd, path = tempfile.mkstemp()
