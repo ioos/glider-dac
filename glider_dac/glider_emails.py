@@ -175,17 +175,22 @@ def process_deployment(dep):
     # TODO: would be better if we didn't have to write to a temp file
     outhandle, outfile = tempfile.mkstemp()
     try:
-        failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
-                                      checker_names=['gliderdac'], verbose=True,
-                                      criteria='lenient', output_format='json',
-                                      output_filename=outfile)
-        with open(outfile, 'r') as f:
-            errs = json.load(f)["gliderdac"]
+        os.close(outhandle)  # close raw fd immediately; checker writes by path
+        try:
+            failures, _ = ComplianceChecker.run_checker(ds_loc=url_path,
+                                          checker_names=['gliderdac'], verbose=True,
+                                          criteria='lenient', output_format='json',
+                                          output_filename=outfile)
+            with open(outfile, 'r') as f:
+                errs = json.load(f)["gliderdac"]
 
-        compliance_passed = errs['scored_points'] == errs['possible_points']
-    except OSError:
-        root_logger.exception("Potentially failed to open netCDF file:")
-        compliance_passed = False
+            compliance_passed = errs['scored_points'] == errs['possible_points']
+        except OSError:
+            root_logger.exception("Potentially failed to open netCDF file:")
+            compliance_passed = False
+    finally:
+        if os.path.exists(outfile):
+            os.unlink(outfile)
 
     update_fields = {"compliance_check_passed": compliance_passed}
     standard_name_errs = []
