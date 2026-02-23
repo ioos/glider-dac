@@ -13,6 +13,7 @@ from flask_wtf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
 from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
+from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
 from glider_dac.models.user import User
 from sqlalchemy import event
@@ -68,8 +69,8 @@ def create_app():
                                                   app.config.get('REDIS_DB'))
     app.queue = Queue('default', connection=redis_connection)
 
-
     db.init_app(app)
+    migrate = Migrate(app, db)
 
     with app.app_context():
         db.create_all()
