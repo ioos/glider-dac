@@ -7,9 +7,19 @@ from flask import current_app
 from flask_mail import Message
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
+from flask_security.models import fsqla_v3 as fsqla
 
-class User(db.Model):
-    _tablename='user'
+
+fsqla.FsModels.set_db_info(db)
+
+
+class Role(db.Model, fsqla.FsRoleMixin):
+    __tablename__ = "role"
+    pass
+
+
+class User(db.Model, fsqla.FsUserMixin):
+    __tablename__ = "user"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
@@ -40,7 +50,7 @@ class User(db.Model):
 
     @property
     def data_root(self):
-        data_root = current_app.config.get('DATA_ROOT')
+        data_root = current_app.config.get("DATA_ROOT")
         return os.path.join(data_root, self.username)
 
     def save(self):
@@ -79,10 +89,11 @@ class User(db.Model):
 
         # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
         # TODO: fix representation?
-        query = (Deployment.query.filter(Deployment.completed == False,
-                                         Deployment.updated < two_weeks_ago,
-                                         Deployment.username == username)
-                                         .order_by(Deployment.updated))
+        query = Deployment.query.filter(
+            Deployment.completed == False,
+            Deployment.updated < two_weeks_ago,
+            Deployment.username == username,
+        ).order_by(Deployment.updated)
         # Convert the cursor to a list
         deployments = query.all()
 
@@ -110,7 +121,7 @@ class User(db.Model):
             body += f"""
                 <tr>
                     <td>{deployment.name}</td>
-                    <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
+                    <td>{deployment.updated.strftime("%Y-%m-%d %H:%M:%S")}</td>
                 </tr>
                 """
 
@@ -124,6 +135,7 @@ class User(db.Model):
         msg.html = body
 
         send_email_wrapper(msg)
+
 
 class UserSchema(SQLAlchemyAutoSchema):
     class Meta:

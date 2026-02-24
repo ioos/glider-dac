@@ -4,11 +4,13 @@ from sqlalchemy import func
 from flask import current_app
 import re
 
+
 # Create datetime jinja2 filter
-def datetimeformat(value, format='%a, %b %d %Y at %I:%M%p'):
+def datetimeformat(value, format="%a, %b %d %Y at %I:%M%p"):
     if isinstance(value, datetime.datetime):
         return value.strftime(format)
     return value
+
 
 def timedeltaformat(starting, ending):
     if isinstance(starting, datetime.datetime) and isinstance(ending, datetime.datetime):
@@ -67,11 +69,13 @@ def prettyfuturedate(d, diff):
     else:
         return '{} hours from now'.format(s/3600)
 
-def pluralize(number, singular = '', plural = 's'):
+
+def pluralize(number, singular="", plural="s"):
     if number == 1:
         return singular
     else:
         return plural
+
 
 # TODO: move to CSS `text-overflow: ellipsis;`
 # pad/truncate filter (for making text tables)
@@ -79,7 +83,7 @@ def padfit(value, size):
     if len(value) <= size:
         return value.ljust(size)
 
-    return value[0:(size-3)] + "..."
+    return value[0 : (size - 3)] + "..."
 
 
 def slugify(value):
@@ -87,30 +91,29 @@ def slugify(value):
     Normalizes string, removes non-alpha characters, and converts spaces to hyphens.
     Pulled from Django
     """
-    value = re.sub(r'[^\w\s-]', '', value).strip()
-    return re.sub(r'[-\s]+', '-', value)
+    value = re.sub(r"[^\w\s-]", "", value).strip()
+    return re.sub(r"[-\s]+", "-", value)
 
 
 def slugify_sql(value):
     return func.regexp_replace(
-            func.regexp_replace(
-              func.regexp_replace(value, r'[^\w\s-]', ''), r'[-\s]+', '-'),
-            r"^\s+|\s+$", "")
+        func.regexp_replace(
+            func.regexp_replace(value, r"[^\w\s-]", ""), r"[-\s]+", "-"
+        ),
+        r"^\s+|\s+$",
+        "",
+    )
 
 
 def get_thredds_catalog_url():
-    args = {
-        'host': current_app.config['THREDDS']
-    }
-    url = 'http://%(host)s/thredds/catalog.xml' % args
+    args = {"host": current_app.config["THREDDS"]}
+    url = "http://%(host)s/thredds/catalog.xml" % args
     return url
 
 
 def get_erddap_catalog_url():
-    args = {
-        'host': current_app.config['PUBLIC_ERDDAP']
-    }
-    url = 'http://%(host)s/erddap/metadata/iso19115/xml/' % args
+    args = {"host": current_app.config["PUBLIC_ERDDAP"]}
+    url = "http://%(host)s/erddap/metadata/iso19115/xml/" % args
     return url
 
 
@@ -120,6 +123,8 @@ def email_exception_logging_wrapper(func):
         try:
             func(*args, **kwargs)
         except:
-            current_app.logger.exception("Exception occurred while attempting to send "
-                                  "email: ")
+            current_app.logger.exception(
+                "Exception occurred while attempting to send email: "
+            )
+
     return wrapper

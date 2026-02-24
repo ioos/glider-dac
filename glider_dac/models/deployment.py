@@ -57,7 +57,7 @@ class Deployment(db.Model):
     )
     updated = db.Column(db.DateTime(timezone=True), nullable=False)
     glider_name = db.Column(db.String(255), nullable=False)
-    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True)  # nullable=
+    deployment_date = db.Column(db.DateTime(timezone=True), nullable=True)
     archive_safe = db.Column(db.Boolean, nullable=False, default=True)
     checksum = db.Column(db.String(255))
     attribution = db.Column(db.Text)
@@ -67,6 +67,9 @@ class Deployment(db.Model):
     compliance_check_passed = db.Column(db.Boolean, nullable=False, default=False)
     compliance_check_report = db.Column(db.JSON, nullable=True)
     cf_standard_names_valid = db.Column(db.Boolean, nullable=True)
+
+    def __repr__(self):
+        return self.name
 
     def save(self):
         # Update the stats on the latest profile file
