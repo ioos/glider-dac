@@ -11,7 +11,6 @@ from glider_dac.tests.resources import STATIC_FILES
 from glider_dac.extensions import db
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
-from passlib.hash import sha512_crypt
 from netCDF4 import Dataset
 from compliance_checker.suite import CheckSuite
 
@@ -74,19 +73,23 @@ def mail_recorder(app):
     yield app.mail.record_messages
 
 @given("I am a logged in user")
-def user_logged_in(client):
-    user = User(username="testuser", name="Test User",
-                password=sha512_crypt.hash("Datamanagement101"))
-    db.session.add(user)
-    db.session.commit()
-    # Make a login request
-    with client:
-        response = client.post('/login', data={'username': 'testuser', 'password': 'Datamanagement101'},
-                               follow_redirects=True)
+def user_logged_in(client, app):
+    # set up Flask-Security user related code
+    ds = app.security.datastore
+    with app.app_context():
+        ds.db.create_all()
 
-        # Check response
-        assert response.status_code == 200
-        assert current_user == user and current_user.is_authenticated
+        r1 = ds.create_role(name="basic")
+        user = ds.create_user(username="testuser", name="Test User", password="Datamanagement101", roles=[r1])
+        ds.commit()
+
+        with client:
+            response = client.post('/login', data={'username': 'testuser',  'password': 'Datamanagement101'},
+                                   follow_redirects=True)
+
+            # Check response
+            assert response.status_code == 200
+            assert current_user == user and current_user.is_authenticated
 
 # Needs to be in separate named fixture since pytest-bdd does name munging.
 # First call creates the deployment, and # subsequent calls can re-refer to the

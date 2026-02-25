@@ -96,6 +96,7 @@ TESTING:
   # only use in memory DB for testing
   SQLALCHEMY_DATABASE_URI: 'sqlite:///:memory:'
   WTF_CSRF_ENABLED: False
+  SECURITY_PASSWORD_HASH: "plaintext"
   # TODO: these directories need to be made relative to project root
   path2priv: 'tests/test_fs/data/priv_erddap/'
   path2pub: 'tests/test_fs/data/pub_erddap/'

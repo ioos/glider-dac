@@ -85,7 +85,7 @@ def create_app():
     from glider_dac.models.user import User
 
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-    security = Security(app, user_datastore)
+    app.security = Security(app, user_datastore)
 
     with app.app_context():
         db.create_all()
