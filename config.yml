@@ -10,7 +10,12 @@ COMMON: &common
   APPLICATION_ROOT: "/"
   SECRET_KEY: thisisakey
   LOG_FILE: no
-  WEB_PASSWORD: password
+  SECURITY_USERNAME_ENABLE: True
+  # argon2 is default, but we want to be able to use hashes with PAM
+  # for vsfptd for unix crypt module
+  SECURITY_PASSWORD_HASH: "bcrypt"
+  # Handle existing sha512_crypt hashes
+  SECURITY_PASSWORD_SINGLE_HASH: ["sha512_crypt", "django_argon2", "django_bcrypt", "django_bcrypt_sha256", "django_des_crypt", "django_pbkdf2_sha1", "django_pbkdf2_sha256", "django_salted_md5", "django_salted_sha1", "plaintext"]
 
   MAIL_ENABLED: False
   MAIL_SERVER: smtp-server
