@@ -255,6 +255,10 @@
     </ul>
     {% endif %}
   {% endif %}
+  {% if extra_atts_content %}
+    <h3>Submitted metadata modifications via extra_atts.json</h3>
+    <pre><code class="language-json">{{ extra_atts_content|escape }}</code></pre>
+  {% endif %}
   <h3>
     {%- if editable %}
     <button id="delete-files" class="pull-right btn btn-danger btn-xs" disabled="disabled" data-loading-text="Deleting...">Delete Selected</button>
