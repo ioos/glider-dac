@@ -40,11 +40,14 @@ class LoginForm(FlaskForm):
 @index_bp.route("/", methods=["GET"])
 def index():
     name_filter = request.args.get("name")
+    wmo_id_filter = request.args.get("wmo_id")
     base_query = Deployment.query
     if name_filter:
         # Consider optimizing if like query becomes too slow.
         # Probably OK for small number of deployments.
         base_query = base_query.filter(Deployment.name.ilike(f"%{name_filter}%"))
+    if wmo_id_filter:
+        base_query = base_query.filter(Deployment.wmo_id == wmo_id_filter)
 
     deployments = base_query.order_by(Deployment.created.desc()).limit(20)
 
