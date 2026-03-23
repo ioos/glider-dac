@@ -4,12 +4,14 @@
 
 {% block page %}
 
-<form class="form-inline mb-3" method="get" action="{{ url_for('index.index') }}">
+<form class="form-inline" method="get" action="{{ url_for('index.index') }}">
   <div class="form-group">
-    <input type="text" class="form-control input-sm col-xs-4" name="name" placeholder="Search deployment name" value="{{ request.args.get('name', '') }}">
-    <input type="text" class="form-control input-sm col-xs-2" name="wmo_id" placeholder="WMO ID" value="{{ request.args.get('wmo_id', '') }}">
-    <button type="submit" class="btn btn-primary ml-2">Search</button>
+    <input type="text" class="form-control input-sm" name="name" placeholder="Search by deployment name" value="{{ request.args.get('name', '') }}">
   </div>
+  <div class="form-group">
+    <input type="text" class="form-control input-sm" name="wmo_id" placeholder="Search by WMO ID" value="{{ request.args.get('wmo_id', '') }}">
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Search</button>
 </form>
 <div class="row">
   <div class="col-lg-8">
