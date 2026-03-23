@@ -4,6 +4,12 @@
 
 {% block page %}
 
+<form class="form-inline mb-3" method="get" action="{{ url_for('index.index') }}">
+  <div class="form-group">
+    <input type="text" class="form-control" name="name" placeholder="Search deployment name" value="{{ request.args.get('name', '') }}">
+    <button type="submit" class="btn btn-primary ml-2">Search</button>
+  </div>
+</form>
 <div class="row">
   <div class="col-lg-8">
     <h3>Deployments</h3>
@@ -46,11 +52,11 @@
 
     <h3>Contributors</h3>
     <ul class="list-group">
-      {%- for u in user_deployments %}
+      {%- for user, count in user_deployments %}
       <li class="list-group-item">
-        <span class="badge">{{ u.count }} deployment{{ u.count|pluralize('', 's')}}</span>
-        <a href="{{ url_for('deployment.list_user_deployments', username=u.username) }}">
-          {{ u.name }}
+        <span class="badge">{{ count }} deployment{{ count|pluralize('', 's')}}</span>
+        <a href="{{ url_for('deployment.list_user_deployments', username=user.username) }}">
+          {{ user.name }}
         </a>
       </li>
       {%- endfor %}
