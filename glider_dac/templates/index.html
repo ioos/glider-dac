@@ -11,6 +11,9 @@
   <div class="form-group">
     <input type="text" class="form-control input-sm" name="wmo_id" placeholder="Search by WMO ID" value="{{ request.args.get('wmo_id', '') }}">
   </div>
+  <div class="form-group">
+    <input type="text" class="form-control input-sm" name="username" placeholder="Search by username/provider" value="{{ request.args.get('username', '') }}">
+  </div>
   <button type="submit" class="btn btn-primary btn-sm">Search</button>
 </form>
 <div class="row">
