@@ -57,10 +57,10 @@ def index():
     deployments = base_query.order_by(Deployment.created.desc()).limit(20)
 
     user_deployments = (
-        db.session.query(User.name, func.count(Deployment.name))
+        db.session.query(User.username, func.count(Deployment.name))
         .join(Deployment, Deployment.user_id == User.id)
         .filter(Deployment.id.in_(base_query.with_entities(Deployment.id)))
-        .group_by(User.name)
+        .group_by(User.username)
         .all()
     )
 
