@@ -5,8 +5,10 @@ import os
 import shutil
 from glob import glob
 import json
+from flask import url_for
 from flask_login import current_user
 import glider_dac
+from datetime import datetime, timezone
 from glider_dac.tests.resources import STATIC_FILES
 from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment
@@ -313,3 +315,79 @@ def assert_incomplete_email_sent():
     assert mock_send.called
     msg = mock_send.call_args[0][0]
     assert "old_dep" in msg.html
+
+@given("there are deployments with different names, WMO IDs, and usernames")
+def create_varied_deployments(app):
+    with app.app_context():
+        user1 = User(
+            username="kraken_user",
+            name="Kraken",
+            password="pw",
+            active=True,
+            fs_uniquifier="xx1",
+        )
+        user2 = User(
+            username="miskatonic",
+            name="Miskatonic",
+            password="pw",
+            active=True,
+            fs_uniquifier="xx2",
+        )
+        db.session.add_all([user1, user2])
+        db.session.commit()
+        dep1 = Deployment(
+            name="kraken_alpha",
+            wmo_id="12345",
+            user_id=user1.id,
+            glider_name="kraken",
+            deployment_dir="nonexistent1",
+            updated=datetime.now(tz=timezone.utc),
+        )
+        dep2 = Deployment(
+            name="gliderx",
+            wmo_id="67890",
+            user_id=user2.id,
+            glider_name="gliderx",
+            deployment_dir="nonexistent2",
+            updated=datetime.now(tz=timezone.utc),
+        )
+        db.session.add_all([dep1, dep2])
+        db.session.commit()
+
+
+@when('I filter deployments by name "kraken"', target_fixture="name_response")
+def filter_by_name(client):
+    return client.get(url_for("index.index", name="kraken"))
+
+
+@then('only deployments with "kraken" in the name should be shown')
+def check_name_filter(name_response):
+    data = name_response.data.decode()
+    assert "kraken_alpha" in data
+    assert "gliderx" not in data
+
+
+@when('I filter deployments by WMO ID "12345"', target_fixture="wmo_response")
+def filter_by_wmo_id(client):
+    return client.get(url_for("index.index", wmo_id="12345"))
+
+
+@then('only deployments with WMO ID "12345" should be shown')
+def check_wmo_id_filter(wmo_response):
+    data = wmo_response.data.decode()
+    assert "kraken_alpha" in data
+    assert "gliderx" not in data
+
+
+@when(
+    'I filter deployments by username "miskatonic"', target_fixture="username_response"
+)
+def filter_by_username(client):
+    return client.get(url_for("index.index", username="miskatonic"))
+
+
+@then('only deployments with username "miskatonic" should be shown')
+def check_username_filter(username_response):
+    data = username_response.data.decode()
+    assert "gliderx" in data
+    assert "kraken_alpha" not in data
