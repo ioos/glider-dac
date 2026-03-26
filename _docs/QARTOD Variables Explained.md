@@ -126,7 +126,7 @@ The QC process then proceeds to create `qartod_*` variables for selected valid v
 > :valid_min = 1B; // byte  
 > :valid_max = 9B; // byte  
 > :flag_meanings = "PASS NOT_EVALUATED SUSPECT FAIL MISSING";  
-> :references = "http://gliders.ioos.us/static/pdf/Manual-for-QC-of-Glider-Data_05_09_16.pdf";  
+> :references = "https://ioos.noaa.gov/project/qartod/";  
 > :qartod_package = "https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py";  
 > :dac_comment = "ioos_qartod";  
 > :ioos_category = "Quality";  
@@ -175,7 +175,7 @@ Use the link below to access a reproducible example that demonstrates the applic
 ## Glider DAC QC Resources
 
 - **QC Manual**  
-  [Manual for QC of Glider Data](https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf)
+  [Manual for QC of Glider Data](https://ioos.noaa.gov/project/qartod/)
 
 - **QC GitHub Repository**  
   [ioos_qc Repository](https://github.com/ioos/ioos_qc)
