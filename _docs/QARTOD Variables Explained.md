@@ -25,7 +25,7 @@ draft: True
   - [Step 1: Inspecting Files](#step-1-inspecting-files)
   - [Step 2: Processing Files](#step-2-processing-files)
   - [Step 3: Creating QARTOD Variables](#step-3-creating-qartod-variables)
-  - [Step 5: Set a File Attribute](#step-5-set-a-file-attribute)
+  - [Step 4: Set a File Attribute](#step-4-set-a-file-attribute)
 - [QARTOD Implementation – An IOOS Example](#qartod-implementation--an-ioos-example)
 - [Glider DAC QC Resources](#glider-dac-qc-resources)
 
@@ -162,7 +162,7 @@ The QC process then proceeds to create `qartod_*` variables for selected valid v
 | Value Error | `'Duplicate timestamps, '` |
 | Value Error | `'Out of order timestamps, '` |
 
-### Step 5: Set a File Attribute
+### Step 4: Set a File Attribute
 
 The final step in file processing involves returning to the system and updating the file attribute of the already QCed file to `True`. This ensures that the QC process is not triggered again for that file.
 
