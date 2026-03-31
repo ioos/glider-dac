@@ -746,7 +746,7 @@ class GliderQC(object):
             log.info("Missing or invalid Deployment Start time")
             report_list.append(
                 "deployment time not in %Y%m%dT%H%M%S format" + str(deployment_time)
-            )
+                )
             return " ".join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
