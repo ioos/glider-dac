@@ -3,7 +3,7 @@
 Runs IOOS QARTOD tests on a netCDF file
 glider_qc/glider_qc.py
 """
-
+import re
 from cf_units import Unit
 from netCDF4 import Dataset
 from pathlib import Path
@@ -721,13 +721,13 @@ class GliderQC(object):
             return ' '.join(report_list)
 
         # Extract deployment start time from the nc_path
-        deployment_time = nc_path.split("/")[-2].split("-")[-1]
+        PATTERN = re.compile(r'(?<!\d)(\d{8}[Tt]\d{6}[Zz])(?!\d)')
+        deployment_time = PATTERN.search(nc_path.split('/')[-2])
+        #time = nc_path.split('/')[-2].split('-')[-1]
 
         try:
             # Convert deployment time to a timestamp
-            dp_time = datetime.datetime.strptime(
-                deployment_time, "%Y%m%dT%H%M%S"
-            ).timestamp()
+            dp_time = datetime.datetime.strptime(deployment_time, '%Y%m%dT%H%M%S').timestamp()
             # Convert start_time to datetime64
             dp_time_dt = np.datetime64(datetime.datetime.fromtimestamp(dp_time))
             dp_time_dt = dp_time_dt.astype("datetime64[s]")
@@ -744,10 +744,8 @@ class GliderQC(object):
         except ValueError:
             # Handle invalid format for deployment time
             log.info("Missing or invalid Deployment Start time")
-            report_list.append(
-                "deployment time not in %Y%m%dT%H%M%S format" + str(deployment_time)
-                )
-            return " ".join(report_list)
+            report_list.append("deployment time not in %Y%m%dT%H%M%S format" + str(deployment_time))
+            return ' '.join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
         if np.any(tnp[:] == 0):
@@ -789,8 +787,8 @@ def run_qc(config, ncfile, ncfile_path):
     """
     report_list = []
     xyz = GliderQC(ncfile, config)
-    deployment_name = ncfile_path.split("/")[-2]
-    file_name = ncfile_path.split("/")[-1]
+    deployment_name = ncfile_path.split('/')[-2]
+    file_name = ncfile_path.split('/')[-1]
 
     times = ncfile.variables["time"]
     # Check Time
@@ -930,7 +928,6 @@ def run_qc(config, ncfile, ncfile_path):
     ncfile.dac_qc_comment = (
         str(deployment_name) + " (" + str(file_name) + ": " + str(report) + ")"
     )
-
 
 def qc_task(nc_path, config):
     """
