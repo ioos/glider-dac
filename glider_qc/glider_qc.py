@@ -672,7 +672,7 @@ class GliderQC(object):
             posix = dp_time.timestamp()                     # seconds since epoch (UTC)
             # Convert start_time to datetime64
             dp_time_dt = np.datetime64(int(posix), 's')     # numpy datetime64 at seconds resolution
-                        
+
             # Check if the first timestamp in the data is before the deployment time
             if dp_time_dt > tnp[0]:
                 log.info("Start time precedes deployment time")
@@ -729,7 +729,7 @@ def run_qc(config, ncfile, ncfile_path):
     times = ncfile.variables['time']
     # Check Time
     try:
-        dt_high = np.datetime64(int(times[:] * 1_000_000), 'us') 
+        dt_high = np.datetime64(int(times[:] * 1_000_000), 'us')
         inote = xyz.check_time(dt_high.astype('datetime64[s]'), ncfile_path)
         report_list.append(inote)
     except Exception as e:
