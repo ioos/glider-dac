@@ -720,66 +720,120 @@ class GliderQC(object):
             report_list.append("masked timestamps")
             return ' '.join(report_list)
 
-        # Extract deployment start time from the nc_path
+        # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
         PAT = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
+
+        DEFAULT_MIN_YEAR = 2011
+        DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
             """
             Return normalized timestamp 'YYYYmmddTHHMMSS' (no trailing Z).
             Padding:
-              - date-only 'YYYYmmdd' -> 'YYYYmmddT000000'
+              - 'YYYYmmdd' -> 'YYYYmmddT000000'
               - 'YYYYmmddTHH' -> 'YYYYmmddTHH0000'
               - 'YYYYmmddTHHMM' -> 'YYYYmmddTHHMM00'
-              - 'YYYYmmddTHHMMSS' -> unchanged (seconds preserved)
-            Returns None if no token found.
+              - 'YYYYmmddTHHMMSS' -> unchanged
             """
             name = Path(filename).name
             m = PAT.search(name)
             if not m:
                 return None
-            token = m.group(1).upper()  # e.g. '20231201', '20231201T12', '20231201T1234', '20231201T123456Z'
-            # strip trailing Z if present
+            token = m.group(1).upper()
             if token.endswith('Z'):
                 token = token[:-1]
             if 'T' not in token:
-                # date-only
                 return f"{token}T000000"
             date, time_part = token.split('T', 1)
             if len(time_part) == 2:      # HH -> HH0000
                 time_part = time_part + '0000'
             elif len(time_part) == 4:    # HHMM -> HHMM00
                 time_part = time_part + '00'
-            elif len(time_part) == 6:    # HHMMSS -> fine
+            elif len(time_part) == 6:    # HHMMSS -> ok
                 pass
             else:
-                # unexpected length (shouldn't happen with the regex) -> fail safe
                 return None
             return f"{date}T{time_part}"
 
-        deployment_time = extract_normalized_no_z(nc_path.split('/')[-2])
+        def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
+            """
+            Validate normalized 'YYYYmmddTHHMMSS' with dateutil.isoparse, and enforce ranges:
+              - min_year <= year <= max_year
+              - month 1..12
+              - day 1..31
+              - hour 0..23
+              - minute 0..59
+              - second 0..59
+            Returns timezone-aware datetime (UTC) on success.
+            Raises ValueError with a descriptive message on failure.
+            """
+            if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
+                raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
+
+            y = int(norm_no_z[0:4])
+            mo = int(norm_no_z[4:6])
+            d = int(norm_no_z[6:8])
+            hh = int(norm_no_z[9:11])
+            mm = int(norm_no_z[11:13])
+            ss = int(norm_no_z[13:15])
+
+            # Year bounds
+            if y < min_year:
+                raise ValueError(f"Year {y} is less than minimum allowed {min_year}.")
+            if y > max_year:
+                raise ValueError(f"Year {y} is greater than maximum allowed {max_year}.")
+
+            # Basic range checks
+            if not (1 <= mo <= 12):
+                raise ValueError(f"Month {mo:02d} out of range 01..12.")
+            if not (1 <= d <= 31):
+                raise ValueError(f"Day {d:02d} out of range 01..31.")
+            if not (0 <= hh <= 23):
+                raise ValueError(f"Hour {hh:02d} out of range 00..23.")
+            if not (0 <= mm <= 59):
+                raise ValueError(f"Minute {mm:02d} out of range 00..59.")
+            if not (0 <= ss <= 59):
+                raise ValueError(f"Second {ss:02d} out of range 00..59.")
+
+            # Build ISO string and let dateutil validate calendar correctness (e.g., April 31)
+            iso = f"{y:04d}-{mo:02d}-{d:02d}T{hh:02d}:{mm:02d}:{ss:02d}Z"
+            try:
+                dt = isoparse(iso)
+            except Exception as exc:
+                raise ValueError(f"dateutil failed to parse '{iso}': {exc}") from exc
+
+            # Return UTC-aware datetime
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            else:
+                dt = dt.astimezone(timezone.utc)
+            return dt
+
+        def to_posix_and_np_dt(dt_utc: datetime.datetime):
+            posix = dt_utc.timestamp()
+            np_dt = np.datetime64(int(posix), 's')
+            return posix, np_dt
+
+        deployment_name = nc_path.split('/')[-2]
+        normalized = extract_normalized_no_z(deployment_name)
+        if not normalized:
+            log.info("No timestamp found in deployment_name.")
+            report_list.append("deployment name missing timestamp: " + deployment_name)
+            return ' '.join(report_list)
 
         try:
-            # Convert deployment time to a timestamp
-            dp_time = datetime.datetime.strptime(deployment_time, '%Y%m%dT%H%M%S')
-            dp_time = dp_time.replace(tzinfo=timezone.utc)  # treat as UTC always
-            posix = dp_time.timestamp()                     # seconds since epoch (UTC)
-            # Convert start_time to datetime64
-            dp_time_dt = np.datetime64(int(posix), 's')     # numpy datetime64 at seconds resolution
+            deployment_time_utc = validate_and_enforce_ranges(normalized, args.min_year, args.max_year)
+            posix_sec, dp_time_dt = to_posix_and_np_dt(deployment_time_utc)
+        except ValueError as exc:
+            time_err = "Deployment time missing or invalid"
+            log.exception(f"{time_err}: {str(exc)}")
+            report_list.append(f"{time_err}: {str(exc)}")
+            return ' '.join(report_list)
 
-            # Check if the first timestamp in the data is before the deployment time
-            if dp_time_dt > tnp[0]:
-                log.info("Start time precedes deployment time")
-                report_list.append(
-                    "start time "
-                    + str(tnp[0])
-                    + " precedes deployment time "
-                    + str(dp_time_dt)
-                )
-                return " ".join(report_list)
-        except ValueError:
-            # Handle invalid format for deployment time
-            log.info("Missing or invalid Deployment Start time")
-            report_list.append("deployment time not in %Y%m%dT%H%M%S format" + str(deployment_time))
+        # Check if the first timestamp in the data is before the deployment time
+        if dp_time_dt > tnp[0]:
+            log.info("Start time precedes deployment time")
+            report_list.append("start time " + str(tnp[0]) + " precedes deployment time " + str(dp_time_dt))
             return ' '.join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
