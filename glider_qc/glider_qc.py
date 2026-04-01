@@ -628,16 +628,51 @@ class GliderQC(object):
             return ' '.join(report_list)
 
         # Extract deployment start time from the nc_path
-        PATTERN = re.compile(r'(?<!\d)(\d{8}[Tt]\d{6}[Zz])(?!\d)')
-        deployment_time = PATTERN.search(nc_path.split('/')[-2])
-        #time = nc_path.split('/')[-2].split('-')[-1]
+        PAT = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
+
+        def extract_normalized_no_z(filename: str) -> Optional[str]:
+            """
+            Return normalized timestamp 'YYYYmmddTHHMMSS' (no trailing Z).
+            Padding:
+              - date-only 'YYYYmmdd' -> 'YYYYmmddT000000'
+              - 'YYYYmmddTHH' -> 'YYYYmmddTHH0000'
+              - 'YYYYmmddTHHMM' -> 'YYYYmmddTHHMM00'
+              - 'YYYYmmddTHHMMSS' -> unchanged (seconds preserved)
+            Returns None if no token found.
+            """
+            name = Path(filename).name
+            m = PAT.search(name)
+            if not m:
+                return None
+            token = m.group(1).upper()  # e.g. '20231201', '20231201T12', '20231201T1234', '20231201T123456Z'
+            # strip trailing Z if present
+            if token.endswith('Z'):
+                token = token[:-1]
+            if 'T' not in token:
+                # date-only
+                return f"{token}T000000"
+            date, time_part = token.split('T', 1)
+            if len(time_part) == 2:      # HH -> HH0000
+                time_part = time_part + '0000'
+            elif len(time_part) == 4:    # HHMM -> HHMM00
+                time_part = time_part + '00'
+            elif len(time_part) == 6:    # HHMMSS -> fine
+                pass
+            else:
+                # unexpected length (shouldn't happen with the regex) -> fail safe
+                return None
+            return f"{date}T{time_part}"
+
+        deployment_time = extract_normalized_no_z(nc_path.split('/')[-2])
 
         try:
             # Convert deployment time to a timestamp
-            dp_time = datetime.datetime.strptime(deployment_time, '%Y%m%dT%H%M%S').timestamp()
+            dp_time = datetime.datetime.strptime(deployment_time, '%Y%m%dT%H%M%S')
+            dp_time = dp_time.replace(tzinfo=timezone.utc)  # treat as UTC always
+            posix = dp_time.timestamp()                     # seconds since epoch (UTC)
             # Convert start_time to datetime64
-            dp_time_dt = np.datetime64(datetime.datetime.fromtimestamp(dp_time))
-            dp_time_dt = dp_time_dt.astype('datetime64[s]')
+            dp_time_dt = np.datetime64(int(posix), 's')     # numpy datetime64 at seconds resolution
+                        
             # Check if the first timestamp in the data is before the deployment time
             if dp_time_dt > tnp[0]:
                 log.info("Start time precedes deployment time")
@@ -694,7 +729,8 @@ def run_qc(config, ncfile, ncfile_path):
     times = ncfile.variables['time']
     # Check Time
     try:
-        inote = xyz.check_time(times[:].astype('datetime64[s]'), ncfile_path)
+        dt_high = np.datetime64(int(times[:] * 1_000_000), 'us') 
+        inote = xyz.check_time(dt_high.astype('datetime64[s]'), ncfile_path)
         report_list.append(inote)
     except Exception as e:
         time_err = "Could not check time."
