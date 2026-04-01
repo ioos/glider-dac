@@ -630,7 +630,7 @@ class GliderQC(object):
         # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
         PAT = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
 
-        DEFAULT_MIN_YEAR = 2011
+        DEFAULT_MIN_YEAR = 1998 # the first ocean sea trials / deployment of a glider.
         DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
