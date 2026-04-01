@@ -676,20 +676,20 @@ class GliderQC(object):
             """
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
-        
+
             y = int(norm_no_z[0:4])
             mo = int(norm_no_z[4:6])
             d = int(norm_no_z[6:8])
             hh = int(norm_no_z[9:11])
             mm = int(norm_no_z[11:13])
             ss = int(norm_no_z[13:15])
-        
+
             # Year bounds
             if y < min_year:
                 raise ValueError(f"Year {y} is less than minimum allowed {min_year}.")
             if y > max_year:
                 raise ValueError(f"Year {y} is greater than maximum allowed {max_year}.")
-        
+
             # Basic range checks
             if not (1 <= mo <= 12):
                 raise ValueError(f"Month {mo:02d} out of range 01..12.")
@@ -701,33 +701,33 @@ class GliderQC(object):
                 raise ValueError(f"Minute {mm:02d} out of range 00..59.")
             if not (0 <= ss <= 59):
                 raise ValueError(f"Second {ss:02d} out of range 00..59.")
-        
+
             # Build ISO string and let dateutil validate calendar correctness (e.g., April 31)
             iso = f"{y:04d}-{mo:02d}-{d:02d}T{hh:02d}:{mm:02d}:{ss:02d}Z"
             try:
                 dt = isoparse(iso)
             except Exception as exc:
                 raise ValueError(f"dateutil failed to parse '{iso}': {exc}") from exc
-        
+
             # Return UTC-aware datetime
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
             else:
                 dt = dt.astimezone(timezone.utc)
             return dt
-            
+
         def to_posix_and_np_dt(dt_utc: datetime.datetime):
             posix = dt_utc.timestamp()
             np_dt = np.datetime64(int(posix), 's')
             return posix, np_dt
-            
-        deployment_name = nc_path.split('/')[-2]        
+
+        deployment_name = nc_path.split('/')[-2]
         normalized = extract_normalized_no_z(deployment_name)
         if not normalized:
             log.info("No timestamp found in deployment_name.")
             report_list.append("deployment name missing timestamp: " + deployment_name)
             return ' '.join(report_list)
-    
+
         try:
             deployment_time_utc = validate_and_enforce_ranges(normalized, args.min_year, args.max_year)
             posix_sec, dp_time_dt = to_posix_and_np_dt(deployment_time_utc)
@@ -736,13 +736,13 @@ class GliderQC(object):
             log.exception(f"{time_err}: {str(exc)}")
             report_list.append(f"{time_err}: {str(exc)}")
             return ' '.join(report_list)
-          
+
         # Check if the first timestamp in the data is before the deployment time
         if dp_time_dt > tnp[0]:
             log.info("Start time precedes deployment time")
             report_list.append("start time " + str(tnp[0]) + " precedes deployment time " + str(dp_time_dt))
             return ' '.join(report_list)
-                
+
         # Check for invalid timestamps (e.g., timestamps with value 0)
         if np.any(tnp[:] == 0):
             log.info("Invalid timestamps (t == 0)")
