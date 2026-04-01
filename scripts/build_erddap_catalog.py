@@ -756,16 +756,28 @@ def add_erddap_var_elem(var):
     """
     Adds an unhandled standard name variable to the ERDDAP datasets.xml
     """
-    dvar_elem = etree.Element('dataVariable')
-    source_name = etree.SubElement(dvar_elem, 'sourceName')
+    dvar_elem = etree.Element("dataVariable")
+    source_name = etree.SubElement(dvar_elem, "sourceName")
     source_name.text = var.name
-    data_type = etree.SubElement(dvar_elem, 'dataType')
+
+    # Handle destinationName if variable name contains colon
+    dest_name = var.name
+    comment_note = None
+    if ":" in var.name:
+        dest_name = var.name.replace(":", "_")
+        # Add destinationName element
+        destination_name = etree.SubElement(dvar_elem, "destinationName")
+        destination_name.text = dest_name
+        # Prepare comment note with timestamp
+        timestamp = datetime.now(timezone.utc).isoformat()
+        comment_note = f"Variable name changed from '{var.name}' to '{dest_name}' on {timestamp} due to ERDDAP restrictions."
+    data_type = etree.SubElement(dvar_elem, "dataType")
     if var.dtype == str:
         data_type.text = "String"
     else:
         data_type.text = erddap_mapping_dict[var.dtype.type]
-    add_atts = etree.SubElement(dvar_elem, 'addAttributes')
-    ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
+    add_atts = etree.SubElement(dvar_elem, "addAttributes")
+    ioos_category = etree.SubElement(add_atts, "att", name="ioos_category")
     ioos_category.text = "Other"
 
     return dvar_elem
