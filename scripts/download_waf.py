@@ -56,7 +56,7 @@ def get_erddap_waf(url, destination_path, suffix=None):
 
         iso_url = datasets[dataset_id]['ISO 19115']
         if iso_url:
-            file_path = get_iso_doc(iso_url, destination_path, dataset_id + suffix + '.xml')
+            get_iso_doc(iso_url, destination_path, dataset_id + suffix + '.xml')
 
 def check_destination(destination_path):
     '''
@@ -94,7 +94,6 @@ def get_iso_doc(iso_url, destination_path, file_name):
     elif response.status_code != 200:
         raise IOError("Failed to retrieve ISO 19115 Document from catalog source at %s with error code %s" % (iso_url, response.status_code) )
 
-    xml_doc = response.text
     file_name = file_name.split('/')[-1] or iso_url.split('/')[-1]
 
     file_path = os.path.join(destination_path, file_name)

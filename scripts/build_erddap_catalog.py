@@ -760,15 +760,11 @@ def add_erddap_var_elem(var):
 
     # Handle destinationName if variable name contains colon
     dest_name = var.name
-    comment_note = None
     if ":" in var.name:
         dest_name = var.name.replace(":", "_")
         # Add destinationName element
         destination_name = etree.SubElement(dvar_elem, "destinationName")
         destination_name.text = dest_name
-        # Prepare comment note with timestamp
-        timestamp = datetime.now(timezone.utc).isoformat()
-        comment_note = f"Variable name changed from '{var.name}' to '{dest_name}' on {timestamp} due to ERDDAP restrictions."
     data_type = etree.SubElement(dvar_elem, "dataType")
     if var.dtype == str:
         data_type.text = "String"

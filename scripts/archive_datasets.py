@@ -64,7 +64,6 @@ def make_copy(filepath):
     logger.info("Running archival for {}".format(filepath))
     filename = os.path.basename(filepath)
     target = os.path.join(config["NCEI_DIR"], filename)
-    do_not_archive_filename = target + DNA_SUFFIX
     source = os.path.abspath(filepath)
     logger.info("Creating archive dataset")
     if os.path.exists(target) and not os.path.islink(target):
