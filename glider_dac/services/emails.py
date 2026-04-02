@@ -92,7 +92,7 @@ def notify_incomplete_deployments(username):
     two_weeks_ago = datetime.now() - timedelta(weeks=2)
 
     # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
-    query = (Deployment.query.filter(Deployment.completed == False,
+    query = (Deployment.query.filter(not Deployment.completed,
                                      Deployment.updated < two_weeks_ago,
                                      Deployment.username == username)
                                      .order_by(Deployment.updated))

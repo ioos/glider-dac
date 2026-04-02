@@ -178,7 +178,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
         log.info("Touching ERDDAP flag file at {}".format(full_path))
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
-        with open(full_path, "w") as f:
+        with open(full_path, "w"):
             pass  # Causes file creation (touch)
 
     def on_moved(self, event):

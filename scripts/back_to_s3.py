@@ -11,14 +11,16 @@ import hashlib
 import pwd
 import argparse
 from glider_dac import log_formatter
+from glider_dac.config import get_config
 
 logger = logging.getLogger('back_to_s3')
+config = get_config()
 
 # S3 stuff
 
-conn = boto.connect_s3(app.config["AWS_ACCESS_KEY_ID"],
-                       app.config["AWS_SECRET_ACCESS_KEY"])
-bucket = conn.create_bucket(app.config["BUCKET_NAME"],
+conn = boto.connect_s3(config["AWS_ACCESS_KEY_ID"],
+                       config["AWS_SECRET_ACCESS_KEY"])
+bucket = conn.create_bucket(config["BUCKET_NAME"],
                             location=boto.s3.connection.Location.DEFAULT)
 
 def hashfile(filepath, hasher, blocksize=65536):

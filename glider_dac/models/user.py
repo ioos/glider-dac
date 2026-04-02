@@ -69,7 +69,7 @@ class User(db.Model, fsqla.FsUserMixin):
         return self.is_authenticated
 
     def is_anonymous(self):
-        return False == self.is_active
+        return not self.is_active
 
     # This method is not provided by flask-login.  Make a property to bring it
     # in line with the rest of the expected properties from flask-login, namely:
@@ -90,7 +90,7 @@ class User(db.Model, fsqla.FsUserMixin):
         # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
         # TODO: fix representation?
         query = Deployment.query.filter(
-            Deployment.completed == False,
+            not Deployment.completed,
             Deployment.updated < two_weeks_ago,
             Deployment.username == username,
         ).order_by(Deployment.updated)

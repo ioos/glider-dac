@@ -374,7 +374,7 @@ class GliderQC(object):
         # do not use the 1st and last data values in calculation
         values = values[1:-1]
         (suspect_threshold, fail_threshold, inote) = self.get_spike_thresholds(values)
-        if suspect_threshold == None or fail_threshold == None:
+        if suspect_threshold is None or fail_threshold is None:
             report_list.append(f"spike_test dropped for {varname}: {inote}")
             del varspec['spike_test']
         else:

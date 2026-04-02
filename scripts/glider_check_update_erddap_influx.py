@@ -8,7 +8,6 @@ from netCDF4 import Dataset
 # netcdftime was moving from main netCDF module
 # try both here
 from cftime import num2date
-import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient
@@ -119,10 +118,9 @@ def process_deployment(dep_subdir):
 current_time = datetime.utcnow()
 
 if __name__ == '__main__':
-    db = client.gliderdac
     dt_filt = current_time - timedelta(days=270)
     dep_list = [d[0] for d in
-                (Deployment.query.filter(Deployment.completed= False,
+                (Deployment.query.filter(not Deployment.completed,
                                         Deployment.updated >= dt_filt)
                                         .with_entities(Deployment.deployment_dir).all())]
     influx_client = InfluxDBClient(host=current_app.config["INFLUXDB_HOST"],
