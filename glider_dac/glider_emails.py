@@ -5,14 +5,10 @@ from glider_dac import app, mail, db
 from datetime import datetime, timedelta
 from compliance_checker.suite import CheckSuite
 from compliance_checker.runner import ComplianceChecker
-from urllib.parse import urljoin
 import pymongo
 import tempfile
-import glob
 import sys
-import os
 import json
-import argparse
 from collections import OrderedDict
 import logging
 
@@ -154,7 +150,7 @@ def glider_deployment_check(data_type=None, completed=True, force=False,
                     all_messages.append(dep_messages)
                     if not dep_passed:
                         failing_deployments.append(dep)
-                except Exception as e:
+                except Exception:
                     root_logger.exception(
                         "Exception occurred while processing deployment {}".format(dep['name']))
                     text_body = ''

@@ -2,15 +2,12 @@
 import aiohttp
 import aiofiles
 import argparse
-import async_timeout
 import asyncio
-import calendar
 import glob
 import json
 import logging
 import os
 import shutil
-import sys
 import time
 from datetime import datetime
 from netCDF4 import Dataset
@@ -167,7 +164,7 @@ async def retrieve_data(where, deployment, sem, proto="http"):
                                 # if the download succeeded and file isn't corrupt, replace the previous file
                                 log.info(("moved file {}".format(tmp_path)))
                             return await response.release()
-                    except Exception as e:
+                    except Exception:
                         fail_counter -= 1
                         log.exception("Failed to get %s", deployment)
                         log.info("Attempts remaining: %s", fail_counter)

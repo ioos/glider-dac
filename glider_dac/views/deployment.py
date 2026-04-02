@@ -15,7 +15,6 @@ from flask_login import login_required, current_user
 from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
-from glider_dac.models.deployment import Deployment
 from glider_dac.services.emails import send_registration_email
 from multidict import CIMultiDict
 from pathlib import Path

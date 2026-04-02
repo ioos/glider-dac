@@ -1,6 +1,4 @@
-from netCDF4 import Dataset
 from unittest import TestCase
-from pathlib import Path
 import os
 from glider_dac.tests.resources import STATIC_FILES
 from datetime import datetime

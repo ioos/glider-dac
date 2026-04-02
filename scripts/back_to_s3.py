@@ -5,7 +5,6 @@ import boto.s3
 from boto.s3.key import Key
 import sys
 import os
-from dateutil.parser import parse as dateparse
 from datetime import datetime
 import logging
 import hashlib
@@ -62,7 +61,7 @@ def push_file(filepath, relpath):
             key.set_metadata('mtime', local_mtime.isoformat())
             key.set_metadata('md5', md5sum.hexdigest())
             key.set_contents_from_filename(filepath)
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to upload %s", filepath)
     else:
         logger.info("No changes necessary")

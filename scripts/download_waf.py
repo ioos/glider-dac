@@ -11,7 +11,6 @@ static directory.
 import requests
 import argparse
 import os
-import sys
 
 from thredds_crawler.crawl import Crawl
 

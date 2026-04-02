@@ -5,29 +5,21 @@ glider_dac/models/deployment.py
 Model definition for a Deployment
 """
 
-from flask import current_app, render_template
+from flask import current_app
 from flask_mail import Message
 from datetime import datetime, timedelta, timezone
 from glider_dac.utilities import (
-    slugify,
-    slugify_sql,
     email_exception_logging_wrapper,
-    get_thredds_catalog_url,
-    get_erddap_catalog_url,
 )
 from glider_dac.extensions import db
 from glider_qc.glider_qc import get_redis_connection
 import json
 import geojson
 from compliance_checker.suite import CheckSuite
-from flask_sqlalchemy.track_modifications import models_committed
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, relationship
 from marshmallow.fields import Field, Method
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from marshmallow_sqlalchemy.convert import ModelConverter
-from datetime import datetime
-from rq import Queue, Worker
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
 from shutil import rmtree
@@ -438,7 +430,7 @@ class Deployment(db.Model):
                 if not dep_passed:
                     user_errors[user]["failed_deployments"].append(deployment.name)
                 user_errors[user]["messages"].extend(dep_messages)
-            except Exception as e:
+            except Exception:
                 root_logger.exception(
                     "Exception occurred while processing deployment {}".format(
                         deployment.name

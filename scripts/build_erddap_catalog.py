@@ -44,9 +44,7 @@ from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
 from glider_dac.config import get_config
-from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment
-from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
@@ -343,7 +341,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
     </test>
     """).findall("dataVariable")
 
-    common_variables = etree.fromstring(f"""
+    common_variables = etree.fromstring("""
     <test>
     <dataVariable>
         <sourceName>pressure</sourceName>

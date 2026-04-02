@@ -1,19 +1,8 @@
-import os
 from flask_mail import Message
 from flask import render_template, current_app
-from glider_dac import db
 from glider_dac.models.deployment import Deployment
 from datetime import datetime, timedelta
-from compliance_checker.suite import CheckSuite
-from compliance_checker.runner import ComplianceChecker
-from urllib.parse import urljoin
-import tempfile
-import glob
 import sys
-import os
-import json
-import argparse
-from collections import OrderedDict
 import logging
 
 
