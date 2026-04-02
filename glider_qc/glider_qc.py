@@ -11,7 +11,6 @@ import numpy as np
 from dateutil.parser import isoparse
 from cf_units import Unit
 from netCDF4 import Dataset
-from pathlib import Path
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
@@ -25,7 +24,7 @@ import logging
 import redis
 import os
 from shapely.geometry import Point, Polygon
-
+from pathlib import Path
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -445,7 +444,7 @@ class GliderQC(object):
 
         return configset, " ".join(report_list)
 
-    def apply_qc(self, df, varname, configset):
+    def apply_qc(self, df, varname, configset, ncfile_path):
         """
         Pass configuration and netCDF file to ioos_qc to generate
         QC test results for a variable
@@ -462,7 +461,7 @@ class GliderQC(object):
         try:
             qc_x = PandasStream(df)
         except Exception as e:
-            log.error(f"Failed to read data for {varname}: {e}")
+            log.error(f"Failed to read data for {varname} from {ncfile_path}: {e}")
             return []
 
         # Step 3: Run the QC tests
@@ -718,6 +717,7 @@ class GliderQC(object):
         :param nc_path: netCDF file path (str)
         :return: report_list: string statement reporting on issues
         """
+
         report_list = []
         # Check if any timestamps are masked
         if np.any(tnp.mask):
@@ -726,7 +726,7 @@ class GliderQC(object):
             return ' '.join(report_list)
 
         # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
-        PAT = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
+        pat = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
 
         DEFAULT_MIN_YEAR = 1998 # the first ocean sea trials / deployment of a glider.
         DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
@@ -741,7 +741,7 @@ class GliderQC(object):
               - 'YYYYmmddTHHMMSS' -> unchanged
             """
             name = Path(filename).name
-            m = PAT.search(name)
+            m = pat.search(name)
             if not m:
                 return None
             token = m.group(1).upper()
@@ -762,59 +762,42 @@ class GliderQC(object):
 
         def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
             """
-            Validate normalized 'YYYYmmddTHHMMSS' with dateutil.isoparse, and enforce ranges:
+            Validate normalized 'YYYYmmddTHHMMSS' with datetime.strptime, and enforce year bounds:
               - min_year <= year <= max_year
-              - month 1..12
-              - day 1..31
-              - hour 0..23
-              - minute 0..59
-              - second 0..59
+            All other range and calendar checks (month, day, hour, minute, second, e.g. April 31)
+            are handled automatically by strptime.
             Returns timezone-aware datetime (UTC) on success.
             Raises ValueError with a descriptive message on failure.
             """
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
 
-            y = int(norm_no_z[0:4])
-            mo = int(norm_no_z[4:6])
-            d = int(norm_no_z[6:8])
-            hh = int(norm_no_z[9:11])
-            mm = int(norm_no_z[11:13])
-            ss = int(norm_no_z[13:15])
-
-            # Year bounds
-            if y < min_year:
-                raise ValueError(f"Year {y} is less than minimum allowed {min_year}.")
-            if y > max_year:
-                raise ValueError(f"Year {y} is greater than maximum allowed {max_year}.")
-
-            # Basic range checks
-            if not (1 <= mo <= 12):
-                raise ValueError(f"Month {mo:02d} out of range 01..12.")
-            if not (1 <= d <= 31):
-                raise ValueError(f"Day {d:02d} out of range 01..31.")
-            if not (0 <= hh <= 23):
-                raise ValueError(f"Hour {hh:02d} out of range 00..23.")
-            if not (0 <= mm <= 59):
-                raise ValueError(f"Minute {mm:02d} out of range 00..59.")
-            if not (0 <= ss <= 59):
-                raise ValueError(f"Second {ss:02d} out of range 00..59.")
-
-            # Build ISO string and let dateutil validate calendar correctness (e.g., April 31)
-            iso = f"{y:04d}-{mo:02d}-{d:02d}T{hh:02d}:{mm:02d}:{ss:02d}Z"
+            # strptime validates all component ranges AND calendar correctness (e.g. April 31)
             try:
-                dt = isoparse(iso)
-            except Exception as exc:
-                raise ValueError(f"dateutil failed to parse '{iso}': {exc}") from exc
+                dt = datetime.datetime.strptime(norm_no_z, "%Y%m%dT%H%M%S")
+            except ValueError:
+                raise ValueError(f"Invalid date/time values in token: {norm_no_z!r}")
+
+            # Enforce custom year bounds (strptime does not check these)
+            if dt.year < min_year:
+                raise ValueError(f"Year {dt.year} is less than minimum allowed {min_year}.")
+            if dt.year > max_year:
+                raise ValueError(f"Year {dt.year} is greater than maximum allowed {max_year}.")
 
             # Return UTC-aware datetime
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
-            else:
-                dt = dt.astimezone(timezone.utc)
-            return dt
+            return dt.replace(tzinfo=timezone.utc)
 
         def to_posix_and_np_dt(dt_utc: datetime.datetime):
+            """
+            Convert a UTC-aware datetime object to a POSIX timestamp and a NumPy datetime64.
+        
+            :param dt_utc: A timezone-aware datetime object in UTC.
+            :type dt_utc: datetime.datetime
+            :returns: A tuple containing:
+                - **posix** (*float*): POSIX timestamp (seconds since Unix epoch, 1970-01-01T00:00:00Z).
+                - **np_dt** (*numpy.datetime64*): Equivalent timestamp as a NumPy datetime64 with second precision.
+            :rtype: tuple[float, numpy.datetime64]
+            """
             posix = dt_utc.timestamp()
             np_dt = np.datetime64(int(posix), 's')
             return posix, np_dt
@@ -823,11 +806,11 @@ class GliderQC(object):
         normalized = extract_normalized_no_z(deployment_name)
         if not normalized:
             log.info("No timestamp found in deployment_name.")
-            report_list.append("deployment name missing timestamp: " + deployment_name)
+            report_list.append("deployment name missing valid timestamp: " + deployment_name)
             return ' '.join(report_list)
 
         try:
-            deployment_time_utc = validate_and_enforce_ranges(normalized, args.min_year, args.max_year)
+            deployment_time_utc = validate_and_enforce_ranges(normalized, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR)
             posix_sec, dp_time_dt = to_posix_and_np_dt(deployment_time_utc)
         except ValueError as exc:
             time_err = "Deployment time missing or invalid"
@@ -980,7 +963,7 @@ def run_qc(config, ncfile, ncfile_path):
 
                 # Get the QARTOD results
                 try:
-                    results = xyz.apply_qc(df, var_name, config_set)
+                    results = xyz.apply_qc(df,var_name, config_set, ncfile_path)
                     log.info("Generated QC test results for %s", var_name)
 
                     for testname in results.columns:
