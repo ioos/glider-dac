@@ -9,7 +9,6 @@ import redis
 import sys
 from datetime import datetime, timezone, timedelta
 from flask import current_app
-from glider_dac import db
 from glider_dac.config import get_config
 from glider_dac.models.deployment import Deployment
 from glider_dac import log_formatter

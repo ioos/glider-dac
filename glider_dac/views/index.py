@@ -5,10 +5,8 @@ glider_dac/views/index.py
 '''
 from flask import (render_template, make_response, redirect, flash, url_for,
                    request, current_app, Blueprint)
-from glider_dac.models.institution import Institution
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
-from glider_dac.models.user import User
 from glider_dac.extensions import db
 from flask_login import login_user, logout_user, current_user
 from flask_wtf import FlaskForm

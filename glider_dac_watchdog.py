@@ -10,13 +10,9 @@ from rq import Queue
 
 # from flask import current_app
 from glider_qc import glider_qc
-from datetime import datetime
 import logging
 from glider_dac import create_app
-from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment
-from flask import current_app
-from netCDF4 import Dataset
 from watchdog.events import (
     FileSystemEventHandler,
     DirCreatedEvent,

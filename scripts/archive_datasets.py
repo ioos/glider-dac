@@ -4,15 +4,12 @@ Script to create hard links of archivable datasets and generate an MD5 sum
 '''
 import requests
 import argparse
-import sys
 import os
 import hashlib
 import logging
-import shutil
 from glider_dac.models.deployment import Deployment
 from glider_dac.config import get_config
 from glider_dac import log_formatter
-from flask import current_app
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None

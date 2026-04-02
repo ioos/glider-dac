@@ -4,24 +4,20 @@ Runs IOOS QARTOD tests on a netCDF file
 glider_qc/glider_qc.py
 '''
 from cf_units import Unit
-from netCDF4 import num2date, Dataset
+from netCDF4 import Dataset
 from pathlib import Path
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
-from ioos_qc.results import collect_results, CollectedResult
 from ioos_qc.config import Config
 import numpy as np
 import pandas as pd
 import json
 import math
-import numpy.ma as ma
-import quantities as pq
 import yaml
 import logging
 import redis
 import os
-import hashlib
 from shapely.geometry import Point, Polygon
 log = logging.getLogger(__name__)
 __RCONN = None

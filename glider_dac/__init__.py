@@ -16,7 +16,6 @@ from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
 from glider_dac.models.user import Role
 from sqlalchemy import event
-import os
 import os.path
 import redis
 from glider_dac.views.deployment import deployment_bp

@@ -1,5 +1,5 @@
 import pytest
-from pytest_bdd import scenarios, scenario, given, when, then
+from pytest_bdd import scenarios, given, when, then
 
 import os
 import shutil
@@ -9,7 +9,6 @@ from flask_login import current_user
 import glider_dac
 from glider_dac.tests.resources import STATIC_FILES
 from glider_dac.extensions import db
-from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from netCDF4 import Dataset
 from compliance_checker.suite import CheckSuite
