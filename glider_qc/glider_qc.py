@@ -712,7 +712,10 @@ class GliderQC(object):
             try:
                 dt = isoparse(iso)
             except Exception as exc:
-                raise ValueError(f"dateutil failed to parse '{iso}': {exc}") from exc
+                time_err = "dateutil failed to parse time string"
+                log.exception(f"{time_err}: {str(exc)}")
+                report_list.append(f"{time_err}: {str(exc)}")
+                return ' '.join(report_list)
 
             # Return UTC-aware datetime
             if dt.tzinfo is None:
