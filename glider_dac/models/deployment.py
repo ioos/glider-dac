@@ -194,7 +194,6 @@ class Deployment(db.Model):
     @hybrid_property
     def erddap(self):
         host = current_app.config["PRIVATE_ERDDAP"]
-        user = self.user.username
         deployment = self.name
         return "http://" + host + "/erddap/tabledap/" + deployment + ".html"
 
@@ -255,7 +254,7 @@ class Deployment(db.Model):
             # other scheduled job already queued up
             if not getattr(self, "compliance_check_passed", False):
                 try:
-                    job = Job.fetch(id=ccheck_job_id, connection=get_redis_connection())
+                    Job.fetch(id=ccheck_job_id, connection=get_redis_connection())
                 # if no job exists, continue on
                 except NoSuchJobError:
                     pass
@@ -413,7 +412,7 @@ class Deployment(db.Model):
                 )
                 # TODO: force not null constraints in model on this field
                 if not force:
-                    query = query.filter(compliance_check_passed != True)
+                    query = query.filter(not compliance_check_passed)
 
             if username:
                 query = query.filter_by(username=username)
@@ -446,8 +445,8 @@ class Deployment(db.Model):
                 )
 
     def process_deployment(self):
-        deployment_issues = "Deployment {}".format(os.path.basename(self.name))
-        groups = OrderedDict()
+        "Deployment {}".format(os.path.basename(self.name))
+        OrderedDict()
         erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
         base_url = current_app.config["PRIVATE_ERDDAP"]
         # FIXME: determine a more robust way of getting scheme
@@ -478,7 +477,7 @@ class Deployment(db.Model):
                 )
             )
         else:
-            error_list = [
+            [
                 err_msg
                 for err_severity in (
                     "high_priorities",

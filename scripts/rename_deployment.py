@@ -4,6 +4,7 @@
 '''
 
 from glider_dac import app, db
+from glider_dac.models.deployment import Deployment
 import argparse
 import sys
 import os

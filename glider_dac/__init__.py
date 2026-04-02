@@ -78,7 +78,7 @@ def create_app():
     app.queue = Queue("default", connection=redis_connection)
 
     db.init_app(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
     # Define models
     # Setup Flask-Security
     from glider_dac.models.user import User
@@ -113,7 +113,7 @@ def create_app():
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(log_formatter)
     app.logger.addHandler(stream_handler)
-    if app.config.get("LOG_FILE") == True:
+    if app.config.get("LOG_FILE"):
         file_handler = logging.FileHandler(
             os.path.join(os.path.dirname(__file__), "../logs/glider_dac.txt")
         )

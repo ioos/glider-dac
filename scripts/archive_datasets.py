@@ -197,10 +197,7 @@ def main(args=None):
         set_verbose()
     for filepath in get_active_deployment_paths():
         logger.info("Archiving %s", filepath)
-        try:
-            make_copy(filepath)
-        except:
-            logger.exception("Failed processing for file path {}".format(filepath))
+        make_copy(filepath)
 
     active_deployments = [d.name for d in get_active_deployments()]
     for filename in os.listdir(config["NCEI_DIR"]):
