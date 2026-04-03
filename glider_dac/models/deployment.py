@@ -12,6 +12,7 @@ from glider_dac.utilities import (
     email_exception_logging_wrapper,
 )
 from glider_dac.extensions import db
+from glider_dac.models.user import User
 from glider_qc.glider_qc import get_redis_connection
 import json
 import geojson
@@ -551,14 +552,3 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
 
     def get_erddap(self, obj):
         return obj.erddap
-
-
-def on_models_committed(sender, changes):
-    for model, operation in changes:
-        if isinstance(model, Deployment):
-            if operation == "insert" or operation == "update":
-                if isinstance(model, (Deployment, User)):
-                    model.save()
-            elif operation == "delete":
-                if isinstance(model, Deployment):
-                    model.delete()
