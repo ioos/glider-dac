@@ -12,6 +12,7 @@ from glider_dac.utilities import (
     email_exception_logging_wrapper,
 )
 from glider_dac.extensions import db
+from glider_dac.models.user import User
 from glider_qc.glider_qc import get_redis_connection
 import json
 import geojson
