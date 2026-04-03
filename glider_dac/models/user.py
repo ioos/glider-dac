@@ -1,8 +1,9 @@
 import os
 import os.path
-from datetime import datetime
+from datetime import datetime, timedelta
 from glider_dac import db
 from glider_dac.utilities import email_exception_logging_wrapper
+from glider_dac.models.deployment import Deployment
 from flask import current_app
 from flask_mail import Message
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
@@ -92,7 +93,7 @@ class User(db.Model, fsqla.FsUserMixin):
         query = Deployment.query.filter(
             not Deployment.completed,
             Deployment.updated < two_weeks_ago,
-            Deployment.username == username,
+            Deployment.username == self.name,
         ).order_by(Deployment.updated)
         # Convert the cursor to a list
         deployments = query.all()

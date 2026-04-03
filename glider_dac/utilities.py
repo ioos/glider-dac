@@ -60,7 +60,7 @@ def prettypastdate(dt, diff):
 def prettyfuturedate(dt, diff):
     s = diff.seconds
     if diff.days > 7:
-        return d.strftime("%Y %b %d")
+        return dt.strftime("%Y %b %d")
     elif diff.days > 1:
         return "{} days from now".format(diff.days)
     elif diff.days == 1:
