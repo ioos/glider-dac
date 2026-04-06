@@ -409,8 +409,7 @@ class Deployment(db.Model):
                 query = query.filter(Deployment.completed == completed)
                 # TODO: force not null constraints in model on this field
                 if not force:
-                    query = query.filter(not Deployment.compliance_check_passed)
-
+                    query = query.filter(~Deployment.compliance_check_passed)
             if username:
                 query = query.filter_by(username=username)
             # a particular deployment has been specified
