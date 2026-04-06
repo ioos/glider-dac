@@ -120,7 +120,7 @@ current_time = datetime.utcnow()
 if __name__ == '__main__':
     dt_filt = current_time - timedelta(days=270)
     dep_list = [d[0] for d in
-                (Deployment.query.filter(not Deployment.completed,
+                (Deployment.query.filter(~Deployment.completed,
                                         Deployment.updated >= dt_filt)
                                         .with_entities(Deployment.deployment_dir).all())]
     influx_client = InfluxDBClient(host=current_app.config["INFLUXDB_HOST"],

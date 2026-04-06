@@ -92,7 +92,7 @@ class User(db.Model, fsqla.FsUserMixin):
         # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
         # TODO: fix representation?
         query = Deployment.query.filter(
-            not Deployment.completed,
+            ~Deployment.completed,
             Deployment.updated < two_weeks_ago,
             Deployment.username == self.name,
         ).order_by(Deployment.updated)
