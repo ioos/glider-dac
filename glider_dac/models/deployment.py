@@ -417,15 +417,19 @@ class Deployment(db.Model):
                 query = query.filter_by(deployment_dir=deployment_dir)
 
         for deployment in query.all():
-            user = deployment.user.username
+            user = deployment.user
             user_errors = {}
-            user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
+            user_errors.setdefault(
+                user.username, {"messages": [], "failed_deployments": []}
+            )
 
             try:
                 dep_passed, dep_messages = self.process_deployment()
                 if not dep_passed:
-                    user_errors[user]["failed_deployments"].append(deployment.name)
-                user_errors[user]["messages"].extend(dep_messages)
+                    user_errors[user.username]["failed_deployments"].append(
+                        deployment.name
+                    )
+                user_errors[user.username]["messages"].extend(dep_messages)
             except Exception:
                 current_app.logger.exception(
                     "Exception occurred while processing deployment {}".format(
@@ -436,7 +440,7 @@ class Deployment(db.Model):
             # TODO: Allow for disabling of sending compliance checker emails
             for username, results_dict in user_errors.items():
                 self.send_deployment_cchecker_email(
-                    username,
+                    user,
                     results_dict["failed_deployments"],
                     "\n".join(results_dict["messages"]),
                 )
