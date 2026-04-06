@@ -27,7 +27,6 @@ import os
 import glob
 import hashlib
 from compliance_checker.runner import ComplianceChecker
-from collections import OrderedDict
 import tempfile
 
 
@@ -45,8 +44,9 @@ class Deployment(db.Model):
     wmo_id = db.Column(db.String(7))
     completed = db.Column(db.Boolean, nullable=False, default=False)
     created = db.Column(
-        db.DateTime(timezone=True), nullable=False,
-        default=datetime.now(tz=timezone.utc)
+        db.DateTime(timezone=True),
+        nullable=False,
+        default=datetime.now(tz=timezone.utc),
     )
     updated = db.Column(db.DateTime(timezone=True), nullable=False)
     glider_name = db.Column(db.String(255), nullable=False)
@@ -87,7 +87,7 @@ class Deployment(db.Model):
             )
             for deployment_file in glob.iglob(glob_path):
                 symlink_dest = os.path.join(
-                    "deployment_dir", deployment_file.name.replace("_", "-")
+                    "deployment_dir", deployment_file.replace("_", "-")
                 )
                 try:
                     os.symlink(os.path.abspath(deployment_file), symlink_dest)
@@ -130,7 +130,7 @@ class Deployment(db.Model):
 
     @dap.expression
     def dap(cls):
-        return f"http://{current_app.config['THREDDS']}/thredds/dodsC/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+        return f"http://{current_app.config['THREDDS']}/thredds/dodsC/deployments/{cls.user.username}/{cls.name}/{cls.name}.nc3.nc"
 
     @hybrid_property
     def sos(self):
@@ -154,7 +154,7 @@ class Deployment(db.Model):
 
     @sos.expression
     def sos(cls):
-        return f"http://{current_app.config['THREDDS']}/thredds/sos/deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
+        return f"http://{current_app.config['THREDDS']}/thredds/sos/deployments/{cls.user.username}/{cls.name}/{cls.name}.nc3.nc?service=SOS&request=GetCapabilities&AcceptVersions=1.0.0"
 
     @hybrid_property
     def iso(self):
@@ -164,7 +164,7 @@ class Deployment(db.Model):
 
     @iso.expression
     def iso(cls):
-        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.iso19115"
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{cls.name}.iso19115"
 
     @hybrid_property
     def thredds(self):
@@ -189,7 +189,7 @@ class Deployment(db.Model):
 
     @thredds.expression
     def thredds(cls):
-        return f"http://{current_app.config['THREDDS']}/thredds/catalog/deployments/{self.user.username}/{self.name}/catalog.html?dataset=deployments/{self.user.username}/{self.name}/{self.name}.nc3.nc"
+        return f"http://{current_app.config['THREDDS']}/thredds/catalog/deployments/{cls.user.username}/{cls.name}/catalog.html?dataset=deployments/{cls.user.username}/{cls.name}/{cls.name}.nc3.nc"
 
     @hybrid_property
     def erddap(self):
@@ -199,7 +199,7 @@ class Deployment(db.Model):
 
     @erddap.expression
     def erddap(cls):
-        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{self.name}.html"
+        return f"http://{current_app.config['PRIVATE_ERDDAP']}/erddap/tabledap/{cls.name}.html"
 
     @property
     def title(self):
@@ -358,7 +358,7 @@ class Deployment(db.Model):
     def send_deployment_cchecker_email(
         self, user, failing_deployments, attachment_msgs
     ):
-        if not app.config.get("MAIL_ENABLED", False):  # Mail is disabled
+        if not current_app.config.get("MAIL_ENABLED", False):  # Mail is disabled
             current_app.logger.info("Email is disabled")
             return
         # sender comes from MAIL_DEFAULT_SENDER in env
@@ -406,14 +406,10 @@ class Deployment(db.Model):
         query = Deployment.query
         with current_app.app_context():
             if data_type is not None:
-                query = query.filter(
-                    Deployment.completed == completed,
-                    func.coalesce(Deployment.delayed_mode, False) == is_delayed_mode,
-                )
+                query = query.filter(Deployment.completed == completed)
                 # TODO: force not null constraints in model on this field
                 if not force:
-                    query = query.filter(not compliance_check_passed)
-
+                    query = query.filter(~Deployment.compliance_check_passed)
             if username:
                 query = query.filter_by(username=username)
             # a particular deployment has been specified
@@ -421,16 +417,21 @@ class Deployment(db.Model):
                 query = query.filter_by(deployment_dir=deployment_dir)
 
         for deployment in query.all():
-            user = deployment.user.username
-            user_errors.setdefault(user, {"messages": [], "failed_deployments": []})
+            user = deployment.user
+            user_errors = {}
+            user_errors.setdefault(
+                user.username, {"messages": [], "failed_deployments": []}
+            )
 
             try:
                 dep_passed, dep_messages = self.process_deployment()
                 if not dep_passed:
-                    user_errors[user]["failed_deployments"].append(deployment.name)
-                user_errors[user]["messages"].extend(dep_messages)
+                    user_errors[user.username]["failed_deployments"].append(
+                        deployment.name
+                    )
+                user_errors[user.username]["messages"].extend(dep_messages)
             except Exception:
-                root_logger.exception(
+                current_app.logger.exception(
                     "Exception occurred while processing deployment {}".format(
                         deployment.name
                     )
@@ -438,15 +439,13 @@ class Deployment(db.Model):
 
             # TODO: Allow for disabling of sending compliance checker emails
             for username, results_dict in user_errors.items():
-                send_deployment_cchecker_email(
-                    username,
+                self.send_deployment_cchecker_email(
+                    user,
                     results_dict["failed_deployments"],
                     "\n".join(results_dict["messages"]),
                 )
 
     def process_deployment(self):
-        "Deployment {}".format(os.path.basename(self.name))
-        OrderedDict()
         erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"
         base_url = current_app.config["PRIVATE_ERDDAP"]
         # FIXME: determine a more robust way of getting scheme
@@ -501,7 +500,7 @@ class Deployment(db.Model):
                 )
                 self.cf_standard_names_valid = True
             else:
-                root_logger.info(standard_name_errs)
+                current_app.logger.info(standard_name_errs)
                 final_message = "Deployment {} has issues:\n{}".format(
                     self.name, "\n".join(standard_name_errs)
                 )
@@ -555,14 +554,3 @@ class DeploymentSchema(SQLAlchemyAutoSchema):
 
     def get_erddap(self, obj):
         return obj.erddap
-
-
-def on_models_committed(sender, changes):
-    for model, operation in changes:
-        if isinstance(model, Deployment):
-            if operation == "insert" or operation == "update":
-                if isinstance(model, (Deployment, User)):
-                    model.save()
-            elif operation == "delete":
-                if isinstance(model, Deployment):
-                    model.delete()

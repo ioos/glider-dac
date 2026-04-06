@@ -1,6 +1,6 @@
 import os
 import os.path
-from datetime import datetime
+from datetime import datetime, timedelta
 from glider_dac import db
 from glider_dac.utilities import email_exception_logging_wrapper
 from flask import current_app
@@ -84,15 +84,17 @@ class User(db.Model, fsqla.FsUserMixin):
         Notify user via email of any deployments older than two weeks which have not been marked
         as completed
         """
+        from glider_dac.models.deployment import Deployment
+
         # Calculate the date two weeks ago
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
 
         # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
         # TODO: fix representation?
         query = Deployment.query.filter(
-            not Deployment.completed,
+            ~Deployment.completed,
             Deployment.updated < two_weeks_ago,
-            Deployment.username == username,
+            Deployment.user_id == self.id,
         ).order_by(Deployment.updated)
         # Convert the cursor to a list
         deployments = query.all()

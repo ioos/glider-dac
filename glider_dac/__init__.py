@@ -1,5 +1,4 @@
 import os
-import datetime
 import logging
 
 from glider_dac.extensions import db, get_redis_connection_other
@@ -7,15 +6,12 @@ from glider_dac.extensions import db, get_redis_connection_other
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
 from flask_session import Session
-from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
-from flask_sqlalchemy import SQLAlchemy
-from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
-from glider_dac.models.user import Role
-from sqlalchemy import event
+from glider_dac.models.user import User, Role  # noqa: F401
+from glider_dac.models.deployment import Deployment  # noqa: F401
 import os.path
 import redis
 from glider_dac.views.deployment import deployment_bp
@@ -25,7 +21,6 @@ from glider_dac.views.institution import institution_bp
 from glider_dac.views.user import user_bp
 from glider_dac.config import get_config
 import glider_dac.utilities as util
-from flask_security.models import fsqla_v3 as fsqla
 
 from flask_security import Security, SQLAlchemyUserDatastore
 
@@ -79,6 +74,9 @@ def create_app():
 
     db.init_app(app)
     Migrate(app, db)
+    # Ensure all models are registered with SQLAlchemy before create_all / migrations
+    import glider_dac.models  # noqa: F401
+
     # Define models
     # Setup Flask-Security
     from glider_dac.models.user import User
@@ -129,8 +127,3 @@ def create_app():
     app.register_blueprint(user_bp)
 
     return app
-
-
-# Import everything
-import glider_dac.views
-import glider_dac.models
