@@ -84,6 +84,8 @@ class User(db.Model, fsqla.FsUserMixin):
         Notify user via email of any deployments older than two weeks which have not been marked
         as completed
         """
+        from glider_dac.models.deployment import Deployment
+
         # Calculate the date two weeks ago
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
 
