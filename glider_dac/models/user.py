@@ -94,7 +94,7 @@ class User(db.Model, fsqla.FsUserMixin):
         query = Deployment.query.filter(
             ~Deployment.completed,
             Deployment.updated < two_weeks_ago,
-            Deployment.username == self.name,
+            Deployment.user_id == self.id,
         ).order_by(Deployment.updated)
         # Convert the cursor to a list
         deployments = query.all()
