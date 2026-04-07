@@ -22,4 +22,4 @@ Feature: Glider Deployment Operations
           And the deployment exists in ERDDAP
           And the IOOS Compliance Checker has run the CF compliance checks against the deployment aggregation in ERDDAP
           And the single aggregated file exists in a folder with the NetCDF data
-	  Then the NCEI archival script will link the aggregated deployment file to the archival directory
+          Then the NCEI archival script will link the aggregated deployment file to the archival directory

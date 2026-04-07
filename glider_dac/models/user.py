@@ -1,14 +1,14 @@
 import os
 import os.path
 from datetime import datetime, timedelta
-from glider_dac import db
+from glider_dac.extensions import db
 from glider_dac.utilities import email_exception_logging_wrapper
 from flask import current_app
 from flask_mail import Message
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
 from flask_security.models import fsqla_v3 as fsqla
-
+from glider_dac.services.emails import send_email_wrapper
 
 fsqla.FsModels.set_db_info(db)
 
@@ -84,7 +84,7 @@ class User(db.Model, fsqla.FsUserMixin):
         Notify user via email of any deployments older than two weeks which have not been marked
         as completed
         """
-        from glider_dac.models.deployment import Deployment
+        from .deployment import Deployment
 
         # Calculate the date two weeks ago
         two_weeks_ago = datetime.now() - timedelta(weeks=2)
@@ -133,7 +133,7 @@ class User(db.Model, fsqla.FsUserMixin):
         </html>
         """
 
-        msg = Message(subject, recipients=self.email)
+        msg = Message(subject, recipients=[self.email])
         msg.html = body
 
         send_email_wrapper(msg)

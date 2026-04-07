@@ -1,6 +1,5 @@
 from flask_mail import Message
 from flask import render_template, current_app
-from glider_dac.models.deployment import Deployment
 from datetime import datetime, timedelta
 import sys
 import logging
@@ -21,69 +20,84 @@ def send_email_wrapper(message):
     try:
         current_app.mail.send(message)
     except:
-        current_app.logger.exception("Exception occurred while attempting to send "
-                             "email:")
+        current_app.logger.exception(
+            "Exception occurred while attempting to send email:"
+        )
 
 
 def send_registration_email(username, deployment):
-    if not current_app.config.get('MAIL_ENABLED', False): # Mail is disabled
+    from glider_dac.models.deployment import Deployment
+
+    if not current_app.config.get("MAIL_ENABLED", False):  # Mail is disabled
         current_app.logger.info("Email is disabled")
         return
     # sender comes from MAIL_DEFAULT_SENDER in env
-    current_app.logger.info("Sending email about new deployment to %s", current_app.config.get('MAIL_DEFAULT_TO'))
-    subject        = "New Glider Deployment - %s" % deployment.name
-    recipients     = [current_app.config.get('MAIL_DEFAULT_TO')]
-    cc_recipients  = []
-    if current_app.config.get('MAIL_DEFAULT_LIST') is not None:
-        cc_recipients.current_append(current_app.config.get('MAIL_DEFAULT_LIST'))
+    current_app.logger.info(
+        "Sending email about new deployment to %s",
+        current_app.config.get("MAIL_DEFAULT_TO"),
+    )
+    subject = "New Glider Deployment - %s" % deployment.name
+    recipients = [current_app.config.get("MAIL_DEFAULT_TO")]
+    cc_recipients = []
+    if current_app.config.get("MAIL_DEFAULT_LIST") is not None:
+        cc_recipients.current_append(current_app.config.get("MAIL_DEFAULT_LIST"))
 
     msg = Message(subject, recipients=recipients, cc=cc_recipients)
     msg.body = render_template(
-                        'deployment_registration.txt',
-                        deployment=deployment,
-                        username=username,
-                        thredds_url=get_thredds_catalog_url(),
-                        erddap_url=get_erddap_catalog_url())
+        "deployment_registration.txt",
+        deployment=deployment,
+        username=username,
+        thredds_url=get_thredds_catalog_url(),
+        erddap_url=get_erddap_catalog_url(),
+    )
 
     send_email_wrapper(msg)
 
+
 def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
-    if not current_app.config.get('MAIL_ENABLED', False): # Mail is disabled
+    if not current_app.config.get("MAIL_ENABLED", False):  # Mail is disabled
         current_app.logger.info("Email is disabled")
         return
     # sender comes from MAIL_DEFAULT_SENDER in env
 
-    current_app.logger.info("Sending email about deployment compliance checker to {}".format(user['username']))
-    subject        = "Glider DAC Compliance Check on Deployments for user %s" % user['username']
-    recipients     = [user['email']]
-    msg            = Message(subject, recipients=recipients)
+    current_app.logger.info(
+        "Sending email about deployment compliance checker to {}".format(
+            user["username"]
+        )
+    )
+    subject = (
+        "Glider DAC Compliance Check on Deployments for user %s" % user["username"]
+    )
+    recipients = [user["email"]]
+    msg = Message(subject, recipients=recipients)
     if len(failing_deployments) > 0:
-        message = ("The following glider deployments failed compliance check:"
-                   "\n{}\n\nPlease see attached file for more details. "
-                   "Valid CF standard names are required for NCEI archival."
-                   .format("\n".join(d['name'] for d in failing_deployments)))
+        message = (
+            "The following glider deployments failed compliance check:"
+            "\n{}\n\nPlease see attached file for more details. "
+            "Valid CF standard names are required for NCEI archival.".format(
+                "\n".join(d["name"] for d in failing_deployments)
+            )
+        )
         date_str_today = datetime.today().strftime("%Y-%m-%d")
         attachment_filename = "failing_glider_md_{}".format(date_str_today)
-        msg.attach(attachment_filename, 'text/plain', data=attachment_msgs)
+        msg.attach(attachment_filename, "text/plain", data=attachment_msgs)
     else:
         return
-    msg.body       = message
+    msg.body = message
 
     send_email_wrapper(msg)
 
+
 # TODO: move to utilities.py
 def get_thredds_catalog_url():
-    args = {
-        'host' : current_app.config['THREDDS']
-    }
-    url = 'http://%(host)s/thredds/catalog.xml' % args
+    args = {"host": current_app.config["THREDDS"]}
+    url = "http://%(host)s/thredds/catalog.xml" % args
     return url
 
+
 def get_erddap_catalog_url():
-    args = {
-        'host' : current_app.config['PUBLIC_ERDDAP']
-    }
-    url = 'http://%(host)s/erddap/metadata/iso19115/xml/' % args
+    args = {"host": current_app.config["PUBLIC_ERDDAP"]}
+    url = "http://%(host)s/erddap/metadata/iso19115/xml/" % args
     return url
 
 
@@ -92,10 +106,11 @@ def notify_incomplete_deployments(username):
     two_weeks_ago = datetime.now() - timedelta(weeks=2)
 
     # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
-    query = (Deployment.query.filter(~Deployment.completed,
-                                     Deployment.updated < two_weeks_ago,
-                                     Deployment.username == username)
-                                     .order_by(Deployment.updated))
+    query = Deployment.query.filter(
+        ~Deployment.completed,
+        Deployment.updated < two_weeks_ago,
+        Deployment.username == username,
+    ).order_by(Deployment.updated)
 
     # Convert the cursor to a list
     deployments = query.all()
@@ -124,7 +139,7 @@ def notify_incomplete_deployments(username):
         body += f"""
             <tr>
                 <td>{deployment.name}</td>
-                <td>{deployment.updated.strftime('%Y-%m-%d %H:%M:%S')}</td>
+                <td>{deployment.updated.strftime("%Y-%m-%d %H:%M:%S")}</td>
             </tr>
         """
 

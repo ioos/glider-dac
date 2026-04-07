@@ -34,7 +34,7 @@ class Deployment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-    user = db.relationship("User", lazy="joined", backref="deployment")
+    user = db.relationship("User", lazy="joined", backref="deployments")
     # The operator of this Glider. Shows up in TDS as the title.
     operator = db.Column(db.String(255), nullable=True)  # nullable=False)
     deployment_dir = db.Column(db.String(255), nullable=False)
