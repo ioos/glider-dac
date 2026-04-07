@@ -10,8 +10,8 @@ from flask_wtf import CSRFProtect
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
-from glider_dac.models.user import User, Role  # noqa: F401
-from glider_dac.models.deployment import Deployment  # noqa: F401
+
+import glider_dac.models  # noqa: F401
 import os.path
 import redis
 from glider_dac.views.deployment import deployment_bp
@@ -79,11 +79,10 @@ def create_app():
 
     # Define models
     # Setup Flask-Security
-    from glider_dac.models.user import User
+    from glider_dac.models.user import User, Role
 
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, user_datastore)
-
     with app.app_context():
         db.create_all()
 
