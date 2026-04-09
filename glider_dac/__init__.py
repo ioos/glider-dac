@@ -10,8 +10,8 @@ from flask_wtf import CSRFProtect
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
-
 import glider_dac.models  # noqa: F401
+import glider_dac.signals  # noqa: F401
 import os.path
 import redis
 from glider_dac.views.deployment import deployment_bp
