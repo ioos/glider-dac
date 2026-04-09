@@ -13,6 +13,7 @@ from glider_dac.utilities import (
 )
 from glider_dac.extensions import db
 from glider_qc.glider_qc import get_redis_connection
+from glider_dac.models.user import User
 import json
 import geojson
 from compliance_checker.suite import CheckSuite
