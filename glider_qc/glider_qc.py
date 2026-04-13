@@ -93,7 +93,7 @@ class GliderQC(object):
     def create_qc_variables(self, ncvariable):
         '''
         Returns a list of variable names for the newly created variables for QC flags
-        
+
         :param ncvariable: netCDF4.Variable
         '''
         name_value = ncvariable.name
