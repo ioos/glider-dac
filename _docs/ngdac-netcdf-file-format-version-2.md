@@ -332,6 +332,20 @@ For example, as seen in the CDL example below, the *temperature* variable has a 
 ```
 
 
+##### Important Note:
+> The GDAC reserves the following QC variable names to populate with the results of the QARTOD tests:
+>
+> - qartod_(variable_name)_gross_range_flag
+> - qartod_(variable_name)_spike_flag
+> - qartod_(variable_name)_rate_of_change_flag
+> - qartod_(variable_name)_flat_line_flag
+> - qartod_(variable_name)_primary_flag
+>
+> When checking your netCDF file, the GDAC QC process will skip any variable that has a corresponding data quality variable starting with 'qartod_'.
+
+
+
+
 **The following is a list and description of all variables and corresponding variable attributes that are REQUIRED for the file to be accepted by the NGDAC.** A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following variable attributes:
 
  + *comment*,
