@@ -40,10 +40,19 @@ def has_no_empty_params(rule):
 @index_bp.route("/", methods=["GET"])
 def index():
     deployments = Deployment.query.order_by(Deployment.created.desc()).limit(20)
+
+    # three columns in group by -- may be faster to use CTE/joined subquery?
     user_deployments = db.session.execute(
-        select(User.name, func.count(Deployment.name))
-        .join(User)
-        .group_by(Deployment.user_id)
+        select(
+            User.id,
+            User.name,
+            User.username,
+            func.count(Deployment.id).label("count"),
+        )
+        .select_from(User)
+        .join(Deployment, Deployment.user_id == User.id)
+        .group_by(User.id, User.name, User.username)
+        .order_by(User.name)
     ).all()
 
     operator_deployments = db.session.execute(
