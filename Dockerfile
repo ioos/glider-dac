@@ -33,4 +33,4 @@ RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
 
 EXPOSE 5000
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "glider_dac:create_app()"]
+CMD ["gunicorn", "-k", "gevent", "-w", "4", "-b", "0.0.0.0:5000", "glider_dac:create_app()"]

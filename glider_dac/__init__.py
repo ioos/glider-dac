@@ -65,12 +65,12 @@ def create_app():
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     Session(app)
 
-    redis_connection = get_redis_connection_other(
+    app.redis_connection = get_redis_connection_other(
         app.config.get("REDIS_HOST"),
         app.config.get("REDIS_PORT"),
         app.config.get("REDIS_DB"),
     )
-    app.queue = Queue("default", connection=redis_connection)
+    app.queue = Queue("default", connection=app.redis_connection)
 
     db.init_app(app)
     Migrate(app, db)

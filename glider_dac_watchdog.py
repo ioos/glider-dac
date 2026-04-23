@@ -81,9 +81,10 @@ class HandleDeploymentDB(FileSystemEventHandler):
                         if date_str >= dir_date_part:
                             navo_deployment_directory = maybe_dir
 
+                sign_dt_str = (f"{glider_callsign}_{date_str}{extension}",)
                 if not navo_deployment_directory:
                     navo_deployment_directory = os.path.join(
-                        self.base, f"navoceano/{glider_callsign}-{date_str}"
+                        self.base, f"navoceano/{sign_dt_str}"
                     )
                 # Directory could exist, but no deployment in DB!
                 try:
@@ -93,8 +94,12 @@ class HandleDeploymentDB(FileSystemEventHandler):
                         os.path.join(self.base, rel_path),
                         os.path.join(
                             navo_deployment_directory,
-                            f"{glider_callsign}_{date_str}{extension}",
+                            f"{sign_dt_str}{extension}",
                         ),
+                    )
+                    app.redis_connection.xadd(
+                        f"deployment:{sign_dt_str}",
+                        {"event": str(type(event)), "path": event.src_path},
                     )
                 except OSError:
                     log.exception(
@@ -120,19 +125,27 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 with open(event.src_path) as wf:
                     deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
-                log.info("Updated deployment %s", path_parts[0])
+                app.redis_connection.xadd(
+                    f"deployment:{deployment.name}",
+                    {"event": "wmo_id_add_file", "path": event.src_path},
+                )
+                log.info("Updated deployment %s with wmo_id", path_parts[0])
             # extra_atts.json will contain metadata modifications to
             # datasets.xml which should require a reload/regeneration of that
             # file.
             elif path_parts[-1] == "extra_atts.json":
                 log.info("extra_atts.json detected in %s", rel_path)
                 deployment.save()
+                app.redis_connection.xadd(
+                    f"deployment:{deployment.name}",
+                    {"event": "extra_atts_write", "path": event.src_path},
+                )
             else:
                 # Always save the Deployment when a new dive file is added
                 # so a checksum is calculated and a new deployment.json file
                 # is created
                 fname, ext = os.path.splitext(path_parts[-1])
-                if '.nc' in ext:
+                if ".nc" in ext:
                     deployment.save()
                     log.info("Updated deployment %s", path_parts[0])
                     # touch the ERDDAP flag (realtime data only)
@@ -145,6 +158,11 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     else:
                         file_path = event.dest_path
                     # TODO: DRY/refactor with batch QARTOD job?
+                    app.redis_connection.xadd(
+                        f"deployment:{deployment.name}",
+                        {"event": str(type(event)), "path": event.src_path},
+                    )
+                    log.info("Redis should add stream for deployment %s", path_parts[0])
                     try:
                         if self.queue.connection.exists(f"gliderdac:{file_path}"):
                             log.info(f"File {file_path} already has lock in Redis")
