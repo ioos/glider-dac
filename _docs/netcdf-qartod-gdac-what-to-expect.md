@@ -115,7 +115,7 @@ If your file is missing any of these, QC may fail or skip those variables.
 ## Resources
 
 - [Manual for QC of Glider Data (QARTOD)](https://ioos.noaa.gov/project/qartod/)
-- [CF Standard Names Table](http://cfconventions.org/standard-names.html)
+- [CF Standard Names Table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html)
 - [IOOS QARTOD Examples](https://ioos.github.io/ioos_qc/examples.html)
 - [Contact GDAC Support](mailto:your-support-email@domain.org)
 
