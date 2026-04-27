@@ -333,15 +333,15 @@ For example, as seen in the CDL example below, the *temperature* variable has a 
 
 
 ##### Important Note:
-> The GDAC reserves the following QC variable names to populate with the results of the QARTOD tests:
->
-> - qartod_(variable_name)_gross_range_flag
-> - qartod_(variable_name)_spike_flag
-> - qartod_(variable_name)_rate_of_change_flag
-> - qartod_(variable_name)_flat_line_flag
-> - qartod_(variable_name)_primary_flag
->
-> When checking your netCDF file, the GDAC QC process will skip any variable that has a corresponding data quality variable starting with 'qartod_'.
+The NGDAC reserves the following QC variable names to populate with the results of the QARTOD tests:
+
+- `qartod_(variable_name)_gross_range_flag`
+- `qartod_(variable_name)_spike_flag`
+- `qartod_(variable_name)_rate_of_change_flag`
+- `qartod_(variable_name)_flat_line_flag`
+- `qartod_(variable_name)_primary_flag`
+
+When checking your netCDF file, the QC process skips any variable that has a corresponding data quality variable starting with 'qartod_'.
 
 
 
