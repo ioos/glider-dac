@@ -23,7 +23,6 @@ Flask-Security[fsqla]
 Flask-Script==2.0.5
 feedparser==6.0.1
 sh==1.09
-passlib>=1.7.4
 requests>=2.20.1
 simplekv
 Werkzeug>=3.0.6
