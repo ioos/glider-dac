@@ -366,13 +366,13 @@ class Deployment(db.Model):
 
         current_app.logger.info(
             "Sending email about deployment compliance checker to {}".format(
-                user["username"]
+                user.username
             )
         )
         subject = (
-            "Glider DAC Compliance Check on Deployments for user %s" % user["username"]
+            "Glider DAC Compliance Check on Deployments for user %s" % user.username
         )
-        recipients = [user["email"]]  # app.config.get('MAIL_DEFAULT_TO')]
+        recipients = [user.email]  # app.config.get('MAIL_DEFAULT_TO')]
         msg = Message(subject, recipients=recipients)
         if len(failing_deployments) > 0:
             message = (
@@ -404,8 +404,11 @@ class Deployment(db.Model):
         #       no longer send emails.
         cs = CheckSuite()
         cs.load_all_available_checkers()
-        query = Deployment.query
-        with current_app.app_context():
+        from glider_dac import create_app
+
+        app = create_app()
+        with app.app_context():
+            query = Deployment.query
             if data_type is not None:
                 query = query.filter(Deployment.completed == completed)
                 # TODO: force not null constraints in model on this field
@@ -417,34 +420,34 @@ class Deployment(db.Model):
             elif deployment_dir:
                 query = query.filter_by(deployment_dir=deployment_dir)
 
-        for deployment in query.all():
-            user = deployment.user
-            user_errors = {}
-            user_errors.setdefault(
-                user.username, {"messages": [], "failed_deployments": []}
-            )
-
-            try:
-                dep_passed, dep_messages = self.process_deployment()
-                if not dep_passed:
-                    user_errors[user.username]["failed_deployments"].append(
-                        deployment.name
+                for deployment in query.all():
+                    user = deployment.user
+                    user_errors = {}
+                    user_errors.setdefault(
+                        user.username, {"messages": [], "failed_deployments": []}
                     )
-                user_errors[user.username]["messages"].extend(dep_messages)
-            except Exception:
-                current_app.logger.exception(
-                    "Exception occurred while processing deployment {}".format(
-                        deployment.name
-                    )
-                )
 
-            # TODO: Allow for disabling of sending compliance checker emails
-            for username, results_dict in user_errors.items():
-                self.send_deployment_cchecker_email(
-                    user,
-                    results_dict["failed_deployments"],
-                    "\n".join(results_dict["messages"]),
-                )
+                    try:
+                        dep_passed, dep_messages = self.process_deployment()
+                        if not dep_passed:
+                            user_errors[user.username]["failed_deployments"].append(
+                                deployment.name
+                            )
+                        user_errors[user.username]["messages"].extend(dep_messages)
+                    except Exception:
+                        current_app.logger.exception(
+                            "Exception occurred while processing deployment {}".format(
+                                deployment.name
+                            )
+                        )
+
+                    # TODO: Allow for disabling of sending compliance checker emails
+                    for username, results_dict in user_errors.items():
+                        self.send_deployment_cchecker_email(
+                            user,
+                            results_dict["failed_deployments"],
+                            "\n".join(results_dict["messages"]),
+                        )
 
     def process_deployment(self):
         erddap_fmt_string = "erddap/tabledap/{}.nc?&time%3Emax(time)-1%20day"

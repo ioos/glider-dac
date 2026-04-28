@@ -1,7 +1,9 @@
 import os
 import logging
 
-from glider_dac.extensions import db, get_redis_connection_other
+from glider_dac.extensions import db
+# TODO: move this
+from glider_qc.glider_qc import get_redis_connection
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
@@ -65,12 +67,7 @@ def create_app():
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     Session(app)
 
-    redis_connection = get_redis_connection_other(
-        app.config.get("REDIS_HOST"),
-        app.config.get("REDIS_PORT"),
-        app.config.get("REDIS_DB"),
-    )
-    app.queue = Queue("default", connection=redis_connection)
+    app.queue = Queue("default", connection=get_redis_connection())
 
     db.init_app(app)
     Migrate(app, db)
