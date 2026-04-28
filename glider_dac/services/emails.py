@@ -54,40 +54,6 @@ def send_registration_email(username, deployment):
     send_email_wrapper(msg)
 
 
-def send_deployment_cchecker_email(user, failing_deployments, attachment_msgs):
-    if not current_app.config.get("MAIL_ENABLED", False):  # Mail is disabled
-        current_app.logger.info("Email is disabled")
-        return
-    # sender comes from MAIL_DEFAULT_SENDER in env
-
-    current_app.logger.info(
-        "Sending email about deployment compliance checker to {}".format(
-            user["username"]
-        )
-    )
-    subject = (
-        "Glider DAC Compliance Check on Deployments for user %s" % user["username"]
-    )
-    recipients = [user["email"]]
-    msg = Message(subject, recipients=recipients)
-    if len(failing_deployments) > 0:
-        message = (
-            "The following glider deployments failed compliance check:"
-            "\n{}\n\nPlease see attached file for more details. "
-            "Valid CF standard names are required for NCEI archival.".format(
-                "\n".join(d["name"] for d in failing_deployments)
-            )
-        )
-        date_str_today = datetime.today().strftime("%Y-%m-%d")
-        attachment_filename = "failing_glider_md_{}".format(date_str_today)
-        msg.attach(attachment_filename, "text/plain", data=attachment_msgs)
-    else:
-        return
-    msg.body = message
-
-    send_email_wrapper(msg)
-
-
 # TODO: move to utilities.py
 def get_thredds_catalog_url():
     args = {"host": current_app.config["THREDDS"]}
