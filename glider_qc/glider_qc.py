@@ -10,24 +10,21 @@ from datetime import timezone
 import numpy as np
 from dateutil.parser import isoparse
 from cf_units import Unit
-from netCDF4 import num2date, Dataset
+from netCDF4 import Dataset
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
-from ioos_qc.results import collect_results, CollectedResult
 from ioos_qc.config import Config
 import numpy as np
 import pandas as pd
 import json
 import math
-import numpy.ma as ma
-import quantities as pq
 import yaml
 import logging
 import redis
 import os
-import hashlib
 from shapely.geometry import Point, Polygon
+from pathlib import Path
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -411,7 +408,7 @@ class GliderQC(object):
 
         return configset, ' '.join(report_list)
 
-    def apply_qc(self, df, varname, configset):
+    def apply_qc(self, df, varname, configset, ncfile_path):
         '''
         Pass configuration and netCDF file to ioos_qc to generate
         QC test results for a variable
@@ -428,7 +425,7 @@ class GliderQC(object):
         try:
             qc_x = PandasStream(df)
         except Exception as e:
-            log.error(f"Failed to read data for {varname} from {nc_path}: {e}")
+            log.error(f"Failed to read data for {varname} from {ncfile_path}: {e}")
             return []
 
         # Step 3: Run the QC tests
@@ -629,7 +626,7 @@ class GliderQC(object):
         # Check if any timestamps are masked
         if np.any(tnp.mask):
             log.info("Timestamps are masked")
-            report_list("masked timestamps")
+            report_list.append("masked timestamps")
             return ' '.join(report_list)
 
         # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
@@ -733,11 +730,11 @@ class GliderQC(object):
         normalized = extract_normalized_no_z(deployment_name)
         if not normalized:
             log.info("No timestamp found in deployment_name.")
-            report_list.append("deployment name missing timestamp: " + deployment_name)
+            report_list.append("deployment name missing valid timestamp: " + deployment_name)
             return ' '.join(report_list)
 
         try:
-            deployment_time_utc = validate_and_enforce_ranges(normalized, args.min_year, args.max_year)
+            deployment_time_utc = validate_and_enforce_ranges(normalized, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR)
             posix_sec, dp_time_dt = to_posix_and_np_dt(deployment_time_utc)
         except ValueError as exc:
             time_err = "Deployment time missing or invalid"
@@ -871,7 +868,7 @@ def run_qc(config, ncfile, ncfile_path):
 
                 # Get the QARTOD results
                 try:
-                    results = xyz.apply_qc(df,var_name, config_set)
+                    results = xyz.apply_qc(df,var_name, config_set, ncfile_path)
                     log.info("Generated QC test results for %s", var_name)
 
                     for testname in results.columns:
