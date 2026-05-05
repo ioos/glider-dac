@@ -15,6 +15,7 @@ tds_temp
 tds_catalogs
 data/
 secrets/
+src/
 
 # BerkeleyDB user database
 users.db
