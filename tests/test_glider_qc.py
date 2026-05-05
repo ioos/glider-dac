@@ -76,7 +76,7 @@ class TestGliderQC(TestCase):
 
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temperature": values,},)
 
-        results_raw = qc.apply_qc(df, 'temperature', qc_config)
+        results_raw = qc.apply_qc(df, 'temperature', qc_config, ncfile_path=None)
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
@@ -104,12 +104,19 @@ class TestGliderQC(TestCase):
         timevar = nc.createVariable('time', np.float64, ('time',), fill_value=-9999.)
         timevar.standard_name = 'time'
         timevar.units = 'seconds since 1970-01-01T00:00:00Z'
-        timevar[np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])] =  np.array(np.arange(
-                                                                                "2015-01-01 00:00:00",
-                                                                                "2015-01-01 03:30:00",
-                                                                                step=np.timedelta64(21, "m"),
-                                                                                dtype=np.datetime64,
-                                                                            ))
+
+        # Create datetime64 array
+        dt_array = np.arange(
+            "2015-01-01T00:00:00",
+            "2015-01-01T03:30:00",
+            step=np.timedelta64(21, "m"),
+            dtype='datetime64[m]'
+        )
+        # Convert to seconds since epoch
+        epoch = np.datetime64("1970-01-01T00:00:00", "s")
+        seconds_since_epoch = (dt_array.astype('datetime64[s]') - epoch).astype(float)
+        timevar[:] = seconds_since_epoch
+
         tempvar = nc.createVariable('temp', np.float32, ('time',), fill_value=-9999.)
         tempvar.standard_name = 'sea_water_temperature'
         tempvar.units = 'deg_F'
@@ -127,7 +134,7 @@ class TestGliderQC(TestCase):
         values, note = qc.normalize_variable(np.array(values[:]), tempvar.units, tempvar.standard_name)
 
         df = pd.DataFrame({"time": times[:].astype('datetime64[s]'), "temp": values,},)
-        results_raw = qc.apply_qc(df, 'temp', qc_config)
+        results_raw = qc.apply_qc(df, 'temp', qc_config, ncfile_path=None)
 
         np.testing.assert_equal(np.array(results_raw['temp_qartod_flat_line_test'].values), np.array([1, 1, 1, 3, 4, 9, 4, 4, 1, 9], dtype=np.int8))
 
@@ -188,8 +195,7 @@ class TestGliderQC(TestCase):
         nc_file, nc_path = self.create_temp_nc(deployment_name)
         # Make all timestamps unique except the masked one
         times = [np.datetime64('2023-05-15T12:00:00', 's') + np.timedelta64(i, 'm') for i in range(10)]
-        # mask = [True] + [False]*9
-        mask = [False] * 10
+        mask = [True] + [False]*9
         tnp = ma.array(times, mask=mask)
         ncfile = Dataset(nc_file, 'r+')
         self.addCleanup(ncfile.close)
