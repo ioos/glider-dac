@@ -379,20 +379,22 @@ class GliderQC(object):
         (suspect_threshold, fail_threshold, inote) = self.get_spike_thresholds(values)
         if suspect_threshold == None or fail_threshold == None:
             report_list.append(f"spike_test dropped for {varname}: {inote}")
-            del varspec['spike_test']
+            if "spike_test" in varspec:
+                del varspec['spike_test']
         else:
             # replace the threshold values in the config file
-            if 'rate_of_change_test' not in varspec:
+            if "rate_of_change_test" not in varspec:
                 # If the key doesn't exist, initialize it as an empty dictionary or some default value
-                varspec['spike_test'] = {}
-            varspec['spike_test']['suspect_threshold'] = np.float64(suspect_threshold)
-            varspec['spike_test']['fail_threshold'] = np.float64(fail_threshold)
+                varspec["spike_test"] = {}
+            varspec["spike_test"]["suspect_threshold"] = np.float64(suspect_threshold)
+            varspec["spike_test"]["fail_threshold"] = np.float64(fail_threshold)
 
         # Calculate the rate of change test threshold
         threshold, inote = self.get_rate_of_change_threshold(values, times)
         if threshold is None:
             report_list.append(f"rate_of_change_test dropped for {varname}: {inote}")
-            del varspec['rate_of_change_test']
+            if "rate_of_change_test" in varspec:
+                del varspec['rate_of_change_test']
         else:
             # replace the threshold values in the config file
             if 'rate_of_change_test' not in varspec:
@@ -481,7 +483,7 @@ class GliderQC(object):
                 return ' '.join(report_list)
 
             # Check if it's an array of fill values
-            if unique_vals == inp._FillValue:
+            if unique_vals.item == inp._FillValue:
                 log.info("%s: The array is fill values %s", inp.name, unique_vals)
                 report_list.append(inp.name + 'is an array of fill values')
                 return ' '.join(report_list)
@@ -623,7 +625,7 @@ class GliderQC(object):
         # Check if any timestamps are masked
         if np.any(tnp.mask):
             log.info("Timestamps are masked")
-            report_list("masked timestamps")
+            report_list.append("masked timestamps")
             return ' '.join(report_list)
 
         # Extract deployment start time from the nc_path
