@@ -701,6 +701,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
                             <att name="ioos_dac_checksum">{checksum}</att>
                             <att name="ioos_dac_completed">{completed}</att>
                             <att name="gts_ingest">{gts_ingest}</att>
+                            <att name="dac_qc_comment">For detailed quality control comments specific to each deployment, please refer to the dac_qc_comment attribute in the individual deployment files.</att>
                         </addAttributes>
                     </dataset>
                 """)
