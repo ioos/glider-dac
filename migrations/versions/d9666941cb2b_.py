@@ -80,7 +80,7 @@ def upgrade():
     conn.execute(
         text("""
         UPDATE `user`
-        SET fs_uniquifier = UUID()
+        SET fs_uniquifier = uuidv4()
         WHERE fs_uniquifier IS NULL OR fs_uniquifier = ''
     """)
     )

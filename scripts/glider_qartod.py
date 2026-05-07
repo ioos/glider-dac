@@ -3,7 +3,6 @@
 scripts/glider_qartod.py
 '''
 from argparse import ArgumentParser
-from netCDF4 import Dataset
 from glider_qc import glider_qc
 from rq import Queue, Worker
 import logging
