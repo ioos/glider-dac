@@ -10,13 +10,9 @@ from rq import Queue
 
 # from flask import current_app
 from glider_qc import glider_qc
-from datetime import datetime
 import logging
 from glider_dac import create_app
-from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment
-from flask import current_app
-from netCDF4 import Dataset
 from watchdog.events import (
     FileSystemEventHandler,
     DirCreatedEvent,
@@ -182,7 +178,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
         log.info("Touching ERDDAP flag file at {}".format(full_path))
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
-        with open(full_path, "w") as f:
+        with open(full_path, "w"):
             pass  # Causes file creation (touch)
 
     def on_moved(self, event):

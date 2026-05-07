@@ -7,13 +7,11 @@ from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
 import importlib
-import glider_dac
 from glider_dac.tests.resources import STATIC_FILES
 import yaml
 import tempfile
 import os
 import numpy as np
-import numpy.ma as ma
 import pandas as pd
 
 

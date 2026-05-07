@@ -23,7 +23,6 @@ from flask_login import login_required, current_user
 from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment, DeploymentSchema
 from glider_dac.models.user import User
-from glider_dac.models.deployment import Deployment
 from glider_dac.services.emails import send_registration_email
 from multidict import CIMultiDict
 from pathlib import Path
@@ -156,7 +155,7 @@ def show_deployment(deployment_name):
     extra_atts_path = dep_path / "extra_atts.json"
 
     try:
-        extra_atts_content = (
+        (
             extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None
         )
     except OSError:
@@ -307,17 +306,10 @@ def new_delayed_mode_deployment(username, deployment_name):
     rt_deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
     # Need to check if the "real time" deployment is complete yet
     if not rt_deployment.completed:
-        deployment_url = url_for(
-            "deployment.show_deployment",
-            username=username,
-            deployment_name=deployment_name,
-        )
-        flash(
-            "The real time %s must be marked as complete before adding delayed mode data"
-            % rt_deployment.name,
-            "danger",
-        )
-        return redirect(url_for("deployment.list_user_deployments", username=username))
+        url_for('deployment.show_deployment', username=username, deployment_name=deployment_name)
+        flash('The real time %s must be marked as complete before adding delayed mode data' %
+              rt_deployment.name, 'danger')
+        return redirect(url_for('deployment.list_user_deployments', username=username))
 
     deployment = Deployment()
     deployment.name = rt_deployment.name + "-delayed"

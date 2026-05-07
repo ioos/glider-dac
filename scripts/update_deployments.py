@@ -11,7 +11,6 @@ method of the Deployment model.
 This is not a script that should be run on a schedule. Only one-offs as
 necessary from within the container.
 '''
-from glider_dac import db
 from glider_dac.models.deployemnt import Deployment
 from flask import current_app
 

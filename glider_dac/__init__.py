@@ -1,22 +1,19 @@
 import os
-import datetime
 import logging
 
-from glider_dac.extensions import db, get_redis_connection_other
+from glider_dac.extensions import db
+# TODO: move this
+from glider_qc.glider_qc import get_redis_connection
 
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flask import Flask, request
 from flask_session import Session
-from flask_cors import CORS, cross_origin
 from flask_wtf import CSRFProtect
-from flask_sqlalchemy import SQLAlchemy
-from simplekv.memory.redisstore import RedisStore
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from glider_dac.reverse_proxy import ReverseProxied
-from glider_dac.models.user import Role
-from sqlalchemy import event
-import os
+import glider_dac.models  # noqa: F401
+import glider_dac.signals  # noqa: F401
 import os.path
 import redis
 from glider_dac.views.deployment import deployment_bp
@@ -26,7 +23,6 @@ from glider_dac.views.institution import institution_bp
 from glider_dac.views.user import user_bp
 from glider_dac.config import get_config
 import glider_dac.utilities as util
-from flask_security.models import fsqla_v3 as fsqla
 
 from flask_security import Security, SQLAlchemyUserDatastore
 
@@ -52,6 +48,7 @@ def create_app():
     # have session and remember cookie be samesite (flask/flask_login)
     app.config["REMEMBER_COOKIE_SAMESITE"] = "strict"
     app.config["SESSION_COOKIE_SAMESITE"] = "strict"
+    app.config["SECURITY_RECOVERABLE"] = True
     # load REDIS prefixed environment variables
     # this is mainly for test runners which may not be using the containerized versions
     # of Redis
@@ -71,22 +68,19 @@ def create_app():
     app.config["SESSION_REDIS"] = redis.from_url(app.config["REDIS_URL"])
     Session(app)
 
-    redis_connection = get_redis_connection_other(
-        app.config.get("REDIS_HOST"),
-        app.config.get("REDIS_PORT"),
-        app.config.get("REDIS_DB"),
-    )
-    app.queue = Queue("default", connection=redis_connection)
+    app.queue = Queue("default", connection=get_redis_connection())
 
     db.init_app(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
+    # Ensure all models are registered with SQLAlchemy before create_all / migrations
+    import glider_dac.models  # noqa: F401
+
     # Define models
     # Setup Flask-Security
-    from glider_dac.models.user import User
+    from glider_dac.models.user import User, Role
 
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     app.security = Security(app, user_datastore)
-
     with app.app_context():
         db.create_all()
 
@@ -114,7 +108,7 @@ def create_app():
     stream_handler = logging.StreamHandler()
     stream_handler.setFormatter(log_formatter)
     app.logger.addHandler(stream_handler)
-    if app.config.get("LOG_FILE") == True:
+    if app.config.get("LOG_FILE"):
         file_handler = logging.FileHandler(
             os.path.join(os.path.dirname(__file__), "../logs/glider_dac.txt")
         )
@@ -130,8 +124,3 @@ def create_app():
     app.register_blueprint(user_bp)
 
     return app
-
-
-# Import everything
-import glider_dac.views
-import glider_dac.models

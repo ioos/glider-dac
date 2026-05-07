@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
-import os
-import redis
-from rq import Worker, Queue
-from flask import current_app
+from rq import Worker
 from glider_qc import glider_qc
-from simplekv.memory.redisstore import RedisStore
 
 
 def main():

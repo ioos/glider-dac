@@ -46,7 +46,7 @@ def edit_user(username):
         current_app.logger.error("Admin?: %s", current_user.admin)
         current_app.logger.error("Not current user?: %s", current_user != user)
         flash("Permission denied", 'danger')
-        return redirect(url_for("index"))
+        return redirect(url_for("index.index"))
 
     form = UserForm(obj=user)
 

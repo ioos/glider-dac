@@ -1,14 +1,7 @@
 #!/usr/bin/env python
 import os
-import time
-import json
 import argparse
 import logging
-import fileinput
-import glob
-from string import Template
-from lxml import etree
-from collections import defaultdict
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]  %(message)s')
