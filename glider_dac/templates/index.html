@@ -19,7 +19,7 @@
       {%- for m in deployments %}
       <tr>
         <td class="col-lg-4"><a href="{{ url_for('deployment.show_deployment', deployment_name=m.name) }}">{{ m.name }}</a></td>
-        <td class="col-lg-4">{{ m.wmo_id }}</td>
+        <td class="col-lg-4">{{ m.wmo_id or 'Not Allocated' }}</td>
         <td class="col-lg-4"><abbr title="{{ m.created | datetimeformat }} UTC">{{ m.created | prettydate }}</abbr></td>
       </tr>
       {%- endfor %}
