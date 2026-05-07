@@ -1,14 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
+"""
 glider_dac/views/deployment.py
 View definition for Deployments
-'''
+"""
+
 from cf_units import Unit
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as dateparse
-from flask import (current_app, render_template, redirect, jsonify, flash,
-                   url_for, request)
+from flask import (
+    current_app,
+    render_template,
+    redirect,
+    jsonify,
+    flash,
+    url_for,
+    request,
+)
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
@@ -112,11 +120,12 @@ def show_deployment(deployment_name):
 
     files = []
     for f in dep_path.glob("*.nc"):
-        file_mtime = datetime.fromtimestamp(f.stat().st_mtime,
-                                            tz=timezone.utc)
-        file_loc = (Path(current_app.config["PRIV_DATA_ROOT"]) /
-                    Path(deployment.full_path).relative_to(
-                            current_app.config["DATA_ROOT"]) / f.name)
+        file_mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+        file_loc = (
+            Path(current_app.config["PRIV_DATA_ROOT"])
+            / Path(deployment.full_path).relative_to(current_app.config["DATA_ROOT"])
+            / f.name
+        )
         file_exists = file_loc.exists()
         if file_exists:
             try:
@@ -151,31 +160,56 @@ def show_deployment(deployment_name):
         )
     except OSError:
         current_app.logger.exception(f"Could not read {extra_atts_path}")
+        extra_atts_content = None
+    # check if WMO IDs in use by other glider names
+    # TODO: consider moving WMO ID association to its own table
+    if deployment.wmo_id:
+        wmo_id_dups = (
+            Deployment.query.filter(
+                Deployment.wmo_id == deployment.wmo_id,
+                Deployment.glider_name != deployment.glider_name,
+            )
+            .with_entities(Deployment.glider_name)
+            .distinct()
+            .all()
+        )
+    else:
+        wmo_id_dups = []
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user.is_authenticated and (current_user.is_active and (current_user.admin or
-                                          current_user == deployment.user)):
-        kwargs['editable'] = True
-        if current_user.is_authenticated and (current_user.admin or
-                                              current_user.username == deployment.user.username):
-            kwargs['admin'] = True
+    if current_user.is_authenticated and (
+        current_user.is_active
+        and (current_user.admin or current_user == deployment.user)
+    ):
+        kwargs["editable"] = True
+        if current_user.is_authenticated and (
+            current_user.admin or current_user.username == deployment.user.username
+        ):
+            kwargs["admin"] = True
 
     current_app.logger.info(deployment.dap)
-    return render_template('show_deployment.html', form=form,
-                           deployment=deployment,
-                           username=getattr(current_user, "username", None),
-                           files=files, **kwargs)
+    return render_template(
+        "show_deployment.html",
+        form=form,
+        deployment=deployment,
+        username=getattr(current_user, "username", None),
+        files=files,
+        extra_atts_content=extra_atts_content,
+        wmo_id_dups=wmo_id_dups,
+        **kwargs,
+    )
 
-@deployment_bp.route('/users/<string:username>/deployment/new',
-                     methods=['POST'])
+
+@deployment_bp.route("/users/<string:username>/deployment/new", methods=["POST"])
 @login_required
 def new_deployment(username):
     user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (user is not None and not current_user.admin and
-                        current_user != user):
+    if user is None or (
+        user is not None and not current_user.admin and current_user != user
+    ):
         # No permission
-        flash("Permission denied", 'danger')
+        flash("Permission denied", "danger")
         return redirect(url_for("index.index"))
 
     form = NewDeploymentForm()
@@ -183,27 +217,32 @@ def new_deployment(username):
     if form.validate_on_submit():
         deployment_date = dateparse(form.deployment_date.data)
         delayed_mode = form.delayed_mode.data
-        deployment_name = form.glider_name.data + '-' + \
-            deployment_date.strftime('%Y%m%dT%H%M')
+        deployment_name = (
+            form.glider_name.data + "-" + deployment_date.strftime("%Y%m%dT%H%M")
+        )
         if delayed_mode:
-            deployment_name += '-delayed'
+            deployment_name += "-delayed"
 
         try:
             # TODO: should this be handled at SQLAlchemy level?
-            existing_deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+            existing_deployment = Deployment.query.filter_by(
+                name=deployment_name
+            ).one_or_none()
             if existing_deployment is not None:
                 # TODO: Raise more appropriate exception?
                 raise ValueError("Duplicate Key Detected: name")
             # TODO: Consolidate logic
-            existing_deployment = Deployment.query.filter_by(glider_name=form.glider_name.data,
-                                                                deployment_date=deployment_date).one_or_none()
+            existing_deployment = Deployment.query.filter_by(
+                glider_name=form.glider_name.data, deployment_date=deployment_date
+            ).one_or_none()
             if existing_deployment is not None:
                 # if there is a previous real-time deployment and the one
                 # to create is marked as delayed mode, act as if the delayed
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
-                    return new_delayed_mode_deployment(username,
-                                                       existing_deployment._id)
+                    return new_delayed_mode_deployment(
+                        username, existing_deployment._id
+                    )
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
             # If we reach this, point, the deployment should either not exist
@@ -223,40 +262,45 @@ def new_deployment(username):
             db.session.add(deployment)
             db.session.commit()
             deployment.sync()
-            flash("Deployment created", 'success')
+            flash("Deployment created", "success")
             send_registration_email(deployment.user.username, deployment)
         # TODO: handle prior to creation
-        #except DuplicateKeyError:
+        # except DuplicateKeyError:
         except Exception as e:
-            raise(e)
-            flash("Deployment names must be unique across Glider DAC: %s already used" %
-                  deployment_name, 'danger')
+            raise (e)
+            flash(
+                "Deployment names must be unique across Glider DAC: %s already used"
+                % deployment_name,
+                "danger",
+            )
 
     else:
-        error_str = ", ".join(["%s: %s" % (k, ", ".join(v))
-                               for k, v in form.errors.items()])
-        flash("Deployment could not be created: %s" % error_str, 'danger')
+        error_str = ", ".join(
+            ["%s: %s" % (k, ", ".join(v)) for k, v in form.errors.items()]
+        )
+        flash("Deployment could not be created: %s" % error_str, "danger")
 
-    return redirect(url_for('deployment.list_user_deployments',
-                            username=username))
+    return redirect(url_for("deployment.list_user_deployments", username=username))
 
 
-@deployment_bp.route('/users/<string:username>/deployment/<string:deployment_name>/new',
-           methods=['POST'])
+@deployment_bp.route(
+    "/users/<string:username>/deployment/<string:deployment_name>/new", methods=["POST"]
+)
 @login_required
 def new_delayed_mode_deployment(username, deployment_name):
-    '''
+    """
     Endpoint for submitting a delayed mode deployment from an existing
     realtime deployment
 
     :param string username: Username
     :param str deployment_name: Name of the existing realtime deployment
-    '''
+    """
     user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (user is not None and not current_user.admin and
-                        current_user != user):
+    if user is None or (
+        user is not None and not current_user.admin and current_user != user
+    ):
         # No permission
-        flash("Permission denied", 'danger')
+        flash("Permission denied", "danger")
         return redirect(url_for("index.index"))
 
     rt_deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
@@ -268,8 +312,7 @@ def new_delayed_mode_deployment(username, deployment_name):
         return redirect(url_for('deployment.list_user_deployments', username=username))
 
     deployment = Deployment()
-    deployment.name = rt_deployment.name + '-delayed'
-    #deployment.user_id = user.user_id
+    deployment.name = rt_deployment.name + "-delayed"
     deployment.user.username = username
     deployment.operator = rt_deployment.operator
     deployment.deployment_dir = os.path.join(username, deployment_name)
