@@ -24,7 +24,7 @@ with glider_dac.create_app().app_context():
 
 @pytest.fixture(autouse=True)
 def setup_test_env():
-    os.environ["FLASK_ENV"] = "TESTING"
+    os.environ["FLASK_ENV"] = "TEST_CONFIG"
 
 
 @pytest.fixture

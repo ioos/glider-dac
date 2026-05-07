@@ -88,7 +88,7 @@ DEVELOPMENT: &development
   DEBUG: True
   PREFERRED_URL_SCHEME: http
 
-TESTING:
+TEST_CONFIG:
   <<: *common
   DEBUG: True
   TESTING: True
