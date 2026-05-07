@@ -10,6 +10,8 @@ COMMON: &common
   APPLICATION_ROOT: "/"
   SECRET_KEY: thisisakey
   LOG_FILE: no
+  # set this to an appropriate value in config.local.yml
+  #SECURITY_EMAIL_SENDER': no-reply@ioos.us
   SECURITY_USERNAME_ENABLE: True
   # argon2 is default, but we want to be able to use hashes with PAM
   # for vsfptd for unix crypt module
@@ -86,7 +88,7 @@ DEVELOPMENT: &development
   DEBUG: True
   PREFERRED_URL_SCHEME: http
 
-TESTING:
+TEST_CONFIG:
   <<: *common
   DEBUG: True
   TESTING: True

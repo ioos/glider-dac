@@ -48,6 +48,7 @@ def create_app():
     # have session and remember cookie be samesite (flask/flask_login)
     app.config["REMEMBER_COOKIE_SAMESITE"] = "strict"
     app.config["SESSION_COOKIE_SAMESITE"] = "strict"
+    app.config["SECURITY_RECOVERABLE"] = True
     # load REDIS prefixed environment variables
     # this is mainly for test runners which may not be using the containerized versions
     # of Redis
