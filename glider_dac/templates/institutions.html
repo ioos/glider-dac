@@ -4,7 +4,7 @@
 {% block page %}
 
 <div id="new-institution-form">
-  <form class="form-inline" method="POST" action="{{url_for('show_institutions')}}">
+  <form class="form-inline" method="POST" action="{{url_for('institution.show_institutions')}}">
     {{ form.hidden_tag() }}
     <div class="form-group">
       {{ form.name(id="institution-name", placeholder="Institution Name", class_="form-control") }}
@@ -43,7 +43,7 @@
 $(function() {
   $('.delete-institution').click(function(event) {
     var getUrl = function(institution_id) {
-      return "{{ url_for('delete_institution', institution_id='institution_id') }}".replace(/institution_id/, institution_id);
+      return "{{ url_for('institution.delete_institution', institution_id='institution_id') }}".replace(/institution_id/, institution_id);
     };
 
     $.ajax({
@@ -65,7 +65,7 @@ $(function() {
     $.ajax({
       dataType: "json",
       type: "POST",
-      url: "{{url_for('new_institution')}}",
+      url: "{{url_for('institution.new_institution')}}",
       contentType: "application/json;charset=utf-8",
       data: JSON.stringify({name: $('#institution-name').val()}),
       success: function(result) {

@@ -1,7 +1,7 @@
-A new Glider Deployment ({{ deployment.username }} / {{ deployment.name }}) has been created.
+A new Glider Deployment ({{ deployment.user.username }} / {{ deployment.name }}) has been created.
 
 DeploymentInfo:
-    DEPLOYMENT URL: {{ url_for('show_deployment', username=username, deployment_id=deployment._id, _external=True) }}
+    DEPLOYMENT URL: {{ url_for('deployment.show_deployment', username=username, deployment_name=deployment.name, _external=True) }}
     THREDDS DAP: {{ deployment.dap }}
     ERDDAP ISO-19115: {{ deployment.iso }}
     SOS: {{ deployment.sos }}

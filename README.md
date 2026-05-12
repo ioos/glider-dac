@@ -57,7 +57,7 @@ rm -rf mongo_dumps
 ```
 
 Once these steps are run, you should be able to navigate to the development server
-at http://localhost:3000 and view various deployments.
+at http://localhost:5000 and view various deployments.
 
 If desired, create a user with `docker exec -it glider-dac-providers-app python usertool.py set <username>`
 to add a user and set the password.  If creating a user with the same name as one of the restored users in the database backup,
