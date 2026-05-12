@@ -13,8 +13,9 @@ from flask import (
     url_for,
     request,
     current_app,
-    Blueprint,
-)
+    Blueprint)
+
+from glider_dac.models.institution import Institution
 from glider_dac.models.user import User
 from glider_dac.models.deployment import Deployment
 from glider_dac.extensions import db
@@ -25,39 +26,50 @@ from wtforms import StringField, PasswordField
 
 index_bp = Blueprint("index", __name__)
 
-
-class LoginForm(FlaskForm):
-    username = StringField("Name")
-    password = PasswordField("Password")
-
-
 def has_no_empty_params(rule):
     defaults = rule.defaults if rule.defaults is not None else ()
     arguments = rule.arguments if rule.arguments is not None else ()
     return len(defaults) >= len(arguments)
 
 
+class LoginForm(FlaskForm):
+    username = StringField("Name")
+    password = PasswordField("Password")
+
+
 @index_bp.route("/", methods=["GET"])
 def index():
-    deployments = Deployment.query.order_by(Deployment.created.desc()).limit(20)
-
-    # three columns in group by -- may be faster to use CTE/joined subquery?
-    user_deployments = db.session.execute(
-        select(
-            User.id,
-            User.name,
-            User.username,
-            func.count(Deployment.id).label("count"),
+    name_filter = request.args.get("name")
+    wmo_id_filter = request.args.get("wmo_id")
+    username_filter = request.args.get("username")
+    base_query = Deployment.query
+    if name_filter:
+        # Consider optimizing if like query becomes too slow.
+        # Probably OK for small number of deployments.
+        base_query = base_query.filter(Deployment.name.ilike(f"%{name_filter}%"))
+    if wmo_id_filter:
+        base_query = base_query.filter(Deployment.wmo_id == wmo_id_filter)
+    if username_filter:
+        base_query = base_query.join(User).filter(
+            User.name.ilike(f"%{username_filter}%")
         )
-        .select_from(User)
-        .join(Deployment, Deployment.user_id == User.id)
-        .group_by(User.id, User.name, User.username)
-        .order_by(User.name)
-    ).all()
 
-    operator_deployments = db.session.execute(
-        select(Deployment.operator, func.count()).group_by(Deployment.operator)
-    ).all()
+    deployments = base_query.order_by(Deployment.created.desc()).limit(20)
+
+    user_deployments = (
+        db.session.query(User.username, func.count(Deployment.name))
+        .join(Deployment, Deployment.user_id == User.id)
+        .filter(Deployment.id.in_(base_query.with_entities(Deployment.id)))
+        .group_by(User.username)
+        .all()
+    )
+
+    operator_deployments = (
+        db.session.query(Deployment.operator, func.count())
+        .filter(Deployment.id.in_(base_query.with_entities(Deployment.id)))
+        .group_by(Deployment.operator)
+        .all()
+    )
 
     return render_template(
         "index.html",
