@@ -52,7 +52,7 @@ Where
  - _**yyyymmddTHHMMSSZ**_ is the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date representing the start time of the data acquisition, followed by **Z** to denote UTC time, not a local time zone, and
  - _**delayed**_ is a string specifying delayed mode (post-recovery) data acquisition.
 
-Ideally, the **glider_yyyymmddTHHMMSS.nc** files will be provided by the individual operators during the deployment and the **glider_yyyymmddTHHMMSS_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. A discussion of these variables and their relationship to the sensor variables is found [below](#variables).
+Ideally, the **glider_yyyymmddTHHMMSSZ.nc** files will be provided by the individual operators during the deployment and the **glider_yyyymmddTHHMMSSZ_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. A discussion of these variables and their relationship to the sensor variables is found [below](#variables).
 
 ## Global Attributes
 
@@ -165,10 +165,10 @@ Example:
 
 A human readable unique identifier for data set. We recommend using the *trajectory* variable string name, which must have the following format:
 
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_**glider-YYYYmmddTHHMM**_, where **`glider`** is the name of the glider and **`YYYYmmddTHHMM`** is the deployment date/time.
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_**glider-YYYYmmddTHHMMZ**_, where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
 
 Example:
-: "ru30-20140101T0000"
+: "ru30-20140101T0000Z"
 
 #### _institution_
 
@@ -297,12 +297,12 @@ Example:
 
 We recommend using the *trajectory* variable string name, which must have the following format:
 
-   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **`glider-YYYYmmddTHHMM`**
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **`glider-YYYYmmddTHHMMZ`**
 
-Where **`glider`** is the name of the glider and **`YYYYmmddTHHMM`** is the deployment date/time.
+Where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
 
 Example:
-: "ru30-20140101T0000"
+: "ru30-20140101T0000Z"
 
 #### _wmo_id_
 
@@ -387,7 +387,7 @@ The *trajectory* variable stores a character array that identifies the deploymen
 | **Data Type** | string stored as char array |
 | **Value Type** | array |
 | **_FillValue** | "" |
-| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMM**. |
+| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMMZ**. |
 
 
 
