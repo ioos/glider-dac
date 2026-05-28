@@ -10,7 +10,7 @@ If SELinux is enabled and set to enforcing on the target system, ensure that the
 FTP directory has the appropriate SELinux type, of `public_content_rw_t` i.e.:
 `ls -dZ /data/submission`
 
-If it does not display the aformentioned type, as a superuser, run:
+If it does not display the aforementioned type, as a superuser, run:
 `chcon -R -t public_content_rw_t /data/submission`
 
 You will also need to allow FTP to make database connections:
