@@ -404,10 +404,10 @@ def delete_deployment(username, deployment_name):
 
 
 # TODO: Is this method even needed anymore?
-@deployment_bp.route('/api/deployment', methods=['GET'])
+@deployment_bp.route("/api/deployment", methods=["GET"])
 @cross_origin()
 def get_deployments():
-    '''
+    """
     API endpoint to fetch deployment info
         ---
     parameters:
@@ -444,92 +444,42 @@ def get_deployments():
           description: Internal Server Error
         501:
           description: Not Implemented
-    '''
-    # Parse case insensitive query parameters
-    request_query = CIMultiDict(request.args)
-    query = Deployment.query.with_entities(Deployment.name,
-                                           Deployment.operator,
-                                           Deployment.deployment_dir,
-                                           Deployment.wmo_id,
-                                           Deployment.attribution,
-                                           Deployment.completed,
-                                           Deployment.created,
-                                           Deployment.updated,
-                                           Deployment.glider_name,
-                                           Deployment.archive_safe,
-                                           Deployment.checksum,
-                                           Deployment.delayed_mode,
-                                           Deployment.latest_file,
-                                           Deployment.latest_file_mtime,
-                                           Deployment.compliance_check_passed)
-                                           #Deployment.dap,
-                                           #Deployment.sos,
-                                           #Deployment.iso,
-                                           #Deployment.erddap,
-                                           #Deployment.thredds)
+    """
+    query = Deployment.query
 
-    def parse_date(datestr):
-        '''
-        Parse the time query param
-        '''
-        try:
-            if datestr.startswith('now-'):
-                p = re.compile(r'^now-(?P<val>\d+)\s*(?P<units>\w+)$')
-                match = p.search(datestr)
-                val = int(match.group('val'))
-                units = match.group('units')
-                # If not valid units, exception will throw
-                unknown_unit = Unit(units)
-                hrs = Unit('hours')
-                # convert to hours
-                num_hrs = unknown_unit.convert(val, hrs)
-                dt_now = datetime.now(tz=timezone.utc)
-                return dt_now - timedelta(hours=num_hrs)
+    completed = request.args.get("completed")
+    if completed in {"true", "false"}:
+        query = query.filter(Deployment.completed == (completed == "true"))
 
-            return dateparse(datestr)
-        except Exception:
-            return None
+    delayed_mode = request.args.get("delayed_mode")
+    if delayed_mode in {"true", "false"}:
+        query = query.filter(Deployment.delayed_mode == (delayed_mode == "true"))
 
-    # Get the query values
-    completed = request_query.get('completed', None)
-    if completed and completed.lower() in {'true', 'false'}:
-        is_completed = True if completed.lower() == 'true' else False
-        query = query.filter(Deployment.completed == is_completed)
-    delayed_mode = request_query.get('delayed_mode', None)
-    if delayed_mode and delayed_mode.lower() in {'true', 'false'}:
-        is_delayed_mode = True if delayed_mode.lower() == 'true' else False
-        query = query.filter(Deployment.delayed_mode == is_delayed_mode)
-    min_time = request_query.get('minTime', None)
+    min_time = request.args.get("minTime")
     if min_time:
+
+        def parse_date(datestr):
+            try:
+                if datestr.startswith("now-"):
+                    match = re.match(r"^now-(\d+)\s*(\w+)$", datestr)
+                    if match:
+                        val, units = int(match.group(1)), match.group(2)
+                        dt_now = datetime.now(tz=timezone.utc)
+                        return dt_now - timedelta(**{units: val})
+                return dateparse(datestr)
+            except Exception:
+                return None
+
         min_time_dt = parse_date(min_time)
-        query = query.filter(Deployment.latest_file_mtime >= min_time_dt)
+        if min_time_dt:
+            query = query.filter(Deployment.latest_file_mtime >= min_time_dt)
 
     deployments = query.all()
-    deployment_schema = DeploymentSchema()
+    from glider_dac.models.deployment import DeploymentSchema
 
-    deployment_results = []
-    #deployment_results = deployment_schema.dump(deployments)
-    for deployment in deployments:
-        deployment_info = deployment_schema.dump(deployment)
-        deployment_results.append(deployment_info)
-    return jsonify(deployment_results)
-
-
-@deployment_bp.route('/api/deployment/<string:username>/<string:deployment_name>', methods=['GET'])
-@cross_origin()
-def get_deployment(username, deployment_name):
-    deployment = Deployment.query.filter_by(username=username,
-                                            name=deployment_name).one_or_none()
-    if deployment is None:
-        return jsonify(message='No record found'), 204
-    d = json.loads(deployment.to_json())
-    d['id'] = d['_id']['$oid']
-    del d['_id']
-    del d['user_id']
-    d['sos'] = deployment.sos
-    d['iso'] = deployment.iso
-    d['dap'] = deployment.dap
-    d['erddap'] = deployment.erddap
-    d['thredds'] = deployment.thredds
-    d['attribution'] = deployment.attribution
-    return jsonify(**d)
+    schema = DeploymentSchema(many=True)
+    results = schema.dump(deployments)
+    for d in results:
+        d.pop("user_id", None)
+        d.pop("compliance_check_report", None)
+    return jsonify(results)
