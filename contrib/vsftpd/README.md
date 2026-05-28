@@ -3,12 +3,14 @@
 Provides an example setup with vsftpd.
 
 If PAM authentication against a PostgreSQL database with the User model is desired,
-[pam-pgsq](https://github.com/pam-pgsql/pam-pgsql) must be installed and operational
+[pam-pgsql](https://github.com/pam-pgsql/pam-pgsql) must be installed and operational
 within the PAM library paths.
 
 If SELinux is enabled and set to enforcing on the target system, ensure that the desired
-FTP directory has the appropriate SELinux context, i.e.:
+FTP directory has the appropriate SELinux type, of `public_content_rw_t` i.e.:
+`ls -dZ /data/submission`
 
+If it does not display the aformentioned type, as a superuser, run:
 `chcon -R -t public_content_rw_t /data/submission`
 
 You will also need to allow FTP to make database connections:
