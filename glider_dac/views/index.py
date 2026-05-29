@@ -13,7 +13,8 @@ from flask import (
     url_for,
     request,
     current_app,
-    Blueprint)
+    Blueprint,
+)
 
 from glider_dac.models.institution import Institution
 from glider_dac.models.user import User
@@ -25,6 +26,7 @@ from sqlalchemy import select, func
 from wtforms import StringField, PasswordField
 
 index_bp = Blueprint("index", __name__)
+
 
 def has_no_empty_params(rule):
     defaults = rule.defaults if rule.defaults is not None else ()
@@ -57,10 +59,10 @@ def index():
     deployments = base_query.order_by(Deployment.created.desc()).limit(20)
 
     user_deployments = (
-        db.session.query(User.username, func.count(Deployment.name))
+        db.session.query(User, func.count(Deployment.id))
         .join(Deployment, Deployment.user_id == User.id)
         .filter(Deployment.id.in_(base_query.with_entities(Deployment.id)))
-        .group_by(User.username)
+        .group_by(User)
         .all()
     )
 
