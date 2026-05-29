@@ -1,0 +1,10 @@
+{
+    "FIELD_COMPARISON_REFERENCE": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "links (uri or url) to supplementary data that can provide field comparison for platform sensors",
+            "comment" : "multiple links are separated by a comma"
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+
+    "SENSOR_CTD_206523":{
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "RBR Legato3 CTD Sensor",
+            "comment" : "pumped CTD",
+            "sensor_type_vocabulary" : "https://vocab.nerc.ac.uk/collection/L05/current/130",
+            "sensor_long_name" : "RBR Legato3 CTD",
+            "sensor_model" : "RBR Legato3 CTD",
+            "sensor_model_vocabulary" : "https://vocab.nerc.ac.uk/collection/L22/current/TOOL1745",
+            "sensor_maker" : "RBR",
+            "sensor_maker_vocabulary" : "https://vocab.nerc.ac.uk/collection/L35/current/MAN0049",
+            "sensor_serial_number" : "206523",
+            "sensor_calibration_date" : "2021-03-01",
+            "calibration_report" : "report_here",
+            "factory_calibrated" : "factory info_here",
+            "component" : "CTD",
+            "discriminant" : "Serial Number 206523",
+            "platform" : "platform"
+        }
+    }
+}

@@ -1,0 +1,98 @@
+{
+    "U": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "depth-averaged eastward sea water velocity",
+            "standard_name" : "eastward_sea_water_velocity",
+            "units" : "m s-1",
+            "comment" : "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 10.0,
+            "valid_min" : -10.0,
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy" : 0.01,
+            "precision" : 0.01,
+            "resolution" : 0.0001,
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "missing_value" : -999.0
+        }
+    },
+
+    "V": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "depth-averaged northward sea water velocity",
+            "standard_name" : "northward_sea_water_velocity",
+            "units" : "m s-1",
+            "comment" : "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives.",
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 10.0,
+            "valid_min" : -10.0,
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy" : 0.01,
+            "precision" : 0.01,
+            "resolution" : 0.0001,
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "missing_value" : -999.0
+        }
+    },
+
+    "TIME_UV": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "time of the depth-averaged current",
+            "standard_name" : "time",
+            "calendar" : "standard",
+            "units" : "seconds since 1970-01-01 00:00:00",
+            "comment" : "Timestamp corresponding to the mid-point of the underwater segment.",
+            "observation_type" : "calculated",
+            "platform" : "platform"
+        }
+    },
+
+    "LAT_UV": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "latitude of the depth-averaged current",
+            "standard_name" : "latitude",
+            "units" : "degrees_north",
+            "comment" :  "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ,
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 90.0,
+            "valid_min" : -90.0,
+            "coordinate_reference_frame" : "urn:ogc:crs:EPSG::4326",
+            "reference" : "WGS84"
+        }
+    },
+
+    "lON_UV": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "longitude of the depth-averaged current",
+            "standard_name" : "longitude",
+            "units" : "degrees_east",
+            "comment" : "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ,
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 180.0,
+            "valid_min" : -180.0,
+            "coordinate_reference_frame" : "urn:ogc:crs:EPSG::4326",
+            "reference" : "WGS84"
+        }
+    }
+}

@@ -1,0 +1,96 @@
+{
+    "PHASE": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : 32,
+            "long_name" : "behavior of the glider at sea",
+            "phase_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/phase.md",
+            "phase_calculation_method" : " ",
+            "phase_calculation_method_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/phase_calculation_method.md",
+            "ancillary_variables" : "PHASE_QC",
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name" : " ",
+            "units" : " ",
+            "accuracy" : 0,
+            "missing_value" : 0,
+            "precision" : 0,
+            "resolution" : 0,
+            "standard_name_url" : ""
+        }
+    },
+
+    "PHASE_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "quality flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name" : "",
+            "units" : "",
+            "accuracy" : 0,
+            "missing_value" : 32,
+            "precision" : 0,
+            "resolution" : 0,
+            "standard_name_url" : ""
+        }
+    },
+
+    "SEGMENT_NUMBER": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i4",
+        "attributes": {
+            "_FillValue": -9999,
+            "long_name" : "Identifier of numbered segment within the dataset",
+            "segment_number_calculation_method" : "SEGMENT_NUMBER is 1 at the start of a deployment. SEGMENT_NUMBER increments by 1 each time the glider enters the surface phase (PHASE=3)",
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name" : " ",
+            "accuracy" : 0,
+            "missing_value" : -9999,
+            "precision" : 0,
+            "resolution" : 0,
+            "standard_name_url" : " ",
+            "units" : " "
+        }
+    },
+
+    "PROFILE_NUMBER": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i4",
+        "attributes": {
+            "_FillValue": -9999,
+            "cf_role" : "profile_id",
+            "long_name" : "Identifier of numbered profile within the dataset",
+            "profile_number_calculation_method" : "PROFILE_NUMBER is 1 at the start of a deployment. PROFILE_NUMBER increments by 1 each time a glider enters a dive or climb phase (PHASE = [1,2])",
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy": 0,
+            "missing_value" : -9999,
+            "precision": 0,
+            "resolution": 0,
+            "standard_name_url": " ",
+            "units": " "
+        }
+    },
+
+    "PROFILE_DIRECTION": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue": 32,
+            "long_name" : "Vertical direction of profile",
+            "profile_direction_calculation_method" : "PROFILE_DIRECTION is 1 when a glider is descending and -1 when the glider is ascending. Otherwise it is 0",
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name" : "",
+            "accuracy" : 0,
+            "missing_value" : 0,
+            "precision" : 0,
+            "resolution" : 0,
+            "standard_name_url" : "",
+            "units" : ""
+        }
+    }
+}

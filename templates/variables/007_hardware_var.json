@@ -1,0 +1,35 @@
+{
+  "GLIDER_FIRMWARE_VERSION": {
+    "dimensions": [["trajectory", 1]],
+    "dtype": "str",
+    "attributes": {
+      "long_name" : "version of the internal glider firmware"
+    }
+  },
+
+  "LANDSTATION_VERSION": {
+    "dimensions": [["trajectory", 1]],
+    "dtype": "str",
+    "attributes": {
+      "long_name" : "version of the server onshore"
+    }
+  },
+
+  "BATTERY_TYPE": {
+    "dimensions": [["trajectory", 1]],
+    "dtype": "str",
+    "attributes": {
+      "long_name" : "type of the battery",
+      "battery_type_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/battery_type.md"
+    }
+  },
+
+  "BATTERY_PACK": {
+    "dimensions": [],
+    "dtype": "str",
+    "attributes": {
+      "long_name" : "battery packaging",
+      "battery_pack_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/battery_pack.md"
+    }
+  }
+ }

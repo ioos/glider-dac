@@ -1,0 +1,75 @@
+{
+    "WMO_IDENTIFIER": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "wmo id"
+        }
+    },
+
+    "PLATFORM_MODEL": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "model of the glider",
+            "platform_model_vocabulary" : "https://vocab.nerc.ac.uk/collection/B76/current/"
+        }
+    },
+
+    "PLATFORM_SERIAL_NUMBER": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "glider serial number"
+        }
+    },
+
+    "PLATFORM_NAME": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "local or nickname of the glider"
+        }
+    },
+
+    "PLATFORM_DEPTH_RATING": {
+        "dimensions": [],
+        "dtype": "int32",
+        "attributes": {
+            "long_name" : "depth limit in meters of the glider for this mission",
+            "convention" : "positive value expected - e.g. 100m depth = 100"
+        }
+    },
+
+    "ICES_CODE": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "ICES platform code of the glider",
+            "ices_code_vocabulary" : "https://vocab.ices.dk/?codeguid=690d82e2-b4e2-4e30-9772-7499c66144c6"
+        }
+    },
+
+    "PLATFORM_MAKER": {
+        "dimensions": [],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "glider manufacturer",
+            "platform_maker_vocabulary" : "https://vocab.nerc.ac.uk/collection/B75/current/ORG01077/"
+        }
+    },
+
+   "PLATFORM": {
+        "dimensions": [],
+        "dtype": "i4",
+        "attributes": {
+            "_FillValue" : -9999,
+            "long_name" : "Platform Identifier",
+            "comment" : "Spray Glider 028 deployed by (program/institution)",
+            "type" : "platform",
+            "instrument" : ["instrument_ctd"],
+            "wmo_id" : "4801921",
+            "id" : "sp028"
+        }
+    }
+}

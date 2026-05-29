@@ -1,0 +1,51 @@
+{
+    "DEPLOYMENT_TIME": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "date of deployment",
+            "standard_name" : "time",
+            "calendar" : "standard",
+            "units" : "seconds since 1970-01-01 00:00:00"
+        }
+    },
+
+    "DEPLOYMENT_LATITUDE": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "latitude of deployment",
+            "standard_name" : "latitude",
+            "units" : "degrees_north",
+            "valid_min" : -90.0,
+            "valid_max" : 90.0
+        }
+    },
+
+    "DEPLOYMENT_LONGITUDE": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "longitude of deployment",
+            "standard_name" : "longitude",
+            "units" : "degrees_east",
+            "valid_min" : -180.0,
+            "valid_max" : 180.0
+        }
+    },
+
+    "DEPLOYMENT_DEPTH": {
+      "dimensions": [["trajectory", 1]],
+      "dtype": "f8",
+      "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "depth of deployment",
+            "standard_name" : "depth",
+            "units" : "meters",
+            "positive" : "down"
+        }
+    }
+}

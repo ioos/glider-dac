@@ -1,0 +1,114 @@
+{
+    "PROFILE_ID": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "i4",
+        "data": [101],
+        "attributes": {
+            "_FillValue" : -9999,
+            "cf_role" : "profile_id",
+            "comment" : "Sequential profile number within the trajectory. This value is unique in each file that is part of a single trajectory/deployment.",
+            "long_name" : "profile identifier",
+            "valid_max" : 2147483647,
+            "valid_min" : 1
+        }
+    },
+
+    "PROFILE_TIME": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "time of the profile",
+            "standard_name" : "time",
+            "calendar" : "gregorian",
+            "units" : "seconds since 1970-01-01T00:00:00Z",
+            "comment" : "Timestamp corresponding to the mid-point of the profile",
+            "observation_type" : "calculated",
+            "platform" : "platform"
+        }
+    },
+
+    "PROFILE_TIME_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "time status_flag"
+        }
+    },
+
+    "PROFILE_LATITUDE": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "latitude of the profile",
+            "standard_name" : "latitude",
+            "units" : "degrees_north",
+            "comment" :  "Value is interpolated to provide an estimate of the latitude at the mid-point of the profile",
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 90.0,
+            "valid_min" : -90.0,
+            "coordinate_reference_frame" : "urn:ogc:crs:EPSG::4326",
+            "reference" : "WGS84"
+        }
+    },
+
+    "PROFILE_LATITUDE_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "latitude status_flag"
+        }
+    },
+
+    "PROFILE_LONGITUDE": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue": -999.0,
+            "long_name" : "longitude of the profile",
+            "standard_name" : "longitude",
+            "units" : "degrees_east",
+            "comment" : "Value is interpolated to provide an estimate of the longitude at the mid-point of the profile",
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "valid_max" : 180.0,
+            "valid_min" : -180.0,
+            "coordinate_reference_frame" : "urn:ogc:crs:EPSG::4326",
+            "reference" : "WGS84"
+        }
+    },
+
+    "PROFILE_LONGITUDE_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "longitude status_flag"
+        }
+    }
+}

@@ -1,0 +1,116 @@
+{
+    "TIME_GPS": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "time of each GPS location",
+            "standard_name" : "time",
+            "calendar" : "standard",
+            "units" : "seconds since 1970-01-01 00:00:00",
+            "valid_min" : 1e9,
+            "valid_max" : 4e9,
+            "ancillary_variables" : "TIME_GPS_QC",
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy" : 0.0,
+            "comment" : "Measured time at each GPS location",
+            "resolution" : 0.0,
+            "precision" : 0.0,
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "platform" : "platform",
+            "observation_type" : "measured"
+        }
+    },
+
+    "TIME_GPS_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "time status_flag"
+        }
+    },
+
+    "LONGITUDE_GPS": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "longitude of each GPS location",
+            "standard_name" : "longitude",
+            "units" : "degrees_east",
+            "valid_min" : -180.0,
+            "valid_max" : 180.0,
+            "ancillary_variables" : "LONGITUDE_GPS_QC",
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy" : 0.0,
+            "comment" : "Measured longitude at each GPS location",
+            "resolution" : 0.0,
+            "precision" : 0.0,
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "platform" : "platform",
+            "observation_type" : "measured"
+        }
+    },
+
+    "LONGITUDE_GPS_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology": "",
+            "rtqc_methodology_vocabulary": "",
+            "rtqc_methodology_doi": "",
+            "standard_name": "longitude status_flag"
+        }
+    },
+
+    "LATITUDE_GPS": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "latitude of each GPS location",
+            "standard_name" : "latitude",
+            "units" : "degrees_north",
+            "valid_min" : -90.0,
+            "valid_max" : 90.0,
+            "ancillary_variables" : "LATITUDE_GPS_QC",
+            "coverage_content_type" : "physicalMeasurement",
+            "accuracy" : 0.0,
+            "comment" : "Measured latitude at each GPS location",
+            "resolution" : 0.0,
+            "precision" : 0.0,
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "platform" : "platform",
+            "observation_type" : "measured"
+        }
+    },
+
+    "LATITUDE_GPS_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology": "",
+            "rtqc_methodology_vocabulary": "",
+            "rtqc_methodology_doi": "",
+            "standard_name": "latitude status_flag"
+        }
+    }
+}

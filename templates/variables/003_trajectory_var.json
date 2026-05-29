@@ -1,0 +1,12 @@
+{
+    "TRAJECTORY": {
+      "dimensions": [["trajectory", 1]],
+      "dtype": "S1",
+      "data": ["GLIDER-YYYYmmddTHHMMZ"],
+      "attributes": {
+        "cf_role" : "trajectory_id",
+        "long_name" : "trajectory identifier",
+        "comment" : "A name given to a deployment. A deployment is defined as a series of one or more segments completed by a glider between the time of deployment and the time of recovery."
+      }
+    }
+}

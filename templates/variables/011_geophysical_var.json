@@ -1,0 +1,193 @@
+{
+    "PRESSURE": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "data": [
+            [[1.54594322, 0.49377354, 4.20130073]]
+    ],
+        "attributes": {
+            "_FillValue" : "-999.0",
+            "long_name" : "Sea Water Pressure",
+            "standard_name" : "sea_water_pressure",
+            "units" : "dbar",
+            "valid_min" : 0.0,
+            "valid_max" : 2000.0,
+            "ancillary_variables" : "PRESSURE_QC",
+            "interpolation_methodology" : " ",
+            "vocabulary" : "http://vocab.nerc.ac.uk/collection/OG1/current/PRESSURE/",
+            "positive" : "down",
+            "reference_datum" : "sea-surface",
+            "precision" : 0.01,
+            "resolution" : 0.01,
+            "accuracy" : 0.01,
+            "observation_type" : "measured",
+            "platform" : "platform",
+            "instrument" : "instrument_ctd",
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "coverage_content_type" : "physicalMeasurement",
+            "comment" : "comment_here",
+            "missing_value" : -999.0
+        }
+    },
+
+    "PRESSURE_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "data": [
+            [[0, 1, 2]]
+        ],
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "pressure Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "standard_name" : "sea_water_pressure status_flag",
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : ""
+        }
+    },
+
+    "TEMPERATURE": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "data": [
+            [[18.40970549, 22.3877825 , 19.55149475]]
+        ],
+        "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "Sea Water Temperature",
+            "standard_name" : "sea_water_temperature",
+            "units" : "Celsius",
+            "ancillary_variables" : "TEMPERATURE_QC",
+            "instrument" : "instrument_ctd",
+            "observation_type" : "measured",
+            "platform" : "platform",
+            "accuracy" : 0.01,
+            "precision" : 0.01,
+            "resolution" : 0.0001,
+            "valid_max" : 40.0,
+            "valid_min" : -5.0,
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "missing_value" : -999.0
+      }
+    },
+
+   "TEMPERATURE_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "data": [
+            [[0, 1, 2]]
+        ],
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "temperature Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "sea_water_temperature status_flag"
+        }
+    },
+
+    "CNDC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "f8",
+        "data": [
+            [[3.84732605, 5.02197196, 5.25891827]]
+        ],
+        "attributes": {
+            "_FillValue" : "-999.0",
+            "long_name" : "Conductivity",
+            "standard_name" : "sea_water_electrical_conductivity",
+            "vocabulary" : "https://vocab.nerc.ac.uk/collection/OG1/current/CNDC/",
+            "units" : "mS cm-1",
+            "ancillary_variables" : "CNDC_QC",
+            "coordinates" : "time LONGITUDE LATITUDE DEPTH",
+            "sensor" : "SENSOR_CTD_206523",
+            "accuracy" : 0.01,
+            "missing_value" : -999.0,
+            "precision" : 0.01,
+            "resolution" : 0.01,
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "platform" : "platform",
+            "observation_type" : "measured",
+            "valid_max" : 10.0,
+            "valid_min" : 0.0,
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "coverage_content_type" : "physicalMeasurement",
+            "comment" : "comment_here"
+        }
+    },
+
+    "CNDC_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "data": [
+            [[0, 1, 2]]
+        ],
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "quality flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "sea_water_electrical_conductivity status_flag"
+        }
+    },
+
+
+   "DENSITY": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+         "dtype": "f8",
+         "data": [
+            [[1023.78870103, 1023.59340888, 1023.76966299]]
+         ],
+         "attributes": {
+            "_FillValue" : -999.0,
+            "long_name" : "Sea Water Density",
+            "standard_name" : "sea_water_density",
+            "units" : "kg m-3",
+            "ancillary_variables" : "DENSITY_QC",
+            "instrument" : "instrument_ctd",
+            "observation_type" : "calculated",
+            "platform" : "platform",
+            "accuracy" : 0.01,
+            "precision" : 0.01,
+            "resolution" : 0.01,
+            "valid_max" : 1040.0,
+            "valid_min" : 1015.0,
+            "coverage_content_type" : "physicalMeasurement",
+            "standard_name_vocabulary" : "CF Standard Name Table v75",
+            "standard_name_url" : "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html",
+            "missing_value" : -999.0
+        }
+    },
+
+    "DENSITY_QC": {
+        "dimensions": [["trajectory", 1], ["profile", 1], ["time", 3]],
+        "dtype": "i1",
+        "data": [
+            [[0, 1, 2]]
+        ],
+        "attributes": {
+            "_FillValue" : -127,
+            "long_name" : "density Quality Flag",
+            "flag_meanings" : "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value",
+            "valid_range" : [0, 9],
+            "flag_values" : [0,1,2,3,4,5,6,7,8,9],
+            "rtqc_methodology" : "",
+            "rtqc_methodology_vocabulary" : "",
+            "rtqc_methodology_doi" : "",
+            "standard_name" : "sea_water_density status_flag"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "TELECOM_TYPE": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "types of telecommunication systems used by the glider, multiple telecom type are separated by a comma",
+            "telecom_type_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/telecom_type.md"
+        }
+    },
+
+    "TRACKING_SYSTEM": {
+        "dimensions": [["trajectory", 1]],
+        "dtype": "str",
+        "attributes": {
+            "long_name" : "type of tracking systems used by the glider, multiple tracking system are separated by a comma",
+            "tracking_system_vocabulary" : "https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/vocabularyCollection/tracking_system.md"
+        }
+    }
+}
