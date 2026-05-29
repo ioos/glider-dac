@@ -136,16 +136,17 @@ def build_datasets_xml(data_root, catalog_root, force):
             # Get datasets that have been updated since the last time this script ran
             last_run_ts = _redis.hget(redis_key, dep.name) or 0
             try:
-                last_run = datetime.utcfromtimestamp(int(last_run_ts))
+                last_run = datetime.fromtimestamp(int(last_run_ts), tz=timezone.utc)
             except ValueError:
                 logger.error(
                     "Error: Parsing last run for {}. ".format(dep.name),
                     "Processing dataset anyway.",
                 )
-        # if we couldn't find the deployment, usually due to update time not
-        # being recent, skip this deployment
-        if dep.updated < last_run:
-            continue
+            else:
+                # if we couldn't find the deployment, usually due to update time not
+                # being recent, skip this deployment
+                if dep.updated < last_run:
+                    continue
 
         try:
             chunk_contents = build_erddap_catalog_chunk(data_root, dep)
