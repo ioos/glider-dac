@@ -6,18 +6,21 @@ A script to get WMO IDs and attribution from netCDF files and apply them to the 
 '''
 
 from glider_dac import app, db
+from glider_dac.models.deployment import Deployment
 from netCDF4 import Dataset
 import sys
+from sqlalchemy import or_
 
 def main(args):
     '''
     Parse WMO IDs from netCDF files and update mongo records
     '''
     # For each deployment without a wmo id
-    for deployment in db.Deployment.find({"$or":[{"wmo_id":None}, {"attribution":None}]}):
+    for deployment in Deployment.query.filter(or_(Deployment.wmo_id.is_(None),
+                                Deployment.attribution.is_(None))).all():
         try:
             update_deployment(deployment)
-        except Exception as e:
+        except Exception:
             continue
 
     return 0
@@ -30,7 +33,6 @@ def update_deployment(deployment):
     :param Deployment deployment: The deployment object
     '''
     dap_url = deployment.dap
-    dirty = False
 
     with Dataset(dap_url) as nc:
 
@@ -38,16 +40,14 @@ def update_deployment(deployment):
             wmo_id = get_wmo(nc)
             if wmo_id:
                 deployment.wmo_id = wmo_id
-                dirty = True
 
         elif deployment.attribution is None:
             attribution = get_acknowledgment(nc)
             if attribution:
                 deployment.attribution = attribution
-                dirty = True
 
-        if dirty:
-            deployment.save()
+        if db.session.is_modified(deployment):
+            db.session.commit()
 
 
 def get_wmo(nc):
@@ -72,6 +72,7 @@ def get_acknowledgment(nc):
     :param netCDF4.Dataset nc: An open netCDF4 Dataset
     '''
     return getattr(nc, 'acknowledgment', None)
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
