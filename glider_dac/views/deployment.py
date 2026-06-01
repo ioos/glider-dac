@@ -573,4 +573,4 @@ def get_deployments():
     for d in results:
         d.pop("user_id", None)
         d.pop("compliance_check_report", None)
-    return jsonify(results)
+    return jsonify(results=results, num_results=len(results))
