@@ -194,7 +194,7 @@ def deployment_model_gone(client):
     response = client.get("/api/deployment")
     assert all(
         deployment["name"] != "testdeployment-20240502T000"
-        for deployment in json.loads(response.data)
+        for deployment in json.loads(response.data)["results"]
     )
 
 
