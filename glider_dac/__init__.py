@@ -25,6 +25,23 @@ from glider_dac.config import get_config
 import glider_dac.utilities as util
 
 from flask_security import Security, SQLAlchemyUserDatastore
+import re
+from flask_security.username_util import UsernameUtil
+
+class RelaxedUsernameUtil(UsernameUtil):
+    def validate(self, username):
+        if not username:
+            return "Username is required.", username
+
+        normalized = username.strip()
+
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", normalized):
+            return (
+                "Username may contain only letters, numbers, hyphens, and underscores.",
+                normalized,
+            )
+
+        return None, normalized
 
 
 log_format_str = "%(asctime)s - %(process)d - %(name)s - %(module)s:%(lineno)d - %(levelname)s - %(message)s"
@@ -80,7 +97,7 @@ def create_app():
     from glider_dac.models.user import User, Role
 
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-    app.security = Security(app, user_datastore)
+    app.security = Security(app, user_datastore, username_util_cls=RelaxedUsernameUtil)
     with app.app_context():
         db.create_all()
 
