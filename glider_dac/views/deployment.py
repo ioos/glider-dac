@@ -232,7 +232,7 @@ def new_deployment(username):
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
                     return new_delayed_mode_deployment(
-                        username, existing_deployment._id
+                        username, existing_deployment.id
                     )
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
@@ -435,7 +435,7 @@ def delete_deployment_files(username, deployment_name):
         raise Exception("Unauthorized")
 
     if not (
-        deployment and user and (current_user.admin or user._id == deployment.user_id)
+        deployment and user and (current_user.admin or user.id == deployment.user_id)
     ):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
