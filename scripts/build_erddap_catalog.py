@@ -44,9 +44,7 @@ from io import StringIO
 from collections import defaultdict
 from datetime import datetime, timezone
 from glider_dac.config import get_config
-from glider_dac.extensions import db
 from glider_dac.models.deployment import Deployment
-from jinja2 import Template
 from lxml import etree
 from netCDF4 import Dataset
 from pathlib import Path
@@ -63,56 +61,64 @@ logger.addHandler(ch)
 logger.setLevel(logging.INFO)
 
 
-erddap_mapping_dict = defaultdict(lambda: "String",
-                                  {np.int8: "byte",
-                                   np.uint8: "ubyte",
-                                   np.int16: "short",
-                                   np.uint16: "ushort",
-                                   np.int32: "int",
-                                   np.uint32: "uint",
-                                   np.int64: "long",
-                                   np.uint64: "ulong",
-                                   np.float32: "float",
-                                   np.float64: "double",
-                                   # used with extra_atts.json
-                                   float: "double",
-                                   int: "int",
-                                   bool: "byte"})
+erddap_mapping_dict = defaultdict(
+    lambda: "String",
+    {
+        np.int8: "byte",
+        np.uint8: "ubyte",
+        np.int16: "short",
+        np.uint16: "ushort",
+        np.int32: "int",
+        np.uint32: "uint",
+        np.int64: "long",
+        np.uint64: "ulong",
+        np.float32: "float",
+        np.float64: "double",
+        # used with extra_atts.json
+        float: "double",
+        int: "int",
+        bool: "byte",
+    },
+)
 
 # The directory where the XML templates exist
 template_dir = Path(__file__).parent.parent / "glider_dac" / "erddap" / "templates"
 
 # Connect to redis to keep track of the last time this script ran
 config = get_config()
-redis_key = 'build_erddap_catalog_last_run_deployment'
-redis_host = config.get('REDIS_HOST', 'redis')
-redis_port = config.get('REDIS_PORT', 6379)
-redis_db = config.get('REDIS_DB', 0)
-_redis = redis.Redis(
-    host=redis_host,
-    port=redis_port,
-    db=redis_db
-)
+redis_key = "build_erddap_catalog_last_run_deployment"
+redis_host = config.get("REDIS_HOST", "redis")
+redis_port = config.get("REDIS_PORT", 6379)
+redis_db = config.get("REDIS_DB", 0)
+_redis = redis.Redis(host=redis_host, port=redis_port, db=redis_db)
+
 
 def inactive_datasets(deployments_set):
     try:
-        resp = requests.get("http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(config["PRIVATE_ERDDAP"]),
-                            timeout=10)
+        resp = requests.get(
+            "http://{}/erddap/tabledap/allDatasets.csv?datasetID".format(
+                config["PRIVATE_ERDDAP"]
+            ),
+            timeout=10,
+        )
         resp.raise_for_status()
         # contents of erddap datasets
         erddap_contents_set = set(resp.text.splitlines()[3:])
-    except:
-        logger.exception("Exception occurred while attempting to detect orphaned ERDDAP datasets")
+    except (requests.exceptions.Timeout, requests.exceptions.HTTPError):
+        logger.exception(
+            "Exception occurred while attempting to detect orphaned ERDDAP datasets"
+        )
         erddap_contents_set = set()
 
     return erddap_contents_set - deployments_set
+
 
 def build_datasets_xml(data_root, catalog_root, force):
     """
     Cats together the head, all fragments, and foot of a datasets.xml
     """
-    head_path = os.path.join(template_dir, 'datasets.head.xml')
-    tail_path = os.path.join(template_dir, 'datasets.tail.xml')
+    head_path = os.path.join(template_dir, "datasets.head.xml")
+    tail_path = os.path.join(template_dir, "datasets.tail.xml")
 
     # First update the chunks of datasets.xml that need updating
     # TODO: Can we use glider_dac_watchdog to trigger the chunk creation?
@@ -120,8 +126,7 @@ def build_datasets_xml(data_root, catalog_root, force):
     with app.app_context():
         deps = Deployment.query.all()
     for dep in deps:
-        dataset_chunk_path = os.path.join(data_root, dep.deployment_dir,
-                                          'dataset.xml')
+        dataset_chunk_path = os.path.join(data_root, dep.deployment_dir, "dataset.xml")
         # base query to which we may add filtering to see if previously run
 
         # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
@@ -129,17 +134,19 @@ def build_datasets_xml(data_root, catalog_root, force):
         # we are aren't missing the dataset.xml snippet file for this deployment
         if not (force and os.path.exists(dataset_chunk_path)):
             # Get datasets that have been updated since the last time this script ran
+            last_run_ts = _redis.hget(redis_key, dep.name) or 0
             try:
-                last_run_ts = _redis.hget(redis_key, dep.name) or 0
-                last_run = datetime.utcfromtimestamp(int(last_run_ts))
-            except Exception:
-                logger.error("Error: Parsing last run for {}. ".format(deployment.name),
-                             "Processing dataset anyway.")
-        # if we couldn't find the deployment, usually due to update time not
-        # being recent, skip this deployment
-        if dep.updated < last_run:
-            continue
-
+                last_run = datetime.fromtimestamp(int(last_run_ts), tz=timezone.utc)
+            except ValueError:
+                logger.error(
+                    "Error: Parsing last run for {}. ".format(dep.name),
+                    "Processing dataset anyway.",
+                )
+            else:
+                # if we couldn't find the deployment, usually due to update time not
+                # being recent, skip this deployment
+                if dep.updated < last_run:
+                    continue
 
         try:
             chunk_contents = build_erddap_catalog_chunk(data_root, dep)
@@ -149,18 +156,21 @@ def build_datasets_xml(data_root, catalog_root, force):
         # successfully
         else:
             try:
-                with open(dataset_chunk_path, 'w') as f:
+                with open(dataset_chunk_path, "w") as f:
                     f.write(chunk_contents)
                     # Set the timestamp of this deployment run in redis
                 dt_now = datetime.now(tz=timezone.utc)
                 _redis.hset(redis_key, dep.name, int(dt_now.timestamp()))
-            except:
-                logger.exception("Could not write ERDDAP dataset snippet XML file {}".format(dataset_chunk_path))
-
+            except OSError:
+                logger.exception(
+                    "Could not write ERDDAP dataset snippet XML file {}".format(
+                        dataset_chunk_path
+                    )
+                )
 
     # Now loop through all the deployments and construct datasets.xml
     # store in buffer first to avoid writing unfinished XML to datasets.xml
-    ds_path = os.path.join(catalog_root, 'datasets.xml')
+    ds_path = os.path.join(catalog_root, "datasets.xml")
     deployments_name_set = set()
     buf = StringIO()
     for line in fileinput.input([head_path]):
@@ -169,8 +179,9 @@ def build_datasets_xml(data_root, catalog_root, force):
     for deployment in deps:
         deployments_name_set.add(deployment.name)
         # First check that a chunk exists
-        dataset_chunk_path = os.path.join(data_root, deployment.deployment_dir,
-                                          'dataset.xml')
+        dataset_chunk_path = os.path.join(
+            data_root, deployment.deployment_dir, "dataset.xml"
+        )
         if os.path.isfile(dataset_chunk_path):
             for line in fileinput.input([dataset_chunk_path]):
                 buf.write(line)
@@ -178,35 +189,40 @@ def build_datasets_xml(data_root, catalog_root, force):
     inactive_deployment_names = inactive_datasets(deployments_name_set)
 
     for inactive_deployment in inactive_deployment_names:
-        buf.write('\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
-                    inactive_deployment))
+        buf.write(
+            '\n<dataset type="EDDTableFromNcFiles" datasetID="{}" active="false"></dataset>'.format(
+                inactive_deployment
+            )
+        )
 
     for line in fileinput.input([tail_path]):
         buf.write(line)
     # now try moving the file to update datasets.xml
-    #shutil.move(ds_tmp_path, ds_path)
+    # shutil.move(ds_tmp_path, ds_path)
     try:
-        with open(ds_path, 'w') as fd:
-          buf.seek(0)
-          fd.truncate(0)
-          shutil.copyfileobj(buf, fd)
+        with open(ds_path, "w") as fd:
+            buf.seek(0)
+            fd.truncate(0)
+            shutil.copyfileobj(buf, fd)
     except OSError:
         logger.exception("Could not write to datasets.xml")
     finally:
-         del buf
+        del buf
 
     logger.info("Wrote {} from {} deployments".format(ds_path, len(deps)))
     # issue flag refresh to remove inactive deployments after datasets.xml written
     for inactive_deployment_name in inactive_deployment_names:
         sync_deployment(inactive_deployment_name)
 
+
 def variable_sort_function(element):
     """
     Sorts by ERDDAP variable destinationName, or by
     sourceName if the former is not available.
     """
-    elem_list = (element.xpath("destinationName/text()") or
-                 element.xpath("sourceName/text()"))
+    elem_list = element.xpath("destinationName/text()") or element.xpath(
+        "sourceName/text()"
+    )
     # sort case insensitive
     try:
         return elem_list[0].lower()
@@ -215,6 +231,7 @@ def variable_sort_function(element):
     # This is probably not valid in datasets.xml, but we have to do something.
     except (IndexError, AttributeError):
         return ""
+
 
 def build_erddap_catalog_chunk(data_root, deployment):
     """
@@ -228,7 +245,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
 
     dir_path = os.path.join(data_root, deployment_dir)
 
-    checksum = (deployment.checksum or '').strip()
+    checksum = (deployment.checksum or "").strip()
     completed = deployment.completed
     delayed_mode = deployment.delayed_mode
 
@@ -246,14 +263,15 @@ def build_erddap_catalog_chunk(data_root, deployment):
             logger.exception("Error loading file: {}".format(extra_atts_file))
 
     # Get the latest file from the DB (and double check just in case)
-    if (deployment.latest_file is None or
-        not os.path.isfile(os.path.join(dir_path, deployment.latest_file))):
+    if deployment.latest_file is None or not os.path.isfile(
+        os.path.join(dir_path, deployment.latest_file)
+    ):
         latest_file = get_latest_nc_file(dir_path)
     else:
         latest_file = deployment.latest_file
 
     if latest_file is None:
-        raise IOError('No nc files found in deployment {}'.format(deployment_dir))
+        raise IOError("No nc files found in deployment {}".format(deployment_dir))
 
     core_variables = etree.fromstring("""
     <test>
@@ -343,7 +361,7 @@ def build_erddap_catalog_chunk(data_root, deployment):
     </test>
     """).findall("dataVariable")
 
-    common_variables = etree.fromstring(f"""
+    common_variables = etree.fromstring("""
     <test>
     <dataVariable>
         <sourceName>pressure</sourceName>
@@ -516,142 +534,166 @@ def build_erddap_catalog_chunk(data_root, deployment):
     """).findall("dataVariable")
 
     required_qartod_vars = {
-            'qartod_conductivity_flat_line_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_electrical_conductivity',
-                'standard_name': 'flat_line_test_quality_flag'
-            },
-            'qartod_conductivity_gross_range_flag': {
-                'long_name': 'QARTOD Gross Range Test for sea_water_electrical_conductivity',
-                'standard_name': 'gross_range_test_quality_flag'
-            },
-            'qartod_conductivity_rate_of_change_flag': {
-                'long_name': 'QARTOD Rate of Change Test for sea_water_electrical_conductivity',
-                'standard_name': 'rate_of_change_test_quality_flag'
-            },
-            'qartod_conductivity_spike_flag': {
-                'long_name': 'QARTOD Spike Test for sea_water_electrical_conductivity',
-                'standard_name': 'spike_test_quality_flag'
-            },
-            'qartod_conductivity_primary_flag': {
-                'long_name': 'QARTOD Primary Flag for sea_water_electrical_conductivity',
-                'standard_name': 'aggregate_quality_flag'
-            },
-            'qartod_density_flat_line_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
-                'standard_name': 'flat_line_test_quality_flag'
-            },
-            'qartod_density_gross_range_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
-                'standard_name': 'gross_range_test_quality_flag'
-            },
-            'qartod_density_primary_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
-                'standard_name': 'aggregate_quality_flag'
-            },
-            'qartod_density_rate_of_change_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_density ',
-                'standard_name': 'rate_of_change_test_quality_flag'
-            },
-            'qartod_density_spike_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_density',
-                'standard_name': 'spike_test_quality_flag'
-            },
-            'qartod_pressure_flat_line_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
-                'standard_name': 'flat_line_test_quality_flag'
-            },
-            'qartod_pressure_gross_range_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
-                'standard_name': 'gross_range_test_quality_flag'
-            },
-            'qartod_pressure_primary_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
-                'standard_name': 'aggregate_quality_flag'
-            },
-            'qartod_pressure_rate_of_change_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
-                'standard_name': 'rate_of_change_test_quality_flag'
-            },
-            'qartod_pressure_spike_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_pressure',
-                'standard_name': 'spike_test_quality_flag'
-            },
-            'qartod_salinity_flat_line_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
-                'standard_name': 'flat_line_test_quality_flag'
-            },
-            'qartod_salinity_gross_range_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
-                'standard_name': 'gross_range_test_quality_flag'
-            },
-            'qartod_salinity_primary_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
-                'standard_name': 'aggregate_quality_flag'
-            },
-            'qartod_salinity_rate_of_change_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
-                'standard_name': 'rate_of_change_test_quality_flag'
-            },
-            'qartod_salinity_spike_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_practical_salinity',
-                'standard_name': 'spike_test_quality_flag'
-            },
-            'qartod_temperature_flat_line_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
-                'standard_name': 'flat_line_test_quality_flag'
-            },
-            'qartod_temperature_gross_range_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
-                'standard_name': 'gross_range_test_quality_flag'
-            },
-            'qartod_temperature_primary_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
-                'standard_name':  'aggregate_quality_flag'
-            },
-            'qartod_temperature_rate_of_change_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
-                'standard_name': 'rate_of_change_test_quality_flag'
-            },
-            'qartod_temperature_spike_flag': {
-                'long_name': 'QARTOD Flat Line Test for sea_water_temperature',
-                'standard_name': 'spike_test_quality_flag'
-            },
-            'qartod_location_test_flag': {
-                'long_name': 'QARTOD Location Test for longitude and latitude',
-                'standard_name': 'location_test_quality_flag'
-            },
-        }
+        "qartod_conductivity_flat_line_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_electrical_conductivity",
+            "standard_name": "flat_line_test_quality_flag",
+        },
+        "qartod_conductivity_gross_range_flag": {
+            "long_name": "QARTOD Gross Range Test for sea_water_electrical_conductivity",
+            "standard_name": "gross_range_test_quality_flag",
+        },
+        "qartod_conductivity_rate_of_change_flag": {
+            "long_name": "QARTOD Rate of Change Test for sea_water_electrical_conductivity",
+            "standard_name": "rate_of_change_test_quality_flag",
+        },
+        "qartod_conductivity_spike_flag": {
+            "long_name": "QARTOD Spike Test for sea_water_electrical_conductivity",
+            "standard_name": "spike_test_quality_flag",
+        },
+        "qartod_conductivity_primary_flag": {
+            "long_name": "QARTOD Primary Flag for sea_water_electrical_conductivity",
+            "standard_name": "aggregate_quality_flag",
+        },
+        "qartod_density_flat_line_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_density ",
+            "standard_name": "flat_line_test_quality_flag",
+        },
+        "qartod_density_gross_range_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_density ",
+            "standard_name": "gross_range_test_quality_flag",
+        },
+        "qartod_density_primary_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_density ",
+            "standard_name": "aggregate_quality_flag",
+        },
+        "qartod_density_rate_of_change_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_density ",
+            "standard_name": "rate_of_change_test_quality_flag",
+        },
+        "qartod_density_spike_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_density",
+            "standard_name": "spike_test_quality_flag",
+        },
+        "qartod_pressure_flat_line_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_pressure",
+            "standard_name": "flat_line_test_quality_flag",
+        },
+        "qartod_pressure_gross_range_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_pressure",
+            "standard_name": "gross_range_test_quality_flag",
+        },
+        "qartod_pressure_primary_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_pressure",
+            "standard_name": "aggregate_quality_flag",
+        },
+        "qartod_pressure_rate_of_change_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_pressure",
+            "standard_name": "rate_of_change_test_quality_flag",
+        },
+        "qartod_pressure_spike_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_pressure",
+            "standard_name": "spike_test_quality_flag",
+        },
+        "qartod_salinity_flat_line_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_practical_salinity",
+            "standard_name": "flat_line_test_quality_flag",
+        },
+        "qartod_salinity_gross_range_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_practical_salinity",
+            "standard_name": "gross_range_test_quality_flag",
+        },
+        "qartod_salinity_primary_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_practical_salinity",
+            "standard_name": "aggregate_quality_flag",
+        },
+        "qartod_salinity_rate_of_change_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_practical_salinity",
+            "standard_name": "rate_of_change_test_quality_flag",
+        },
+        "qartod_salinity_spike_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_practical_salinity",
+            "standard_name": "spike_test_quality_flag",
+        },
+        "qartod_temperature_flat_line_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_temperature",
+            "standard_name": "flat_line_test_quality_flag",
+        },
+        "qartod_temperature_gross_range_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_temperature",
+            "standard_name": "gross_range_test_quality_flag",
+        },
+        "qartod_temperature_primary_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_temperature",
+            "standard_name": "aggregate_quality_flag",
+        },
+        "qartod_temperature_rate_of_change_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_temperature",
+            "standard_name": "rate_of_change_test_quality_flag",
+        },
+        "qartod_temperature_spike_flag": {
+            "long_name": "QARTOD Flat Line Test for sea_water_temperature",
+            "standard_name": "spike_test_quality_flag",
+        },
+        "qartod_location_test_flag": {
+            "long_name": "QARTOD Location Test for longitude and latitude",
+            "standard_name": "location_test_quality_flag",
+        },
+    }
 
-    existing_varnames = {'trajectory', 'wmo_id', 'platform', 'instrument_ctd',
-                         'profile_id', 'profile_time', 'profile_lat', 'profile_lon',
-                         'time', 'depth', 'lat', 'lon',
-                         'pressure', 'temperature', 'conductivity', 'salinity', 'density',
-                         'time_uv', 'lat_uv', 'lon_uv', 'u', 'v'}
-
+    existing_varnames = {
+        "trajectory",
+        "wmo_id",
+        "platform",
+        "instrument_ctd",
+        "profile_id",
+        "profile_time",
+        "profile_lat",
+        "profile_lon",
+        "time",
+        "depth",
+        "lat",
+        "lon",
+        "pressure",
+        "temperature",
+        "conductivity",
+        "salinity",
+        "density",
+        "time_uv",
+        "lat_uv",
+        "lon_uv",
+        "u",
+        "v",
+    }
 
     nc_file = os.path.join(data_root, deployment_dir, latest_file)
 
-    with Dataset(nc_file, 'r') as ds:
-
+    with Dataset(nc_file, "r") as ds:
         qartod_var_type = check_for_qartod_vars(ds)
 
-        exclude_vars = (existing_varnames | {'latitude', 'longitude'})
+        exclude_vars = existing_varnames | {"latitude", "longitude"}
 
-        all_other_vars = [add_erddap_var_elem(var) for var in
-                          ds.get_variables_by_attributes(name=lambda n: n not in exclude_vars)]
+        all_other_vars = [
+            add_erddap_var_elem(var)
+            for var in ds.get_variables_by_attributes(
+                name=lambda n: n not in exclude_vars
+            )
+        ]
 
-        gts_ingest = getattr(ds, 'gts_ingest', 'true')  # Set default value to true
+        gts_ingest = getattr(ds, "gts_ingest", "true")  # Set default value to true
 
         # Exclude automatic QARTOD variables if the dataset is delayed mode
         # This will keep any user supplied QARTOD variables, they should be part of
         # `all_other_vars` already
-        qartod_vars_snippet = (qartod_var_snippets(required_qartod_vars,
-                                                   qartod_var_type)
-                               if not deployment.delayed_mode else [])
+        qartod_vars_snippet = (
+            qartod_var_snippets(required_qartod_vars, qartod_var_type)
+            if not deployment.delayed_mode
+            else []
+        )
 
-        vars_sorted = sorted(common_variables +
-                             qartod_vars_snippet + all_other_vars,
-                             key=variable_sort_function)
+        vars_sorted = sorted(
+            common_variables + qartod_vars_snippet + all_other_vars,
+            key=variable_sort_function,
+        )
 
         variable_order = core_variables + vars_sorted
 
@@ -707,20 +749,21 @@ def build_erddap_catalog_chunk(data_root, deployment):
             for identifier, mod_attrs in extra_atts.items():
                 add_extra_attributes(tree, identifier, mod_attrs)
         except Exception:
-            logger.exception(f"Exception occurred while adding atts to template: {dep.deployment_dir}")
+            logger.exception(
+                "Exception occurred while adding atts to "
+                f"template: {deployment.deployment_dir}"
+            )
         finally:
             return etree.tostring(tree, encoding=str)
 
 
 def qartod_var_snippets(required_qartod_vars, qartod_var_type):
-
     var_list = []
     for req_var, template in list(required_qartod_vars.items()):
-
         # If the required QARTOD variable isn't already defined,
         # then supply a set of default attributes.
 
-        if req_var in qartod_var_type['qartod']:
+        if req_var in qartod_var_type["qartod"]:
             continue
         else:
             flag_atts = """
@@ -740,8 +783,8 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
                 <sourceName>{req_var}</sourceName>
                 <dataType>byte</dataType>
                 <addAttributes>
-                    <att name="long_name">{template['long_name']}</att>
-                    <att name="standard_name"> {template['standard_name']} </att>
+                    <att name="long_name">{template["long_name"]}</att>
+                    <att name="standard_name"> {template["standard_name"]} </att>
                     {flag_atts}
                 </addAttributes>
             </dataVariable>
@@ -756,16 +799,24 @@ def add_erddap_var_elem(var):
     """
     Adds an unhandled standard name variable to the ERDDAP datasets.xml
     """
-    dvar_elem = etree.Element('dataVariable')
-    source_name = etree.SubElement(dvar_elem, 'sourceName')
+    dvar_elem = etree.Element("dataVariable")
+    source_name = etree.SubElement(dvar_elem, "sourceName")
     source_name.text = var.name
-    data_type = etree.SubElement(dvar_elem, 'dataType')
+
+    # Handle destinationName if variable name contains colon
+    dest_name = var.name
+    if ":" in var.name:
+        dest_name = var.name.replace(":", "_")
+        # Add destinationName element
+        destination_name = etree.SubElement(dvar_elem, "destinationName")
+        destination_name.text = dest_name
+    data_type = etree.SubElement(dvar_elem, "dataType")
     if var.dtype == str:
         data_type.text = "String"
     else:
         data_type.text = erddap_mapping_dict[var.dtype.type]
-    add_atts = etree.SubElement(dvar_elem, 'addAttributes')
-    ioos_category = etree.SubElement(add_atts, 'att', name='ioos_category')
+    add_atts = etree.SubElement(dvar_elem, "addAttributes")
+    ioos_category = etree.SubElement(add_atts, "att", name="ioos_category")
     ioos_category.text = "Other"
 
     return dvar_elem
@@ -780,21 +831,25 @@ def add_extra_attributes(tree, identifier, mod_atts):
     to modify a variable's attributes.  `mod_atts` is a dict with the attributes
     to create or modify.
     """
-    if identifier == '_global_attrs':
+    if identifier == "_global_attrs":
         xpath_expr = "."
     else:
         xpath_expr = "dataVariable[sourceName='{}']".format(identifier)
     subtree = tree.find(xpath_expr)
 
     if subtree is None:
-        logger.warning("Element specified By XPath expression {} not found, skipping".format(xpath_expr))
+        logger.warning(
+            "Element specified By XPath expression {} not found, skipping".format(
+                xpath_expr
+            )
+        )
         return
 
-    add_atts_found = subtree.find('addAttributes')
+    add_atts_found = subtree.find("addAttributes")
     if add_atts_found is not None:
         add_atts_elem = add_atts_found
     else:
-        add_atts_elem = subtree.append(etree.Element('addAttributes'))
+        add_atts_elem = subtree.append(etree.Element("addAttributes"))
         logger.info('Added "addAttributes" to xpath for {}'.format(xpath_expr))
 
     for att_name, value in mod_atts.items():
@@ -811,11 +866,12 @@ def add_extra_attributes(tree, identifier, mod_atts):
             found_elem.text = value
         # attribute
         else:
-            new_elem = etree.Element('att', {'name': att_name})
+            new_elem = etree.Element("att", {"name": att_name})
             if attr_type:
                 new_elem.attrib["type"] = attr_type
             new_elem.text = value_remap
             add_atts_elem.append(new_elem)
+
 
 def check_for_qartod_vars(nc):
     """
@@ -823,42 +879,48 @@ def check_for_qartod_vars(nc):
     Returns a dict with the QARTOD variables as keys, and its attributes
     as values.
     """
-    qartod_vars = {'qartod': {}}
+    qartod_vars = {"qartod": {}}
     for var in nc.variables:
-        if var.startswith('qartod'):
-            qartod_vars['qartod'][var] = nc.variables[var].ncattrs()
+        if var.startswith("qartod"):
+            qartod_vars["qartod"][var] = nc.variables[var].ncattrs()
     return qartod_vars
 
 
 def get_latest_nc_file(root):
-    '''
+    """
     Returns the latest netCDF file found in the directory
 
     :param str root: Root of the directory to scan
-    '''
-    list_of_files = glob.glob('{}/*.nc'.format(root))
+    """
+    list_of_files = glob.glob("{}/*.nc".format(root))
     if not list_of_files:  # Check for no files
         return None
     return max(list_of_files, key=os.path.getctime)
 
 
 def main(data_dir, catalog_dir, force):
-    '''
+    """
     Entrypoint for build ERDDAP catalog script.
-    '''
+    """
     # ensure datasets.xml directory exists
     os.makedirs(catalog_dir, exist_ok=True)
     build_datasets_xml(data_dir, catalog_dir, force)
 
 
 if __name__ == "__main__":
-    '''
+    """
     build_erddap_catalog.py priv_erddap ./data/data/priv_erddap ./data/catalog ./glider_dac/erddap/templates/private
-    '''
+    """
     parser = argparse.ArgumentParser()
-    parser.add_argument('data_dir', help='The directory where netCDF files are read from')
-    parser.add_argument('catalog_dir', help='The full path to where the datasets.xml will reside')
-    parser.add_argument('-f', '--force', action="store_true", help="Force processing ALL deployments")
+    parser.add_argument(
+        "data_dir", help="The directory where netCDF files are read from"
+    )
+    parser.add_argument(
+        "catalog_dir", help="The full path to where the datasets.xml will reside"
+    )
+    parser.add_argument(
+        "-f", "--force", action="store_true", help="Force processing ALL deployments"
+    )
 
     args = parser.parse_args()
 

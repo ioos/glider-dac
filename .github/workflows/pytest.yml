@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -32,7 +32,7 @@ jobs:
         # FIXME: Why is it necessary to set FLASK_ENV to TESTING here when
         # pytest runs off GHA usually set this properly?
         run: >
-          docker run --network host -e FLASK_ENV=TESTING
+          docker run --network host -e FLASK_ENV=TEST_CONFIG
           -e OVERRIDE_REDIS_HOST=localhost -e OVERRIDE_REDIS_URL=redis://localhost:6379/8
           --rm -u root glider-dac-build bash -c
           "pip install --no-cache -r /glider-dac/test_requirements.txt &&

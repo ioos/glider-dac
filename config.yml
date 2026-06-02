@@ -10,6 +10,8 @@ COMMON: &common
   APPLICATION_ROOT: "/"
   SECRET_KEY: thisisakey
   LOG_FILE: no
+  # set this to an appropriate value in config.local.yml
+  #SECURITY_EMAIL_SENDER': no-reply@ioos.us
   SECURITY_USERNAME_ENABLE: True
   # argon2 is default, but we want to be able to use hashes with PAM
   # for vsfptd for unix crypt module
@@ -79,14 +81,14 @@ COMMON: &common
   PUBLIC_CATALOG: '/data/catalog/pub_erddap/datasets.xml'
   PRIVATE_CATALOG: '/data/catalog/priv_erddap/datasets.xml'
 
-  SQLALCHEMY_DATABASE_URI: mysql://username:password@mysql/gliderdac
+  SQLALCHEMY_DATABASE_URI: postgresql://username:password@postgres/gliderdac
 
 DEVELOPMENT: &development
   <<: *common
   DEBUG: True
   PREFERRED_URL_SCHEME: http
 
-TESTING:
+TEST_CONFIG:
   <<: *common
   DEBUG: True
   TESTING: True

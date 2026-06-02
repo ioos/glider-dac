@@ -9,7 +9,6 @@ import redis
 import sys
 from datetime import datetime, timezone, timedelta
 from flask import current_app
-from glider_dac import db
 from glider_dac.config import get_config
 from glider_dac.models.deployment import Deployment
 from glider_dac import log_formatter
@@ -81,7 +80,7 @@ def sync_deployment(deployment):
         logger.info("Touching flag file at %s", full_path)
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
-        with open(full_path, 'w') as f:
+        with open(full_path, 'w'):
             pass  # Causes file creation (touch)
 
     logger.info( "--------------------------------------------------------------------------------")

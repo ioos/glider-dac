@@ -1,5 +1,4 @@
 from glider_dac import create_app
-from flask import current_app
 import glider_dac.services.emails as glider_email
 #from unittest import TestCase
 import pytest

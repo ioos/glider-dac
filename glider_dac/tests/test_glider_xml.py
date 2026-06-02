@@ -1,22 +1,33 @@
-from netCDF4 import Dataset
 from unittest import TestCase
-from pathlib import Path
 import os
 from glider_dac.tests.resources import STATIC_FILES
 from datetime import datetime
 from scripts.build_erddap_catalog import build_erddap_catalog_chunk
 from lxml import etree
 
+
+class DummyVar:
+    def __init__(self, name, dtype):
+        self.name = name
+        self.dtype = dtype
+
+
+class DummyDtype:
+    def __init__(self, type_):
+        self.type = type_
+
+
 # this is used as a helper class to mock Mongo models, as they use attribute-
 # based field access, rather than dict keys
 class DotDict(dict):
     """dot.notation access to dictionary attributes"""
+
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
-class TestGliderXml(TestCase):
 
+class TestGliderXml(TestCase):
     def setUp(self):
         # generate dataset from cdl as side effect if not already present
         STATIC_FILES["murphy"]
@@ -64,16 +75,34 @@ class TestGliderXml(TestCase):
         xml_tree = etree.fromstring(xml_string)
         variable_names = self.xpath_var_helper_name(xml_tree)
         # check that core variables always come first
-        expected_core_variables = ["trajectory", "wmo_id",
-                                   "profile_id", "time", "latitude",
-                                   "longitude", "depth"]
-        assert (variable_names[:len(expected_core_variables)] ==
-                expected_core_variables)
+        expected_core_variables = [
+            "trajectory",
+            "wmo_id",
+            "profile_id",
+            "time",
+            "latitude",
+            "longitude",
+            "depth",
+        ]
+        assert variable_names[: len(expected_core_variables)] == expected_core_variables
         # for variables which come after core variables, they should be
         # alphabetized
-        lowercased_vars = [var.lower() for var in
-                           variable_names[len(expected_core_variables):]]
+        lowercased_vars = [
+            var.lower() for var in variable_names[len(expected_core_variables) :]
+        ]
         assert sorted(lowercased_vars) == lowercased_vars
         # Check that no variable names are duplicated, as this will cause
         # ERDDAP not to load a dataset
         assert len(variable_names) == len(set(variable_names))
+
+
+def test_colon_in_variable_name_is_replaced():
+    from scripts.build_erddap_catalog import add_erddap_var_elem
+
+    # Simulate a variable with a colon in its name
+    var = DummyVar("foo:bar", DummyDtype(str))
+    elem = add_erddap_var_elem(var)
+    source = elem.find("sourceName").text
+    dest = elem.find("destinationName").text
+    assert source == "foo:bar"
+    assert dest == "foo_bar"

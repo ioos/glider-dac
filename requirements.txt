@@ -10,7 +10,7 @@ gunicorn>=20.1.0
 Flask-WTF>=1.0.1
 Flask-SQLAlchemy>=2.5.1
 GeoAlchemy2>=0.11.1
-mysqlclient
+psycopg2
 geojson
 marshmallow
 marshmallow-sqlalchemy
@@ -24,7 +24,6 @@ Flask-Script==2.0.5
 gevent==25.9.1
 feedparser==6.0.1
 sh==1.09
-passlib>=1.7.4
 requests>=2.20.1
 simplekv
 Werkzeug>=3.0.6
@@ -42,7 +41,7 @@ cftime==1.6.4.post1
 flask-cors==6.0.2
 compliance-checker>=5.0.0
 cc-plugin-glider>=2.1.0
--e git+https://github.com/flasgger/flasgger.git@master#egg=flasgger
+git+https://github.com/flasgger/flasgger.git@bb1a86b2d#egg=flasgger
 multidict
 influxdb>=5.3.1
 quantities==0.16.4

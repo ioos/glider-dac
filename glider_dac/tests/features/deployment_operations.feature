@@ -22,4 +22,13 @@ Feature: Glider Deployment Operations
           And the deployment exists in ERDDAP
           And the IOOS Compliance Checker has run the CF compliance checks against the deployment aggregation in ERDDAP
           And the single aggregated file exists in a folder with the NetCDF data
-	  Then the NCEI archival script will link the aggregated deployment file to the archival directory
+          Then the NCEI archival script will link the aggregated deployment file to the archival directory
+
+    Scenario: Filtering deployments by name, WMO ID, and username
+        Given there are deployments with different names, WMO IDs, and usernames
+        When I filter deployments by name "kraken"
+        Then only deployments with "kraken" in the name should be shown
+        When I filter deployments by WMO ID "12345"
+        Then only deployments with WMO ID "12345" should be shown
+        When I filter deployments by username "miskatonic"
+        Then only deployments with username "miskatonic" should be shown

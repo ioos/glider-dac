@@ -34,7 +34,7 @@ services:
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
     depends_on:
-      - mysql
+      - postgres
       - redis
 
   glider-dac-worker:
@@ -61,19 +61,19 @@ services:
       - DATA_ROOT=${DATA_ROOT}
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
-  mysql:
-    restart: unless-stopped
-    image: mysql:8
-    container_name: mysql
-    environment:
-        - MYSQL_RANDOM_ROOT_PASSWORD=yes
-        - MYSQL_ONETIME_PASSWORD=yes
-    ports:
-        - 3306:3306
-    volumes:
-      - status_mysql:/var/lib/mysql
 
-  # TODO: THREDDS and ERDDAP will need volume configurations
+  postgres:
+    image: postgis/postgis:18-3.6-alpine
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=gliderdac
+      - POSTGRES_USER=glider
+      - POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+    ports:
+      - 5432:5432
+    volumes:
+      - status_postgres:/var/lib/postgresql/
+
   thredds:
     container_name: thredds
     image: unidata/thredds-docker:5.8
@@ -91,7 +91,7 @@ services:
 
   erddap:
     container_name: erddap
-    image: axiom/docker-erddap:v2.28.1
+    image: axiom/docker-erddap:v2.30.0
     ports:
       - 8080:8080
     restart: always
@@ -114,6 +114,6 @@ volumes:
   thredds_cache:
   thredds_logs:
   redis_data:
-  status_mysql:
+  status_postgres:
   log_volume:
   erddap_big_parent_directory:

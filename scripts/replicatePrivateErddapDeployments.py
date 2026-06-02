@@ -2,15 +2,12 @@
 import aiohttp
 import aiofiles
 import argparse
-import async_timeout
 import asyncio
-import calendar
 import glob
 import json
 import logging
 import os
 import shutil
-import sys
 import time
 from datetime import datetime
 from netCDF4 import Dataset
@@ -86,7 +83,7 @@ async def sync_deployment(deployment, sem, force=False):
         log.info("Touching flag file at %s", full_path)
         # technically could async this as it's I/O, but touching a file is pretty
         # unlikely to be a bottleneck
-        with open(full_path, "w") as f:
+        with open(full_path, "w"):
             pass  # Causes file creation
 
     # Get Current Epoch Time and how far back in time to search
@@ -105,7 +102,6 @@ async def sync_deployment(deployment, sem, force=False):
             "--------------------------------------------------------------------------------"
         )
         log.info("Synchronizing at %s", datetime.utcnow().isoformat())
-        deployment_name = deployment.split("/")[-1]
 
         # TODO deprecate this second ERDDAP!
         await retrieve_data(config["PUBLIC_DATA_ROOT"], deployment, sem)
@@ -118,7 +114,6 @@ async def retrieve_data(where, deployment, sem, proto="http"):
     publish_dir = os.path.join(where, deployment)
     log.info("Publish Directory: %s", publish_dir)
     deployment_name = publish_dir.split("/")[-1]
-    user_name = publish_dir.split("/")[-2]
     if "thredds" in publish_dir:
         path_arg = os.path.join(publish_dir, deployment_name + ".nc3.nc")
         url = "{}://{}/erddap/tabledap/{}.ncCFMA".format(
@@ -152,7 +147,7 @@ async def retrieve_data(where, deployment, sem, proto="http"):
                             try:
                                 log.info(os.stat(path_arg + ".tmp"))
                                 # sanity check to ensure netCDF file is valid
-                                with Dataset(tmp_path) as d:
+                                with Dataset(tmp_path):
                                     pass
                             except Exception:
                                 log.exception(
@@ -167,7 +162,7 @@ async def retrieve_data(where, deployment, sem, proto="http"):
                                 # if the download succeeded and file isn't corrupt, replace the previous file
                                 log.info(("moved file {}".format(tmp_path)))
                             return await response.release()
-                    except Exception as e:
+                    except Exception:
                         fail_counter -= 1
                         log.exception("Failed to get %s", deployment)
                         log.info("Attempts remaining: %s", fail_counter)
