@@ -44,17 +44,7 @@ to glider profiles which started in December 2023:
 `
 aws s3 sync s3://ioosngdac/submission/ <DESTINATION_DATA_DIRECTORY>/submission --exclude '*' --include '*202312*.nc'` <br >
 `
-
-While the data are downloading from the s3 bucket, copy one of the nightly database backups and restore it to the database:
-```
-mkdir backup_dir
-cd backup_dir
-aws s3 cp s3://ioosngdac/backups/2023-12-29-gliderdac-mongodb.tar.gz .
-tar xf 2023-12-29-gliderdac-mongodb.tar.gz
-docker cp mongo_dumps mongo:/data/
-docker exec -w /data mongo sh -c "mongorestore mongo_dumps/dump && rm -rf mongo_dumps"
-rm -rf mongo_dumps
-```
+<!-- TODO: Add PostgreSQL specific database recovery/initialization directions -->
 
 Once these steps are run, you should be able to navigate to the development server
 at http://localhost:5000 and view various deployments.
