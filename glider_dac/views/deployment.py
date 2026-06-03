@@ -231,9 +231,7 @@ def new_deployment(username):
                 # to create is marked as delayed mode, act as if the delayed
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
-                    return new_delayed_mode_deployment(
-                        username, existing_deployment.id
-                    )
+                    return new_delayed_mode_deployment(username, existing_deployment.id)
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
             # If we reach this, point, the deployment should either not exist
@@ -536,7 +534,9 @@ def get_deployments():
         501:
           description: Not Implemented
     """
-    query = Deployment.query
+    query = db.session.query(Deployment, User.username).join(
+        User, Deployment.user_id == User.id
+    )
 
     completed = request.args.get("completed")
     if completed in {"true", "false"}:
@@ -562,15 +562,18 @@ def get_deployments():
                 return None
 
         min_time_dt = parse_date(min_time)
-        if min_time_dt:
+        if min_time_dt is not None:
             query = query.filter(Deployment.latest_file_mtime >= min_time_dt)
 
-    deployments = query.all()
-    from glider_dac.models.deployment import DeploymentSchema
+    deployment_rows = query.all()
+    deployments = [deployment for deployment, _username in deployment_rows]
 
     schema = DeploymentSchema(many=True)
     results = schema.dump(deployments)
-    for d in results:
-        d.pop("user_id", None)
-        d.pop("compliance_check_report", None)
+
+    for result, (_deployment, username) in zip(results, deployment_rows):
+        result["username"] = username
+        result.pop("user_id", None)
+        result.pop("compliance_check_report", None)
+
     return jsonify(results=results, num_results=len(results))
