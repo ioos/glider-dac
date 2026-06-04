@@ -48,12 +48,18 @@ def index():
     if name_filter:
         # Consider optimizing if like query becomes too slow.
         # Probably OK for small number of deployments.
-        base_query = base_query.filter(Deployment.name.ilike(f"%{name_filter}%"))
+        # Escape SQL LIKE wildcards so searches with '_' or '%' are treated
+        # literally (underscore is a single-character wildcard in SQL LIKE).
+        esc_name = name_filter.replace("%", r"\%").replace("_", r"\_")
+        base_query = base_query.filter(
+            Deployment.name.ilike(f"%{esc_name}%", escape="\\")
+        )
     if wmo_id_filter:
         base_query = base_query.filter(Deployment.wmo_id == wmo_id_filter)
     if username_filter:
+        esc_user = username_filter.replace("%", r"\%").replace("_", r"\_")
         base_query = base_query.join(User).filter(
-            User.username.ilike(f"%{username_filter}%")
+            User.username.ilike(f"%{esc_user}%", escape="\\")
         )
 
     deployments = base_query.order_by(Deployment.created.desc()).limit(20)
