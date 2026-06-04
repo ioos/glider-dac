@@ -16,6 +16,7 @@ from flask import (
     flash,
     url_for,
     request,
+    abort,
 )
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
@@ -125,6 +126,10 @@ def list_operator_deployments(operator):
 @deployment_bp.route("/deployment/<path:deployment_name>")
 def show_deployment(deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    if deployment is None:
+        current_app.logger.warning(f"Deployment not found: {deployment_name}")
+        abort(404)
+
     # TODO: consider refactoring model property to return Path instead
     dep_path = Path(deployment.full_path)
 
@@ -231,9 +236,7 @@ def new_deployment(username):
                 # to create is marked as delayed mode, act as if the delayed
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
-                    return new_delayed_mode_deployment(
-                        username, existing_deployment.id
-                    )
+                    return new_delayed_mode_deployment(username, existing_deployment.id)
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
             # If we reach this, point, the deployment should either not exist
