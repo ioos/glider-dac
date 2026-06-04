@@ -100,7 +100,11 @@ def list_user_deployments(username):
         if not os.path.exists(m.full_path):
             continue
 
-        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
+        # Use timezone-aware UTC datetime to avoid mixing naive and aware datetimes
+        # TODO: check if system TZ affects mtime, etc
+        m.updated = datetime.fromtimestamp(
+            os.path.getmtime(m.full_path), tz=timezone.utc
+        )
 
     deployments.sort(key=deployment_key_fn)
 
