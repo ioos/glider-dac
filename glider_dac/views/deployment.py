@@ -55,8 +55,13 @@ def deployment_key_fn(dep):
     timestamp (defaulting to 1970-01-01 if not found), followed by the
     deployment name as the sorting key.
     """
-    default_dt = datetime(1970, 1, 1)
-    return getattr(dep, "updated", default_dt), dep.name
+    default_dt = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    dt = getattr(dep, "updated", default_dt) or default_dt
+    # Normalize naive datetimes to UTC so comparisons don't fail between
+    # offset-aware and offset-naive datetimes.
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt, dep.name
 
 
 class DeploymentForm(FlaskForm):
@@ -95,7 +100,11 @@ def list_user_deployments(username):
         if not os.path.exists(m.full_path):
             continue
 
-        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
+        # Use timezone-aware UTC datetime to avoid mixing naive and aware datetimes
+        # TODO: check if system TZ affects mtime, etc
+        m.updated = datetime.fromtimestamp(
+            os.path.getmtime(m.full_path), tz=timezone.utc
+        )
 
     deployments.sort(key=deployment_key_fn)
 
