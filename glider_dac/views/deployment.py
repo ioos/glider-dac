@@ -16,6 +16,7 @@ from flask import (
     flash,
     url_for,
     request,
+    abort,
 )
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
@@ -125,6 +126,10 @@ def list_operator_deployments(operator):
 @deployment_bp.route("/deployment/<path:deployment_name>")
 def show_deployment(deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    if deployment is None:
+        current_app.logger.warning(f"Deployment not found: {deployment_name}")
+        abort(404)
+
     # TODO: consider refactoring model property to return Path instead
     dep_path = Path(deployment.full_path)
 
