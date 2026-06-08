@@ -7,7 +7,6 @@ import requests
 from glider_dac import app
 from netCDF4 import Dataset
 from cftime import utime
-import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from influxdb import InfluxDBClient

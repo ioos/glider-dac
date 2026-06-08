@@ -4,6 +4,18 @@
 
 {% block page %}
 
+<form class="form-inline" method="get" action="{{ url_for('index.index') }}">
+  <div class="form-group">
+    <input type="text" class="form-control input-sm" name="name" placeholder="Search by deployment name" value="{{ request.args.get('name', '') }}">
+  </div>
+  <div class="form-group">
+    <input type="text" class="form-control input-sm" name="wmo_id" placeholder="Search by WMO ID" value="{{ request.args.get('wmo_id', '') }}">
+  </div>
+  <div class="form-group">
+    <input type="text" class="form-control input-sm" name="username" placeholder="Search by username/provider" value="{{ request.args.get('username', '') }}">
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Search</button>
+</form>
 <div class="row">
   <div class="col-lg-8">
     <h3>Deployments</h3>
@@ -18,7 +30,7 @@
       <tbody>
       {%- for m in deployments %}
       <tr>
-        <td class="col-lg-4"><a href="{{ url_for('show_deployment_no_username', deployment_id=m._id) }}">{{ m.name }}</a></td>
+        <td class="col-lg-4"><a href="{{ url_for('deployment.show_deployment', deployment_name=m.name) }}">{{ m.name }}</a></td>
         <td class="col-lg-4">{{ m.wmo_id }}</td>
         <td class="col-lg-4"><abbr title="{{ m.created | datetimeformat }} UTC">{{ m.created | prettydate }}</abbr></td>
       </tr>
@@ -31,11 +43,13 @@
     <h3>Operators</h3>
     <ul class="list-group">
       {%- for u in operator_deployments %}
-      {%- if u['_id'] %}
+      {%- if u[0] %}
       <li class="list-group-item">
-      <span class="badge">{{ u['count'] }} deployment{{ u['count']|pluralize('', 's')}}</span>
-        <a href="{{ url_for('list_operator_deployments', operator=u['_id']) }}">
-          {{ u['_id'] }}
+      <span class="badge">{{ u[1] }} deployment{{ u[1]|pluralize('', 's')}}</span>
+      {# <a href="_blank"> #}
+        <a href="{{ url_for('deployment.list_operator_deployments',
+                            operator=u[0] if u[0] is not none else "Unspecified") }}">
+          {{ u[0] }}
         </a>
       </li>
       {%- endif %}
@@ -44,16 +58,12 @@
 
     <h3>Contributors</h3>
     <ul class="list-group">
-      {%- for u in user_deployments %}
+      {%- for user, count in user_deployments %}
       <li class="list-group-item">
-        <span class="badge">{{ u['count'] }} deployment{{ u['count']|pluralize('', 's')}}</span>
-        {% if u['_id'] in user_map %}
-        <a href="{{ url_for('list_user_deployments', username=user_map[u['_id']].username) }}">
-          {{ user_map[u['_id']].name or user_map[u['_id']].username }}
+        <span class="badge">{{ count }} deployment{{ count|pluralize('', 's')}}</span>
+        <a href="{{ url_for('deployment.list_user_deployments', username=user.username) }}">
+          {{ user.name }}
         </a>
-        {% else %}
-        unknown
-        {% endif %}
       </li>
       {%- endfor %}
     </ul>

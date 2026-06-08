@@ -1,0 +1,121 @@
+from flask_mail import Message
+from flask import render_template, current_app
+from datetime import datetime, timedelta
+import sys
+import logging
+
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(sys.stderr)
+handler.setLevel(logging.INFO)
+root_logger.addHandler(handler)
+
+
+def send_email_wrapper(message):
+    """
+    Email sending function with exceptions to catch and log exceptions
+    """
+    try:
+        current_app.mail.send(message)
+    except:
+        current_app.logger.exception(
+            "Exception occurred while attempting to send email:"
+        )
+
+
+def send_registration_email(username, deployment):
+    from glider_dac.models.deployment import Deployment
+
+    if not current_app.config.get("MAIL_ENABLED", False):  # Mail is disabled
+        current_app.logger.info("Email is disabled")
+        return
+    # sender comes from MAIL_DEFAULT_SENDER in env
+    current_app.logger.info(
+        "Sending email about new deployment to %s",
+        current_app.config.get("MAIL_DEFAULT_TO"),
+    )
+    subject = "New Glider Deployment - %s" % deployment.name
+    recipients = [current_app.config.get("MAIL_DEFAULT_TO")]
+    cc_recipients = []
+    if current_app.config.get("MAIL_DEFAULT_LIST") is not None:
+        cc_recipients.current_append(current_app.config.get("MAIL_DEFAULT_LIST"))
+
+    msg = Message(subject, recipients=recipients, cc=cc_recipients)
+    msg.body = render_template(
+        "deployment_registration.txt",
+        deployment=deployment,
+        username=username,
+        thredds_url=get_thredds_catalog_url(),
+        erddap_url=get_erddap_catalog_url(),
+    )
+
+    send_email_wrapper(msg)
+
+
+# TODO: move to utilities.py
+def get_thredds_catalog_url():
+    args = {"host": current_app.config["THREDDS"]}
+    url = "http://%(host)s/thredds/catalog.xml" % args
+    return url
+
+
+def get_erddap_catalog_url():
+    args = {"host": current_app.config["PUBLIC_ERDDAP"]}
+    url = "http://%(host)s/erddap/metadata/iso19115/xml/" % args
+    return url
+
+
+def notify_incomplete_deployments(username):
+    # Calculate the date two weeks ago
+    two_weeks_ago = datetime.now() - timedelta(weeks=2)
+
+    # Query for deployments that are not completed, last updated more than two weeks ago, and match the username
+    query = Deployment.query.filter(
+        ~Deployment.completed,
+        Deployment.updated < two_weeks_ago,
+        Deployment.username == username,
+    ).order_by(Deployment.updated)
+
+    # Convert the cursor to a list
+    deployments = query.all()
+
+    # Check if there are any deployments to notify about
+    if not deployments:
+        return
+
+    # Prepare email content
+    subject = f"Reminder: Incomplete Deployments for {username}"
+
+    # Start building the HTML table
+    body = f"""
+    <html>
+    <body>
+        <p>User {username} has the following incomplete glider deployment(s) on the IOOS Glider DAC that were last updated more than two weeks ago.
+           Please mark the following deployment(s) as complete if the associated deployments have finished.</p>
+        <table border="1" style="border-collapse: collapse;">
+            <tr>
+                <th>Deployment Name</th>
+                <th>Last Updated</th>
+            </tr>
+    """
+
+    for deployment in deployments:
+        body += f"""
+            <tr>
+                <td>{deployment.name}</td>
+                <td>{deployment.updated.strftime("%Y-%m-%d %H:%M:%S")}</td>
+            </tr>
+        """
+
+    body += """
+        </table>
+    </body>
+    </html>
+    """
+
+    msg = Message(subject, recipients=[user["email"]])
+    msg.html = body
+
+    send_email_wrapper(msg)

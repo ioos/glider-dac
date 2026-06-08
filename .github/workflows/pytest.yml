@@ -8,8 +8,6 @@ on:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   test:
@@ -17,13 +15,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98 # v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Start Redis
+        uses: supercharge/redis-github-action@bc274cb7238cd63a45029db04ee48c07a72609fd # v1.8.1
+        with:
+          redis-version: 7
+
       - name: Build Docker image
         run: docker build -t glider-dac-build .
 
-      - name: Run tests
-        run: docker run --rm glider-dac-build pytest /glider-dac/tests
+      - name: Install testing requirements and run tests
+        # FIXME: Why is it necessary to set FLASK_ENV to TESTING here when
+        # pytest runs off GHA usually set this properly?
+        run: >
+          docker run --network host -e FLASK_ENV=TEST_CONFIG
+          -e OVERRIDE_REDIS_HOST=localhost -e OVERRIDE_REDIS_URL=redis://localhost:6379/8
+          --rm -u root glider-dac-build bash -c
+          "pip install --no-cache -r /glider-dac/test_requirements.txt &&
+           pytest /glider-dac/glider_dac/tests"
