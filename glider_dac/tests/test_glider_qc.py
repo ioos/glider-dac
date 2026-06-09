@@ -144,7 +144,7 @@ class TestGliderQC(TestCase):
             },
         )
 
-        results_raw = qc.apply_qc(df, "temperature", qc_config)
+        results_raw = qc.apply_qc(df, 'temperature', qc_config, ncfile_path=None)
 
         np.testing.assert_equal(
             np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=np.int8),
@@ -211,7 +211,7 @@ class TestGliderQC(TestCase):
                 "temp": values,
             },
         )
-        results_raw = qc.apply_qc(df, "temp", qc_config)
+        results_raw = qc.apply_qc(df, "temp", qc_config, ncfile_path=None)
 
         np.testing.assert_equal(
             np.array(results_raw["temp_qartod_flat_line_test"].values),
