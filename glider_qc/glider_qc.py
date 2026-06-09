@@ -491,48 +491,48 @@ class GliderQC(object):
     def _classify_single_unique_value(self, inp, unique_vals):
         """
         Classify a single unique value in a variable array.
-    
+
         :param inp: netCDF variable
         :param unique_vals: np.ndarray from np.unique(inp[:])
         :return: message (str or None)
         """
         v = unique_vals[0]
-    
+
         # Masked value
         if np.ma.is_masked(v):
             return inp.name + " is an array of masked values"
-    
+
         # NaN value
         try:
             if np.isnan(v):
                 return inp.name + " is an array of NaNs"
         except TypeError:
             pass
-    
+
         # Fill value
         fill_value = getattr(inp, "_FillValue", None)
         if fill_value is not None and v == fill_value:
             return inp.name + " is an array of fill values"
-    
+
         return None
 
     def check_geophysical_variables(self, var_name):
         """
         Check the data array for the specified geophysical variable.
-    
+
         :param var_name: variable name (str)
         :return: report_list (str) containing encountered issues
         """
         report_list = []
-    
+
         # Access the variable
         inp = self.ncfile.variables[var_name]
         data = inp[:]
-    
+
         # Check if valid_min and valid_max exist and are correctly ordered
         valid_min = getattr(inp, "valid_min", None)
         valid_max = getattr(inp, "valid_max", None)
-    
+
         if valid_min is not None and valid_max is not None:
             if valid_min > valid_max:
                 log.info(
@@ -542,23 +542,23 @@ class GliderQC(object):
                     valid_max,
                 )
                 report_list.append(inp.name + " has the valid_min and valid_max switched")
-    
+
         # Check for fully masked arrays
         if np.ma.isMaskedArray(data) and data.count() == 0:
             log.info("%s: The array is fully masked", inp.name)
             report_list.append(inp.name + " is an array of masked values")
-    
+
         else:
             # Get unique values once
             unique_vals = np.unique(data)
-    
+
             # Check if all values in the array are the same
             if len(unique_vals) == 1:
                 message = self._classify_single_unique_value(inp, unique_vals)
                 if message is not None:
                     log.info("%s: %s", inp.name, message)
                     report_list.append(message)
-    
+
         return " ".join(report_list)
 
     def create_location_flag_variable(self, ndim, flag):
