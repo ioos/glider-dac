@@ -1,4 +1,4 @@
-aiohttp==3.13.3
+aiohttp==3.14.0
 aiofiles==24.1.0
 async-timeout<5.0
 awscli
@@ -16,7 +16,7 @@ marshmallow
 marshmallow-sqlalchemy
 numpy>2.0
 watchdog>=0.9.0
-lxml==5.3.1
+lxml==6.1.0
 Flask-Security==5.7.1
 Flask-Security[common]
 Flask-Security[fsqla]

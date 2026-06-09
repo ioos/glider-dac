@@ -13,6 +13,10 @@ services:
           initial_sync: true
           path: .
           target: /glider-dac
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
     restart: always
     build: .
     ports:
@@ -99,6 +103,13 @@ services:
       - ${DATA_VOLUME:-data_volume}:/data
       - erddap_big_parent_directory:/erddapData
       - ./datasets.xml:/usr/local/tomcat/content/erddap/datasets.xml
+    healthcheck:
+      test: ["CMD-SHELL",
+         "timeout 5 bash -c 'exec 3<>/dev/tcp/localhost/8080; printf \"GET /erddap/index.html HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n\" >&3; head -n 5 <&3 | grep -F \"HTTP/1.1 200\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     environment:
       - DATA_VOLUME=${DATA_VOLUME}
 
