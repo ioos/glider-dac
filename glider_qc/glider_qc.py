@@ -32,6 +32,7 @@ __RCONN = None
 class ProcessError(ValueError):
     pass
 
+
 class GliderQC(object):
     def __init__(self, ncfile, config_file=None):
         '''
@@ -73,19 +74,24 @@ class GliderQC(object):
         valid_variables = []
 
         # Process the ancillary_variables if it's a valid non-empty string
-        ancillary_variables = getattr(ncvariable, 'ancillary_variables', None)
+        ancillary_variables = getattr(ncvariable, "ancillary_variables", None)
         if isinstance(ancillary_variables, str) and ancillary_variables.strip():
             ancillary_variables = ancillary_variables.split()
         else:
-            log.info("%s ancillary_variables is not a valid string or is empty", ncvariable.name)
+            log.info(
+                "%s ancillary_variables is not a valid string or is empty",
+                ncvariable.name,
+            )
             return []
 
         # Check each variable name in ancillary_variables
         for varname in ancillary_variables:
-            if varname.startswith('qartod'):
+            if varname.startswith("qartod"):
                 # Check if the variable exists in the file
                 if varname not in self.ncfile.variables:
-                    log.warning("Skipped %s variable it is not found in the file", varname)
+                    log.warning(
+                        "Skipped %s variable it is not found in the file", varname
+                    )
                     # Skip this variable and do not add it to valid_variables
                     continue
                 # Add the valid varname to the list
@@ -104,56 +110,61 @@ class GliderQC(object):
         dims = ncvariable.dimensions
 
         templates = {
-            'flat_line': {
-                'name': 'qartod_{name}_flat_line_flag',
-                'long_name': 'QARTOD Flat Line Test for {standard_name}',
-                'standard_name': 'flat_line_test_quality_flag',
+            "flat_line": {
+                "name": "qartod_{name}_flat_line_flag",
+                "long_name": "QARTOD Flat Line Test for {standard_name}",
+                "standard_name": "flat_line_test_quality_flag",
             },
-            'gross_range': {
-                'name': 'qartod_{name}_gross_range_flag',
-                'long_name': 'QARTOD Gross Range Test for {standard_name}',
-                'standard_name': 'gross_range_test_quality_flag',
+            "gross_range": {
+                "name": "qartod_{name}_gross_range_flag",
+                "long_name": "QARTOD Gross Range Test for {standard_name}",
+                "standard_name": "gross_range_test_quality_flag",
             },
-            'rate_of_change': {
-                'name': 'qartod_{name}_rate_of_change_flag',
-                'long_name': 'QARTOD Rate of Change Test for {standard_name}',
-                'standard_name': 'rate_of_change_test_quality_flag'
+            "rate_of_change": {
+                "name": "qartod_{name}_rate_of_change_flag",
+                "long_name": "QARTOD Rate of Change Test for {standard_name}",
+                "standard_name": "rate_of_change_test_quality_flag",
             },
-            'spike': {
-                'name': 'qartod_{name}_spike_flag',
-                'long_name': 'QARTOD Spike Test for {standard_name}',
-                'standard_name': "spike_test_quality_flag",
+            "spike": {
+                "name": "qartod_{name}_spike_flag",
+                "long_name": "QARTOD Spike Test for {standard_name}",
+                "standard_name": "spike_test_quality_flag",
             },
-            'primary': {
-                'name': 'qartod_{name}_primary_flag',
-                'long_name': 'QARTOD Primary Flag for {standard_name}',
-                'standard_name': 'aggregate_quality_flag'
-            }
+            "primary": {
+                "name": "qartod_{name}_primary_flag",
+                "long_name": "QARTOD Primary Flag for {standard_name}",
+                "standard_name": "aggregate_quality_flag",
+            },
         }
 
         qcvariables = []
 
         for tname, template in list(templates.items()):
-
-            variable_name = template['name'].format(name=name_value)
+            variable_name = template["name"].format(name=name_value)
 
             if variable_name not in self.ncfile.variables:
-                ncvar = self.ncfile.createVariable(variable_name, np.int8, dims, fill_value=np.int16(-999))
+                ncvar = self.ncfile.createVariable(
+                    variable_name, np.int8, dims, fill_value=np.int16(-999)
+                )
             else:
                 ncvar = self.ncfile.variables[variable_name]
 
             ncvar[:] = np.full(len(ncvariable[:]), 2)
-            ncvar.units = '1'
-            ncvar.standard_name = template['standard_name']
-            ncvar.long_name = template['long_name'].format(standard_name=standard_name_value)
+            ncvar.units = "1"
+            ncvar.standard_name = template["standard_name"]
+            ncvar.long_name = template["long_name"].format(
+                standard_name=standard_name_value
+            )
             ncvar.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
             ncvar.valid_min = np.int8(1)
             ncvar.valid_max = np.int8(9)
-            ncvar.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
-            ncvar.references = 'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf '
-            ncvar.qartod_package = 'https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py'
-            ncvar.dac_comment = 'QARTOD TEST RUN'
-            ncvar.ioos_category = 'Quality'
+            ncvar.flag_meanings = "PASS NOT_EVALUATED SUSPECT FAIL MISSING"
+            ncvar.references = "https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf "
+            ncvar.qartod_package = (
+                "https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py"
+            )
+            ncvar.dac_comment = "QARTOD TEST RUN"
+            ncvar.ioos_category = "Quality"
 
             qcvariables.append(variable_name)
             self.append_ancillary_variable(ncvariable, ncvar)
@@ -169,10 +180,10 @@ class GliderQC(object):
         :raises FileNotFoundError: If the file cannot be found at the specified path.
         :raises yaml.YAMLError: If the file contains invalid YAML.
         '''
-        path = path or '/data/qc_config.yml'
+        path = path or Path(__file__).parent.absolute() / "qc_config.yml"
         log.info("Loading config from %s", path)
         try:
-            with open(path, 'r') as f:
+            with open(path, "r") as f:
                 self.config = yaml.safe_load(f.read())
         except FileNotFoundError:
             log.error("Config file not found at %s", path)
@@ -188,11 +199,12 @@ class GliderQC(object):
         :return string of report_list with encountered issues
         '''
         valid_standard_names = [
-            'sea_water_temperature',
-            'sea_water_electrical_conductivity',
-            'sea_water_density',
-            'sea_water_pressure',
-            'sea_water_practical_salinity']
+            "sea_water_temperature",
+            "sea_water_electrical_conductivity",
+            "sea_water_density",
+            "sea_water_pressure",
+            "sea_water_practical_salinity",
+        ]
 
         variables = []
         report_list = []
@@ -206,14 +218,18 @@ class GliderQC(object):
                 else:
                     # If multiple variables with the same standard name, log the conflict
                     var_names = [var.name for var in ncvar]
-                    log.info("QC skipped for %s: %s variables share the same standard_name", standard_name, var_names)
+                    log.info(
+                        "QC skipped for %s: %s variables share the same standard_name",
+                        standard_name,
+                        var_names,
+                    )
                     # Build a note for the QC skip situation
                     report_list.append(f"more than one variable shared {standard_name}")
             else:
-                log.info('No variables found with standard_name %s', standard_name)
+                log.info("No variables found with standard_name %s", standard_name)
                 report_list.append(f"no variable found with {standard_name}")
 
-        return variables, ' '.join(report_list)
+        return variables, " ".join(report_list)
 
     def get_rate_of_change_threshold(self, values, times):
         '''
@@ -229,29 +245,39 @@ class GliderQC(object):
         '''
         report_list = []
         if len(values) < 2 or len(times) < 2:
-            log.info("Insufficient data: both 'values' and 'times' must have at least two elements.")
-            report_list.append("Insufficient data: both 'values' and 'times' must have at least two elements.")
-            return None, ' '.join(report_list)
+            log.info(
+                "Insufficient data: both 'values' and 'times' must have at least two elements."
+            )
+            report_list.append(
+                "Insufficient data: both 'values' and 'times' must have at least two elements."
+            )
+            return None, " ".join(report_list)
 
         if np.sum(~np.isnan(values)) > 1:  # Check if there are at least 2 valid values
             std = np.nanstd(values)
             mean = np.nanmean(values)
         else:
-            report_list.append("Not enough valid data points for std and mean calculations.")
-            return None, ' '.join(report_list)
+            report_list.append(
+                "Not enough valid data points for std and mean calculations."
+            )
+            return None, " ".join(report_list)
 
         list_values = []
         list_times = []
         for nn, xx in enumerate(values):
-            if (xx > (mean - std)) and (xx < (mean+std)):
+            if (xx > (mean - std)) and (xx < (mean + std)):
                 list_values.append(values[nn])
                 list_times.append(times[nn])
 
         # Ensure there are enough data points to compute the rate of change
         if len(list_values) < 2:
-            log.info("Insufficient data: both 'values' and 'times' must have at least two elements.")
-            report_list.append("Insufficient data: both 'values' and 'times' must have at least two elements.")
-            return None, ' '.join(report_list)
+            log.info(
+                "Insufficient data: both 'values' and 'times' must have at least two elements."
+            )
+            report_list.append(
+                "Insufficient data: both 'values' and 'times' must have at least two elements."
+            )
+            return None, " ".join(report_list)
 
         # Calculate the rate of change as absolute difference between consecutive values
         roc = np.abs(np.diff(list_values) / np.diff(list_times).astype(float))
@@ -259,7 +285,7 @@ class GliderQC(object):
         # Return the maximum rate of change
         threshold = np.max(roc)
 
-        return threshold, ' '.join(report_list)
+        return threshold, " ".join(report_list)
 
     def get_spike_thresholds(self, values):
         '''
@@ -282,7 +308,7 @@ class GliderQC(object):
         if len(valid_values) < 2:
             log.info("Not enough valid data for variance calculation.")
             report_list.append("Not enough valid data for std calculation.")
-            return None, None, ' '.join(report_list)
+            return None, None, " ".join(report_list)
         else:
             std = np.nanstd(valid_values)
 
@@ -290,7 +316,7 @@ class GliderQC(object):
         suspect_threshold = np.float64(1.0 * std)
         fail_threshold = np.float64(2.0 * std)
 
-        return suspect_threshold, fail_threshold, ' '.join(report_list)
+        return suspect_threshold, fail_threshold, " ".join(report_list)
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
@@ -308,23 +334,27 @@ class GliderQC(object):
         '''
         report_list = []
         mapping = {
-            'sea_water_temperature': 'deg_C',
-            'sea_water_electrical_conductivity': 'S m-1',
-            'sea_water_salinity': '1',
-            'sea_water_practical_salinity': '1',
-            'sea_water_pressure': 'dbar',
-            'sea_water_density': 'kg m-3'
+            "sea_water_temperature": "deg_C",
+            "sea_water_electrical_conductivity": "S m-1",
+            "sea_water_salinity": "1",
+            "sea_water_practical_salinity": "1",
+            "sea_water_pressure": "dbar",
+            "sea_water_density": "kg m-3",
         }
 
         # Handle conversion of 'psu' to '1' for salinity
-        if units == 'psu':
-            units = '1'
+        if units == "psu":
+            units = "1"
 
         # Check if the standard name is in the mapping
         if standard_name not in mapping:
-            log.info(f"Standard name '{standard_name}' not found in the mapping dictionary.")
-            report_list.append(f"Standard name '{standard_name}' not found in the mapping dictionary.")
-            return None, ' '.join(report_list)
+            log.info(
+                f"Standard name '{standard_name}' not found in the mapping dictionary."
+            )
+            report_list.append(
+                f"Standard name '{standard_name}' not found in the mapping dictionary."
+            )
+            return None, " ".join(report_list)
 
         # Get the target unit for conversion
         target_unit = mapping[standard_name]
@@ -333,11 +363,15 @@ class GliderQC(object):
             converted = Unit(units).convert(values, target_unit)
         except Exception as e:
             # log in error if conversion fails
-            log.info(f"Failed to convert units from '{units}' to '{target_unit}' for standard name '{standard_name}': {str(e)}")
-            report_list.append(f"Failed to convert units from {str(units)} to {str(target_unit)} for standard name {standard_name}: {str(e)}")
-            return None, ' '.join(report_list)
+            log.info(
+                f"Failed to convert units from '{units}' to '{target_unit}' for standard name '{standard_name}': {str(e)}"
+            )
+            report_list.append(
+                f"Failed to convert units from {str(units)} to {str(target_unit)} for standard name {standard_name}: {str(e)}"
+            )
+            return None, " ".join(report_list)
 
-        return converted, ' '.join(report_list)
+        return converted, " ".join(report_list)
 
     def append_ancillary_variable(self, parent, child):
         '''
@@ -347,7 +381,7 @@ class GliderQC(object):
         :param child: netCDF.Variable (Status Flag Variable)
         '''
         # Retrieve the current ancillary_variables, defaulting to an empty list if not set
-        ancillary_variables = getattr(parent, 'ancillary_variables', None)
+        ancillary_variables = getattr(parent, "ancillary_variables", None)
 
         # If ancillary_variables is a string, convert it into a list
         if isinstance(ancillary_variables, str):
@@ -359,7 +393,7 @@ class GliderQC(object):
         ancillary_variables.append(child.name)
 
         # Save the updated list back as a space-separated string
-        parent.ancillary_variables = ' '.join(ancillary_variables)
+        parent.ancillary_variables = " ".join(ancillary_variables)
 
     def update_config(self, varspec, varname, times, values, time_units):
         '''
@@ -380,33 +414,33 @@ class GliderQC(object):
         # do not use the 1st and last data values in calculation
         values = values[1:-1]
         (suspect_threshold, fail_threshold, inote) = self.get_spike_thresholds(values)
-        if suspect_threshold == None or fail_threshold == None:
+        if suspect_threshold is None or fail_threshold is None:
             report_list.append(f"spike_test dropped for {varname}: {inote}")
-            del varspec['spike_test']
+            del varspec["spike_test"]
         else:
             # replace the threshold values in the config file
-            if 'rate_of_change_test' not in varspec:
+            if "rate_of_change_test" not in varspec:
                 # If the key doesn't exist, initialize it as an empty dictionary or some default value
-                varspec['spike_test'] = {}
-            varspec['spike_test']['suspect_threshold'] = np.float64(suspect_threshold)
-            varspec['spike_test']['fail_threshold'] = np.float64(fail_threshold)
+                varspec["spike_test"] = {}
+            varspec["spike_test"]["suspect_threshold"] = np.float64(suspect_threshold)
+            varspec["spike_test"]["fail_threshold"] = np.float64(fail_threshold)
 
         # Calculate the rate of change test threshold
         threshold, inote = self.get_rate_of_change_threshold(values, times)
         if threshold is None:
             report_list.append(f"rate_of_change_test dropped for {varname}: {inote}")
-            del varspec['rate_of_change_test']
+            del varspec["rate_of_change_test"]
         else:
             # replace the threshold values in the config file
-            if 'rate_of_change_test' not in varspec:
+            if "rate_of_change_test" not in varspec:
                 # If the key doesn't exist, initialize it as an empty dictionary or some default value
-                varspec['rate_of_change_test'] = {}
-            varspec['rate_of_change_test']['threshold'] = np.float64(threshold)
+                varspec["rate_of_change_test"] = {}
+            varspec["rate_of_change_test"]["threshold"] = np.float64(threshold)
 
         # Update the variable config specs
-        configset = {'contexts': [{'streams': {varname: {'qartod': varspec}}}]}
+        configset = {"contexts": [{"streams": {varname: {"qartod": varspec}}}]}
 
-        return configset, ' '.join(report_list)
+        return configset, " ".join(report_list)
 
     def apply_qc(self, df, varname, configset, ncfile_path):
         '''
@@ -444,7 +478,9 @@ class GliderQC(object):
 
         # Step 5: Compute any aggregations
         try:
-            store.compute_aggregate(name='rollup_qc')  # Appends to the results internally
+            store.compute_aggregate(
+                name="rollup_qc"
+            )  # Appends to the results internally
         except Exception as e:
             log.error(f"Error computing any aggregations for {varname}: {e}")
             return []
@@ -468,9 +504,14 @@ class GliderQC(object):
 
         # Check if valid_min and valid_max are correctly ordered
         if inp.valid_min > inp.valid_max:
-            log.info("%s: valid_min (%s) and valid_max (%s) are switched", inp.name, inp.valid_min, inp.valid_max)
-            report_list.append(inp.name + ' has the valid_min and valid_max switched')
-            return ' '.join(report_list)
+            log.info(
+                "%s: valid_min (%s) and valid_max (%s) are switched",
+                inp.name,
+                inp.valid_min,
+                inp.valid_max,
+            )
+            report_list.append(inp.name + " has the valid_min and valid_max switched")
+            return " ".join(report_list)
 
         # Get unique values once
         unique_vals = np.unique(inp[:])
@@ -480,16 +521,16 @@ class GliderQC(object):
             # Check if it's a masked array or an array of NaNs
             if np.ma.isMaskedArray(unique_vals) or np.isnan(unique_vals).all():
                 log.info("%s: The array is NaNs %s", inp.name, unique_vals)
-                report_list.append(inp.name + ' is an array of NaNs')
-                return ' '.join(report_list)
+                report_list.append(inp.name + " is an array of NaNs")
+                return " ".join(report_list)
 
             # Check if it's an array of fill values
             if unique_vals == inp._FillValue:
                 log.info("%s: The array is fill values %s", inp.name, unique_vals)
-                report_list.append(inp.name + 'is an array of fill values')
-                return ' '.join(report_list)
+                report_list.append(inp.name + "is an array of fill values")
+                return " ".join(report_list)
 
-        return ' '.join(report_list)
+        return " ".join(report_list)
 
     def create_location_flag_variable(self, ndim, flag):
         '''
@@ -500,36 +541,38 @@ class GliderQC(object):
 
         :returns: netCDF variable, the created location test flag variable.
         '''
-        ncvar_name = 'qartod_location_test_flag'
+        ncvar_name = "qartod_location_test_flag"
 
         # Create the variable with int8 type and given dimensions
-        ncvar = self.ncfile.createVariable(ncvar_name , np.int8, ndim, fill_value=np.int8(2))
+        ncvar = self.ncfile.createVariable(
+            ncvar_name, np.int8, ndim, fill_value=np.int8(2)
+        )
 
         # Assign flag value to the whole array (assuming flag is a scalar)
         ncvar[:] = flag
 
         # Set additional attributes
-        ncvar.units = '1'
-        ncvar.standard_name = 'location_test_quality_flag'
-        ncvar.long_name = 'QARTOD Location Flag for the profile_(lat, lon) variables'
+        ncvar.units = "1"
+        ncvar.standard_name = "location_test_quality_flag"
+        ncvar.long_name = "QARTOD Location Flag for the profile_(lat, lon) variables"
         ncvar.flag_values = np.array([1, 2, 3, 4, 9], dtype=np.int8)
         ncvar.valid_min = np.int8(1)
         ncvar.valid_max = np.int8(9)
-        ncvar.flag_meanings = 'PASS NOT_EVALUATED SUSPECT FAIL MISSING'
+        ncvar.flag_meanings = "PASS NOT_EVALUATED SUSPECT FAIL MISSING"
         ncvar.references = (
-            'The GDAC uses a modified version of the location test described in '
-            'https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf'
+            "The GDAC uses a modified version of the location test described in "
+            "https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"
         )
         ncvar.qartod_module = (
-            'The GDAC location test does not use the algorithm from '
-            'https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py (location_test) '
-            'but instead relies on the statistical median of the lat/lon arrays'
+            "The GDAC location test does not use the algorithm from "
+            "https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py (location_test) "
+            "but instead relies on the statistical median of the lat/lon arrays"
         )
         ncvar.dac_comment = (
-            'The FAIL flag is applied if the profile_(lat, lon) value exceeds 3 '
-            'standard deviations above the mean of the average lat/lon arrays'
+            "The FAIL flag is applied if the profile_(lat, lon) value exceeds 3 "
+            "standard deviations above the mean of the average lat/lon arrays"
         )
-        ncvar.ioos_category = 'Quality'
+        ncvar.ioos_category = "Quality"
 
         return ncvar
 
@@ -543,43 +586,60 @@ class GliderQC(object):
         :return: report_list: string statement reporting on issues
         '''
         report_list = []
-        profile_lat = self.ncfile.variables['profile_lat'][0]
-        profile_lon = self.ncfile.variables['profile_lon'][0]
-        lat = self.ncfile.variables['lat'][:]
-        lon = self.ncfile.variables['lon'][:]
+        profile_lat = self.ncfile.variables["profile_lat"][0]
+        profile_lon = self.ncfile.variables["profile_lon"][0]
+        lat = self.ncfile.variables["lat"][:]
+        lon = self.ncfile.variables["lon"][:]
 
         # Check if lat/lon are not NaN or masked
-        if not (np.isnan(profile_lat) or np.ma.is_masked(profile_lat) or np.isnan(profile_lon) or np.ma.is_masked(profile_lon)):
-            poly = self.watch_circle(np.nanmean(lat), np.nanmean(lon), 2.0, num_points=72)
+        if not (
+            np.isnan(profile_lat)
+            or np.ma.is_masked(profile_lat)
+            or np.isnan(profile_lon)
+            or np.ma.is_masked(profile_lon)
+        ):
+            poly = self.watch_circle(
+                np.nanmean(lat), np.nanmean(lon), 2.0, num_points=72
+            )
             set_flag = self.is_point_outside_polygon(profile_lat, profile_lon, poly)
 
             if set_flag:
                 flag = 4  # FAIL
-                log.info(f"profile_lat={profile_lat}, profile_lon={profile_lon} are outside the polygon")
+                log.info(
+                    f"profile_lat={profile_lat}, profile_lon={profile_lon} are outside the polygon"
+                )
                 report_list.append("error in glider track lat/lon")
             else:
                 flag = 1  # PASS
-                report_list.append(f"profile_lat={profile_lat}, profile_lon={profile_lon} are inside the polygon")
+                report_list.append(
+                    f"profile_lat={profile_lat}, profile_lon={profile_lon} are inside the polygon"
+                )
         else:
             flag = 9  # MISSING
-            report_list.append(f"profile_lat={profile_lat}, profile_lon={profile_lon} are missing")
+            report_list.append(
+                f"profile_lat={profile_lat}, profile_lon={profile_lon} are missing"
+            )
 
         # Create location test variable to store the test flag
         ndim = self.ncfile.variables["profile_lat"].dimensions
         location_flag_variable = self.create_location_flag_variable(ndim, flag)
 
         # Store location test variable under the ancillary_variables attribute
-        self.ncfile.variables['profile_lat'].ancillary_variables = location_flag_variable.name
-        self.ncfile.variables['profile_lon'].ancillary_variables = location_flag_variable.name
+        self.ncfile.variables[
+            "profile_lat"
+        ].ancillary_variables = location_flag_variable.name
+        self.ncfile.variables[
+            "profile_lon"
+        ].ancillary_variables = location_flag_variable.name
 
-        return ' '.join(report_list)
+        return " ".join(report_list)
 
     def watch_circle(self, center_lat, center_lon, radius_miles, num_points=128):
-        """
+        '''
         Approximate a small geodesic circle around (center_lat, center_lon).
         Returns list of (lat, lon) tuples (closed: first == last).
         Suitable for small radii like 2 miles.
-        """
+        '''
         # 1 degree latitude ≈ 69.172 miles
         miles_per_deg_lat = 69.172
         delta_lat_deg = radius_miles / miles_per_deg_lat
@@ -598,8 +658,10 @@ class GliderQC(object):
             lat = center_lat + dlat
             lon = center_lon + dlon
             # normalize lon
-            if lon > 180: lon -= 360
-            if lon < -180: lon += 360
+            if lon > 180:
+                lon -= 360
+            if lon < -180:
+                lon += 360
             points.append((lat, lon))
         points.append(points[0])
         return points
@@ -622,6 +684,7 @@ class GliderQC(object):
         :param nc_path: netCDF file path (str)
         :return: report_list: string statement reporting on issues
         '''
+
         report_list = []
         # Check if any timestamps are masked
         if np.any(tnp.mask):
@@ -636,14 +699,14 @@ class GliderQC(object):
         DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
-            """
+            '''
             Return normalized timestamp 'YYYYmmddTHHMMSS' (no trailing Z).
             Padding:
               - 'YYYYmmdd' -> 'YYYYmmddT000000'
               - 'YYYYmmddTHH' -> 'YYYYmmddTHH0000'
               - 'YYYYmmddTHHMM' -> 'YYYYmmddTHHMM00'
               - 'YYYYmmddTHHMMSS' -> unchanged
-            """
+            '''
             name = Path(filename).name
             m = PAT.search(name)
             if not m:
@@ -665,7 +728,7 @@ class GliderQC(object):
             return f"{date}T{time_part}"
 
         def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
-            """
+            '''
             Validate normalized 'YYYYmmddTHHMMSS' with dateutil.isoparse, and enforce ranges:
               - min_year <= year <= max_year
               - month 1..12
@@ -675,7 +738,7 @@ class GliderQC(object):
               - second 0..59
             Returns timezone-aware datetime (UTC) on success.
             Raises ValueError with a descriptive message on failure.
-            """
+            '''
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
 
@@ -752,7 +815,7 @@ class GliderQC(object):
         if np.any(tnp[:] == 0):
             log.info("Invalid timestamps (t == 0)")
             report_list.append("timestamps assigned a value of 0")
-            return ' '.join(report_list)
+            return " ".join(report_list)
 
         # Only consider valid (unmasked) values
         valid_values = tnp[~np.isnan(tnp)]
@@ -761,20 +824,21 @@ class GliderQC(object):
         if len(valid_values) != len(set(valid_values)):
             log.info("Duplicate timestamps")
             report_list.append("duplicate timestamps")
-            return ' '.join(report_list)
+            return " ".join(report_list)
 
         # Check if the timestamps are in ascending order
         # This will check if each timestamp is less than the next one
         # Ensure the array is of datetime64 type
-        if valid_values.dtype != 'datetime64[s]':
-            valid_values = valid_values.astype('datetime64[s]')
+        if valid_values.dtype != "datetime64[s]":
+            valid_values = valid_values.astype("datetime64[s]")
 
-        if np.any(np.diff(valid_values) <= np.timedelta64(0, 's')):
+        if np.any(np.diff(valid_values) <= np.timedelta64(0, "s")):
             log.info("Not in Ascending Order")
             report_list.append("timestamps out of order")
-            return ' '.join(report_list)
+            return " ".join(report_list)
 
-        return ' '.join(report_list)
+        return " ".join(report_list)
+
 
 # the main function
 def run_qc(config, ncfile, ncfile_path):
@@ -787,10 +851,10 @@ def run_qc(config, ncfile, ncfile_path):
     '''
     report_list = []
     xyz = GliderQC(ncfile, config)
-    deployment_name = ncfile_path.split('/')[-2]
-    file_name = ncfile_path.split('/')[-1]
+    deployment_name = ncfile_path.split("/")[-2]
+    file_name = ncfile_path.split("/")[-1]
 
-    times = ncfile.variables['time']
+    times = ncfile.variables["time"]
     # Check Time
     try:
         dt_high = np.datetime64(int(times[:] * 1_000_000), 'us')
@@ -802,14 +866,16 @@ def run_qc(config, ncfile, ncfile_path):
         report_list.append(f"{time_err}: {str(e)}")
 
     # log time array issues
-    report = ' '.join(report_list).strip()
+    report = " ".join(report_list).strip()
     if len(report.strip()) != 0:
-        ncfile.dac_qc_comment = str(deployment_name) + ' (' + str(file_name) + ': ' + report + ')'
+        ncfile.dac_qc_comment = (
+            str(deployment_name) + " (" + str(file_name) + ": " + report + ")"
+        )
     else:
         log.info(" Running IOOS QARTOD tests on %s", file_name)
 
         # Check Location (lat/lon)
-        if 'qartod_location_test_flag' not in ncfile.variables:
+        if "qartod_location_test_flag" not in ncfile.variables:
             try:
                 report_list.append(xyz.check_location())
             except Exception as e:
@@ -823,47 +889,63 @@ def run_qc(config, ncfile, ncfile_path):
             log.info("No variables found.")
             report_list.append("No variables found.")
         else:
-            log.info("Found %s variables for QARTOD tests: %s", str(len(legacy_variables)), legacy_variables)
+            log.info(
+                "Found %s variables for QARTOD tests: %s",
+                str(len(legacy_variables)),
+                legacy_variables,
+            )
             # Report legacy variables issues
             report_list.append(note)
 
             # Loop through the legacy variables and apply QARTOD
             for var_name in legacy_variables:
                 var_data = ncfile.variables[var_name]
-                values = [x if x != '--' else np.nan for x in var_data[:]]
+                values = [x if x != "--" else np.nan for x in var_data[:]]
 
                 # Create the QARTOD variables
                 qcvarname = xyz.create_qc_variables(var_data)
-                log.info("Created %s QC Variables for %s", str(len(qcvarname)), var_name)
+                log.info(
+                    "Created %s QC Variables for %s", str(len(qcvarname)), var_name
+                )
 
                 # Check the Data Array
-                if xyz.check_geophysical_variables(var_name): #cfile,
+                if xyz.check_geophysical_variables(var_name):  # cfile,
                     report_list.append(xyz.check_geophysical_variables(var_name))
                     continue
 
                 # Check the mapping of standard names with units
                 try:
-                    values, note = xyz.normalize_variable(np.array(values[:]), var_data.units, var_data.standard_name)
+                    values, note = xyz.normalize_variable(
+                        np.array(values[:]), var_data.units, var_data.standard_name
+                    )
                     report_list.append(note)
                     if values is None:
                         continue
                 except Exception as e:
-                    unit_conversion_err = "Could not normalize data: unit conversion failed."
+                    unit_conversion_err = (
+                        "Could not normalize data: unit conversion failed."
+                    )
                     log.exception(f"{unit_conversion_err}: {str(e)}")
                     report_list.append(f"{unit_conversion_err}: {str(e)}")
                     continue
 
                 # Update variable config set
-                var_spec = xyz.config['contexts'][0]['streams'][var_name]['qartod']
-                config_set, note = xyz.update_config(var_spec, var_name, times[:].astype('datetime64[s]'), values, times.units)
+                var_spec = xyz.config["contexts"][0]["streams"][var_name]["qartod"]
+                config_set, note = xyz.update_config(
+                    var_spec,
+                    var_name,
+                    times[:].astype("datetime64[s]"),
+                    values,
+                    times.units,
+                )
                 report_list.append(note)
 
                 # create a datafarame for the QARTOD process
                 df = pd.DataFrame(
-                {
-                    "time": times[:].astype('datetime64[s]'),
-                    var_name: values,
-                },
+                    {
+                        "time": times[:].astype("datetime64[s]"),
+                        var_name: values,
+                    },
                 )
 
                 # Get the QARTOD results
@@ -872,16 +954,25 @@ def run_qc(config, ncfile, ncfile_path):
                     log.info("Generated QC test results for %s", var_name)
 
                     for testname in results.columns:
-
                         # create the qartod variable name and get the config specs
-                        if testname == 'qartod_rollup_qc':
-                            qartodname = 'qartod_'+ var_name + '_primary_flag'
+                        if testname == "qartod_rollup_qc":
+                            qartodname = "qartod_" + var_name + "_primary_flag"
                             # Pass the config specs to a variable
-                            testconfig = config_set['contexts'][0]['streams'][var_name]['qartod']
+                            testconfig = config_set["contexts"][0]["streams"][var_name][
+                                "qartod"
+                            ]
                         else:
-                            qartodname = 'qartod_'+ var_name + '_'+ testname.split('qartod_')[-1].split('_test')[0]+'_flag'
+                            qartodname = (
+                                "qartod_"
+                                + var_name
+                                + "_"
+                                + testname.split("qartod_")[-1].split("_test")[0]
+                                + "_flag"
+                            )
                             # Pass the config specs to a variable
-                            testconfig = config_set['contexts'][0]['streams'][var_name]['qartod'][testname.split('qartod_')[-1]]
+                            testconfig = config_set["contexts"][0]["streams"][var_name][
+                                "qartod"
+                            ][testname.split("qartod_")[-1]]
 
                         # Update the qartod variable
                         log.info("Updating %s", qartodname)
@@ -890,16 +981,19 @@ def run_qc(config, ncfile, ncfile_path):
                         qartod_var.qartod_test = f"{testname.split('qartod_')[-1]}"
 
                         # Set the dictionary as a string attribute to the variable
-                        qartod_var.setncattr('qartod_config', json.dumps(testconfig))
+                        qartod_var.setncattr("qartod_config", json.dumps(testconfig))
 
                 except Exception as e:
-                        apply_qc_err = "apply_qc failed: could not calculate QC flags."
-                        log.exception(f"{apply_qc_err}: ")
-                        report_list.append(f"{apply_qc_err}: {str(e)}")
-                        continue
+                    apply_qc_err = "apply_qc failed: could not calculate QC flags."
+                    log.exception(f"{apply_qc_err}: ")
+                    report_list.append(f"{apply_qc_err}: {str(e)}")
+                    continue
     # log issues qc
-    report = ' '.join(report_list).strip()
-    ncfile.dac_qc_comment = str(deployment_name) + ' (' + str(file_name) + ': ' + str(report) + ')'
+    report = " ".join(report_list).strip()
+    ncfile.dac_qc_comment = (
+        str(deployment_name) + " (" + str(file_name) + ": " + str(report) + ")"
+    )
+
 
 def qc_task(nc_path, config):
     '''
@@ -918,7 +1012,7 @@ def qc_task(nc_path, config):
     except OSError:
         pass
     try:
-        with Dataset(nc_path, 'r+') as nc:
+        with Dataset(nc_path, "r+") as nc:
             run_qc(config, nc, nc_path)
         os.setxattr(nc_path, "user.qc_run", b"true")
     # set user_qc xattr to error to prevent continuous inotify looping on
@@ -932,6 +1026,7 @@ def qc_task(nc_path, config):
     finally:
         lock.release()
 
+
 def lock_file(path):
     '''
     Acquires a file lock or raises an exception
@@ -942,6 +1037,7 @@ def lock_file(path):
     lock = rc.lock(key, blocking_timeout=0)
     return lock
 
+
 def get_redis_connection():
     '''
     Returns a redis connection configured with a pool. Redis can be configured
@@ -950,14 +1046,13 @@ def get_redis_connection():
     global __RCONN
     if __RCONN is not None:
         return __RCONN
-    redis_host = os.environ.get('REDIS_HOST', 'localhost')
-    redis_port = os.environ.get('REDIS_PORT', 6379)
-    redis_db = os.environ.get('REDIS_DB', 0)
-    redis_pool = redis.ConnectionPool(host=redis_host,
-                                      port=redis_port,
-                                      db=redis_db)
+    redis_host = os.environ.get("REDIS_HOST", "localhost")
+    redis_port = os.environ.get("REDIS_PORT", 6379)
+    redis_db = os.environ.get("REDIS_DB", 0)
+    redis_pool = redis.ConnectionPool(host=redis_host, port=redis_port, db=redis_db)
     __RCONN = redis.Redis(connection_pool=redis_pool)
     return __RCONN
+
 
 def check_needs_qc(nc_path):
     '''
@@ -970,7 +1065,7 @@ def check_needs_qc(nc_path):
             return False
     except OSError:
         pass
-    with Dataset(nc_path, 'r') as nc:
+    with Dataset(nc_path, "r") as nc:
         qc = GliderQC(nc, None)
         legacy_var, note = qc.find_geophysical_variables()
         for varname in legacy_var:
@@ -983,14 +1078,16 @@ def check_needs_qc(nc_path):
 
         # TODO: Set time as the extended file attribute
         # Get the current date-time in ISO format
-        #iso_date = datetime.datetime.utcnow().isoformat()
+        # iso_date = datetime.datetime.utcnow().isoformat()
 
         # Convert it to bytes
-        #iso_date_bytes = iso_date.encode("utf-8")
+        # iso_date_bytes = iso_date.encode("utf-8")
 
         # Set the extended attribute
-        #os.setxattr(nc_path, "user.qc_run", iso_date_bytes)
+        # os.setxattr(nc_path, "user.qc_run", iso_date_bytes)
 
     except OSError:
-        log.exception(f"Exception occurred trying to set xattr on already QCed file at {nc_path}:")
+        log.exception(
+            f"Exception occurred trying to set xattr on already QCed file at {nc_path}:"
+        )
     return False
