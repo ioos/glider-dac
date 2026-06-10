@@ -245,7 +245,9 @@ def new_deployment(username):
                 # to create is marked as delayed mode, act as if the delayed
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
-                    return new_delayed_mode_deployment(username, existing_deployment.id)
+                    return new_delayed_mode_deployment(
+                        username, existing_deployment.name
+                    )
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
             # If we reach this, point, the deployment should either not exist
