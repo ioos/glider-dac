@@ -142,7 +142,7 @@ def admin_delete_user(username):
 
     user = User.query.filter_by(username=username).one_or_none()
 
-    if user._id == current_user._id:
+    if user.id == current_user.id:
         flash("You can't delete yourself!", "danger")
         return redirect(url_for("user.admin"))
 

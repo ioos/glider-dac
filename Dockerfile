@@ -22,10 +22,13 @@ RUN apt-get update && \
 VOLUME /glider-dac/logs/ /data /usr/local/lib/python3.12/site-packages/compliance_checker/data
 
 WORKDIR /glider-dac
+ARG glider_gid_uid=1000
 
-RUN mkdir -p /data/submission /data/data/priv_erddap /data/data/pub_erddap \
-  /erddapData/flag /erddapData/hardFlag  \
-  /data/catalog/priv_erddap
+RUN groupadd -r -g "$glider_gid_uid" glider && \
+  useradd -l -r -s /bin/bash -u "$glider_gid_uid" -g glider glider && \
+  install -d -o glider -g glider /data/submission /data/data/priv_erddap /data/data/pub_erddap \
+  /erddapData/flag /erddapData/hardFlag /data/catalog/priv_erddap
+USER glider
 
 EXPOSE 5000
 

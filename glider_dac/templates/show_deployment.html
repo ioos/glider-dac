@@ -231,7 +231,7 @@
   {% endif %}
 
   <h3>Assigned WMO ID</h3>
-    <p>{{ deployment.wmo_id }}</p>
+    <p>{{ deployment.wmo_id or 'Not Allocated' }}</p>
     {% if wmo_id_dups %}
     <h4>The following glider names also have this WMO ID assigned:</h4>
     <ul>

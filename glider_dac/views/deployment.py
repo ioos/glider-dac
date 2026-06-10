@@ -16,6 +16,7 @@ from flask import (
     flash,
     url_for,
     request,
+    abort,
 )
 from flask_cors import cross_origin
 from flask_wtf import FlaskForm
@@ -54,8 +55,13 @@ def deployment_key_fn(dep):
     timestamp (defaulting to 1970-01-01 if not found), followed by the
     deployment name as the sorting key.
     """
-    default_dt = datetime(1970, 1, 1)
-    return getattr(dep, "updated", default_dt), dep.name
+    default_dt = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    dt = getattr(dep, "updated", default_dt) or default_dt
+    # Normalize naive datetimes to UTC so comparisons don't fail between
+    # offset-aware and offset-naive datetimes.
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt, dep.name
 
 
 class DeploymentForm(FlaskForm):
@@ -94,7 +100,11 @@ def list_user_deployments(username):
         if not os.path.exists(m.full_path):
             continue
 
-        m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
+        # Use timezone-aware UTC datetime to avoid mixing naive and aware datetimes
+        # TODO: check if system TZ affects mtime, etc
+        m.updated = datetime.fromtimestamp(
+            os.path.getmtime(m.full_path), tz=timezone.utc
+        )
 
     deployments.sort(key=deployment_key_fn)
 
@@ -125,6 +135,10 @@ def list_operator_deployments(operator):
 @deployment_bp.route("/deployment/<path:deployment_name>")
 def show_deployment(deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    if deployment is None:
+        current_app.logger.warning(f"Deployment not found: {deployment_name}")
+        abort(404)
+
     # TODO: consider refactoring model property to return Path instead
     dep_path = Path(deployment.full_path)
 
@@ -248,7 +262,7 @@ def new_deployment(username):
                 # mode modification path had been followed
                 if not existing_deployment.delayed_mode and delayed_mode:
                     return new_delayed_mode_deployment(
-                        username, existing_deployment._id
+                        username, existing_deployment.name
                     )
             # same combination of glider_name/date/delayed_or_rt_mode should
             # have been caught by this point by the unique deployment name.
@@ -450,7 +464,7 @@ def delete_deployment_files(username, deployment_name):
         raise Exception("Unauthorized")
 
     if not (
-        deployment and user and (current_user.admin or user._id == deployment.user_id)
+        deployment and user and (current_user.admin or user.id == deployment.user_id)
     ):
         # @TODO better response via ajax?
         raise Exception("Unauthorized")
@@ -551,7 +565,9 @@ def get_deployments():
         501:
           description: Not Implemented
     """
-    query = Deployment.query
+    query = db.session.query(Deployment, User.username).join(
+        User, Deployment.user_id == User.id
+    )
 
     completed = request.args.get("completed")
     if completed in {"true", "false"}:
@@ -577,15 +593,18 @@ def get_deployments():
                 return None
 
         min_time_dt = parse_date(min_time)
-        if min_time_dt:
+        if min_time_dt is not None:
             query = query.filter(Deployment.latest_file_mtime >= min_time_dt)
 
-    deployments = query.all()
-    from glider_dac.models.deployment import DeploymentSchema
+    deployment_rows = query.all()
+    deployments = [deployment for deployment, _username in deployment_rows]
 
     schema = DeploymentSchema(many=True)
     results = schema.dump(deployments)
-    for d in results:
-        d.pop("user_id", None)
-        d.pop("compliance_check_report", None)
+
+    for result, (_deployment, username) in zip(results, deployment_rows):
+        result["username"] = username
+        result.pop("user_id", None)
+        result.pop("compliance_check_report", None)
+
     return jsonify(results=results, num_results=len(results))
