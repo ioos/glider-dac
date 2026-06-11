@@ -179,7 +179,7 @@ def show_deployment(deployment_name):
     extra_atts_path = dep_path / "extra_atts.json"
 
     try:
-        (extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None)
+        extra_atts_content = (extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None)
     except OSError:
         current_app.logger.exception(f"Could not read {extra_atts_path}")
         extra_atts_content = None
