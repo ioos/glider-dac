@@ -236,7 +236,7 @@
     <h4>The following glider names also have this WMO ID assigned:</h4>
     <ul>
       {% for dup in wmo_id_dups %}
-      <li>{{ dup[0] }}</li>
+      <li><a href="{{ url_for('index.index', name=dup[0], wmo_id=deployment.wmo_id) }}">{{ dup[0] }}</a></li>
       {% endfor %}
     </ul>
     {% endif %}
