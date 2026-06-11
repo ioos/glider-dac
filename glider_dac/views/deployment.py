@@ -340,10 +340,10 @@ def new_delayed_mode_deployment(username, deployment_name):
         return redirect(url_for("deployment.list_user_deployments", username=username))
 
     deployment = Deployment()
-    deployment.name = rt_deployment.name + "-delayed"
-    deployment.user.username = username
+    deployment.name = f"{rt_deployment.name}-delayed"
+    deployment.user_id = user.id
     deployment.operator = rt_deployment.operator
-    deployment.deployment_dir = os.path.join(username, deployment_name)
+    deployment.deployment_dir = os.path.join(username, deployment.name)
     deployment.wmo_id = rt_deployment.wmo_id
     deployment.updated = datetime.utcnow()
     deployment.glider_name = rt_deployment.glider_name
@@ -352,6 +352,7 @@ def new_delayed_mode_deployment(username, deployment_name):
     deployment.delayed_mode = True
     db.session.add(deployment)
     db.session.commit()
+    deployment.sync()
     flash("Deployment created", "success")
     send_registration_email(deployment.user.username, deployment)
 
