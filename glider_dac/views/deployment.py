@@ -179,9 +179,24 @@ def show_deployment(deployment_name):
     extra_atts_path = dep_path / "extra_atts.json"
 
     try:
-        (extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None)
+        extra_atts_content = (extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None)
     except OSError:
         current_app.logger.exception(f"Could not read {extra_atts_path}")
+        extra_atts_content = None
+    # check if WMO IDs in use by other glider names
+    # TODO: consider moving WMO ID association to its own table
+    if deployment.wmo_id:
+        wmo_id_dups = (
+            Deployment.query.filter(
+                Deployment.wmo_id == deployment.wmo_id,
+                Deployment.glider_name != deployment.glider_name,
+            )
+            .with_entities(Deployment.glider_name)
+            .distinct()
+            .all()
+        )
+    else:
+        wmo_id_dups = []
 
     form = DeploymentForm(obj=deployment)
 
@@ -202,7 +217,8 @@ def show_deployment(deployment_name):
         deployment=deployment,
         username=getattr(current_user, "username", None),
         files=files,
-        **kwargs,
+        extra_atts_content=extra_atts_content,
+        wmo_id_dups=wmo_id_dups,
     )
 
 
