@@ -412,7 +412,8 @@ class GliderQC(object):
         (suspect_threshold, fail_threshold, inote) = self.get_spike_thresholds(values)
         if suspect_threshold is None or fail_threshold is None:
             report_list.append(f"spike_test dropped for {varname}: {inote}")
-            del varspec["spike_test"]
+            if "spike_test" in varspec:
+               del varspec["spike_test"]
         else:
             # replace the threshold values in the config file
             if "rate_of_change_test" not in varspec:
@@ -425,7 +426,8 @@ class GliderQC(object):
         threshold, inote = self.get_rate_of_change_threshold(values, times)
         if threshold is None:
             report_list.append(f"rate_of_change_test dropped for {varname}: {inote}")
-            del varspec["rate_of_change_test"]
+            if "rate_of_change_test" in varspec:
+                del varspec['rate_of_change_test']
         else:
             # replace the threshold values in the config file
             if "rate_of_change_test" not in varspec:
@@ -486,6 +488,34 @@ class GliderQC(object):
 
         return results_store
 
+    def _classify_single_unique_value(self, inp, unique_vals):
+        """
+        Classify a single unique value in a variable array.
+
+        :param inp: netCDF variable
+        :param unique_vals: np.ndarray from np.unique(inp[:])
+        :return: message (str or None)
+        """
+        v = unique_vals[0]
+
+        # Masked value
+        if np.ma.is_masked(v):
+            return inp.name + " is an array of masked values"
+
+        # NaN value
+        try:
+            if np.isnan(v):
+                return inp.name + " is an array of NaNs"
+        except TypeError:
+            pass
+
+        # Fill value
+        fill_value = getattr(inp, "_FillValue", None)
+        if fill_value is not None and v == fill_value:
+            return inp.name + " is an array of fill values"
+
+        return None
+
     def check_geophysical_variables(self, var_name):
         """
         Check the data array for the specified geophysical variable.
@@ -497,34 +527,37 @@ class GliderQC(object):
 
         # Access the variable
         inp = self.ncfile.variables[var_name]
+        data = inp[:]
 
-        # Check if valid_min and valid_max are correctly ordered
-        if inp.valid_min > inp.valid_max:
-            log.info(
-                "%s: valid_min (%s) and valid_max (%s) are switched",
-                inp.name,
-                inp.valid_min,
-                inp.valid_max,
-            )
-            report_list.append(inp.name + " has the valid_min and valid_max switched")
-            return " ".join(report_list)
+        # Check if valid_min and valid_max exist and are correctly ordered
+        valid_min = getattr(inp, "valid_min", None)
+        valid_max = getattr(inp, "valid_max", None)
 
-        # Get unique values once
-        unique_vals = np.unique(inp[:])
+        if valid_min is not None and valid_max is not None:
+            if valid_min > valid_max:
+                log.info(
+                    "%s: valid_min (%s) and valid_max (%s) are switched",
+                    inp.name,
+                    valid_min,
+                    valid_max,
+                )
+                report_list.append(inp.name + " has the valid_min and valid_max switched")
 
-        # Check if all values in the array are the same
-        if len(unique_vals) == 1:
-            # Check if it's a masked array or an array of NaNs
-            if np.ma.isMaskedArray(unique_vals) or np.isnan(unique_vals).all():
-                log.info("%s: The array is NaNs %s", inp.name, unique_vals)
-                report_list.append(inp.name + " is an array of NaNs")
-                return " ".join(report_list)
+        # Check for fully masked arrays
+        if np.ma.isMaskedArray(data) and data.count() == 0:
+            log.info("%s: The array is fully masked", inp.name)
+            report_list.append(inp.name + " is an array of masked values")
 
-            # Check if it's an array of fill values
-            if unique_vals == inp._FillValue:
-                log.info("%s: The array is fill values %s", inp.name, unique_vals)
-                report_list.append(inp.name + "is an array of fill values")
-                return " ".join(report_list)
+        else:
+            # Get unique values once
+            unique_vals = np.unique(data)
+
+            # Check if all values in the array are the same
+            if len(unique_vals) == 1:
+                message = self._classify_single_unique_value(inp, unique_vals)
+                if message is not None:
+                    log.info("%s: %s", inp.name, message)
+                    report_list.append(message)
 
         return " ".join(report_list)
 
@@ -684,8 +717,8 @@ class GliderQC(object):
         # Check if any timestamps are masked
         if np.any(tnp.mask):
             log.info("Timestamps are masked")
-            report_list("masked timestamps")
-            return " ".join(report_list)
+            report_list.append("masked timestamps")
+            return ' '.join(report_list)
 
         # Extract deployment start time from the nc_path
         deployment_time = nc_path.split("/")[-2].split("-")[-1]
