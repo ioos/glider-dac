@@ -9,9 +9,12 @@ from cf_units import Unit
 from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse as dateparse
 from flask import (
+    Blueprint,
+    Response,
     current_app,
     render_template,
     redirect,
+    stream_with_context,
     jsonify,
     flash,
     url_for,
@@ -28,7 +31,6 @@ from glider_dac.services.emails import send_registration_email
 from multidict import CIMultiDict
 from pathlib import Path
 from wtforms import StringField, SubmitField, BooleanField, validators
-from flask import Blueprint
 import re
 import json
 import os
@@ -220,6 +222,28 @@ def show_deployment(deployment_name):
         extra_atts_content=extra_atts_content,
         wmo_id_dups=wmo_id_dups,
     )
+
+
+@deployment_bp.route("/deployment/<path:deployment_name>/events")
+def deployment_events(deployment_name):
+    def event_stream():
+        last_id = "0"
+        def dt_fn():
+            return datetime.now(tz=timezone.utc).isoformat()
+        stream_key = f"deployment:{deployment_name}"
+        yield f"[{dt_fn()}] Listerning for filesystem events on {deployment_name}:\n"
+        while True:
+            events = current_app.redis_connection.xread(
+                {stream_key: last_id}, block=1000, count=50
+            )
+            for key, event_list in events:
+                for event_id, event_data in event_list:
+                    last_id = event_id
+                    # Convert bytes to strings
+                    event_data = {k.decode(): v.decode() for k, v in event_data.items()}
+                    yield f"[{dt_fn()}] data: {json.dumps(event_data)}\n\n"
+
+    return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
 
 
 @deployment_bp.route("/users/<string:username>/deployment/new", methods=["POST"])
