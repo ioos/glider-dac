@@ -399,13 +399,13 @@ class GliderQC(object):
         """
         Update the input config file with specs values for the spike
         and the gross range test methods
-    
+
         :param varspec: dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
         :param times: numpy array of times
         :param values: numpy array of values
         :param time_units: string defining time units
-    
+
         :return dictionary with configuration specs for qc
         :return string report_list with encountered issues
         """
@@ -424,7 +424,7 @@ class GliderQC(object):
                 varspec["spike_test"] = {}
             varspec["spike_test"]["suspect_threshold"] = np.float64(suspect_threshold)
             varspec["spike_test"]["fail_threshold"] = np.float64(fail_threshold)
-    
+
         # Calculate the rate of change test threshold
         threshold, inote = self.get_rate_of_change_threshold(values, times)
         if threshold is None:
@@ -436,10 +436,10 @@ class GliderQC(object):
                 # If the key doesn't exist, initialize it as an empty dictionary or some default value
                 varspec["rate_of_change_test"] = {}
             varspec["rate_of_change_test"]["threshold"] = np.float64(threshold)
-    
+
         # Update the variable config specs
         configset = {"contexts": [{"streams": {varname: {"qartod": varspec}}}]}
-    
+
         return configset, " ".join(report_list)
 
     def apply_qc(self, df, varname, configset, ncfile_path):
@@ -757,7 +757,7 @@ class GliderQC(object):
         def to_posix_and_np_dt(dt_utc: datetime.datetime):
             """
             Convert a UTC-aware datetime object to a POSIX timestamp and a NumPy datetime64.
-        
+
             :param dt_utc: A timezone-aware datetime object in UTC.
             :type dt_utc: datetime.datetime
             :returns: A tuple containing:
