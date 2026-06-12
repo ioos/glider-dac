@@ -70,7 +70,6 @@ class GliderQC(object):
 
         :param ncvariable: netCDF4.Variable
         """
-
         valid_variables = []
 
         # Process the ancillary_variables if it's a valid non-empty string
@@ -397,8 +396,8 @@ class GliderQC(object):
 
     def update_config(self, varspec, varname, times, values, time_units):
         """
-         Update the input config file with specs values for the spike
-         and the gross range test methods
+        Update the input config file with specs values for the spike
+        and the gross range test methods
 
         :param varspec: dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
@@ -790,7 +789,7 @@ class GliderQC(object):
         def to_posix_and_np_dt(dt_utc: datetime.datetime):
             """
             Convert a UTC-aware datetime object to a POSIX timestamp and a NumPy datetime64.
-        
+
             :param dt_utc: A timezone-aware datetime object in UTC.
             :type dt_utc: datetime.datetime
             :returns: A tuple containing:
