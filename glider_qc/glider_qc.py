@@ -738,19 +738,19 @@ class GliderQC(object):
             '''
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
-        
+
             # strptime validates all component ranges AND calendar correctness (e.g. April 31)
             try:
                 dt = datetime.datetime.strptime(norm_no_z, "%Y%m%dT%H%M%S")
             except ValueError:
                 raise ValueError(f"Invalid date/time values in token: {norm_no_z!r}")
-        
+
             # Enforce custom year bounds (strptime does not check these)
             if dt.year < min_year:
                 raise ValueError(f"Year {dt.year} is less than minimum allowed {min_year}.")
             if dt.year > max_year:
                 raise ValueError(f"Year {dt.year} is greater than maximum allowed {max_year}.")
-        
+
             # Return UTC-aware datetime
             return dt.replace(tzinfo=timezone.utc)
 
