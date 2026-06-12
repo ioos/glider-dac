@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-'''
+"""
 Runs IOOS QARTOD tests on a netCDF file
 glider_qc/glider_qc.py
-'''
+"""
 import re
 from typing import Optional
 import datetime
@@ -35,12 +35,12 @@ class ProcessError(ValueError):
 
 class GliderQC(object):
     def __init__(self, ncfile, config_file=None):
-        '''
+        """
         Initializes an instance of the class with a netCDF file and an optional config file.
 
         :param ncfile: The netCDF file to be used (required).
         :param config_file: The path to a configuration file (optional).
-        '''
+        """
         self.ncfile = ncfile
 
         if config_file is not None:
@@ -50,11 +50,11 @@ class GliderQC(object):
                 log.error("Error loading config file %s: %s", config_file, str(e))
 
     def needs_qc(self, ncvariable):
-        '''
+        """
         Returns True if the variable has no associated QC variables
 
         :param ncvariable: netCDF4.Variable
-        '''
+        """
         ancillary_variables = self.find_qc_flags(ncvariable)
         if not ancillary_variables:
             log.info("No QARTOD flags found for %s, QC is needed", ncvariable.name)
@@ -65,11 +65,11 @@ class GliderQC(object):
         return not ancillary_variables
 
     def find_qc_flags(self, ncvariable):
-        '''
+        """
         Returns a list of QARTOD flags associated with a variable
 
         :param ncvariable: netCDF4.Variable
-        '''
+        """
 
         valid_variables = []
 
@@ -100,11 +100,11 @@ class GliderQC(object):
         return valid_variables
 
     def create_qc_variables(self, ncvariable):
-        '''
+        """
         Returns a list of variable names for the newly created variables for QC flags
 
         :param ncvariable: netCDF4.Variable
-        '''
+        """
         name_value = ncvariable.name
         standard_name_value = ncvariable.standard_name
         dims = ncvariable.dimensions
@@ -172,14 +172,14 @@ class GliderQC(object):
         return qcvariables
 
     def load_config(self, path=None):
-        '''
+        """
         Loads a YAML file configuration for QC.
 
         :param path: string (optional) - the path to the YAML config file.
                      If no path is provided, defaults to '/data/qc_config.yml'.
         :raises FileNotFoundError: If the file cannot be found at the specified path.
         :raises yaml.YAMLError: If the file contains invalid YAML.
-        '''
+        """
         path = path or Path(__file__).parent.absolute() / "qc_config.yml"
         log.info("Loading config from %s", path)
         try:
@@ -191,13 +191,13 @@ class GliderQC(object):
             log.error("Error loading YAML file %s: %s", path, e)
 
     def find_geophysical_variables(self):
-        '''
+        """
         Returns a list of variable names matching the geophysical variable's
         standard names for temperature, conductivity, density and salinity.
 
         :return string of variables name to use for qc
         :return string of report_list with encountered issues
-        '''
+        """
         valid_standard_names = [
             "sea_water_temperature",
             "sea_water_electrical_conductivity",
@@ -232,7 +232,7 @@ class GliderQC(object):
         return variables, " ".join(report_list)
 
     def get_rate_of_change_threshold(self, values, times):
-        '''
+        """
         Return the threshold used for the rate of change test
         This function calculates the maximum rate of change between consecutive values
         within one standard deviation of the mean.
@@ -242,7 +242,7 @@ class GliderQC(object):
 
         :return: float value representing the maximum rate of change
         :return: string of report_list of encountered issues
-        '''
+        """
         report_list = []
         if len(values) < 2 or len(times) < 2:
             log.info(
@@ -288,14 +288,14 @@ class GliderQC(object):
         return threshold, " ".join(report_list)
 
     def get_spike_thresholds(self, values):
-        '''
+        """
         Return the min/max thresholds used for the spike test.
 
         :param values: numpy array of values
 
         :return: tuple of (suspect_threshold, fail_threshold) as np.float64
         :return: string of report_list of encountered issues
-        '''
+        """
         report_list = []
         # If values is not a numpy array, convert it to one
         if not isinstance(values, np.ndarray):
@@ -320,7 +320,7 @@ class GliderQC(object):
 
     @classmethod
     def normalize_variable(cls, values, units, standard_name):
-        '''
+        """
         Returns an array of values that are converted into a standard set of
         units. The motivation behind this is so that we compare values of the
         same units when performing QC.
@@ -331,7 +331,7 @@ class GliderQC(object):
 
         :return report_list: a string logging issues encountered
         :return converted: numpy array of converted values
-        '''
+        """
         report_list = []
         mapping = {
             "sea_water_temperature": "deg_C",
@@ -374,12 +374,12 @@ class GliderQC(object):
         return converted, " ".join(report_list)
 
     def append_ancillary_variable(self, parent, child):
-        '''
+        """
         Links two variables through the ancillary_variables attribute.
 
         :param parent: netCDF.Variable (Parent Variable)
         :param child: netCDF.Variable (Status Flag Variable)
-        '''
+        """
         # Retrieve the current ancillary_variables, defaulting to an empty list if not set
         ancillary_variables = getattr(parent, "ancillary_variables", None)
 
@@ -396,19 +396,19 @@ class GliderQC(object):
         parent.ancillary_variables = " ".join(ancillary_variables)
 
     def update_config(self, varspec, varname, times, values, time_units):
-        '''
-         Update the input config file with specs values for the spike
-         and the gross range test methods
-
+        """
+        Update the input config file with specs values for the spike
+        and the gross range test methods
+    
         :param varspec: dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
         :param times: numpy array of times
         :param values: numpy array of values
         :param time_units: string defining time units
-
+    
         :return dictionary with configuration specs for qc
         :return string report_list with encountered issues
-        '''
+        """
         report_list = []
         # Calculate the spike test threshold
         # do not use the 1st and last data values in calculation
@@ -424,7 +424,7 @@ class GliderQC(object):
                 varspec["spike_test"] = {}
             varspec["spike_test"]["suspect_threshold"] = np.float64(suspect_threshold)
             varspec["spike_test"]["fail_threshold"] = np.float64(fail_threshold)
-
+    
         # Calculate the rate of change test threshold
         threshold, inote = self.get_rate_of_change_threshold(values, times)
         if threshold is None:
@@ -436,14 +436,14 @@ class GliderQC(object):
                 # If the key doesn't exist, initialize it as an empty dictionary or some default value
                 varspec["rate_of_change_test"] = {}
             varspec["rate_of_change_test"]["threshold"] = np.float64(threshold)
-
+    
         # Update the variable config specs
         configset = {"contexts": [{"streams": {varname: {"qartod": varspec}}}]}
-
+    
         return configset, " ".join(report_list)
 
     def apply_qc(self, df, varname, configset, ncfile_path):
-        '''
+        """
         Pass configuration and netCDF file to ioos_qc to generate
         QC test results for a variable
 
@@ -451,7 +451,7 @@ class GliderQC(object):
         :param varname: string defining the variable name
         :param configset: dictionary with variable config specs for each QARTOD test
         :return: List of QC results
-        '''
+        """
         # Step 1: Load the variable configuration specifications
         c_x = Config(configset)  # Ensure that Config is correctly instantiated
 
@@ -491,12 +491,12 @@ class GliderQC(object):
         return results_store
 
     def check_geophysical_variables(self, var_name):
-        '''
+        """
         Check the data array for the specified geophysical variable.
 
         :param var_name: variable name (str)
         :return: report_list (str) containing encountered issues
-        '''
+        """
         report_list = []
 
         # Access the variable
@@ -533,14 +533,14 @@ class GliderQC(object):
         return " ".join(report_list)
 
     def create_location_flag_variable(self, ndim, flag):
-        '''
+        """
         Create a location test variable for the lon and lat coordinates.
 
         :param ndim: tuple or list, the dimensions of the netCDF variable (e.g., (time, lat, lon)).
         :param flag: integer, the flag value to assign to the location test variable.
 
         :returns: netCDF variable, the created location test flag variable.
-        '''
+        """
         ncvar_name = "qartod_location_test_flag"
 
         # Create the variable with int8 type and given dimensions
@@ -577,14 +577,14 @@ class GliderQC(object):
         return ncvar
 
     def check_location(self):
-        '''
+        """
         Check the glider track lon and lat coordinates for outliers.
         If an outlier is detected:
             - Copy the profile_lat/lon variables onto new variables to preserve the original data.
             - Replace the profile_lat/lon data with the median of the lat or lon arrays.
 
         :return: report_list: string statement reporting on issues
-        '''
+        """
         report_list = []
         profile_lat = self.ncfile.variables["profile_lat"][0]
         profile_lon = self.ncfile.variables["profile_lon"][0]
@@ -635,11 +635,11 @@ class GliderQC(object):
         return " ".join(report_list)
 
     def watch_circle(self, center_lat, center_lon, radius_miles, num_points=128):
-        '''
+        """
         Approximate a small geodesic circle around (center_lat, center_lon).
         Returns list of (lat, lon) tuples (closed: first == last).
         Suitable for small radii like 2 miles.
-        '''
+        """
         # 1 degree latitude ≈ 69.172 miles
         miles_per_deg_lat = 69.172
         delta_lat_deg = radius_miles / miles_per_deg_lat
@@ -667,23 +667,23 @@ class GliderQC(object):
         return points
 
     def is_point_outside_polygon(self, point_lat, point_lon, polygon_points):
-        '''
+        """
         polygon_points: list of (lat, lon) tuples (closed: first==last or not)
         shapely expects (lon, lat) ordering
-        '''
+        """
         poly = Polygon([(lon, lat) for lat, lon in polygon_points])
         pt = Point(point_lon, point_lat)
         return not poly.contains(pt)
 
     def check_time(self, tnp, nc_path):
-        '''
+        """
         Check the time array for data start time inconsistent with the deployment start time,
         invalid timestamps, duplicate timestamps, and non-ascending timestamps.
 
         :param tnp: time array (numpy.ma.core.MaskedArray)
         :param nc_path: netCDF file path (str)
         :return: report_list: string statement reporting on issues
-        '''
+        """
 
         report_list = []
         # Check if any timestamps are masked
@@ -699,14 +699,14 @@ class GliderQC(object):
         DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
-            '''
+            """
             Return normalized timestamp 'YYYYmmddTHHMMSS' (no trailing Z).
             Padding:
               - 'YYYYmmdd' -> 'YYYYmmddT000000'
               - 'YYYYmmddTHH' -> 'YYYYmmddTHH0000'
               - 'YYYYmmddTHHMM' -> 'YYYYmmddTHHMM00'
               - 'YYYYmmddTHHMMSS' -> unchanged
-            '''
+            """
             name = Path(filename).name
             m = pat.search(name)
             if not m:
@@ -728,14 +728,14 @@ class GliderQC(object):
             return f"{date}T{time_part}"
 
         def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
-            '''
+            """
             Validate normalized 'YYYYmmddTHHMMSS' with datetime.strptime, and enforce year bounds:
               - min_year <= year <= max_year
             All other range and calendar checks (month, day, hour, minute, second, e.g. April 31)
             are handled automatically by strptime.
             Returns timezone-aware datetime (UTC) on success.
             Raises ValueError with a descriptive message on failure.
-            '''
+            """
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
 
@@ -755,6 +755,16 @@ class GliderQC(object):
             return dt.replace(tzinfo=timezone.utc)
 
         def to_posix_and_np_dt(dt_utc: datetime.datetime):
+            """
+            Convert a UTC-aware datetime object to a POSIX timestamp and a NumPy datetime64.
+        
+            :param dt_utc: A timezone-aware datetime object in UTC.
+            :type dt_utc: datetime.datetime
+            :returns: A tuple containing:
+                - **posix** (*float*): POSIX timestamp (seconds since Unix epoch, 1970-01-01T00:00:00Z).
+                - **np_dt** (*numpy.datetime64*): Equivalent timestamp as a NumPy datetime64 with second precision.
+            :rtype: tuple[float, numpy.datetime64]
+            """
             posix = dt_utc.timestamp()
             np_dt = np.datetime64(int(posix), 's')
             return posix, np_dt
@@ -812,13 +822,13 @@ class GliderQC(object):
 
 # the main function
 def run_qc(config, ncfile, ncfile_path):
-    '''
+    """
     Runs IOOS QARTOD tests on a netCDF file
 
     :param config: string defining path to the configuration file
     :param ncfile_path: string defining path to the netCDF file
     :param ncfile: netCDF4._netCDF4.Dataset
-    '''
+    """
     report_list = []
     xyz = GliderQC(ncfile, config)
     deployment_name = ncfile_path.split("/")[-2]
@@ -966,11 +976,11 @@ def run_qc(config, ncfile, ncfile_path):
 
 
 def qc_task(nc_path, config):
-    '''
+    """
     Job wrapper around performing QC
     :param nc_path: string defining path to the netcdf file
     :param config: string defining path to the configuration file
-    '''
+    """
     lock = lock_file(nc_path)
     if not lock.acquire():
         raise ProcessError("File lock already acquired by another process")
@@ -998,10 +1008,10 @@ def qc_task(nc_path, config):
 
 
 def lock_file(path):
-    '''
+    """
     Acquires a file lock or raises an exception
     :param path string defining path to the netcdf file
-    '''
+    """
     rc = get_redis_connection()
     key = f"gliderdac:{path}"
     lock = rc.lock(key, blocking_timeout=0)
@@ -1009,10 +1019,10 @@ def lock_file(path):
 
 
 def get_redis_connection():
-    '''
+    """
     Returns a redis connection configured with a pool. Redis can be configured
     from the environment variables REDIS_HOST, REDIS_PORT and REDIS_DB
-    '''
+    """
     global __RCONN
     if __RCONN is not None:
         return __RCONN
@@ -1025,10 +1035,10 @@ def get_redis_connection():
 
 
 def check_needs_qc(nc_path):
-    '''
+    """
     Returns True if the netCDF file needs GliderQC
     param nc_path: string defining path to the netcdf file
-    '''
+    """
     # quick check to see if QC has already been run on these files
     try:
         if os.getxattr(nc_path, "user.qc_run"):
