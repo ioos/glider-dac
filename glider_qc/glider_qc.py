@@ -824,7 +824,7 @@ class GliderQC(object):
             return ' '.join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
-        if np.any(tnp[:] == 0):
+        if np.any(tnp[:] == np.datetime64(0, 's')):
             log.info("Invalid timestamps (t == 0)")
             report_list.append("timestamps assigned a value of 0")
             return " ".join(report_list)
