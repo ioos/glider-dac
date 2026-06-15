@@ -39,6 +39,65 @@ class TestGliderQC(TestCase):
         assert "salinity" in variables
         assert "pressure" in variables
 
+    def test_check_geophysical_variables_min_max(self):
+        copypath = self.copy_ncfile(STATIC_FILES["murphy"])
+        ncfile = Dataset(copypath, "r+")
+        self.addCleanup(ncfile.close)
+
+        qc = GliderQC(ncfile, self.qc_conf_loc)
+
+        temperature = ncfile.variables["temperature"]
+
+        # Force invalid metadata
+        temperature.valid_min = 10.0
+        temperature.valid_max = 5.0
+
+        result = qc.check_geophysical_variables("temperature")
+
+        assert isinstance(result, str)
+        assert "temperature has the valid_min and valid_max switched" in result
+
+    def test_check_geophysical_variables_masked(self):
+        copypath = self.copy_ncfile(STATIC_FILES["murphy"])
+        ncfile = Dataset(copypath, "r+")
+        self.addCleanup(ncfile.close)
+
+        qc = GliderQC(ncfile, self.qc_conf_loc)
+
+        temperature = ncfile.variables["temperature"]
+
+        # Force all values to be masked/fill values
+        fill_value = getattr(temperature, "_FillValue", None)
+        if fill_value is None:
+            fill_value = -9999.0
+
+        temperature[:] = np.ma.array(
+        np.full(temperature.shape, fill_value, dtype=temperature.dtype),
+        mask=np.ones(temperature.shape, dtype=bool),
+        )
+
+        result = qc.check_geophysical_variables("temperature")
+
+        assert isinstance(result, str)
+        assert "temperature is an array of masked values" in result
+
+    def test_check_geophysical_variables_nan(self):
+        copypath = self.copy_ncfile(STATIC_FILES["murphy"])
+        ncfile = Dataset(copypath, "r+")
+        self.addCleanup(ncfile.close)
+
+        qc = GliderQC(ncfile, self.qc_conf_loc)
+
+        temperature = ncfile.variables["temperature"]
+
+         # Set all values to NaN
+        temperature[:] = np.full(temperature.shape, np.nan, dtype=temperature.dtype)
+
+        result = qc.check_geophysical_variables("temperature")
+
+        assert isinstance(result, str)
+        assert "temperature is an array of NaNs" in result
+
     def test_create_qc_variables(self):
         copypath = self.copy_ncfile(STATIC_FILES["murphy"])
         ncfile = Dataset(copypath, "r+")
