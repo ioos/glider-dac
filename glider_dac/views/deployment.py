@@ -160,6 +160,11 @@ def show_deployment(deployment_name):
                 qc_status = os.getxattr(file_loc, "user.qc_run") not in (None, "error")
             except OSError:
                 qc_status = False
+        # Fallthrough: If file doesn't exist in ERDDAP file directory, we won't know
+        #              about whether file is valid or has QC, etc.
+        else:
+            file_status = None
+            qc_status = False
 
         files.append(
             (
