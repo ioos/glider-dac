@@ -160,6 +160,11 @@ def show_deployment(deployment_name):
                 qc_status = os.getxattr(file_loc, "user.qc_run") not in (None, "error")
             except OSError:
                 qc_status = False
+        # Fallthrough: If file doesn't exist in ERDDAP file directory, we won't know
+        #              about whether file is valid or has QC, etc.
+        else:
+            file_status = None
+            qc_status = False
 
         files.append(
             (
@@ -200,17 +205,14 @@ def show_deployment(deployment_name):
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user.is_authenticated and (
-        current_user.is_active
-        and (current_user.admin or current_user == deployment.user)
+    if current_user.is_authenticated and current_user.is_active and (
+        current_user.admin or current_user == deployment.user
     ):
         kwargs["editable"] = True
-        if current_user.is_authenticated and (
-            current_user.admin or current_user.username == deployment.user.username
-        ):
-            kwargs["admin"] = True
+        # For now, give admin on deployment detail page if an admin
+        # or the owning user.  This may change if a more sophisticated permissions mode is implemented
+        kwargs["admin"] = True
 
-    current_app.logger.info(deployment.dap)
     return render_template(
         "show_deployment.html",
         form=form,
@@ -219,6 +221,7 @@ def show_deployment(deployment_name):
         files=files,
         extra_atts_content=extra_atts_content,
         wmo_id_dups=wmo_id_dups,
+        **kwargs,
     )
 
 
@@ -433,11 +436,10 @@ def post_deployment_file(username, deployment_name):
             current_app.logger.exception("Error uploading file: {}".format(out_name))
 
         retval.append((safe_filename, datetime.utcnow()))
-    editable = (
-        current_user
-        and current_user.is_active
-        and (current_user.admin or current_user == user)
-    )
+
+    editable = current_user.is_authenticated and current_user.is_active and (
+                        current_user.admin or current_user == deployment.user)
+
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
