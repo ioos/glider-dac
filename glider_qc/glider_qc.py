@@ -639,10 +639,7 @@ class GliderQC(object):
                 )
                 report_list.append("error in glider track lat/lon")
             else:
-                flag = 1  # PASS
-                report_list.append(
-                    f"profile_lat={profile_lat}, profile_lon={profile_lon} are inside the polygon"
-                )
+                flag = 1  # PASS              
         else:
             flag = 9  # MISSING
             report_list.append(
