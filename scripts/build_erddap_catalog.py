@@ -767,12 +767,12 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
             continue
         else:
             flag_atts = """
-                    <att name="_FillValue" type="byte">2</att>
+                    <att name="_FillValue" type="byte">-128</att>
                     <att name="dac_comment">QARTOD TESTS NOT RUN</att>
                     <att name="flag_values" type="byteList">1 2 3 4 9</att>
                     <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
                     <att name="ioos_category">Quality</att>
-                    <att name="references">https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf</att>
+                    <att name="references">https://cdn.ioos.noaa.gov/media/2017/12/Manual-for-QC-of-Glider-Data_05_09_16.pdf</att>
                     <att name="units">1</att>
                     <att name="valid_min" type="byte">1</att>
                     <att name="valid_max" type="byte">9</att>
