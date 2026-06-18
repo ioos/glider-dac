@@ -155,7 +155,7 @@ class GliderQC(object):
             ncvar.valid_min = np.int8(1)
             ncvar.valid_max = np.int8(9)
             ncvar.flag_meanings = "PASS NOT_EVALUATED SUSPECT FAIL MISSING"
-            ncvar.references = "https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf "
+            ncvar.references = "https://cdn.ioos.noaa.gov/media/2017/12/Manual-for-QC-of-Glider-Data_05_09_16.pdf"
             ncvar.qartod_package = (
                 "https://github.com/ioos/ioos_qc/blob/main/ioos_qc/qartod.py"
             )
@@ -574,7 +574,7 @@ class GliderQC(object):
 
         # Create the variable with int8 type and given dimensions
         ncvar = self.ncfile.createVariable(
-            ncvar_name, np.int8, ndim, fill_value=np.int8(2)
+            ncvar_name, np.int8, ndim, fill_value=np.int8(-128)
         )
 
         # Assign flag value to the whole array (assuming flag is a scalar)
@@ -590,7 +590,7 @@ class GliderQC(object):
         ncvar.flag_meanings = "PASS NOT_EVALUATED SUSPECT FAIL MISSING"
         ncvar.references = (
             "The GDAC uses a modified version of the location test described in "
-            "https://gliders.ioos.us/files/Manual-for-QC-of-Glider-Data_05_09_16.pdf"
+            "https://cdn.ioos.noaa.gov/media/2017/12/Manual-for-QC-of-Glider-Data_05_09_16.pdf"
         )
         ncvar.qartod_module = (
             "The GDAC location test does not use the algorithm from "
