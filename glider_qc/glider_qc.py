@@ -639,7 +639,7 @@ class GliderQC(object):
                 )
                 report_list.append("error in glider track lat/lon")
             else:
-                flag = 1  # PASS              
+                flag = 1  # PASS
         else:
             flag = 9  # MISSING
             report_list.append(
