@@ -73,10 +73,38 @@ services:
       - POSTGRES_DB=gliderdac
       - POSTGRES_USER=glider
       - POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+      
+      - WALE_S3_PREFIX=s3://your-bucket/gliderdac
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+
     ports:
       - 5432:5432
     volumes:
-      - status_postgres:/var/lib/postgresql/
+      - status_postgres:/var/lib/postgresql/data
+      - ./wal-g:/usr/local/bin/wal-g
+    
+  postgres-backup:
+    image: alpine:3.20
+    depends_on:
+      - postgres
+    volumes:
+      - ./wal-g:/usr/local/bin/wal-g
+    environment:
+      - WALE_S3_PREFIX=s3://your-bucket/gliderdac
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+    entrypoint: |
+      sh -c "
+        while true; do
+          sleep 86400;
+          wal-g backup-push /var/lib/postgresql/data;
+        done
+      "
+  ``
+
 
   thredds:
     container_name: thredds
