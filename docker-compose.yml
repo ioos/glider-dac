@@ -84,6 +84,7 @@ services:
     volumes:
       - status_postgres:/var/lib/postgresql/data
       - ./wal-g:/usr/local/bin/wal-g
+      - postgres-config/postgres.conf:postgres-config/postgres.conf
     
   postgres-backup:
     image: alpine:3.20
