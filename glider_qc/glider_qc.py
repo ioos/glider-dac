@@ -3,10 +3,14 @@
 Runs IOOS QARTOD tests on a netCDF file
 glider_qc/glider_qc.py
 """
-
+import re
+from typing import Optional
+import datetime
+from datetime import timezone
+import numpy as np
+from dateutil.parser import isoparse
 from cf_units import Unit
 from netCDF4 import Dataset
-from pathlib import Path
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
@@ -20,7 +24,7 @@ import logging
 import redis
 import os
 from shapely.geometry import Point, Polygon
-
+from pathlib import Path
 log = logging.getLogger(__name__)
 __RCONN = None
 
@@ -66,7 +70,6 @@ class GliderQC(object):
 
         :param ncvariable: netCDF4.Variable
         """
-
         valid_variables = []
 
         # Process the ancillary_variables if it's a valid non-empty string
@@ -393,8 +396,8 @@ class GliderQC(object):
 
     def update_config(self, varspec, varname, times, values, time_units):
         """
-         Update the input config file with specs values for the spike
-         and the gross range test methods
+        Update the input config file with specs values for the spike
+        and the gross range test methods
 
         :param varspec: dictionary with variable config specs for QARTOD tests
         :param varname: string defining the variable name
@@ -440,7 +443,7 @@ class GliderQC(object):
 
         return configset, " ".join(report_list)
 
-    def apply_qc(self, df, varname, configset):
+    def apply_qc(self, df, varname, configset, ncfile_path):
         """
         Pass configuration and netCDF file to ioos_qc to generate
         QC test results for a variable
@@ -457,7 +460,7 @@ class GliderQC(object):
         try:
             qc_x = PandasStream(df)
         except Exception as e:
-            log.error(f"Failed to read data for {varname}: {e}")
+            log.error(f"Failed to read data for {varname} from {ncfile_path}: {e}")
             return []
 
         # Step 3: Run the QC tests
@@ -710,6 +713,7 @@ class GliderQC(object):
         :param nc_path: netCDF file path (str)
         :return: report_list: string statement reporting on issues
         """
+
         report_list = []
         # Check if any timestamps are masked
         if np.any(tnp.mask):
@@ -717,37 +721,107 @@ class GliderQC(object):
             report_list.append("masked timestamps")
             return ' '.join(report_list)
 
-        # Extract deployment start time from the nc_path
-        deployment_time = nc_path.split("/")[-2].split("-")[-1]
+        # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
+        pat = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
+
+        DEFAULT_MIN_YEAR = 1998 # the first ocean sea trials / deployment of a glider.
+        DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
+
+        def extract_normalized_no_z(filename: str) -> Optional[str]:
+            """
+            Return normalized timestamp 'YYYYmmddTHHMMSS' (no trailing Z).
+            Padding:
+              - 'YYYYmmdd' -> 'YYYYmmddT000000'
+              - 'YYYYmmddTHH' -> 'YYYYmmddTHH0000'
+              - 'YYYYmmddTHHMM' -> 'YYYYmmddTHHMM00'
+              - 'YYYYmmddTHHMMSS' -> unchanged
+            """
+            name = Path(filename).name
+            m = pat.search(name)
+            if not m:
+                return None
+            token = m.group(1).upper()
+            if token.endswith('Z'):
+                token = token[:-1]
+            if 'T' not in token:
+                return f"{token}T000000"
+            date, time_part = token.split('T', 1)
+            if len(time_part) == 2:      # HH -> HH0000
+                time_part = time_part + '0000'
+            elif len(time_part) == 4:    # HHMM -> HHMM00
+                time_part = time_part + '00'
+            elif len(time_part) == 6:    # HHMMSS -> ok
+                pass
+            else:
+                return None
+            return f"{date}T{time_part}"
+
+        def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
+            """
+            Validate normalized 'YYYYmmddTHHMMSS' with datetime.strptime, and enforce year bounds:
+              - min_year <= year <= max_year
+            All other range and calendar checks (month, day, hour, minute, second, e.g. April 31)
+            are handled automatically by strptime.
+            Returns timezone-aware datetime (UTC) on success.
+            Raises ValueError with a descriptive message on failure.
+            """
+            if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
+                raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
+
+            # strptime validates all component ranges AND calendar correctness (e.g. April 31)
+            try:
+                dt = datetime.datetime.strptime(norm_no_z, "%Y%m%dT%H%M%S")
+            except ValueError:
+                raise ValueError(f"Invalid date/time values in token: {norm_no_z!r}")
+
+            # Enforce custom year bounds (strptime does not check these)
+            if dt.year < min_year:
+                raise ValueError(f"Year {dt.year} is less than minimum allowed {min_year}.")
+            if dt.year > max_year:
+                raise ValueError(f"Year {dt.year} is greater than maximum allowed {max_year}.")
+
+            # Return UTC-aware datetime
+            return dt.replace(tzinfo=timezone.utc)
+
+        def to_posix_and_np_dt(dt_utc: datetime.datetime):
+            """
+            Convert a UTC-aware datetime object to a POSIX timestamp and a NumPy datetime64.
+
+            :param dt_utc: A timezone-aware datetime object in UTC.
+            :type dt_utc: datetime.datetime
+            :returns: A tuple containing:
+                - **posix** (*float*): POSIX timestamp (seconds since Unix epoch, 1970-01-01T00:00:00Z).
+                - **np_dt** (*numpy.datetime64*): Equivalent timestamp as a NumPy datetime64 with second precision.
+            :rtype: tuple[float, numpy.datetime64]
+            """
+            posix = dt_utc.timestamp()
+            np_dt = np.datetime64(int(posix), 's')
+            return posix, np_dt
+
+        deployment_name = nc_path.split('/')[-2]
+        normalized = extract_normalized_no_z(deployment_name)
+        if not normalized:
+            log.info("No timestamp found in deployment_name.")
+            report_list.append("deployment name missing valid timestamp: " + deployment_name)
+            return ' '.join(report_list)
 
         try:
-            # Convert deployment time to a timestamp
-            dp_time = datetime.datetime.strptime(
-                deployment_time, "%Y%m%dT%H%M%S"
-            ).timestamp()
-            # Convert start_time to datetime64
-            dp_time_dt = np.datetime64(datetime.datetime.fromtimestamp(dp_time))
-            dp_time_dt = dp_time_dt.astype("datetime64[s]")
-            # Check if the first timestamp in the data is before the deployment time
-            if dp_time_dt > tnp[0]:
-                log.info("Start time precedes deployment time")
-                report_list.append(
-                    "start time "
-                    + str(tnp[0])
-                    + " precedes deployment time "
-                    + str(dp_time_dt)
-                )
-                return " ".join(report_list)
-        except ValueError:
-            # Handle invalid format for deployment time
-            log.info("Missing or invalid Deployment Start time")
-            report_list.append(
-                "deployment time not in %Y%m%dT%H%M%S format" + str(deployment_time)
-            )
-            return " ".join(report_list)
+            deployment_time_utc = validate_and_enforce_ranges(normalized, DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR)
+            posix_sec, dp_time_dt = to_posix_and_np_dt(deployment_time_utc)
+        except ValueError as exc:
+            time_err = "Deployment time missing or invalid"
+            log.exception(f"{time_err}: {str(exc)}")
+            report_list.append(f"{time_err}: {str(exc)}")
+            return ' '.join(report_list)
+
+        # Check if the first timestamp in the data is before the deployment time
+        if dp_time_dt > tnp[0]:
+            log.info("Start time precedes deployment time")
+            report_list.append("start time " + str(tnp[0]) + " precedes deployment time " + str(dp_time_dt))
+            return ' '.join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
-        if np.any(tnp[:] == 0):
+        if np.any(tnp[:] == np.datetime64(0, 's')):
             log.info("Invalid timestamps (t == 0)")
             report_list.append("timestamps assigned a value of 0")
             return " ".join(report_list)
@@ -786,13 +860,14 @@ def run_qc(config, ncfile, ncfile_path):
     """
     report_list = []
     xyz = GliderQC(ncfile, config)
-    deployment_name = ncfile_path.split("/")[-2]
-    file_name = ncfile_path.split("/")[-1]
+    deployment_name = ncfile_path.split('/')[-2]
+    file_name = ncfile_path.split('/')[-1]
 
     times = ncfile.variables["time"]
     # Check Time
     try:
-        inote = xyz.check_time(times[:].astype("datetime64[s]"), ncfile_path)
+        dt_high = np.datetime64(int(times[:] * 1_000_000), 'us')
+        inote = xyz.check_time(dt_high.astype('datetime64[s]'), ncfile_path)
         report_list.append(inote)
     except Exception as e:
         time_err = "Could not check time."
@@ -884,7 +959,7 @@ def run_qc(config, ncfile, ncfile_path):
 
                 # Get the QARTOD results
                 try:
-                    results = xyz.apply_qc(df, var_name, config_set)
+                    results = xyz.apply_qc(df,var_name, config_set, ncfile_path)
                     log.info("Generated QC test results for %s", var_name)
 
                     for testname in results.columns:
@@ -927,7 +1002,6 @@ def run_qc(config, ncfile, ncfile_path):
     ncfile.dac_qc_comment = (
         str(deployment_name) + " (" + str(file_name) + ": " + str(report) + ")"
     )
-
 
 def qc_task(nc_path, config):
     """

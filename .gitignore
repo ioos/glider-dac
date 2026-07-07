@@ -16,6 +16,7 @@ tds_catalogs
 glider_dac/tests/data/
 .pytest_cache
 secrets/
+src/
 
 .env
 .venv/
