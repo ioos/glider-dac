@@ -458,6 +458,8 @@ class Deployment(db.Model):
         url_path = "/".join([base_url, erddap_fmt_string.format(self.name)])
         # TODO: would be better if we didn't have to write to a temp file
         outhandle, outfile = tempfile.mkstemp()
+        from compliance_checker.suite import CheckSuite
+        CheckSuite().load_all_available_checkers()
         failures, _ = ComplianceChecker.run_checker(
             ds_loc=url_path,
             checker_names=["gliderdac"],
