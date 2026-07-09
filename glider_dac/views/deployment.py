@@ -184,7 +184,9 @@ def show_deployment(deployment_name):
     extra_atts_path = dep_path / "extra_atts.json"
 
     try:
-        extra_atts_content = (extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None)
+        extra_atts_content = (
+            extra_atts_path.read_text("utf-8") if extra_atts_path.exists() else None
+        )
     except OSError:
         current_app.logger.exception(f"Could not read {extra_atts_path}")
         extra_atts_content = None
@@ -205,8 +207,10 @@ def show_deployment(deployment_name):
 
     form = DeploymentForm(obj=deployment)
 
-    if current_user.is_authenticated and current_user.is_active and (
-        current_user.admin or current_user == deployment.user
+    if (
+        current_user.is_authenticated
+        and current_user.is_active
+        and (current_user.admin or current_user == deployment.user)
     ):
         kwargs["editable"] = True
         # For now, give admin on deployment detail page if an admin
@@ -437,9 +441,11 @@ def post_deployment_file(username, deployment_name):
 
         retval.append((safe_filename, datetime.utcnow()))
 
-    editable = current_user.is_authenticated and current_user.is_active and (
-                        current_user.admin or current_user == deployment.user)
-
+    editable = (
+        current_user.is_authenticated
+        and current_user.is_active
+        and (current_user.admin or current_user == deployment.user)
+    )
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
@@ -593,6 +599,9 @@ def get_deployments():
                         return dt_now - timedelta(**{units: val})
                 return dateparse(datestr)
             except Exception:
+                current_app.logger.exception(
+                    "Exception occurred trying to parse minTime"
+                )
                 return None
 
         min_time_dt = parse_date(min_time)
