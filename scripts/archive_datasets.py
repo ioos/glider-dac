@@ -75,30 +75,37 @@ def make_copy(filepath):
         try:
             os.symlink(source, target)
         except (IOError, OSError):
-            logger.exception("Could not hard link to file {}".format(source))
+            logger.exception("Could not symlink to file {}".format(source))
             return
     try:
         md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
     # yet, so start processing the hash
-    except OSError:
+    except (OSError, FileNotFoundError):
         logger.info("Generating MD5 sums")
         generate_hash(target)
         return
 
-    with open("{}.md5".format(target), "rb") as f:
-        md5sum_file_contents = f.read()
-    # Does the md5sum in the dedicated file match the xattr value?
-    # If yes, we already have this file.
-    # If no, we need to process this file as the contents have likely
-    # changed.
-    if md5sum_file_contents != md5sum_xattr:
-        logger.info("Hash contents for {} mismatched, "
-                    "regenerating".format(target))
-        generate_hash(target)
+    # Check for existing .md5 file and compare to xattr value.
+    md5_filename = f"{target}.md5"
+    if os.path.exists(md5_filename):
+        try:
+            with open(md5_filename, "rb") as f:
+                md5sum_file_contents = f.read()
+            if md5sum_file_contents != md5sum_xattr:
+                logger.info("Hash contents for {} mismatched, "
+                            "regenerating".format(target))
+                generate_hash(target)
+            else:
+                logger.info("MD5 hash contents for {} already exist and are "
+                            "unchanged, skipping...".format(target))
+        except:
+            logger.exception(f"Hit other error trying to read {md5_filename}, "
+                             "attempting to proceed generating MD5 sum anyway.")
+            generate_hash(target)
     else:
-        logger.info("MD5 hash contents for {} already exist and are "
-                    "unchanged, skipping...".format(target))
+        logger.info(f"{md5_filename} does not exist, creating...")
+        generate_hash(target)
 
 
 def generate_hash(filepath):
@@ -108,6 +115,12 @@ def generate_hash(filepath):
     :param str filepath: Path to the file to be hashed
     '''
     real_path = os.path.realpath(filepath)
+    # check if symlink target exists.
+    if not os.path.exists(real_path):
+        logger.warning("Could not find referenced file from symlink "
+                       f"'{filepath}', check if aggregated NetCDF file "
+                       "exists.")
+        return
     hasher = hashlib.md5()
     hashfile(real_path, hasher)
     md5sum = filepath + '.md5'
