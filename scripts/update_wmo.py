@@ -5,11 +5,13 @@ scripts/update_wmo.py
 A script to get WMO IDs and attribution from netCDF files and apply them to the dataset in mongo
 '''
 
-from glider_dac import app, db
+from glider_dac import create_app
 from glider_dac.models.deployment import Deployment
 from netCDF4 import Dataset
 import sys
 from sqlalchemy import or_
+import logging
+import pandas as pd
 
 def main(args):
     '''
@@ -18,60 +20,55 @@ def main(args):
     # For each deployment without a wmo id
     for deployment in Deployment.query.filter(or_(Deployment.wmo_id.is_(None),
                                 Deployment.attribution.is_(None))).all():
+        print(deployment)
         try:
             update_deployment(deployment)
         except Exception:
+            logging.exception("Encountered error attempting to set WMO ID/"
+                             "attribution for {deployment.name}")
             continue
 
     return 0
 
 
 def update_deployment(deployment):
-    '''
+    """
     Returns an updated deployment with the fields filled in where necessary.
 
     :param Deployment deployment: The deployment object
-    '''
-    dap_url = deployment.dap
+    """
+    import re
+    import requests
 
-    with Dataset(dap_url) as nc:
+    def get_erddap_attr(erddap_url, attr_name):
+        das_url = erddap_url.rsplit(".", 1)[0] + ".das"
+        resp = requests.get(das_url, timeout=30)
+        resp.raise_for_status()
 
-        if deployment.wmo_id is None:
-            wmo_id = get_wmo(nc)
-            if wmo_id:
-                deployment.wmo_id = wmo_id
+        pattern = rf'(?<=String {attr_name} ")[^"]+'
+        m = re.search(pattern, resp.text)
+        return m.group(0) if m else None
 
-        elif deployment.attribution is None:
-            attribution = get_acknowledgment(nc)
-            if attribution:
-                deployment.attribution = attribution
+    dirty = False
 
-        if db.session.is_modified(deployment):
-            db.session.commit()
+    if deployment.wmo_id is None:
+        wmo_id = get_erddap_attr(deployment.erddap, "wmo_id")
+        if wmo_id:
+            deployment.wmo_id = wmo_id
+            dirty = True
 
+    if deployment.attribution is None:
+        attribution = get_erddap_attr(deployment.erddap, "acknowledgment")
+        if attribution:
+            deployment.attribution = attribution
+            dirty = True
 
-def get_wmo(nc):
-    '''
-    Gets the best candidate for a WMO ID
+    if dirty:
+        deployment.save()
 
-    :param netCDF4.Dataset nc: An open netCDF4 Dataset
-    '''
-    if getattr(nc, 'wmo_id', None):
-        wmo_id = nc.wmo_id
-    elif 'wmo_id' in nc.variables:
-        wmo_id = ''.join(nc.variables['wmo_id'][:].flatten())
-    else:
-        return None
-    return wmo_id
+        print(f"Modified deployment {deployment.name}")
 
-
-def get_acknowledgment(nc):
-    '''
-    Gets the best candidate for an acknowledgment
-
-    :param netCDF4.Dataset nc: An open netCDF4 Dataset
-    '''
-    return getattr(nc, 'acknowledgment', None)
+    return deployment
 
 
 if __name__ == '__main__':
@@ -79,5 +76,5 @@ if __name__ == '__main__':
     parser = ArgumentParser(description=main.__doc__)
 
     args = parser.parse_args()
-    with app.app_context():
+    with create_app().app_context():
         sys.exit(main(args))
