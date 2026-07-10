@@ -11,6 +11,7 @@ from rq import Queue
 # from flask import current_app
 from glider_qc import glider_qc
 import logging
+from netCDF4 import Dataset
 from glider_dac import create_app
 from glider_dac.models.deployment import Deployment
 from watchdog.events import (
@@ -82,9 +83,25 @@ class HandleDeploymentDB(FileSystemEventHandler):
                             navo_deployment_directory = maybe_dir
 
                 if not navo_deployment_directory:
+                    try:
+                        with Dataset(event.src_path) as ds:
+                            # title contains uppercased deployment name e.g.
+                            # NG000-20260601TOOO.  Will be modified to
+                            # create a reasonable directory name,
+                            # but deployment will still need to be created
+                            # through the providers application.
+                            # TODO: Should this also create a Deployment
+                            # object and register a deployment?
+                            ds_id = ds.id
+                    except (FileNotFoundError, OSError, AttributeError):
+                        log.exception("Error occurred while trying to "
+                                      "determine NAVOCEANO deployment name "
+                                      "for directory by reading id global "
+                                      f"attribute from {event.src_path}: ")
+                        return
+
                     navo_deployment_directory = os.path.join(
-                        self.base, f"navoceano/{glider_callsign}-{date_str}"
-                    )
+                        self.base, f"navoceano/{ds_id.replace('NG', 'ng')}")
                 # Directory could exist, but no deployment in DB!
                 try:
                     os.makedirs(navo_deployment_directory, exist_ok=True)
