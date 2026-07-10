@@ -10,6 +10,7 @@ import logging
 from glider_dac.models.deployment import Deployment
 from glider_dac.config import get_config
 from glider_dac import create_app, log_formatter
+from flask import current_app
 
 logger = logging.getLogger('archive_datasets')
 _DEP_CACHE = None
@@ -32,15 +33,25 @@ def get_deployments():
 
 
 def get_active_deployments():
-    '''
+    """
     Returns a list of deployments that are safe for archival.  Datasets for
     archival must meet the following criteria:
 
      - The dataset is completed
      - The dataset is marked for archival by NCEI
      - The dataset has no standard name errors in the glider compliance checker report
-    '''
-    with create_app().app_context():
+    """
+    # HACK: Usually the first form is correct, but we sometimes need to call as
+    #       part of code that already has the application context active, such
+    #       as tests. There might be a more elegant way to support both the
+    #       script and the tests. Alternatively, the script logic could be
+    #       to first class support within the Deployment model or the
+    #       application context proper.
+    if __name__ == "__main__":
+        app = create_app()
+    else:
+        app = current_app
+    with app.app_context():
         return Deployment.query.filter_by(completed=True, archive_safe=True,
                                           cf_standard_names_valid=True).all()
 
