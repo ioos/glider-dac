@@ -7,10 +7,16 @@ from lxml import etree
 
 
 class DummyVar:
-    def __init__(self, name, dtype):
+    def __init__(self, name, dtype, attrs=None):
         self.name = name
         self.dtype = dtype
+        self._attrs = attrs or {}
 
+    def ncattrs(self):
+        return list(self._attrs.keys())
+
+    def getncattr(self, key):
+        return self._attrs[key]
 
 class DummyDtype:
     def __init__(self, type_):
