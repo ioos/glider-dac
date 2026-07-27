@@ -11,6 +11,7 @@ import numpy as np
 from dateutil.parser import isoparse
 from cf_units import Unit
 from netCDF4 import Dataset
+from netCDF4 import num2date
 import datetime
 from ioos_qc.stores import PandasStore
 from ioos_qc.streams import PandasStream
@@ -706,26 +707,33 @@ class GliderQC(object):
 
     def check_time(self, tnp, nc_path):
         """
-        Check the time array for data start time inconsistent with the deployment start time,
-        invalid timestamps, duplicate timestamps, and non-ascending timestamps.
+        Check the time array for:
+         - masked timestamps
+         - deployment start time inconsistencies
+         - invalid timestamps
+         - duplicate timestamps
+         - non-ascending timestamps
 
-        :param tnp: time array (numpy.ma.core.MaskedArray)
+        :param tnp: numpy datetime64 array
         :param nc_path: netCDF file path (str)
-        :return: report_list: string statement reporting on issues
+        :return: report_list: issues report string
         """
 
         report_list = []
-        # Check if any timestamps are masked
-        if np.any(tnp.mask):
+        # Handle masked arrays safely
+        if hasattr(tnp, "mask") and np.any(tnp.mask):
             log.info("Timestamps are masked")
             report_list.append("masked timestamps")
-            return ' '.join(report_list)
+            return " ".join(report_list)
+
+        # Ensure numpy array
+        tnp = np.asarray(tnp)
 
         # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
         pat = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
 
         DEFAULT_MIN_YEAR = 1998 # the first ocean sea trials / deployment of a glider.
-        DEFAULT_MAX_YEAR = datetime.datetime.now().year  # use "now" at runtime
+        DEFAULT_MAX_YEAR = datetime.datetime.now().year
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
             """
@@ -747,9 +755,9 @@ class GliderQC(object):
                 return f"{token}T000000"
             date, time_part = token.split('T', 1)
             if len(time_part) == 2:      # HH -> HH0000
-                time_part = time_part + '0000'
+                time_part += '0000'
             elif len(time_part) == 4:    # HHMM -> HHMM00
-                time_part = time_part + '00'
+                time_part += '00'
             elif len(time_part) == 6:    # HHMMSS -> ok
                 pass
             else:
@@ -758,12 +766,8 @@ class GliderQC(object):
 
         def validate_and_enforce_ranges(norm_no_z: str, min_year: int, max_year: int) -> datetime.datetime:
             """
-            Validate normalized 'YYYYmmddTHHMMSS' with datetime.strptime, and enforce year bounds:
-              - min_year <= year <= max_year
-            All other range and calendar checks (month, day, hour, minute, second, e.g. April 31)
-            are handled automatically by strptime.
-            Returns timezone-aware datetime (UTC) on success.
-            Raises ValueError with a descriptive message on failure.
+            Validate normalized 'YYYYmmddTHHMMSS' and enforce year bounds.
+            Returns timezone-aware UTC datetime.
             """
             if len(norm_no_z) != 15 or norm_no_z[8] != 'T':
                 raise ValueError(f"Normalized token not in expected format YYYYmmddTHHMMSS: {norm_no_z!r}")
@@ -814,33 +818,35 @@ class GliderQC(object):
             report_list.append(f"{time_err}: {str(exc)}")
             return ' '.join(report_list)
 
-        # Check if the first timestamp in the data is before the deployment time
-        if dp_time_dt > tnp[0]:
+        # Make sure timestamps are datetime64[s] for comparison
+        tnp = tnp.astype("datetime64[s]")
+
+        # Remove NaT values
+        valid_values = tnp[~np.isnat(tnp)]
+
+        if valid_values.size == 0:
+            report_list.append("no valid timestamps")
+            return " ".join(report_list)
+
+        # Check if first timestamp is before deployment time
+        if dp_time_dt > valid_values[0]:
             log.info("Start time precedes deployment time")
-            report_list.append("start time " + str(tnp[0]) + " precedes deployment time " + str(dp_time_dt))
+            report_list.append("start time " + str(valid_values[0]) + " precedes deployment time " + str(dp_time_dt))
             return ' '.join(report_list)
 
         # Check for invalid timestamps (e.g., timestamps with value 0)
-        if np.any(tnp[:] == np.datetime64(0, 's')):
+        if np.any(valid_values[:] == np.datetime64(0, 's')):
             log.info("Invalid timestamps (t == 0)")
             report_list.append("timestamps assigned a value of 0")
             return " ".join(report_list)
 
-        # Only consider valid (unmasked) values
-        valid_values = tnp[~np.isnan(tnp)]
-
         # Check for duplicate timestamps
-        if len(valid_values) != len(set(valid_values)):
+        if len(np.unique(valid_values)) != len(valid_values):
             log.info("Duplicate timestamps")
             report_list.append("duplicate timestamps")
             return " ".join(report_list)
 
-        # Check if the timestamps are in ascending order
-        # This will check if each timestamp is less than the next one
-        # Ensure the array is of datetime64 type
-        if valid_values.dtype != "datetime64[s]":
-            valid_values = valid_values.astype("datetime64[s]")
-
+        # Check ascending order
         if np.any(np.diff(valid_values) <= np.timedelta64(0, "s")):
             log.info("Not in Ascending Order")
             report_list.append("timestamps out of order")
@@ -866,9 +872,20 @@ def run_qc(config, ncfile, ncfile_path):
     times = ncfile.variables["time"]
     # Check Time
     try:
-        dt_high = np.datetime64(int(times[:] * 1_000_000), 'us')
-        inote = xyz.check_time(dt_high.astype('datetime64[s]'), ncfile_path)
+        time_vals = times[:]
+
+        # Convert NetCDF numeric time values to Python datetime objects
+        dt_vals = num2date(
+        time_vals, units=times.units,
+        calendar=getattr(times, "calendar", "standard")
+        )
+
+        # Convert to NumPy datetime64 for downstream checks
+        tnp = np.array(dt_vals, dtype="datetime64[ns]")
+
+        inote = xyz.check_time(tnp, ncfile_path)
         report_list.append(inote)
+
     except Exception as e:
         time_err = "Could not check time."
         log.exception(f"{time_err}: {str(e)}")
