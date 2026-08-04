@@ -24,7 +24,7 @@ def main(args):
             update_deployment(deployment)
         except Exception:
             logging.exception("Encountered error attempting to set WMO ID/"
-                             "attribution for {deployment.name}")
+                              f"attribution for {deployment.name}")
             continue
 
     return 0
