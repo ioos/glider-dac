@@ -11,7 +11,6 @@ from netCDF4 import Dataset
 import sys
 from sqlalchemy import or_
 import logging
-import pandas as pd
 
 def main(args):
     '''
