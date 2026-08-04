@@ -95,6 +95,7 @@ def user_logged_in(client, app):
         user = ds.create_user(
             username="testuser",
             name="Test User",
+            email="test@nonexistent.noemail",
             password="Datamanagement101",
             roles=[r1],
         )
@@ -322,6 +323,7 @@ def create_varied_deployments(app):
         user1 = User(
             username="kraken_user",
             name="Kraken",
+            email="kraken@nonexistent.noemail",
             password="pw",
             active=True,
             fs_uniquifier="xx1",
@@ -329,6 +331,7 @@ def create_varied_deployments(app):
         user2 = User(
             username="miskatonic",
             name="Miskatonic",
+            email="miskatonic@nonexistent.noemail",
             password="pw",
             active=True,
             fs_uniquifier="xx2",
