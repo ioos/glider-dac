@@ -8,6 +8,8 @@ from flask_mail import Message
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from passlib.hash import sha512_crypt
 from flask_security.models import fsqla_v3 as fsqla
+from sqlalchemy import func, text
+from uuid import uuid4
 from glider_dac.services.emails import send_email_wrapper
 
 fsqla.FsModels.set_db_info(db)
@@ -23,12 +25,21 @@ class User(db.Model, fsqla.FsUserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(255), nullable=False)
-    email = db.Column(db.String(255))
-    admin = db.Column(db.Boolean, nullable=False, default=False)
-    password = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False,
+                      server_default=text("FALSE"))
+    password = db.Column(db.String(255), nullable=True)
     organization = db.Column(db.String(255))
-    created = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+    # TODO: Flask-Security defines fields of create_datetime and
+    #       update_datetime, consider consolidating to these fields
+    created = db.Column(db.DateTime(timezone=True),
+                        server_default=func.now())
     updated = db.Column(db.DateTime(timezone=True))
+    active = db.Column(db.Boolean, nullable=False, default=True,
+                       server_default=text("TRUE"))
+    fs_uniquifier = db.Column(db.String(64), unique=True, nullable=False,
+                              default=lambda: uuid4().hex,   # app-side fallback
+                              server_default=text("uuidv4()"))  # DB-side generation
 
     @classmethod
     def check_login(cls, username, password):
