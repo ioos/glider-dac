@@ -769,7 +769,7 @@ def qartod_var_snippets(required_qartod_vars, qartod_var_type):
         else:
             flag_atts = """
                     <att name="_FillValue" type="byte">-128</att>
-                    <att name="dac_comment">QARTOD TESTS NOT RUN</att>
+                    <att name="dac_comment">QARTOD TEST NOT RUN</att>
                     <att name="flag_values" type="byteList">1 2 3 4 9</att>
                     <att name="flag_meanings">PASS NOT_EVALUATED SUSPECT FAIL MISSING</att>
                     <att name="ioos_category">Quality</att>
@@ -818,8 +818,7 @@ def add_erddap_var_elem(var):
         data_type.text = erddap_mapping_dict[var.dtype.type]
     add_atts = etree.SubElement(dvar_elem, "addAttributes")
     ioos_category = etree.SubElement(add_atts, "att", name="ioos_category")
-    ioos_category.text = "Other"
-
+    ioos_category.text = var.getncattr("ioos_category") if "ioos_category" in var.ncattrs() else "Other"
     return dvar_elem
 
 
