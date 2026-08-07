@@ -36,7 +36,7 @@ For convenience, an [index of required attributes and variables](#index-of-requi
 ## Examples
 
 
-Examples of the file specification are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template), and include [**NetCDF**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.nc), [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl), and [**ncml**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.ncml) formats.
+Examples of the file specification are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template), and include [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl) formats.
 
 
 ## File Naming Conventions
