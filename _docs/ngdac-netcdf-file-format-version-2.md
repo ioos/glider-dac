@@ -41,18 +41,28 @@ Examples of the file specification are available [here](https://github.com/ioos/
 
 ## File Naming Conventions
 
-The following list specifies the 2 file types which will be accepted by the U.S IOOS National Glider Data Assembly Center and the required naming conventions for each:
+The following file types are accepted by the U.S IOOS National Glider Data Assembly Center, along with the required naming conventions for each:
 
- - **glider_yyyymmddTHHMMSSZ.nc:** Data gathered in real-time or near real-time. These files typically contain a subset of the full-resolution data provided in the delayed mode NetCDF files.
- - **glider_yyyymmddTHHMMSSZ_delayed.nc:** Delayed-mode data set typically submitted after the glider is recovered. Delayed mode data may include a quality assessment but this is not required currently.
+- **Real-time or near-real-time data:**
+  - **glider_yyyymmddTHHMMSSZ.nc**
+  - **glider_yyyymmddTHHMMSSZ_rt.nc**
+  - **glider_yyyymmddTHHMMSSZ_R.nc**
+  
+  These files contain data gathered during deployment and may include a subset of the full-resolution data available in delayed-mode files.
+
+- **Delayed-mode data:**
+  - **glider_yyyymmddTHHMMSSZ_delayed.nc**
+
+  These files contain data gathered after the glider is recovered. Delayed mode data may include a quality assessment, but this is not required currently.
 
 Where
 
- - _**glider**_ is the identifying name or type abbreviation for the glider,
- - _**yyyymmddTHHMMSSZ**_ is the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date representing the start time of the data acquisition, followed by **Z** to denote UTC time, not a local time zone, and
- - _**delayed**_ is a string specifying delayed mode (post-recovery) data acquisition.
+ - _**glider**_ is the identifying name or type abbreviation for the glider.
+ - **yyyymmddTHHMMSSZ** is the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date representing the start time of the data acquisition, followed by **Z** to denote UTC time, not a local time zone
+ - **rt or R** indicates real-time or near-real-time data. Note: not using **_rt** or **_R** is also acceptable.
+ - **delayed** indicates delayed-mode (post-recovery) data acquisition.
 
-Ideally, the **glider_yyyymmddTHHMMSSZ.nc** files will be provided by the individual operators during the deployment and the **glider_yyyymmddTHHMMSSZ_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. A discussion of these variables and their relationship to the sensor variables is found [below](#variables).
+Ideally, the **glider_yyyymmddTHHMMSSZ(_rt, _R).nc** files will be provided by the individual operators during the deployment and the **glider_yyyymmddTHHMMSSZ_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. A discussion of these variables and their relationship to the sensor variables is found [below](#variables).
 
 ## Global Attributes
 
