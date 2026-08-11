@@ -32,3 +32,10 @@ Feature: Glider Deployment Operations
         Then only deployments with WMO ID "12345" should be shown
         When I filter deployments by username "miskatonic"
         Then only deployments with username "miskatonic" should be shown
+
+    Scenario: Update user profile without changing password
+        Given I am a logged in user
+        When I update my user profile leaving password blank
+        And I log out
+        Then I should still be able to log in with original password
+        And my updated name and email should be saved
