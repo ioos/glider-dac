@@ -317,6 +317,7 @@ def assert_incomplete_email_sent():
     msg = mock_send.call_args[0][0]
     assert "old_dep" in msg.html
 
+
 @given("there are deployments with different names, WMO IDs, and usernames")
 def create_varied_deployments(app):
     with app.app_context():
@@ -394,3 +395,52 @@ def check_username_filter(username_response):
     data = username_response.data.decode()
     assert "gliderx" in data
     assert "kraken_alpha" not in data
+
+
+# New steps for updating user profile without changing password
+
+
+@when("I update my user profile leaving password blank")
+def update_profile_leave_password_blank(client):
+    response = client.post(
+        "/users/testuser",
+        data={
+            "username": "testuser",
+            "name": "Updated Name",
+            "email": "updated@example.com",
+            "organization": "",
+            "password": "",
+            "confirm": "",
+            "submit": "Submit",
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+
+
+@when("I log out")
+def do_log_out(client):
+    response = client.get("/logout", follow_redirects=True)
+    # allow either 200 or 302 depending on app routes
+    assert response.status_code in (200, 302)
+
+
+@then("I should still be able to log in with original password")
+def can_relogin_with_original_password(client, app):
+    # ensure logged out then login
+    with client:
+        resp = client.post(
+            "/login",
+            data={"username": "testuser", "password": "Datamanagement101"},
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert current_user.is_authenticated
+        assert current_user.username == "testuser"
+
+
+@then("my updated name and email should be saved")
+def check_name_email_saved(app):
+    user = User.query.filter_by(username="testuser").one()
+    assert user.name == "Updated Name"
+    assert user.email == "updated@example.com"
