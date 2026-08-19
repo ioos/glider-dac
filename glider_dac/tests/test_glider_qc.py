@@ -53,7 +53,7 @@ class TestGliderQC(TestCase):
         temperature.valid_min = 10.0
         temperature.valid_max = 5.0
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
         assert isinstance(result, str)
         assert "temperature has the valid_min and valid_max switched" in result
@@ -77,7 +77,7 @@ class TestGliderQC(TestCase):
         mask=np.ones(temperature.shape, dtype=bool),
         )
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
         assert isinstance(result, str)
         assert "temperature is an array of masked values" in result
@@ -94,7 +94,7 @@ class TestGliderQC(TestCase):
          # Set all values to NaN
         temperature[:] = np.full(temperature.shape, np.nan, dtype=temperature.dtype)
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
         assert isinstance(result, str)
         assert "temperature is an array of NaNs" in result
