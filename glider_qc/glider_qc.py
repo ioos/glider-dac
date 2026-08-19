@@ -335,7 +335,6 @@ class GliderQC(object):
             "sea_water_temperature": "deg_C",
             "sea_water_electrical_conductivity": "S m-1",
             "sea_water_salinity": "1",
-            "sea_water_practical_salinity": "1",
             "sea_water_pressure": "dbar",
             "sea_water_density": "kg m-3",
         }
@@ -507,32 +506,32 @@ class GliderQC(object):
         percent = stats["percent"]
         metadata_error = stats.get("metadata_error")
         range_checks_skipped = stats.get("range_checks_skipped", False)
-        
+
         if metadata_error:
             report_list.append(
                 f"{inp.name} has invalid valid_min/valid_max metadata in file; valid-range checks skipped"
             )
-        
+
         # Empty array case
         if total_points == 0:
             report_list.append(f"{inp.name} has no data points in the file")
             return report_list
-        
+
         # Fully masked / no valid data
         if valid_count == 0:
             report_list.append(f"{inp.name} has no valid data (fully masked/invalid)")
-        
+
             interesting = {
                 k: v for k, v in percent.items()
                 if isinstance(v, (int, float)) and v > 0
             }
-        
+
             if interesting:
                 percent_text = ", ".join(f"{k}={v:.2f}%" for k, v in interesting.items())
                 report_list.append(f"{inp.name} data breakdown: {percent_text}")
-        
+
             return report_list
-        
+
         # Only report valid-range breakdown when range checks were not skipped
         if not range_checks_skipped:
             interesting = {
@@ -541,49 +540,49 @@ class GliderQC(object):
                 and isinstance(v, (int, float))
                 and v > 0
             }
-        
+
             if interesting:
                 percent_text = ", ".join(f"{k}={v:.2f}%" for k, v in interesting.items())
                 report_list.append(f"{inp.name} data breakdown: {percent_text}")
-        
+
         valid_data = raw[valid_mask]
         unique_vals = np.unique(valid_data)
-        
+
         if unique_vals.size == 1:
             report_list.append(f"{inp.name} valid data are constant: {unique_vals[0]!r}")
-        
+
         return report_list
 
     def categorize_netcdf_var(self, inp):
         """
         Categorize values in a NetCDF variable into valid and invalid classes.
-    
+
         This function reads the variable's raw data without permanently altering its
         auto mask/scale behavior, then evaluates each element against common NetCDF
         metadata conventions:
-    
+
         - `_FillValue`
         - `missing_value`
         - `NaN` values
         - `valid_min`
         - `valid_max`
-    
+
         Invalid values are classified into these categories:
         - values equal to `_FillValue`
         - values matching `missing_value`
         - NaN values
         - values below `valid_min`
         - values above `valid_max`
-    
+
         If `valid_min` / `valid_max` metadata is missing, malformed, or logically
         inconsistent (for example, `valid_min > valid_max`), range checks are skipped
         and `metadata_error` is returned.
-    
+
         Parameters
         ----------
         inp : netCDF4.Variable
             NetCDF variable object to inspect.
-    
+
         Returns
         -------
         dict
@@ -597,75 +596,75 @@ class GliderQC(object):
               to invalid metadata
             - ``metadata_error``: error message describing invalid range metadata,
               or None if metadata is usable
-    
+
         Notes
         -----
         The function temporarily disables automatic masking/scaling to inspect the
         raw stored values, then restores the original variable behavior afterward.
         """
-        
+
         # Save raw values without permanently changing the variable behavior
         inp.set_auto_maskandscale(False)
         try:
             raw = np.asarray(inp[:])
         finally:
             inp.set_auto_maskandscale(True)
-    
+
         total = raw.size
         shape = raw.shape
-    
+
         fill_mask = np.zeros(shape, dtype=bool)
         missing_mask = np.zeros(shape, dtype=bool)
         nan_mask = np.zeros(shape, dtype=bool)
         below_min_mask = np.zeros(shape, dtype=bool)
         above_max_mask = np.zeros(shape, dtype=bool)
-    
+
         def to_number(x):
             try:
                 return float(x)
             except (TypeError, ValueError):
                 return None
-    
+
         if hasattr(inp, "_FillValue"):
             fill_mask = raw == inp._FillValue
-    
+
         if hasattr(inp, "missing_value"):
             mv = np.atleast_1d(np.array(inp.missing_value))
             missing_mask = np.isin(raw, mv) & ~fill_mask
-    
+
         if np.issubdtype(raw.dtype, np.floating):
             nan_mask = np.isnan(raw)
-    
+
         vmin_raw = getattr(inp, "valid_min", None)
         vmax_raw = getattr(inp, "valid_max", None)
-    
+
         vmin = to_number(vmin_raw) if vmin_raw is not None else None
         vmax = to_number(vmax_raw) if vmax_raw is not None else None
-    
+
         metadata_error = None
-    
+
         if vmin_raw is not None and vmin is None:
             metadata_error = "invalid valid_min/valid_max metadata in file"
-    
+
         if vmax_raw is not None and vmax is None:
             metadata_error = "invalid valid_min/valid_max metadata in file"
-    
+
         if metadata_error is None and vmin is not None and vmax is not None and vmin > vmax:
             metadata_error = "invalid valid_min/valid_max metadata in file"
-    
+
         candidate_mask = ~(fill_mask | missing_mask | nan_mask)
-    
+
         range_checks_skipped = metadata_error is not None
-    
+
         if not range_checks_skipped:
             if vmin is not None:
                 below_min_mask = candidate_mask & (raw < vmin)
             if vmax is not None:
                 above_max_mask = candidate_mask & (raw > vmax)
-    
+
         invalid_mask = fill_mask | missing_mask | nan_mask | below_min_mask | above_max_mask
         valid_mask = ~invalid_mask
-    
+
         percent = {
             "_FillValue": float(fill_mask.sum() / total * 100) if total else 0.0,
             "missing_value": float(missing_mask.sum() / total * 100) if total else 0.0,
@@ -674,7 +673,7 @@ class GliderQC(object):
             "above_valid_max": float(above_max_mask.sum() / total * 100) if total and not range_checks_skipped else 0.0,
             "valid": float(valid_mask.sum() / total * 100) if total else 0.0,
         }
-    
+
         return {
             "percent": percent,
             "total_points": total,
@@ -1075,7 +1074,7 @@ def run_qc(config, ncfile, ncfile_path):
                 log.info(
                     "Created %s QC Variables for %s", str(len(qcvarname)), var_name
                 )
-                
+
                 # Update variable config set
                 var_spec = xyz.config["contexts"][0]["streams"][var_name]["qartod"]
                 config_set, note = xyz.update_config(
