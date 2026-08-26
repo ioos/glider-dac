@@ -53,10 +53,10 @@ class TestGliderQC(TestCase):
         temperature.valid_min = 10.0
         temperature.valid_max = 5.0
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
-        assert isinstance(result, str)
-        assert "temperature has the valid_min and valid_max switched" in result
+        assert isinstance(result, list)
+        assert result == ['temperature has invalid valid_min/valid_max metadata in file; valid-range checks skipped']
 
     def test_check_geophysical_variables_masked(self):
         copypath = self.copy_ncfile(STATIC_FILES["murphy"])
@@ -77,10 +77,10 @@ class TestGliderQC(TestCase):
         mask=np.ones(temperature.shape, dtype=bool),
         )
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
-        assert isinstance(result, str)
-        assert "temperature is an array of masked values" in result
+        assert isinstance(result, list)
+        assert result == ['temperature has no valid data (fully masked/invalid)', 'temperature data breakdown: _FillValue=100.00%']
 
     def test_check_geophysical_variables_nan(self):
         copypath = self.copy_ncfile(STATIC_FILES["murphy"])
@@ -94,10 +94,10 @@ class TestGliderQC(TestCase):
          # Set all values to NaN
         temperature[:] = np.full(temperature.shape, np.nan, dtype=temperature.dtype)
 
-        result = qc.check_geophysical_variables("temperature")
+        result = qc.check_geophysical_variables(temperature)
 
-        assert isinstance(result, str)
-        assert "temperature is an array of NaNs" in result
+        assert isinstance(result, list)
+        assert result == ['temperature has no valid data (fully masked/invalid)', 'temperature data breakdown: NaN=100.00%']
 
     def test_create_qc_variables(self):
         copypath = self.copy_ncfile(STATIC_FILES["murphy"])

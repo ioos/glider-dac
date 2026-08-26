@@ -29,10 +29,8 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 __RCONN = None
 
-
 class ProcessError(ValueError):
     pass
-
 
 class GliderQC(object):
     def __init__(self, ncfile, config_file=None):
@@ -337,7 +335,6 @@ class GliderQC(object):
             "sea_water_temperature": "deg_C",
             "sea_water_electrical_conductivity": "S m-1",
             "sea_water_salinity": "1",
-            "sea_water_practical_salinity": "1",
             "sea_water_pressure": "dbar",
             "sea_water_density": "kg m-3",
         }
@@ -364,10 +361,10 @@ class GliderQC(object):
         except Exception as e:
             # log in error if conversion fails
             log.info(
-                f"Failed to convert units from '{units}' to '{target_unit}' for standard name '{standard_name}': {str(e)}"
+                f"{str(e)} for standard name {standard_name}"
             )
             report_list.append(
-                f"Failed to convert units from {str(units)} to {str(target_unit)} for standard name {standard_name}: {str(e)}"
+                f"{str(e)} for standard name {standard_name}"
             )
             return None, " ".join(report_list)
 
@@ -492,35 +489,7 @@ class GliderQC(object):
 
         return results_store
 
-    def _classify_single_unique_value(self, inp, unique_vals):
-        """
-        Classify a single unique value in a variable array.
-
-        :param inp: netCDF variable
-        :param unique_vals: np.ndarray from np.unique(inp[:])
-        :return: message (str or None)
-        """
-        v = unique_vals[0]
-
-        # Masked value
-        if np.ma.is_masked(v):
-            return inp.name + " is an array of masked values"
-
-        # NaN value
-        try:
-            if np.isnan(v):
-                return inp.name + " is an array of NaNs"
-        except TypeError:
-            pass
-
-        # Fill value
-        fill_value = getattr(inp, "_FillValue", None)
-        if fill_value is not None and v == fill_value:
-            return inp.name + " is an array of fill values"
-
-        return None
-
-    def check_geophysical_variables(self, var_name):
+    def check_geophysical_variables(self, inp):
         """
         Check the data array for the specified geophysical variable.
 
@@ -529,41 +498,191 @@ class GliderQC(object):
         """
         report_list = []
 
-        # Access the variable
-        inp = self.ncfile.variables[var_name]
-        data = inp[:]
+        stats = self.categorize_netcdf_var(inp)
+        total_points = stats["total_points"]
+        valid_count = stats["valid_count"]
+        valid_mask = stats["valid_mask"]
+        raw = stats["raw"]
+        percent = stats["percent"]
+        metadata_error = stats.get("metadata_error")
+        range_checks_skipped = stats.get("range_checks_skipped", False)
 
-        # Check if valid_min and valid_max exist and are correctly ordered
-        valid_min = getattr(inp, "valid_min", None)
-        valid_max = getattr(inp, "valid_max", None)
+        if metadata_error:
+            report_list.append(
+                f"{inp.name} has invalid valid_min/valid_max metadata in file; valid-range checks skipped"
+            )
 
-        if valid_min is not None and valid_max is not None:
-            if valid_min > valid_max:
-                log.info(
-                    "%s: valid_min (%s) and valid_max (%s) are switched",
-                    inp.name,
-                    valid_min,
-                    valid_max,
-                )
-                report_list.append(inp.name + " has the valid_min and valid_max switched")
+        # Empty array case
+        if total_points == 0:
+            report_list.append(f"{inp.name} has no data points in the file")
+            return report_list
 
-        # Check for fully masked arrays
-        if np.ma.isMaskedArray(data) and data.count() == 0:
-            log.info("%s: The array is fully masked", inp.name)
-            report_list.append(inp.name + " is an array of masked values")
+        # Fully masked / no valid data
+        if valid_count == 0:
+            report_list.append(f"{inp.name} has no valid data (fully masked/invalid)")
 
-        else:
-            # Get unique values once
-            unique_vals = np.unique(data)
+            interesting = {
+                k: v for k, v in percent.items()
+                if isinstance(v, (int, float)) and v > 0
+            }
 
-            # Check if all values in the array are the same
-            if len(unique_vals) == 1:
-                message = self._classify_single_unique_value(inp, unique_vals)
-                if message is not None:
-                    log.info("%s: %s", inp.name, message)
-                    report_list.append(message)
+            if interesting:
+                percent_text = ", ".join(f"{k}={v:.2f}%" for k, v in interesting.items())
+                report_list.append(f"{inp.name} data breakdown: {percent_text}")
 
-        return " ".join(report_list)
+            return report_list
+
+        # Only report valid-range breakdown when range checks were not skipped
+        if not range_checks_skipped:
+            interesting = {
+                k: v for k, v in percent.items()
+                if k in ("below_valid_min", "above_valid_max")
+                and isinstance(v, (int, float))
+                and v > 0
+            }
+
+            if interesting:
+                percent_text = ", ".join(f"{k}={v:.2f}%" for k, v in interesting.items())
+                report_list.append(f"{inp.name} data breakdown: {percent_text}")
+
+        valid_data = raw[valid_mask]
+        unique_vals = np.unique(valid_data)
+
+        if unique_vals.size == 1:
+            report_list.append(f"{inp.name} valid data are constant: {unique_vals[0]!r}")
+
+        return report_list
+
+    def categorize_netcdf_var(self, inp):
+        """
+        Categorize values in a NetCDF variable into valid and invalid classes.
+
+        This function reads the variable's raw data without permanently altering its
+        auto mask/scale behavior, then evaluates each element against common NetCDF
+        metadata conventions:
+
+        - `_FillValue`
+        - `missing_value`
+        - `NaN` values
+        - `valid_min`
+        - `valid_max`
+
+        Invalid values are classified into these categories:
+        - values equal to `_FillValue`
+        - values matching `missing_value`
+        - NaN values
+        - values below `valid_min`
+        - values above `valid_max`
+
+        If `valid_min` / `valid_max` metadata is missing, malformed, or logically
+        inconsistent (for example, `valid_min > valid_max`), range checks are skipped
+        and `metadata_error` is returned.
+
+        Parameters
+        ----------
+        inp : netCDF4.Variable
+            NetCDF variable object to inspect.
+
+        Returns
+        -------
+        dict
+            A dictionary containing:
+            - ``percent``: percentage breakdown of each category
+            - ``total_points``: total number of elements in the variable
+            - ``valid_count``: number of values considered valid
+            - ``valid_mask``: boolean mask where True indicates valid values
+            - ``raw``: raw unmasked/unscaled data array
+            - ``range_checks_skipped``: True if valid range checks were skipped due
+              to invalid metadata
+            - ``metadata_error``: error message describing invalid range metadata,
+              or None if metadata is usable
+
+        Notes
+        -----
+        The function temporarily disables automatic masking/scaling to inspect the
+        raw stored values, then restores the original variable behavior afterward.
+        """
+
+        # Save raw values without permanently changing the variable behavior
+        inp.set_auto_maskandscale(False)
+        try:
+            raw = np.asarray(inp[:])
+        finally:
+            inp.set_auto_maskandscale(True)
+
+        total = raw.size
+        shape = raw.shape
+
+        fill_mask = np.zeros(shape, dtype=bool)
+        missing_mask = np.zeros(shape, dtype=bool)
+        nan_mask = np.zeros(shape, dtype=bool)
+        below_min_mask = np.zeros(shape, dtype=bool)
+        above_max_mask = np.zeros(shape, dtype=bool)
+
+        def to_number(x):
+            try:
+                return float(x)
+            except (TypeError, ValueError):
+                return None
+
+        if hasattr(inp, "_FillValue"):
+            fill_mask = raw == inp._FillValue
+
+        if hasattr(inp, "missing_value"):
+            mv = np.atleast_1d(np.array(inp.missing_value))
+            missing_mask = np.isin(raw, mv) & ~fill_mask
+
+        if np.issubdtype(raw.dtype, np.floating):
+            nan_mask = np.isnan(raw)
+
+        vmin_raw = getattr(inp, "valid_min", None)
+        vmax_raw = getattr(inp, "valid_max", None)
+
+        vmin = to_number(vmin_raw) if vmin_raw is not None else None
+        vmax = to_number(vmax_raw) if vmax_raw is not None else None
+
+        metadata_error = None
+
+        if vmin_raw is not None and vmin is None:
+            metadata_error = "invalid valid_min/valid_max metadata in file"
+
+        if vmax_raw is not None and vmax is None:
+            metadata_error = "invalid valid_min/valid_max metadata in file"
+
+        if metadata_error is None and vmin is not None and vmax is not None and vmin > vmax:
+            metadata_error = "invalid valid_min/valid_max metadata in file"
+
+        candidate_mask = ~(fill_mask | missing_mask | nan_mask)
+
+        range_checks_skipped = metadata_error is not None
+
+        if not range_checks_skipped:
+            if vmin is not None:
+                below_min_mask = candidate_mask & (raw < vmin)
+            if vmax is not None:
+                above_max_mask = candidate_mask & (raw > vmax)
+
+        invalid_mask = fill_mask | missing_mask | nan_mask | below_min_mask | above_max_mask
+        valid_mask = ~invalid_mask
+
+        percent = {
+            "_FillValue": float(fill_mask.sum() / total * 100) if total else 0.0,
+            "missing_value": float(missing_mask.sum() / total * 100) if total else 0.0,
+            "NaN": float(nan_mask.sum() / total * 100) if total else 0.0,
+            "below_valid_min": float(below_min_mask.sum() / total * 100) if total and not range_checks_skipped else 0.0,
+            "above_valid_max": float(above_max_mask.sum() / total * 100) if total and not range_checks_skipped else 0.0,
+            "valid": float(valid_mask.sum() / total * 100) if total else 0.0,
+        }
+
+        return {
+            "percent": percent,
+            "total_points": total,
+            "valid_count": int(valid_mask.sum()),
+            "valid_mask": valid_mask,
+            "raw": raw,
+            "range_checks_skipped": range_checks_skipped,
+            "metadata_error": metadata_error,
+        }
 
     def create_location_flag_variable(self, ndim, flag):
         """
@@ -884,10 +1003,10 @@ def run_qc(config, ncfile, ncfile_path):
         tnp = np.array(dt_vals, dtype="datetime64[ns]")
 
         inote = xyz.check_time(tnp, ncfile_path)
-        report_list.append(inote)
+        if inote: report_list.append(inote)
 
     except Exception as e:
-        time_err = "Could not check time."
+        time_err = "Could not check time"
         log.exception(f"{time_err}: {str(e)}")
         report_list.append(f"{time_err}: {str(e)}")
 
@@ -903,9 +1022,10 @@ def run_qc(config, ncfile, ncfile_path):
         # Check Location (lat/lon)
         if "qartod_location_test_flag" not in ncfile.variables:
             try:
-                report_list.append(xyz.check_location())
+                lnote = xyz.check_location()
+                if lnote: report_list.append(lnote)
             except Exception as e:
-                location_err = "Could not check location."
+                location_err = "Could not check location"
                 log.exception(f"{location_err}: {str(e)}")
                 report_list.append(f"{location_err}: {str(e)}")
 
@@ -921,22 +1041,16 @@ def run_qc(config, ncfile, ncfile_path):
                 legacy_variables,
             )
             # Report legacy variables issues
-            report_list.append(note)
+            if note: report_list.append(note)
 
             # Loop through the legacy variables and apply QARTOD
             for var_name in legacy_variables:
                 var_data = ncfile.variables[var_name]
-                values = [x if x != "--" else np.nan for x in var_data[:]]
-
-                # Create the QARTOD variables
-                qcvarname = xyz.create_qc_variables(var_data)
-                log.info(
-                    "Created %s QC Variables for %s", str(len(qcvarname)), var_name
-                )
+                # values = [x if x != "--" else np.nan for x in var_data[:]]
 
                 # Check the Data Array
-                if xyz.check_geophysical_variables(var_name):  # cfile,
-                    report_list.append(xyz.check_geophysical_variables(var_name))
+                if xyz.check_geophysical_variables(var_data):
+                    report_list.append(xyz.check_geophysical_variables(var_data))
                     continue
 
                 # Check the mapping of standard names with units
@@ -944,7 +1058,7 @@ def run_qc(config, ncfile, ncfile_path):
                     values, note = xyz.normalize_variable(
                         np.array(values[:]), var_data.units, var_data.standard_name
                     )
-                    report_list.append(note)
+                    if note: report_list.append(note)
                     if values is None:
                         continue
                 except Exception as e:
@@ -955,6 +1069,12 @@ def run_qc(config, ncfile, ncfile_path):
                     report_list.append(f"{unit_conversion_err}: {str(e)}")
                     continue
 
+                # Create the QARTOD variables
+                qcvarname = xyz.create_qc_variables(var_data)
+                log.info(
+                    "Created %s QC Variables for %s", str(len(qcvarname)), var_name
+                )
+
                 # Update variable config set
                 var_spec = xyz.config["contexts"][0]["streams"][var_name]["qartod"]
                 config_set, note = xyz.update_config(
@@ -964,7 +1084,7 @@ def run_qc(config, ncfile, ncfile_path):
                     values,
                     times.units,
                 )
-                report_list.append(note)
+                if note: report_list.append(note)
 
                 # create a datafarame for the QARTOD process
                 df = pd.DataFrame(
@@ -976,7 +1096,7 @@ def run_qc(config, ncfile, ncfile_path):
 
                 # Get the QARTOD results
                 try:
-                    results = xyz.apply_qc(df,var_name, config_set, ncfile_path)
+                    results = xyz.apply_qc(df, var_name, config_set, ncfile_path)
                     log.info("Generated QC test results for %s", var_name)
 
                     for testname in results.columns:
