@@ -66,19 +66,29 @@ services:
       - FLAGS_DIR=${FLAGS_DIR}
       - REDIS_HOST=${REDIS_HOST}
 
+  
   postgres:
     image: postgis/postgis:18-3.6-alpine
-    container_name: postgres
-    environment:
-      - POSTGRES_DB=gliderdac
-      - POSTGRES_USER=glider
-      - POSTGRES_PASSWORD="$POSTGRES_PASSWORD"
+    container_name: postgres-prod
 
-    ports:
-      - 5432:5432
+    environment:
+      - WALG_S3_PREFIX=s3://ioosngdac/backups/
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=us-east-1
+
     volumes:
-      - status_postgres:/var/lib/postgresql/data
-          
+      - ./wal-g:/usr/local/bin/wal-g
+
+    command: >
+      postgres
+      -c wal_level=replica
+      -c archive_mode=on
+      -c archive_command='wal-g wal-push %p'
+      -c archive_timeout=60
+      -c max_wal_senders=3
+``
+        
   postgres-backup:
     image: alpine:3.20
     depends_on:
@@ -86,7 +96,7 @@ services:
     volumes:
       - ./wal-g:/usr/local/bin/wal-g
     environment:
-      - WALE_S3_PREFIX=s3://your-bucket/gliderdac
+      - WALE_S3_PREFIX=s3://ioosngdac/backups/
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=us-east-1
