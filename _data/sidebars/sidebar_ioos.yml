@@ -37,15 +37,28 @@ entries:
     - title: New Deployment Registration
       url: /ngdac-netcdf-file-submission-process.html#new-deployment-registration
       output: web
+    - title: Requesting a WMO ID
+      url: /ngdac-netcdf-file-submission-process.html#Requesting-a-WMO-ID
+      web: web
+    - title: Deployment Creation
+      url: /ngdac-netcdf-file-submission-process.html#Deployment-Creation
+      web: web
     - title: Submission of NetCDF Files
       url: /ngdac-netcdf-file-submission-process.html#submission-of-netcdf-files
       output: web
+    - title: Dataset QC Processing
+      url: /ngdac-netcdf-file-submission-process.html#Dataset-QC-Processing
+      web: web
     - title: Dataset Status
       url: /ngdac-netcdf-file-submission-process.html#dataset-status
       output: web
     - title: Dataset Archiving
       url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
       output: web
+    - title: Modifying metadata after submission
+      url: /ngdac-netcdf-file-submission-process.html#Modifying-metadata-after-submission
+      output: web
+      
 #
   - title: NetCDF File Format Description
     output: web
