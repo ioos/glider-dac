@@ -46,8 +46,8 @@ entries:
     - title: Submission of NetCDF Files
       url: /ngdac-netcdf-file-submission-process.html#submission-of-netcdf-files
       output: web
-    - title: Dataset QC Processing
-      url: /ngdac-netcdf-file-submission-process.html#dataset-qc-processing
+    - title: Datasets QARTOD Additions
+      url: /ngdac-netcdf-file-submission-process.html#dataset-qartod-additions
       web: web
     - title: Dataset Status
       url: /ngdac-netcdf-file-submission-process.html#dataset-status
