@@ -13,6 +13,7 @@ from datetime import datetime
 from netCDF4 import Dataset
 from glider_dac import log_formatter, create_app
 from glider_dac.config import get_config
+from glider_dac.models.deployment import Deployment
 
 log = None
 app = create_app()
@@ -211,20 +212,17 @@ def get_mod_time(name):
     except ValueError:
         latest_file_time = 0
 
-    if not os.path.exists(json_file):
-        log.info("Deployment JSON file does not exist.")
-        with open(json_file, "w") as outfile:
-            json.dump({"updated": latest_file_time * 1000}, outfile)
-        log.info("Initiated deployment JSON file")
-
-    with open(json_file, "r") as fid:
-        dataset = json.load(fid)
-    # get the max time reported between the netCDF files and the update time
-    # in the deployments json file
-    update_time = max(latest_file_time * 1000, dataset["updated"])
-    update_timestring = datetime.fromtimestamp(update_time / 1000).isoformat()
-    log.info("Dataset {} last updated {}".format(name, update_timestring))
-    return update_time / 1000
+    # Deployment update time should be close for most deployments since
+    # event-driven workflow should be updating the deployment update time
+    with app.app_context():
+        dep = Deployment.query.filter(Deployment.name == name).one_or_none()
+    if not dep:
+        dep_updated = 0
+    else:
+        dep_updated = dep.updated.timestamp()
+    update_time = max(latest_file_time, dep_updated)
+    log.info("Dataset {} last updated {}".format(name, update_time))
+    return update_time
 
 
 def acquire_lock(path):
