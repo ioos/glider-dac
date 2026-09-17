@@ -1,7 +1,13 @@
+---
+title: User QC Submission Checklist
+keywords:
+  - IOOS
+  - documentation
+toc: false
+summary: >-
+  To ensure your netCDF file is properly checked by the GDAC QARTOD QC system, avoid the common mistakes listed below.
+---
 
-## User QC Submission Checklist: What Not To Do
-
-> To ensure your netCDF file is properly checked by the GDAC QARTOD QC system, avoid these common mistakes:
 
 | **What Not To Do**                                                      | **Why It Causes Problems**                    | **Example**                                                                                  |
 |-------------------------------------------------------------------------|-----------------------------------------------|----------------------------------------------------------------------------------------------|
@@ -16,8 +22,8 @@
 
 ---
 
-**Tip:**  
-Double-check your file against this checklist and examples before submitting to GDAC!  
+**Tip:**
+Double-check your file against this checklist and examples before submitting to GDAC!
 If you’re unsure about CF standard names or required metadata, consult the [CF Standard Names Table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html) or the GDAC user guide.
 
 ---
