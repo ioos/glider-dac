@@ -1,15 +1,12 @@
 ---
-title: "What Happens to Your netCDF File: QARTOD QC at GDAC"
-date: 2026-04-17
-author: "GDAC Data Team"
-tags: [user-guide, netcdf, qartod, qc, submission]
----
-
-# What Happens to Your netCDF File When You Submit to GDAC
-
-Thank you for submitting your netCDF file to the Glider Data Assembly Center (GDAC)!  
-This document explains what happens to your file during the automated Quality Control (QC) process, what new data you’ll see in your file, and what you need to check before submission.
-
+title: " NetCDF QARTOD GDAC What To Expect"
+keywords:
+  - IOOS
+  - documentation
+toc: true
+summary: >-
+  Thank you for submitting your netCDF file to the Glider Data Assembly Center (GDAC)!
+  This document explains what happens to your file during the automated Quality Control (QC) process, what new data you’ll see in your file, and what you need to check before submission.
 ---
 
 ## Table of Contents
@@ -25,7 +22,7 @@ This document explains what happens to your file during the automated Quality Co
 
 ## What is QARTOD QC?
 
-QARTOD (Quality Assurance/Quality Control of Real-Time Oceanographic Data) is a set of standardized tests developed by IOOS to automatically check the quality of ocean data.  
+QARTOD (Quality Assurance/Quality Control of Real-Time Oceanographic Data) is a set of standardized tests developed by IOOS to automatically check the quality of ocean data.
 At GDAC, these tests are run on all submitted netCDF profile files to help ensure your data is reliable and well-documented.
 
 ---
@@ -46,14 +43,14 @@ When you submit your netCDF file, the following happens automatically:
 
 After QC, your netCDF file will include:
 
-- **New variables** for each geophysical variable tested.  
+- **New variables** for each geophysical variable tested.
   For example, if you have a variable called `temperature`, you’ll see:
     - `qartod_temperature_gross_range_flag`
     - `qartod_temperature_spike_flag`
     - `qartod_temperature_rate_of_change_flag`
     - `qartod_temperature_flat_line_flag`
     - `qartod_temperature_primary_flag`
-- **A location test variable**:  
+- **A location test variable**:
     - `qartod_location_test_flag` (checks if your profile’s location is within a reasonable range)
 - **Updated `ancillary_variables` attributes** on the original variables, listing the new QC variables.
 - **A global attribute** called `dac_qc_comment` summarizing any issues found during QC.
@@ -84,20 +81,20 @@ byte qartod_temperature_gross_range_flag(time=41);
     - `sea_water_density`
     - `sea_water_pressure`
     - `sea_water_practical_salinity`
-    
+
 - **Each variable should have:**
     - A valid `standard_name` attribute (see above)
     - A valid `units` attribute (e.g., `deg_C`, `dbar`, `S m-1`, `1`, `kg m-3`)
     - `valid_min` and `valid_max` attributes (with `valid_min` < `valid_max`)
     - No missing or all-NaN/all-fill-value data
- 
+
 - **Location and time variables:**
     - `profile_lat` and `profile_lon` (with valid values)
     - `time` (with valid, ascending timestamps)
-    
+
 - **No duplicate or out-of-order timestamps**
 
-**Tip:**  
+**Tip:**
 If your file is missing any of these, QC may fail or skip those variables.
 
 ---

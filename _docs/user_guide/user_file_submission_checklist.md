@@ -1,8 +1,11 @@
-
-# Glider DAC NetCDF File Submission Checklist
-
-**Use this checklist to verify your file is ready for submission to the NGDAC.**
-
+---
+title: User File Submission Checklist
+keywords:
+  - IOOS
+  - documentation
+toc: false
+summary: >-
+  Use this checklist to verify your file is ready for submission to the NGDAC.
 ---
 
 ## Table of Contents
@@ -20,11 +23,11 @@
 
 ## 1. File Naming
 
-- [ ] **File name follows convention:**  
+- [ ] **File name follows convention:**
   - Real-time: `glider_yyyymmddTHHMMSSZ.nc`
   - Delayed-mode: `glider_yyyymmddTHHMMSSZ_delayed.nc`
-- [ ] `glider` = glider name/type;  
-  `yyyymmddTHHMMSSZ` = UTC start time (ISO 8601);  
+- [ ] `glider` = glider name/type;
+  `yyyymmddTHHMMSSZ` = UTC start time (ISO 8601);
   `delayed` = for delayed-mode files only
 
 ---
@@ -47,17 +50,17 @@
 
 ## 3. Required Variables & Dimensions
 
-- [ ] **Dimensions:**  
-  - `time`  
+- [ ] **Dimensions:**
+  - `time`
   - `traj_strlen`
-- [ ] **Trajectory variable:**  
+- [ ] **Trajectory variable:**
   - `trajectory(traj_strlen)` with required attributes
-- [ ] **Time-series variables** (all with corresponding `_qc` variables):  
+- [ ] **Time-series variables** (all with corresponding `_qc` variables):
   - `time`, `lat`, `lon`, `pressure`, `depth`, `temperature`, `conductivity`, `salinity`, `density`
-- [ ] **Profile variables** (all with corresponding `_qc` variables):  
+- [ ] **Profile variables** (all with corresponding `_qc` variables):
   - `profile_id`, `profile_time`, `profile_lat`, `profile_lon`, `time_uv`, `lat_uv`, `lon_uv`, `u`, `v`
-- [ ] **Container variables:**  
-  - `platform` (with required attributes)  
+- [ ] **Container variables:**
+  - `platform` (with required attributes)
   - `instrument_ctd` (with as many attributes as possible)
 
 ---
@@ -88,7 +91,7 @@
     - Density: `sea_water_density`
     - Pressure: `sea_water_pressure`
     - Salinity: `sea_water_practical_salinity`
-    
+
 - [ ] A valid `units` attribute
     - Temperature: `deg_C`
     - Conductivity: `S m-1`
@@ -98,9 +101,9 @@
 
 - [ ] `valid_min` and `valid_max` attributes
     - `valid_min` < `valid_max`
-    
+
 - [ ] Variables intended for quality processing do not contain missing values or consist solely of NaN or fill values
- 
+
 - [ ] Location and time variables:
     - `profile_lat` and `profile_lon` have valid values
     - `time` has valid, No duplicate, ascending timestamps
@@ -134,5 +137,5 @@
 - [Ocean Gliders_Format v1.0](https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/OG_Format.adoc)
 ---
 
-**Ready to submit?**  
+**Ready to submit?**
 If all boxes are checked, your file should be compliant and ready for NGDAC submission!

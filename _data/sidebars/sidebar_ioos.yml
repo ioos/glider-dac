@@ -39,42 +39,41 @@ entries:
       output: web
     - title: Requesting a WMO ID
       url: /ngdac-netcdf-file-submission-process.html#requesting-a-wmo-id
-      web: web
+      output: web
     - title: Deployment Creation
       url: /ngdac-netcdf-file-submission-process.html#deployment-creation
-      web: web
+      output: web
     - title: Submission of NetCDF Files
       url: /ngdac-netcdf-file-submission-process.html#submission-of-netcdf-files
       output: web
     - title: Datasets QARTOD Additions
-      url: /ngdac-netcdf-file-submission-process.html#dataset-qartod-additions
-      web: web
+      url: /ngdac-netcdf-file-submission-process.html#datasets-qartod-additions
+      output: web
     - title: Dataset Status
       url: /ngdac-netcdf-file-submission-process.html#dataset-status
       output: web
     - title: Dataset Archiving
       url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
       output: web
-    - title: Modifying metadata after submission
+    - title: Modifying Metadata After Submission
       url: /ngdac-netcdf-file-submission-process.html#modifying-metadata-after-submission
       output: web
-      
 #
   - title: NetCDF File Format Description
     output: web
     folderitems:
     - title: Introduction
       url: /ngdac-netcdf-file-format-version-2.html
-      output: web      
+      output: web
     - title: Examples
       url: /ngdac-netcdf-file-format-version-2.html#examples
-      output: web           
+      output: web
     - title: File Naming Conventions
       url: /ngdac-netcdf-file-format-version-2.html#file-naming-conventions
-      output: web           
+      output: web
     - title: Global Attributes
       url: /ngdac-netcdf-file-format-version-2.html#global-attributes
-      output: web        
+      output: web
     - title: Variables
       url: /ngdac-netcdf-file-format-version-2.html#variables
       output: web
@@ -95,9 +94,21 @@ entries:
       output: web
     - title: Index of Required Attributes and Variables
       url: /ngdac-netcdf-file-format-version-2.html#index-of-required-global-attributes-and-variables
-      output: web     
-
-      
+      output: web
+#
+  - title: Submission Checklists
+    url: /submission-checklists.html
+    output: web
+    folderitems:
+    - title: Deployment Folder Checklist
+      url: /submission-checklists.html#deployment-folder-checklist
+      output: web
+    - title: File Submission Checklist
+      url: /submission-checklists.html#file-submission-checklist
+      output: web
+    - title: NGDAC QARTOD QC Checklist
+      url: /submission-checklists.html#ngdac-qartod-qc-checklist
+      output: web
 #
   - title: Useful Links
     url: /useful-links.html
@@ -145,3 +156,11 @@ entries:
     - title: Data Assembly Center Architecture
       url: /ngdac-architecture.html
       output: web
+
+  - title: Step By Step File Submission
+    url: /step-by-step-file-submission.html
+    output: web
+
+  - title: NetCDF QARTOD GDAC What To Expect
+    url: /netcdf-qartod-gdac-what-to-expect.html
+    output: web

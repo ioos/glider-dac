@@ -1,19 +1,21 @@
 ---
 title: NGDAC NetCDF File Submission Process
-wikiPageName: NGDAC-NetCDF-File-Submission-Process
-keywords: IOOS, documentation
-tags: [getting_started, about, overview]
+keywords:
+  - IOOS
+  - documentation
 toc: false
-#search: exclude
-#permalink: index.html
-summary: This page provides a detailed description of the end-to-end process of becoming a data provider, registering new glider deployments and submitting NetCDF files to the U.S. IOOS National Glider Data Assembly Center.
+summary: >-
+  This page describes the end-to-end process for becoming a data provider,
+  registering new glider deployments, and submitting NetCDF files to the
+  U.S. IOOS National Glider Data Assembly Center.
 ---
 
-All additional questions or feedback should be directed to: 
+All additional questions or feedback should be directed to:
 [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 A consolidated list of the links referenced below can be found [here](useful-links).
 
+A document summarizing the workflow that Registered Data Providers can follow to submit netCDF files to NGDAC is available in [Step-By-Step-File-Submission]({{ site.baseurl }}/step-by-step-file-submission.html)
 
 ## Data Provider Registration
 
@@ -38,9 +40,9 @@ To enable NDBC to send a dataset to the GTS, the dataset must include a global a
 
 The next step is to register the deployment with the **NGDAC**.
 
-### Requesting a WMO ID
+## Requesting a WMO ID
 
-A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). Once assigned, a WMO ID remains valid for that glider regardless of its deployment region—if you have already received an ID for a vehicle, you may continue to use it anywhere in the world.  
+A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). Once assigned, a WMO ID remains valid for that glider regardless of its deployment region—if you have already received an ID for a vehicle, you may continue to use it anywhere in the world.
 
 **Submit new WMO ID requests to:**
 
@@ -55,7 +57,7 @@ Required information (please supply in every request):
 + Provider name
 
 Recommended supplemental details:
-+ Glider Name (informal label) 
++ Glider Name (informal label)
 + Glider Call Sign (informal label)
 
 **IMPORTANT:** always provide the manufacturer’s serial number as the sole authoritative ID for WMO requests to avoid conflicts and speed processing. If the serial number cannot be located, please explain why and provide your best alternative identifier; NGDAC will reach out to confirm before issuing an ID.
@@ -69,6 +71,7 @@ Upon receipt, the NGDAC Team submits your WMO ID request to the [OceanOPS Reques
 Deployments are registered and managed via the [GliderDAC providers page](https://gliders.ioos.us/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
 
 1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
+
 2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
 
 ![GliderDAC - Deployments page](DAC_providers_your_deployments.png)
@@ -76,9 +79,9 @@ Deployments are registered and managed via the [GliderDAC providers page](https:
 3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
     **YYYYmmddTHHMM**
 
-    - where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to NGDAC.  
+    - where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to NGDAC.
     - **IMPORTANT**: This WMO ID must be included as the [global attribute](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes)  *wmo_id* as well as an attribute (*wmo_id*) of the file's [*platform*](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
-    
+
 4. An additional field, **attribution**, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
 
 5. If the deployment is not current, select the **Delayed Mode?** checkbox. This will append "_delayed" to the deployment name, distinguishing **real-time (current)** data from **delayed (historical) data** for the same deployment.
@@ -99,7 +102,7 @@ Here's an example of the ftp login process and the resulting directory structure
 
 ```
     $ lftp -u user -e "set ftp:ssl-force true; set ftp:ssl-protect-data true" gliders.ioos.us
-    Password: 
+    Password:
     lftp user@gliders.ioos.us:~> ls
     drwxrwxr-x    2 ftp      ftp          4096 Jul 12  2024 user-20240527T0000
     drwxrwxr-x    2 ftp      ftp          4096 Jul 12  2024 user-20240711T0000
@@ -134,39 +137,30 @@ A generic [ftp script](https://raw.githubusercontent.com/ioos/ioosngdac/master/u
 
 **You must specify your credentials in the $USER and $PASS variables contained in the script**.
 
+
 ## Datasets QARTOD Additions
 
-When NetCDF profile files are submitted to the **NGDAC**, they are automatically processed using **QARTOD (Quality Assurance/Quality Control of Real-Time Oceanographic Data)** tests. These standardized tests evaluate the quality of key geophysical variables and document the results within each file.
+When NetCDF profile files are submitted to the **NGDAC**, they are automatically processed using **Quality Assurance/Quality Control of Real-Time Oceanographic Data (QARTOD)** tests. These standardized tests evaluate the quality of key geophysical variables and document the results within each file.
 
-The file you submit will include new QC flag variables for each tested geophysical variable. These variables record the results of individual QARTOD tests and provide an overall primary QC result.
+The file you submit will include new Quality Control (QC) flag variables for each tested geophysical variable. These variables record the results of individual QARTOD tests and provide an overall primary QC result.
 
-The following QARTOD flag variables may be added:
-
-- `qartod_<variable>_gross_range_flag`
-- `qartod_<variable>_spike_flag`
-- `qartod_<variable>_rate_of_change_flag`
-- `qartod_<variable>_flat_line_flag`
-- `qartod_<variable>_primary_flag`
-
-For example, the QC flag variables associated with `temperature` may include:
-
+The following QC flag variables may be added:
 ```
-qartod_temperature_gross_range_flag
-qartod_temperature_spike_flag
-qartod_temperature_rate_of_change_flag
-qartod_temperature_flat_line_flag
-qartod_temperature_primary_flag
+- qartod_<variable>_gross_range_flag
+- qartod_<variable>_spike_flag
+- qartod_<variable>_rate_of_change_flag
+- qartod_<variable>_flat_line_flag
+- qartod_<variable>_primary_flag
 ```
 
-A location QC flag variable, **qartod_location_test_flag**, is also added to record the result of the profile location test.
-
-The tests are run on all submitted netCDF profile files to help ensure your data is reliable and well-documented.
+A document giving more details on what happens to your file during the automated QC process is available in [NetCDF-QARTOD-GDAC-What-To-Expect]({{ site.baseurl }}/netcdf-qartod-gdac-what-to-expect.html).
 
 ## Dataset Status
 
 Once one or more files have been successfully uploaded for the specified deployment, the [aggregation](ngdac-architecture#data-assembly-center-architecture) process begins.  As there are multiple file syncing and aggregation processes going on, it will take some time for the data access end points on both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) servers to be created and populated.  The end-to-end processing pathway **currently takes 1 - 2 hours**.  We are actively working on ways to decrease this time frame.
 
-We've built a [dataset status](https://gliders.ioos.us/status/) page to provide administrators and users with the ability to track datasets through the end-to-end process.  The [home page](https://gliders.ioos.us/status/) displays a list of all data sets for which either/both the [ERDDAP](https://gliders.ioos.us/erddap/tabledap/index.html) and [THREDDS](https://gliders.ioos.us/thredds/catalog.html) are not yet available.  Please check this page before emailing the DAC administrators regarding data set availability.
+> **NOTICE**:
+> The [dataset status](https://gliders.ioos.us/status/) page has been deprecated and will be replaced by a new tool that enables administrators and users to track datasets throughout the end-to-end process. In the interim, the [Providers page](https://gliders.ioos.us/providers/) and the [ERDDAP Status](https://gliders.ioos.us/erddap/status.html) page offer limited but useful information about dataset status. You can also email the NGDAC administrators regarding dataset availability.
 
 ## Dataset Archiving
 
@@ -188,7 +182,7 @@ Here's how to mark a deployment as complete and submit the dataset to NCEI:
 
 Once submitted, the [IOOS GliderDAC compliance checker](https://compliance.ioos.us/index.html) is run to check for compliance with the [current version of the IOOS Metadata Profile](https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2). The results of these checks will be emailed on completion. If any of these checks have failed, NCEI may not archive the deployment data until metadata issues are corrected.
 
-## Modifying metadata after submission
+## Modifying Metadata After Submission
 
 Metadata can be modified either by resubmitting files or by submitting an **extra_atts.json** file in the submission folder. Note that using **extra_atts.json** changes the metadata in the NetCDF aggregation only; it does not modify the submitted NetCDF files themselves.
 
