@@ -77,17 +77,20 @@ def make_copy(filepath):
     filename = os.path.basename(filepath)
     target = os.path.join(config["NCEI_DIR"], filename)
     source = os.path.abspath(filepath)
-    logger.info("Creating archive dataset")
-    if os.path.exists(target) and not os.path.islink(target):
-        logger.info("Removing non-symlink archive dataset")
-        os.unlink(target)
-    if not os.path.exists(target):
-        logger.info("Creating initial symlink")
-        try:
-            os.symlink(source, target)
-        except (IOError, OSError):
-            logger.exception("Could not symlink to file {}".format(source))
-            return
+    
+    logger.info("Creating initial symlink archive dataset")
+    if os.path.lexists(target):
+        if os.path.islink(target) or os.path.isfile(target):
+            logger.info("Removing non-symlink archive dataset")
+            os.unlink(target)
+        else:
+            raise RuntimeError(f"Unexpected archive target: {target}")
+    try:
+        os.symlink(source, target)
+    except OSError:
+        logger.exception("Could not symlink to file {}".format(source))
+        return
+        
     try:
         md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
