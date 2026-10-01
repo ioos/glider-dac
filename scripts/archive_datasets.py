@@ -77,7 +77,7 @@ def make_copy(filepath):
     filename = os.path.basename(filepath)
     target = os.path.join(config["NCEI_DIR"], filename)
     source = os.path.abspath(filepath)
-    
+
     logger.info("Creating initial symlink archive dataset")
     # Handle an existing archive target.
     # os.path.lexists() detects both valid and broken symbolic links.
@@ -145,7 +145,7 @@ def make_copy(filepath):
         except OSError:
             logger.exception("Could not symlink to file %s", source)
             return
-        
+
     try:
         md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
