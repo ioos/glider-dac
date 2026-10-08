@@ -77,17 +77,75 @@ def make_copy(filepath):
     filename = os.path.basename(filepath)
     target = os.path.join(config["NCEI_DIR"], filename)
     source = os.path.abspath(filepath)
-    logger.info("Creating archive dataset")
-    if os.path.exists(target) and not os.path.islink(target):
-        logger.info("Removing non-symlink archive dataset")
-        os.unlink(target)
-    if not os.path.exists(target):
-        logger.info("Creating initial symlink")
-        try:
-            os.symlink(source, target)
-        except (IOError, OSError):
-            logger.exception("Could not symlink to file {}".format(source))
+
+    logger.info("Creating initial symlink archive dataset")
+    # Handle an existing archive target.
+    # os.path.lexists() detects both valid and broken symbolic links.
+    if os.path.lexists(target):
+        if os.path.islink(target):
+            if os.path.exists(target):
+                existing_source = os.path.realpath(target)
+                expected_source = os.path.realpath(source)
+
+                if existing_source == expected_source:
+                    # The archive link is valid and already points to the
+                    # expected source. Preserve it.
+                    logger.info(
+                        "Archive symlink already exists and is valid: %s",
+                        target,
+                    )
+                else:
+                    # The link is valid, but points to a different existing
+                    # source. Do not remove it automatically.
+                    logger.warning(
+                        "Archive symlink points to a different source. "
+                        "Preserving existing link: %s",
+                        target,
+                    )
+                    logger.warning(
+                        "Existing source: %s",
+                        existing_source,
+                    )
+                    logger.warning(
+                        "Expected source: %s",
+                        expected_source,
+                    )
+                    return
+            else:
+                # The symbolic link is broken. It is safe to remove and
+                # replace it.
+                logger.info("Removing broken archive symlink: %s", target)
+                os.unlink(target)
+
+        elif os.path.isfile(target):
+            # Do not remove a regular file automatically.
+            logger.warning(
+                "Archive target is an existing regular file; "
+                "preserving it: %s",
+                target,
+            )
             return
+
+        else:
+            # Do not remove directories or other unexpected filesystem
+            # objects automatically.
+            logger.error(
+                "Archive target exists but is not a regular file or "
+                "symbolic link; preserving it: %s",
+                target,
+            )
+            return
+
+    # Create the link only when it does not already exist. A valid existing
+    # link reaches this point only if it was not removed, so return above.
+    if not os.path.lexists(target):
+        try:
+            logger.info("Creating archive symlink: %s -> %s", target, source)
+            os.symlink(source, target)
+        except OSError:
+            logger.exception("Could not symlink to file %s", source)
+            return
+
     try:
         md5sum_xattr = os.getxattr(filepath, "user.md5sum")
     # IOError here indicates that the xattr for the md5sum hasn't been written
