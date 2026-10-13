@@ -851,7 +851,7 @@ class GliderQC(object):
         # Regex: 8 digits optionally followed by T + 2/4/6 digits, optional trailing Z/z
         pat = re.compile(r'(?<!\d)(\d{8}(?:[Tt]\d{2}(?:\d{2}(?:\d{2})?)?)?[Zz]?)(?!\d)')
 
-        DEFAULT_MIN_YEAR = 1998 # the first ocean sea trials / deployment of a glider.
+        DEFAULT_MIN_YEAR = 1998 # 1998 is the 1st ocean sea trials / deployment of a glider.
         DEFAULT_MAX_YEAR = datetime.datetime.now().year
 
         def extract_normalized_no_z(filename: str) -> Optional[str]:
@@ -1046,7 +1046,6 @@ def run_qc(config, ncfile, ncfile_path):
             # Loop through the legacy variables and apply QARTOD
             for var_name in legacy_variables:
                 var_data = ncfile.variables[var_name]
-                # values = [x if x != "--" else np.nan for x in var_data[:]]
 
                 # Check the Data Array
                 if xyz.check_geophysical_variables(var_data):
@@ -1056,7 +1055,7 @@ def run_qc(config, ncfile, ncfile_path):
                 # Check the mapping of standard names with units
                 try:
                     values, note = xyz.normalize_variable(
-                        np.array(values[:]), var_data.units, var_data.standard_name
+                        np.array(var_data[:]), var_data.units, var_data.standard_name
                     )
                     if note: report_list.append(note)
                     if values is None:
