@@ -117,24 +117,17 @@ def make_copy(filepath):
                 logger.info("Removing broken archive symlink: %s", target)
                 os.unlink(target)
 
-        elif os.path.isfile(target):
-            # Do not remove a regular file automatically.
-            logger.warning(
-                "Archive target is an existing regular file; "
-                "preserving it: %s",
-                target,
-            )
-            return
-
         else:
-            # Do not remove directories or other unexpected filesystem
-            # objects automatically.
-            logger.error(
-                "Archive target exists but is not a regular file or "
-                "symbolic link; preserving it: %s",
+            # Remove non-symbolic filesystem objects to prevent potential
+            # versioning drift if a provider reuploads data.
+            logger.warning(
+                "Removing non-symlink archive target: %s",
                 target,
             )
-            return
+            if os.path.isdir(target):
+                os.rmdir(target)
+            else:
+                os.unlink(target)
 
     # Create the link only when it does not already exist. A valid existing
     # link reaches this point only if it was not removed, so return above.
