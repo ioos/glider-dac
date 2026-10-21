@@ -10,8 +10,7 @@ on:
   schedule:
      - cron: "00 14 * * *"
 
-  workflow_dispatch: null
-
+  workflow_dispatch:
 
 jobs:
   sync_theme_submodules:
@@ -19,31 +18,31 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
     - name: Checkout repo
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         ref: gh-pages
         fetch-depth: 0
         persist-credentials: false
+        submodules: recursive
 
-    - name: submodule checkout
-      run: |
-           git submodule update --init
-    - name: check submodule status
-      run: |
-          git submodule status
-    - name: Update theme from submodules
-      run: |
-           git submodule update --remote --merge
-    - name: check submodule status 2
-      run: |
-           git submodule status
-    - name: Commit and push if it changed
-      run: |
-           git config user.name "Automated"
-           git config user.email "actions@users.noreply.github.com"
-           git add -A
-           timestamp=$(date -u)
-           git commit -m "Update theme on: ${timestamp}" || exit 0
-           git push
+    - name: Update submodules
+      id: update_submodules
+      run: >
+          git submodule update --remote --merge
+          && git diff --quiet origin/main -- "theme" || echo "theme=true" >> $GITHUB_OUTPUT
+          && git diff --quiet origin/main -- "_data/navbars" || echo "navbars=true" >> $GITHUB_OUTPUT
+
+    - name: Create PR if it changed
+      if: ${{ (steps.update_theme_submodule.outputs.theme != 'true') && (steps.update_theme_submodule.outputs.navbars != 'true') }}
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1  #v8.1.1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "Update theme"
+        branch: "theme_update"
+        title: "Update theme submodule"
+        body: "This PR updates the theme submodule."
+        delete-branch: true
+        labels: Bot
