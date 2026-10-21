@@ -13,9 +13,10 @@ summary: A description of the NetCDF file format specification for glider data.
 
 This page provides an in-depth description of the NetCDF file format specification requirements of the U.S. IOOS National Glider Data Assembly Center.
 
-The NetCDF file specification detailed below serves three primary purposes:
+The NetCDF file specification detailed below serves four primary purposes:
 
 - It helps to ensure that glider data submitted to the NGDAC contain complete metadata records that can be harvested and stored by existing catalogs and registries.
+- It ensures that submitted files comply with the required metadata conventions: CF-1.11, ACDD-1.3, IOOS-1.2, Unidata Dataset Discovery v1.0, COARDS, NCEI, and OG1.0. Compliance with these conventions promotes consistency, interoperability, and reliable interpretation across data systems and applications.
 - It provides a simple file format that is easily created by glider operators and data managers. The flexibility provided by this specification allows for the creation of compound data products that result in easier, more intuitive methods of access by a wide range of end-users and in a variety of formats (i.e.: [**csv**](http://en.wikipedia.org/wiki/Comma-separated_values), [**tsv**](http://en.wikipedia.org/wiki/Tab-separated_values), [**json**](http://en.wikipedia.org/wiki/JSON), [**geoJson**](http://en.wikipedia.org/wiki/GeoJSON), etc.).
 - It preserves the original resolution of the data sets.
 
@@ -33,11 +34,9 @@ The NetCDF file specification detailed below serves three primary purposes:
 
 For convenience, an [index of required attributes and variables](#index-of-required-global-attributes-and-variables) (linking to descriptions in the text) is provided at the bottom of this page.
 
-## Examples
+## Examples. IOOS_Glider_Profile_NetCDF_v4.0.cdl
 
-
-Examples of the file specification are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template), and include [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/gh-pages/_nc/template/IOOS_Glider_NetCDF_v2.0.cdl) formats.
-
+Examples of the file specification are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template) in CDL format. The [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/document_improvement/_nc/template/IOOS_Glider_Profile_NetCDF_v4.0.cdl) example identifies all REQUIRED attributes. The [NGDAC Metadata Templates](https://github.com/ioos/glider-dac/tree/og1-0-metadata-template) working directory provides modular JSON templates for the required attributes. These templates separate global metadata from variable definitions to improve clarity, reuse, and maintainability, and can be used as a guide when creating or validating NetCDF files. The included Python builder script reads all .json files, applies the metadata definitions, and generates the final output.
 
 ## File Naming Conventions
 
@@ -47,7 +46,7 @@ The following file types are accepted by the U.S IOOS National Glider Data Assem
   - **glider_yyyymmddTHHMMSSZ.nc**
   - **glider_yyyymmddTHHMMSSZ_rt.nc**
   - **glider_yyyymmddTHHMMSSZ_R.nc**
-  
+
   These files contain data gathered during deployment and may include a subset of the full-resolution data available in delayed-mode files.
 
 - **Delayed-mode data:**
@@ -68,10 +67,13 @@ Ideally, the **glider_yyyymmddTHHMMSSZ(_rt, _R).nc** files will be provided by t
 
 The following is the list of required global attributes that must be included in each NetCDF file submitted to the NGDAC. This list was created from a variety of sources with the goal of providing a complete metadata record of the data set. More information on these sources can be found at the following locations:
 
- - [Climate and Forecast (CF)](https://cfconventions.org/): Especially the section on Attributes (section 2.6, as of CF v1.10),
- - [Attribute Convention for Data Discovery](http://wiki.esipfed.org/index.php?title=Attribute_Convention_for_Data_Discovery) (ACDD),
- - NOAA National Centers for Environmental Information (NCEI) netCDF Templates: Guidance from NCEI on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.ncei.noaa.gov/netcdf-templates) and [global attribute suggestions](https://www.ncei.noaa.gov/netcdf-templates#guidancetable), and
- - Integrated Marine Observing System (IMOS): [Delayed Mode QA/QC Best Practice Manual](https://content.aodn.org.au/Documents/IMOS/Facilities/Ocean_glider/Delayed_Mode_QAQC_Best_Practice_Manual_OceanGliders_LATEST.pdf).
+ - [Climate and Forecast (CF)](https://cfconventions.org/): Especially the section on Attributes (section 2.6, as of CF v1.13),
+ - [Attribute Convention for Data Discovery](https://wiki.esipfed.org/Attribute_Convention_for_Data_Discovery_1-3) (ACDD),
+ - NOAA National Centers for Environmental Information (NCEI) netCDF Templates: Guidance from NCEI on netCDF templates to promote good stewardship and archiving. [NCEI Templates](https://www.ncei.noaa.gov/netcdf-templates) and [global attribute suggestions](https://www.ncei.noaa.gov/data/oceans/ncei/formats/netcdf/v2.0/index.html)
+ - Integrated Marine Observing System (IMOS): [Delayed Mode QA/QC Best Practice Manual](https://content.aodn.org.au/Documents/IMOS/Facilities/Ocean_glider/Delayed_Mode_QAQC_Best_Practice_Manual_OceanGliders_LATEST.pdf),
+ - Integrated Ocean Observing System Metadata Profile Version 1.2 [IOOS-1.2] (https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2.html),
+ - The Cooperative Ocean-Atmosphere Research Data Service [COARDS](https://ferret.pmel.noaa.gov/Ferret/documentation/coards-netcdf-conventions), and
+ - Ocean GLiders Format[OG1.0] (https://oceangliderscommunity.github.io/OG-format-user-manual/OG_Format.html).
 
 ### Caveats
 
@@ -80,24 +82,23 @@ There are a few important points to mention with regards to global attributes:
  1. All attributes listed below are **REQUIRED** and should have meaningful values assigned to them. In the event that a meaningful value cannot be assigned, set the value to a single whitespace character enclosed in double quotes. For example, if the data set has not been modified, you should set the *date_modified* global attribute value to **\" \"**.
  2. For attributes with timestamp values (i.e.: *date_created*, *date_modified*, *date_issued*), use the [ISO 8601:2004 'extended' format](http://en.wikipedia.org/wiki/ISO_8601#General_principles). This format has the general form: **YYYY-MM-DDThh:mm:ssZ**.
  3. All global attributes must be string attributes.
- 4. You may or may not notice the absence of a number of global attributes, particularly related to temporal and spatial extent (i.e.: *geospatial_lat_min*, *geospatial_vertical_min*, *time_coverage_start*, etc.), from this list. The NGDAC will add these global attributes and assign appropriate values to them prior to making the aggregated data sets available to the public.
- 5. The name and a description of each attribute are listed below. An example is given where the selection of an appropriate value may be unclear. Please use the specified **Value** listed under the attribute name for the following attributes: *Conventions*, *Metadata_Conventions*, *format_version*, *standard_name_vocabulary*.
+ 4. The name and a description of each attribute are listed below. An example is given where the selection of an appropriate value may be unclear. Please use the specified **Value** listed under the attribute name for the following attributes: *Conventions*, *Metadata_Conventions*, *format_version*, *standard_name_vocabulary*.
 
 ### Description and Examples of Required Global Attributes
 
 #### _Conventions_
 
-Version of the [Climate and Forecast metadata conventions](https://cfconventions.org/) followed by the file format specification.
+Version of the conventions followed by the file format specification.
 
 Value:
-: "CF-1.6"
+: "CF-1.6, ACDD-1.3, IOOS-1.2"
 
 #### _Metadata_Conventions_
 
 Unidata NetCDF group's [Attribute Conventions for Dataset Discovery](http://wiki.esipfed.org/index.php?title=Category:Attribute_Conventions_Dataset_Discovery). These conventions identify and define a list of NetCDF global attributes recommended for describing a NetCDF dataset to discovery systems such as Digital Libraries. Software tools will use these attributes for extracting metadata from datasets, and exporting to Dublin Core, DIF, ADN, FGDC, ISO 19115 etc. metadata formats.
 
 Value:
-: "CF-1.6, Unidata Dataset Discovery v1.0"
+: "CF-1.6, Unidata Dataset Discovery v1.0, COARDS"
 
 #### _acknowledgement_
 
@@ -162,7 +163,7 @@ Example:
 NetCDF file format version.
 
 Value:
-: "IOOS_Glider_NetCDF_v2.0.nc"
+: "IOOS_Glider_NetCDF_v4.0.nc"
 
 #### _history_
 
@@ -175,7 +176,7 @@ Example:
 
 A human readable unique identifier for data set. We recommend using the *trajectory* variable string name, which must have the following format:
 
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_**glider-YYYYmmddTHHMMZ**_, where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
+  _**glider-YYYYmmddTHHMMZ**_, where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
 
 Example:
 : "ru30-20140101T0000Z"
@@ -187,7 +188,7 @@ Institution of the person or group that collected the data. This value should be
 To maximize the findability of glider data submitted by a single institution, data providers should ensure that they consistently use the same spelling of an institution's name in each data submission.
 Before submitting data to NGDAC, data providers can verify that the institution value matches that already associated with NCEI-archived datasets by referring to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the *Keywords* tab of [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
 
-- If the institution is present in that list, use NCEI’s spelling of the institution name to populate the global attribute *institution* in the NetCDF files to be submitted for archival. 
+- If the institution is present in that list, use NCEI’s spelling of the institution name to populate the global attribute *institution* in the NetCDF files to be submitted for archival.
 - If the institution is *not* present, check if the institution has a ROR ID (at [https://ror.org](https://ror.org)).
   - If it does, use the name associated with that ROR ID. If the institution does not have its own ROR ID, but is nested within a parent institution that *does* have its own ROR ID, consider using the parent institution name.
   - Otherwise, use the name that the organization itself recommends for use (by checking the organization website, for example).
@@ -232,9 +233,8 @@ Example:
 
 Glider type.
 
-Current accepted types are:
-
-: "Seaglider", "Spray", "Slocum"
+Example:
+: "Seaglider"
 
 No other values will be accepted for this attribute.
 
@@ -289,7 +289,7 @@ Example:
 
 #### _standard_name_vocabulary_
 
-Version of CF standard names used for variables. [Current standard name table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html) (e.g. "Standard Name Table (v73, 23 June 2020)")
+Version of CF standard names used for variables. [Current standard name table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html) (e.g. "Standard Name Table (Version 95, 16 September 2026)")
 
 #### _summary_
 
@@ -316,7 +316,7 @@ Example:
 
 #### _wmo_id_
 
-String specifying the [WMO ID](https://public.wmo.int/rules-allocating-wmo-numbers) used to identify this platform. Must be specified as a string attribute. Each [WMO ID](https://public.wmo.int/rules-allocating-wmo-numbers) is unique to an individual glider deployed in a specific location and must be requested from the NGDAC administrator.
+A string attribute specifying the platform’s unique [WMO ID](https://public.wmo.int/rules-allocating-wmo-numbers). The WMO ID identifies an individual glider deployed at a specific location and must be requested from the NGDAC administrator. See [Requesting a WMO ID]({{ site.baseurl }}/ngdac-netcdf-file-submission-process.html#requesting-a-wmo-id) for details.
 
 Example:
 : "4801518"
@@ -330,12 +330,12 @@ The NetCDF file specification contains 3 core variable types which relate to how
  + [profile](#dimensionless-profile-variables): dimensionless variables that provide access to data on a profile-by-profile basis
  + [container](#dimensionless-container-variables): dimensionless variables used to capture metadata regarding the platform and instrumentation on board the glider.
 
-Most of the time-series variables and many of the profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. Each variable has the same dimension as its associated quality control variable. While no CF standard names exist for these quality control variables, [following CF conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch03s03.html),  a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) may be appended to the corresponding variable's standard name to create the standard name for the quality control flag.
+Most of the time-series variables and many of the profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. Each variable has the same dimension as its associated quality control variable. While no CF standard names exist for these quality control variables, [following CF conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch03s03.html), a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) may be appended to the corresponding variable's standard name to create the standard name for the quality control flag.
 
 For example, as seen in the CDL example below, the *temperature* variable has a corresponding data quality variable *temperature_qc*. The *standard_name* attribute of that quality control variable contains the CF standard name of the variable it references with "status_flag" appended, i.e. "sea_water_temperature status_flag." Both variables have the same dimension, *time*.
 
 ```
- double temperature(time) ;
+double temperature(time) ;
         temperature:ancillary_variables = "temperature_qc" ;
  byte temperature_qc(time) ;
         temperature_qc:standard_name = "sea_water_temperature status_flag" ;
@@ -352,8 +352,6 @@ The NGDAC reserves the following QC variable names to populate with the results 
 - `qartod_(variable_name)_primary_flag`
 
 When checking your netCDF file, the QC process skips any variable that has a corresponding data quality variable starting with 'qartod_'.
-
-
 
 
 **The following is a list and description of all variables and corresponding variable attributes that are REQUIRED for the file to be accepted by the NGDAC.** A CDL description of each variable is located below the formal description. Examples of the various attributes have been provided for reference, but each data provider is encouraged to modify these values if they feel it is necessary, particularly for the following variable attributes:
@@ -391,16 +389,13 @@ The *trajectory* variable stores a character array that identifies the deploymen
 
 #### _trajectory_
 
-|&nbsp;|&nbsp;|
+| | |
 |-|-|
 | **Dimension** | traj_strlen |
 | **Data Type** | string stored as char array |
 | **Value Type** | array |
 | **_FillValue** | "" |
 | **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMMZ**. |
-
-
-
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
@@ -411,7 +406,6 @@ The *trajectory* variable stores a character array that identifies the deploymen
         trajectory:comment = "A trajectory is a single deployment of a glider and may span multiple data files." ;
         trajectory:long_name = "Trajectory/Deployment Name" ;
 ```
-
 
 ### Time-Series Variables
 
@@ -434,18 +428,17 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double time(time) ;
-        time:ancillary_variables = "time_qc" ;
-        time:calendar = "gregorian" ;
-        time:long_name = "Time" ;
-        time:observation_type = "measured" ;
-        time:standard_name = "time" ;
-        time:units = "seconds since 1970-01-01T00:00:00Z" ;
+double time(time) ;
+	time:ancillary_variables = "time_qc" ;
+	time:comment = "Measured or calculated time at each point in the time-series" ;
+	time:calendar = "standard" ;
+	time:long_name = "Time" ;
+	time:observation_type = "measured" ;
+	time:standard_name = "time" ;
+	time:units = "seconds since 1970-01-01T00:00:00Z" ;
 ```
 
-
 #### <i>time_qc</i>
-
 
 
 | | |
@@ -461,15 +454,14 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte time_qc(time) ;
-        time_qc:_FillValue = -127b ;
-        time_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        time_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        time_qc:long_name = "time Quality Flag" ;
-        time_qc:standard_name = "time status_flag" ;
-        time_qc:valid_max = 9b ;
-        time_qc:valid_min = 0b ;
-
+byte time_qc(time) ;
+	time_qc:_FillValue = -127b ;
+	time_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	time_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	time_qc:long_name = "time Quality Flag" ;
+	time_qc:standard_name = "time status_flag" ;
+	time_qc:valid_max = 9b ;
+	time_qc:valid_min = 0b ;
 ```
 
 #### <i>lat</i>
@@ -485,22 +477,22 @@ The following variables are dimensioned along the time axis.
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
-```
- double lat(time) ;
-        lat:_FillValue = -999. ;
-        lat:ancillary_variables = "lat_qc" ;
-        lat:comment = "Values may be interpolated between measured GPS fixes" ;
-        lat:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
-        lat:long_name = "Latitude" ;
-        lat:observation_type = "measured" ;
-        lat:platform = "platform" ;
-        lat:reference = "WGS84" ;
-        lat:standard_name = "latitude" ;
-        lat:units = "degrees_north" ;
-        lat:valid_max = 90. ;
-        lat:valid_min = -90. ;
-```
 
+```
+double lat(time) ;
+	lat:_FillValue = -999. ;
+	lat:standard_name = "latitude" ;
+	lat:units = "degrees_north" ;
+	lat:ancillary_variables = "lat_qc" ;
+	lat:comment = "Interpolated latitude at each point in the time-series" ;
+	lat:long_name = "Profile Latitude" ;
+	lat:observation_type = "calculated" ;
+	lat:platform = "platform" ;
+	lat:valid_max = 90. ;
+	lat:valid_min = -90. ;
+	lat:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	lat:reference = "WGS84" ;
+```
 
 #### <i>lat_qc</i>
 
@@ -515,17 +507,17 @@ The following variables are dimensioned along the time axis.
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 
-```
- byte latitude_qc(time) ;
-        lat_qc:_FillValue = -127b ;
-        lat_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        lat_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        lat_qc:long_name = "latitude Quality Flag" ;
-        lat_qc:standard_name = "latitude status_flag" ;
-        lat_qc:valid_max = 9b ;
-        lat_qc:valid_min = 0b ;
-```
 
+```
+byte lat_qc(time) ;
+	lat_qc:_FillValue = -127b ;
+	lat_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	lat_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	lat_qc:long_name = "latitude Quality Flag" ;
+	lat_qc:standard_name = "latitude status_flag" ;
+	lat_qc:valid_max = 9b ;
+	lat_qc:valid_min = 0b ;
+```
 
 #### <i>lon</i>
 
@@ -542,21 +534,20 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double lon(time) ;
-        lon:_FillValue = -999. ;
-        lon:ancillary_variables = "lon_qc" ;
-        lon:comment = "Values may be interpolated between measured GPS fixes" ;
-        lon:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
-        lon:long_name = "Longitude" ;
-        lon:observation_type = "measured" ;
-        lon:platform = "platform" ;
-        lon:reference = "WGS84" ;
-        lon:standard_name = "longitude" ;
-        lon:units = "degrees_east" ;
-        lon:valid_max = 180. ;
-        lon:valid_min = -180. ;
+double lon(time) ;
+	lon:_FillValue = -999. ;
+	lon:standard_name = "longitude" ;
+	lon:units = "degrees_east" ;
+	lon:ancillary_variables = "lon_qc" ;
+	lon:comment = "Interpolated longitude at each point in the time-series" ;
+	lon:long_name = "Profile Longitude" ;
+	lon:observation_type = "calculated" ;
+	lon:platform = "platform" ;
+	lon:valid_max = 180. ;
+	lon:valid_min = -180. ;
+	lon:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	lon:reference = "WGS84" ;
 ```
-
 
 #### <i>lon_qc</i>
 
@@ -573,16 +564,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte lon_qc(time) ;
-        lon_qc:_FillValue = -127b ;
-        lon_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        lon_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        lon_qc:long_name = "longitude Quality Flag" ;
-        lon_qc:standard_name = "longitude status_flag" ;
-        lon_qc:valid_max = 9b ;
-        lon_qc:valid_min = 0b ;
+byte lon_qc(time) ;
+	lon_qc:_FillValue = -127b ;
+	lon_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	lon_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	lon_qc:long_name = "longitude Quality Flag" ;
+	lon_qc:standard_name = "longitude status_flag" ;
+	lon_qc:valid_max = 9b ;
+	lon_qc:valid_min = 0b ;
 ```
-
 
 #### <i>pressure</i>
 
@@ -599,29 +589,30 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double pressure(time) ;
-        pressure:_FillValue = -999. ;
-        pressure:accuracy = " " ;
-        pressure:ancillary_variables = "pressure_qc" ;
-        pressure:comment = " " ;
-        pressure:instrument = "instrument_ctd" ;
-        pressure:long_name = "Pressure" ;
-        pressure:observation_type = "measured" ;
-        pressure:platform = "platform" ;
-        pressure:positive = "down" ;
-        pressure:precision = " " ;
-        pressure:reference_datum = "sea-surface" ;
-        pressure:resolution = " " ;
-        pressure:standard_name = "sea_water_pressure" ;
-        pressure:units = "dbar" ;
-        pressure:valid_max = 2000 ;
-        pressure:valid_min = 0 ;
+double pressure(time) ;
+	pressure:_FillValue = -999. ;
+	pressure:platform = "platform" ;
+	pressure:instrument = "instrument_ctd" ;
+	pressure:ancillary_variables = "pressure_qc" ;
+	pressure:comment = "comment_here" ;
+	pressure:standard_name = "sea_water_pressure" ;
+	pressure:long_name = "Sea Water Pressure" ;
+	pressure:observation_type = "measured" ;
+	pressure:positive = "down" ;
+	pressure:reference_datum = "sea-surface" ;
+	pressure:precision = 0.01 ;
+	pressure:resolution = 0.01 ;
+	pressure:accuracy = 0.01 ;
+	pressure:valid_max = 2000. ;
+	pressure:valid_min = 0. ;
+	pressure:units = "dbar" ;
+	pressure:coverage_content_type = " " ;
+	pressure:missing_value = -999. ;
+	pressure:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	pressure:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
 ```
 
-
 #### <i>pressure_qc</i>
-
-
 
 | | |
 |-|-|
@@ -636,16 +627,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte pressure_qc(time) ;
-        pressure_qc:_FillValue = -127b ;
-        pressure_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        pressure_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        pressure_qc:long_name = "pressure Quality Flag" ;
-        pressure_qc:standard_name = "sea_water_pressure status_flag" ;
-        pressure_qc:valid_max = 9b ;
-        pressure_qc:valid_min = 0b ;
+byte pressure_qc(time) ;
+	pressure_qc:_FillValue = -127b ;
+	pressure_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	pressure_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	pressure_qc:long_name = "pressure Quality Flag" ;
+	pressure_qc:standard_name = "sea_water_pressure status_flag" ;
+	pressure_qc:valid_max = 9b ;
+	pressure_qc:valid_min = 0b ;
 ```
-
 
 #### <i>depth</i>
 
@@ -662,25 +652,24 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double depth(time) ;
-        depth:_FillValue = -999. ;
-        depth:accuracy = " " ;
-        depth:ancillary_variables = "depth_qc" ;
-        depth:comment = " " ;
-        depth:instrument = "instrument_ctd" ;
-        depth:long_name = "Depth" ;
-        depth:observation_type = "calculated" ;
-        depth:platform = "platform" ;
-        depth:positive = "down" ;
-        depth:precision = " " ;
-        depth:reference_datum = "sea-surface" ;
-        depth:resolution = " " ;
-        depth:standard_name = "depth" ;
-        depth:units = "m" ;
-        depth:valid_max = 2000 ;
-        depth:valid_min = 0 ;
+double depth(time) ;
+	depth:_FillValue = -999. ;
+	depth:platform = "platform" ;
+	depth:instrument = "instrument_ctd" ;
+	depth:ancillary_variables = "depth_qc" ;
+	depth:comment = "comment_here" ;
+	depth:standard_name = "depth" ;
+	depth:long_name = "Depth" ;
+	depth:observation_type = "calculated" ;
+	depth:positive = "down" ;
+	depth:reference_datum = "sea-surface" ;
+	depth:precision = 0.01 ;
+	depth:resolution = 0.01 ;
+	depth:accuracy = 0.01 ;
+	depth:valid_max = 2000. ;
+	depth:valid_min = 0. ;
+	depth:units = "m" ;
 ```
-
 
 #### <i>depth_qc</i>
 
@@ -697,16 +686,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte depth_qc(time) ;
-        depth_qc:_FillValue = -127b ;
-        depth_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        depth_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        depth_qc:long_name = "depth Quality Flag" ;
-        depth_qc:standard_name = "depth status_flag" ;
-        depth_qc:valid_max = 9b ;
-        depth_qc:valid_min = 0b ;
+byte depth_qc(time) ;
+	depth_qc:_FillValue = -127b ;
+	depth_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	depth_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	depth_qc:long_name = "depth Quality Flag" ;
+	depth_qc:standard_name = "depth status_flag" ;
+	depth_qc:valid_max = 9b ;
+	depth_qc:valid_min = 0b ;
 ```
-
 
 #### <i>temperature</i>
 
@@ -723,22 +711,25 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double temperature(time) ;
-        temperature:_FillValue = -999. ;
-        temperature:accuracy = " " ;
-        temperature:ancillary_variables = "temperature_qc" ;
-        temperature:instrument = "instrument_ctd" ;
-        temperature:long_name = "Temperature" ;
-        temperature:observation_type = "measured" ;
-        temperature:platform = "platform" ;
-        temperature:precision = " " ;
-        temperature:resolution = " " ;
-        temperature:standard_name = "sea_water_temperature" ;
-        temperature:units = "Celsius" ;
-        temperature:valid_max = 40. ;
-        temperature:valid_min = -5. ;
+double temperature(time) ;
+	temperature:_FillValue = -999. ;
+	temperature:platform = "platform" ;
+	temperature:instrument = "instrument_ctd" ;
+	temperature:ancillary_variables = "temperature_qc" ;
+	temperature:standard_name = "sea_water_temperature" ;
+	temperature:long_name = "Sea Water Temperature" ;
+	temperature:observation_type = "measured" ;
+	temperature:valid_max = 40. ;
+	temperature:valid_min = -5. ;
+	temperature:accuracy = 0.01 ;
+	temperature:precision = 0.01 ;
+	temperature:resolution = 0.0001 ;
+	temperature:units = "Celsius" ;
+	temperature:coverage_content_type = " " ;
+	temperature:missing_value = -999. ;
+	temperature:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	temperature:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
 ```
-
 
 #### <i>temperature_qc</i>
 
@@ -755,16 +746,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte temperature_qc(time) ;
-        temperature_qc:_FillValue = -127b ;
-        temperature_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        temperature_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        temperature_qc:long_name = "temperature Quality Flag" ;
-        temperature_qc:standard_name = "sea_water_temperature status_flag" ;
-        temperature_qc:valid_max = 9b ;
-        temperature_qc:valid_min = 0b ;
+byte temperature_qc(time) ;
+	temperature_qc:_FillValue = -127b ;
+	temperature_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	temperature_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	temperature_qc:long_name = "temperature Quality Flag" ;
+	temperature_qc:standard_name = "sea_water_temperature status_flag" ;
+	temperature_qc:valid_max = 9b ;
+	temperature_qc:valid_min = 0b ;
 ```
-
 
 #### <i>conductivity</i>
 
@@ -781,22 +771,25 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double conductivity(time) ;
-        conductivity:_FillValue = -999. ;
-        conductivity:accuracy = " " ;
-        conductivity:ancillary_variables = "conductivity_qc" ;
-        conductivity:instrument = "instrument_ctd" ;
-        conductivity:long_name = "Conductivity" ;
-        conductivity:observation_type = "measured" ;
-        conductivity:platform = "platform" ;
-        conductivity:precision = " " ;
-        conductivity:resolution = " " ;
-        conductivity:standard_name = "sea_water_electrical_conductivity" ;
-        conductivity:units = "S m-1" ;
-        conductivity:valid_max = 10. ;
-        conductivity:valid_min = 0. ;
+double conductivity(time) ;
+	conductivity:_FillValue = -999. ;
+	conductivity:platform = "platform" ;
+	conductivity:instrument = "instrument_ctd" ;
+	conductivity:ancillary_variables = "conductivity_qc" ;
+	conductivity:standard_name = "sea_water_electrical_conductivity" ;
+	conductivity:long_name = "Sea Water Electrical Conductivity" ;
+	conductivity:observation_type = "measured" ;
+	conductivity:precision = 0.01 ;
+	conductivity:resolution = 0.01 ;
+	conductivity:accuracy = 0.01 ;
+	conductivity:valid_max = 10. ;
+	conductivity:valid_min = 0. ;
+	conductivity:units = "S m-1" ;
+	conductivity:coverage_content_type = " " ;
+	conductivity:missing_value = -999. ;
+	conductivity:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	conductivity:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
 ```
-
 
 #### <i>conductivity_qc</i>
 
@@ -813,16 +806,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte conductivity_qc(time) ;
-        conductivity_qc:_FillValue = -127b ;
-        conductivity_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        conductivity_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        conductivity_qc:long_name = "conductivity Quality Flag" ;
-        conductivity_qc:standard_name = "sea_water_electrical_conductivity status_flag" ;
-        conductivity_qc:valid_max = 9b ;
-        conductivity_qc:valid_min = 0b ;
+byte conductivity_qc(time) ;
+	conductivity_qc:_FillValue = -127b ;
+	conductivity_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	conductivity_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	conductivity_qc:long_name = "conductivity Quality Flag" ;
+	conductivity_qc:standard_name = "sea_water_electrical_conductivity status_flag" ;
+	conductivity_qc:valid_max = 9b ;
+	conductivity_qc:valid_min = 0b ;
 ```
-
 
 #### <i>salinity</i>
 
@@ -839,22 +831,25 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double salinity(time) ;
-        salinity:_FillValue = -999. ;
-        salinity:accuracy = " " ;
-        salinity:ancillary_variables = "salinity_qc" ;
-        salinity:instrument = "instrument_ctd" ;
-        salinity:long_name = "Salinity" ;
-        salinity:observation_type = "calculated" ;
-        salinity:platform = "platform" ;
-        salinity:precision = " " ;
-        salinity:resolution = " " ;
-        salinity:standard_name = "sea_water_practical_salinity" ;
-        salinity:units = "1" ;
-        salinity:valid_max = 40. ;
-        salinity:valid_min = 0. ;
+double salinity(time) ;
+	salinity:_FillValue = -999. ;
+	salinity:platform = "platform" ;
+	salinity:instrument = "instrument_ctd" ;
+	salinity:ancillary_variables = "salinity_qc" ;
+	salinity:standard_name = "sea_water_practical_salinity" ;
+	salinity:long_name = "Salinity" ;
+	salinity:observation_type = "measured" ;
+	salinity:valid_max = 40. ;
+	salinity:valid_min = 0. ;
+	salinity:accuracy = 0.01 ;
+	salinity:precision = 0.01 ;
+	salinity:resolution = 0.0001 ;
+	salinity:units = "1" ;
+	salinity:coverage_content_type = " " ;
+	salinity:missing_value = -999. ;
+	salinity:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	salinity:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/salinity:cf-standard-name-table.html" ;
 ```
-
 
 #### <i>salinity_qc</i>
 
@@ -871,14 +866,14 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte salinity_qc(time) ;
-        salinity_qc:_FillValue = -127b ;
-        salinity_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        salinity_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        salinity_qc:long_name = "salinity Quality Flag" ;
-        salinity_qc:standard_name = "sea_water_salinity status_flag" ;
-        salinity_qc:valid_max = 9b ;
-        salinity_qc:valid_min = 0b ;
+byte salinity_qc(time) ;
+	salinity_qc:_FillValue = -127b ;
+	salinity_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	salinity_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	salinity_qc:long_name = "sea_water_practical_salinity Quality Flag" ;
+	salinity_qc:standard_name = "sea_water_salinity status_flag" ;
+	salinity_qc:valid_max = 9b ;
+	salinity_qc:valid_min = 0b ;
 ```
 
 
@@ -897,22 +892,25 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- double density(time) ;
-        density:_FillValue = -999. ;
-        density:accuracy = " " ;
-        density:ancillary_variables = "density_qc" ;
-        density:instrument = "instrument_ctd" ;
-        density:long_name = "Density" ;
-        density:observation_type = "calculated" ;
-        density:platform = "platform" ;
-        density:precision = " " ;
-        density:resolution = " " ;
-        density:standard_name = "sea_water_density" ;
-        density:units = "kg m-3" ;
-        density:valid_max = 1040. ;
-        density:valid_min = 1015. ;
+double density(time) ;
+	density:_FillValue = -999. ;
+	density:platform = "platform" ;
+	density:instrument = "instrument_ctd" ;
+	density:ancillary_variables = "density_qc" ;
+	density:standard_name = "sea_water_density" ;
+	density:long_name = "Sea Water Density" ;
+	density:observation_type = "calculated" ;
+	density:precision = 0.01 ;
+	density:resolution = 0.01 ;
+	density:accuracy = 0.01 ;
+	density:valid_max = 1040. ;
+	density:valid_min = 1015. ;
+	density:units = "kg m-3" ;
+	density:coverage_content_type = " " ;
+	density:missing_value = -999. ;
+	density:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	density:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
 ```
-
 
 #### <i>density_qc</i>
 
@@ -929,16 +927,15 @@ The following variables are dimensioned along the time axis.
 
 
 ```
- byte density_qc(time) ;
-        density_qc:_FillValue = -127b ;
-        density_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        density_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        density_qc:long_name = "density Quality Flag" ;
-        density_qc:standard_name = "sea_water_density status_flag" ;
-        density_qc:valid_max = 9b ;
-        density_qc:valid_min = 0b ;
+byte density_qc(time) ;
+	density_qc:_FillValue = -127b ;
+	density_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	density_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	density_qc:long_name = "sea_water_density Quality Flag" ;
+	density_qc:standard_name = "density status_flag" ;
+	density_qc:valid_max = 9b ;
+	density_qc:valid_min = 0b ;
 ```
-
 
 ### Dimensionless Profile Variables
 
@@ -960,14 +957,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- int profile_id ;
-        profile_id:_FillValue = -999 ;
-        profile_id:comment = "Sequential profile number within the trajectory. This value is unique in each file that is part of a single trajectory/deployment." ;
-        profile_id:long_name = "Profile ID" ;
-        profile_id:valid_max = 2147483647 ;
-        profile_id:valid_min = 1 ;
+int profile_id ;
+	profile_id:_FillValue = -999 ;
+	profile_id:cf_role = "profile_id" ;
+	profile_id:comment = "A sequential number assigned to each vertically oriented profile track of a glider, either ascending or descending through the water column. This value is unique within each individual profile file that is part of a single trajectory or deployment." ;
+	profile_id:long_name = "profile id" ;
+	profile_id:valid_min = 1 ;
+	profile_id:valid_max = 100 ;
 ```
-
 
 #### <i>profile_time</i>
 
@@ -984,17 +981,16 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double profile_time ;
-        profile_time:_FillValue = -999. ;
- profile_time:calendar = "gregorian" ;
-        profile_time:comment = "Timestamp corresponding to the mid-point of the profile" ;
-        profile_time:long_name = "Profile Center Time" ;
-        profile_time:observation_type = "calculated" ;
-        profile_time:platform = "platform" ;
-        profile_time:standard_name = "time" ;
-        profile_time:units = "seconds since 1970-01-01T00:00:00Z" ;
+double profile_time ;
+	profile_time:_FillValue = -999. ;
+	profile_time:platform = "platform" ;
+	profile_time:calendar = "standard" ;
+	profile_time:comment = "Timestamp corresponding to the mid-point of the profile." ;
+	profile_time:long_name = "Profile Center Time" ;
+	profile_time:observation_type = "calculated" ;
+	profile_time:standard_name = "time" ;
+	profile_time:units = "seconds since 1970-01-01T00:00:00Z" ;
 ```
-
 
 #### <i>profile_time_qc</i>
 
@@ -1003,7 +999,7 @@ The *standard_name* variable attribute **should not be included** for the *profi
 | **Dimension** | None |
 | **Data Type** | byte |
 | **Value Type** | scalar |
-| **_FillValue** | -127b |
+| **_FillValue** | -9b |
 | **Description** | An array that contains values conveying information on the data quality status of the value in the **profile_time** variable. |
 
 
@@ -1011,14 +1007,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte profile_time_qc ;
-        profile_time_qc:_FillValue = -127b ;
-        profile_time_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        profile_time_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        profile_time_qc:long_name = "profile_time Quality Flag" ;
-        profile_time_qc:standard_name = "time status_flag" ;
-        profile_time_qc:valid_max = 9b ;
-        profile_time_qc:valid_min = 0b ;
+byte profile_time_qc ;
+	profile_time_qc:_FillValue = -127b ;
+	profile_time_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	profile_time_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	profile_time_qc:long_name = "profile_time Quality Flag" ;
+	profile_time_qc:standard_name = "time status_flag" ;
+	profile_time_qc:valid_max = 9b ;
+	profile_time_qc:valid_min = 0b ;
 ```
 
 
@@ -1037,18 +1033,20 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double profile_lat ;
-        profile_lat:_FillValue = -999. ;
-        profile_lat:comment = "Value is interpolated to provide an estimate of the latitude at the mid-point of the profile" ;
-        profile_lat:long_name = "Profile Center Latitude" ;
-        profile_lat:observation_type = "calculated" ;
-        profile_lat:platform = "platform" ;
-        profile_lat:standard_name = "latitude" ;
-        profile_lat:units = "degrees_north" ;
-        profile_lat:valid_max = 90. ;
-        profile_lat:valid_min = -90. ;
-```
+double profile_lat ;
+	profile_lat:_FillValue = -999. ;
+	profile_lat:standard_name = "latitude" ;
+	profile_lat:units = "degrees_north" ;
+	profile_lat:comment = "Value is interpolated to provide an estimate of the latitude at the mid-point of the profile" ;
+	profile_lat:long_name = "Profile Center Latitude" ;
+	profile_lat:observation_type = "calculated" ;
+	profile_lat:platform = "platform" ;
+	profile_lat:valid_max = 90. ;
+	profile_lat:valid_min = -90. ;
+	profile_lat:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	profile_lat:reference = "WGS84" ;
 
+```
 
 #### <i>profile_lat_qc</i>
 
@@ -1065,14 +1063,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte profile_lat_qc ;
-        profile_lat_qc:_FillValue = -127b ;
-        profile_lat_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        profile_lat_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        profile_lat_qc:long_name = "profile_lat Quality Flag" ;
-        profile_lat_qc:standard_name = "latitude status_flag" ;
-        profile_lat_qc:valid_max = 9b ;
-        profile_lat_qc:valid_min = 0b ;
+byte profile_lat_qc ;
+	profile_lat_qc:_FillValue = -127b ;
+	profile_lat_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	profile_lat_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	profile_lat_qc:long_name = "profile_lat Quality Flag" ;
+	profile_lat_qc:standard_name = "latitude status_flag" ;
+	profile_lat_qc:valid_max = 9b ;
+	profile_lat_qc:valid_min = 0b ;
 ```
 
 
@@ -1091,18 +1089,19 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double profile_lon ;
-        profile_lon:_FillValue = -999. ;
-        profile_lon:comment = "Value is interpolated to provide an estimate of the longitude at the mid-point of the profile" ;
-        profile_lon:long_name = "Profile Center Longitude" ;
-        profile_lon:observation_type = "calculated" ;
-        profile_lon:platform = "platform" ;
-        profile_lon:standard_name = "longitude" ;
-        profile_lon:units = "degrees_east" ;
-        profile_lon:valid_max = 180. ;
-        profile_lon:valid_min = -180. ;
+double profile_lon ;
+	profile_lon:_FillValue = -999. ;
+	profile_lon:standard_name = "longitude" ;
+	profile_lon:units = "degrees_east" ;
+	profile_lon:comment = "Value is interpolated to provide an estimate of the longitude at the mid-point of the profile" ;
+	profile_lon:long_name = "Profile Center Longitude" ;
+	profile_lon:observation_type = "calculated" ;
+	profile_lon:platform = "platform" ;
+	profile_lon:valid_max = 180. ;
+	profile_lon:valid_min = -180. ;
+	profile_lon:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	profile_lon:reference = "WGS84" ;
 ```
-
 
 #### <i>profile_lon_qc</i>
 
@@ -1119,14 +1118,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte profile_lon_qc ;
-        profile_lon_qc:_FillValue = -127b ;
-        profile_lon_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        profile_lon_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        profile_lon_qc:long_name = "profile_lon Quality Flag" ;
-        profile_lon_qc:standard_name = "longitude status_flag" ;
-        profile_lon_qc:valid_max = 9b ;
-        profile_lon_qc:valid_min = 0b ;
+byte profile_lon_qc ;
+	profile_lon_qc:_FillValue = -127b ;
+	profile_lon_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	profile_lon_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	profile_lon_qc:long_name = "profile_lon Quality Flag" ;
+	profile_lon_qc:standard_name = "longitude status_flag" ;
+	profile_lon_qc:valid_max = 9b ;
+	profile_lon_qc:valid_min = 0b ;
 ```
 
 
@@ -1145,16 +1144,16 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double time_uv ;
-        time_uv:_FillValue = -999. ;
-        time_uv:calendar = "gregorian" ;
-        time_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
-        time_uv:long_name = "Depth-Averaged Time" ;
-        time_uv:observation_type = "calculated" ;
-        time_uv:standard_name = "time" ;
-        time_uv:units = "seconds since 1970-01-01T00:00:00Z" ;
+double time_uv ;
+	time_uv:_FillValue = -999. ;
+	time_uv:platform = "platform" ;
+	time_uv:calendar = "gregorian" ;
+	time_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
+	time_uv:long_name = "Depth-Averaged Time" ;
+	time_uv:observation_type = "calculated" ;
+	time_uv:standard_name = "time" ;
+	time_uv:units = "seconds since 1970-01-01T00:00:00Z" ;
 ```
-
 
 #### <i>time_uv_qc</i>
 
@@ -1171,14 +1170,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte time_uv_qc ;
-        time_uv_qc:_FillValue = -127b ;
-        time_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        time_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        time_uv_qc:long_name = "time_uv Quality Flag" ;
-        time_uv_qc:standard_name = "time status_flag" ;
-        time_uv_qc:valid_max = 9b ;
-        time_uv_qc:valid_min = 0b ;
+byte time_uv_qc ;
+	time_uv_qc:_FillValue = -127b ;
+	time_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	time_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	time_uv_qc:long_name = "time_uv Quality Flag" ;
+	time_uv_qc:standard_name = "time status_flag" ;
+	time_uv_qc:valid_max = 9b ;
+	time_uv_qc:valid_min = 0b ;
 ```
 
 
@@ -1197,18 +1196,19 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double lat_uv ;
-        lat_uv:_FillValue = -999. ;
-        lat_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
-        lat_uv:long_name = "Depth-Averaged Latitude" ;
-        lat_uv:observation_type = "calculated" ;
-        lat_uv:platform = "platform" ;
-        lat_uv:standard_name = "latitude" ;
-        lat_uv:units = "degrees_north" ;
-        lat_uv:valid_max = 90. ;
-        lat_uv:valid_min = -90. ;
+double lat_uv ;
+	lat_uv:_FillValue = -999. ;
+	lat_uv:standard_name = "latitude" ;
+	lat_uv:units = "degrees_north" ;
+	lat_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
+	lat_uv:long_name = "Depth-averaged Latitude" ;
+	lat_uv:observation_type = "calculated" ;
+	lat_uv:platform = "platform" ;
+	lat_uv:valid_max = 90. ;
+	lat_uv:valid_min = -90. ;
+	lat_uv:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	lat_uv:reference = "WGS84" ;
 ```
-
 
 #### <i>lat_uv_qc</i>
 
@@ -1225,14 +1225,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte lat_uv_qc ;
-        lat_uv_qc:_FillValue = -127b ;
-        lat_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        lat_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        lat_uv_qc:long_name = "lat_uv Quality Flag" ;
-        lat_uv_qc:standard_name = "latitude status_flag" ;
-        lat_uv_qc:valid_max = 9b ;
-        lat_uv_qc:valid_min = 0b ;
+byte lat_uv_qc ;
+	lat_uv_qc:_FillValue = -127b ;
+	lat_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	lat_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	lat_uv_qc:long_name = "lat_uv Quality Flag" ;
+	lat_uv_qc:standard_name = "latitude status_flag" ;
+	lat_uv_qc:valid_max = 9b ;
+	lat_uv_qc:valid_min = 0b ;
 ```
 
 
@@ -1251,18 +1251,19 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double lon_uv ;
-        lon_uv:_FillValue = -999. ;
-        lon_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
-        lon_uv:long_name = "Depth-Averaged Longitude" ;
-        lon_uv:observation_type = "calculated" ;
-        lon_uv:platform = "platform" ;
-        lon_uv:standard_name = "longitude" ;
-        lon_uv:units = "degrees_east" ;
-        lon_uv:valid_max = 180. ;
-        lon_uv:valid_min = -180. ;
+double lon_uv ;
+	lon_uv:_FillValue = -999. ;
+	lon_uv:standard_name = "longitude" ;
+	lon_uv:units = "degrees_east" ;
+	lon_uv:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
+	lon_uv:long_name = "Depth-averaged Longitude" ;
+	lon_uv:observation_type = "calculated" ;
+	lon_uv:platform = "platform" ;
+	lon_uv:valid_max = 180. ;
+	lon_uv:valid_min = -180. ;
+	lon_uv:coordinate_reference_frame = "urn:ogc:crs:EPSG::4326" ;
+	lon_uv:reference = "WGS84" ;
 ```
-
 
 #### <i>lon_uv_qc</i>
 
@@ -1279,14 +1280,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte lon_uv_qc ;
-        lon_uv_qc:_FillValue = -127b ;
-        lon_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        lon_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        lon_uv_qc:long_name = "lon_uv Quality Flag" ;
-        lon_uv_qc:standard_name = "longitude status_flag" ;
-        lon_uv_qc:valid_max = 9b ;
-        lon_uv_qc:valid_min = 0b ;
+byte lon_uv_qc ;
+	lon_uv_qc:_FillValue = -127b ;
+	lon_uv_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	lon_uv_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	lon_uv_qc:long_name = "lon_uv Quality Flag" ;
+	lon_uv_qc:standard_name = "longitude status_flag" ;
+	lon_uv_qc:valid_max = 9b ;
+	lon_uv_qc:valid_min = 0b ;
 ```
 
 
@@ -1305,18 +1306,24 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double u ;
-        u:_FillValue = -999. ;
-        u:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
-        u:long_name = "Depth-Averaged Eastward Sea Water Velocity" ;
-        u:observation_type = "calculated" ;
-        u:platform = "platform" ;
-        u:standard_name = "eastward_sea_water_velocity" ;
-        u:units = "m s-1" ;
-        u:valid_max = 10. ;
-        u:valid_min = -10. ;
+double u ;
+	u:_FillValue = -999. ;
+	u:standard_name = "eastward_sea_water_velocity" ;
+	u:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	u:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
+	u:units = "m s-1" ;
+	u:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
+	u:long_name = "Depth-averaged Eastward Sea Water Velocity" ;
+	u:observation_type = "calculated" ;
+	u:platform = "platform" ;
+	u:valid_max = 10. ;
+	u:valid_min = -10. ;
+	u:coverage_content_type = " " ;
+	u:missing_value = -999. ;
+	u:accuracy = 0.01 ;
+	u:precision = 0.01 ;
+	u:resolution = 0.0001 ;
 ```
-
 
 #### <i>u_qc</i>
 
@@ -1333,7 +1340,7 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte u_qc ;
+byte u_qc ;
         u_qc:_FillValue = -127b ;
         u_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
         u_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
@@ -1359,18 +1366,24 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- double v ;
-        v:_FillValue = -999. ;
-        v:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater. The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
-        v:long_name = "Depth-Averaged Northward Sea Water Velocity" ;
-        v:observation_type = "calculated" ;
-        v:platform = "platform" ;
-        v:standard_name = "northward_sea_water_velocity" ;
-        v:units = "m s-1" ;
-        v:valid_max = 10. ;
-        v:valid_min = -10. ;
+double v ;
+	v:_FillValue = -999. ;
+	v:standard_name = "northward_sea_water_velocity" ;
+	v:standard_name_vocabulary = "CF Standard Name Table v75" ;
+	v:standard_name_url = "https://cfconventions.org/Data/cf-conventions/75/build/cf-standard-name-table.html" ;
+	v:units = "m s-1" ;
+	v:comment = "The depth-averaged current is an estimate of the net current measured while the glider is underwater.  The value is calculated over the entire underwater segment, which may consist of 1 or more dives." ;
+	v:long_name = "Depth-averaged Northward Sea Water Velocity" ;
+	v:observation_type = "calculated" ;
+	v:platform = "platform" ;
+	v:valid_max = 10. ;
+	v:valid_min = -10. ;
+	v:coverage_content_type = " " ;
+	v:missing_value = -999. ;
+	v:accuracy = 0.01 ;
+	v:precision = 0.01 ;
+	v:resolution = 0.0001 ;
 ```
-
 
 #### <i>v_qc</i>
 
@@ -1387,14 +1400,14 @@ The *standard_name* variable attribute **should not be included** for the *profi
 
 
 ```
- byte v_qc ;
-        v_qc:_FillValue = -127b ;
-        v_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
-        v_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
-        v_qc:long_name = "v Quality Flag" ;
-        v_qc:standard_name = "northward_sea_water_velocity status_flag" ;
-        v_qc:valid_max = 9b ;
-        v_qc:valid_min = 0b ;
+byte v_qc ;
+	v_qc:_FillValue = -127b ;
+	v_qc:flag_meanings = "no_qc_performed good_data probably_good_data bad_data_that_are_potentially_correctable bad_data value_changed not_used not_used interpolated_value missing_value" ;
+	v_qc:flag_values = 0b, 1b, 2b, 3b, 4b, 5b, 6b, 7b, 8b, 9b ;
+	v_qc:long_name = "v Quality Flag" ;
+	v_qc:standard_name = "northward_sea_water_velocity status_flag" ;
+	v_qc:valid_max = 9b ;
+	v_qc:valid_min = 0b ;
 ```
 
 
@@ -1412,19 +1425,17 @@ The following variables are dimensionless container variables used to store meta
 | **_FillValue** | -999 |
 | **Description** | Variable to store metadata about the glider platform that measured the profile. All of the attributes of this variable, with the exception of **comment** are **REQUIRED**. This variable contains a **wmo_id** attribute to store the **WMO ID** assigned to this glider by NDBC. The **WMO ID** is also stored as a global file attribute to allow for aggregations of all deployments from the platform with that **WMO ID**. |
 
-
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
-
 ```
- int platform ;
-        platform:_FillValue = -999 ;
-        platform:comment = "Slocum Glider ru29" ; # Change
-        platform:id = "ru29" ; # Change
-        platform:instrument = "instrument_ctd" ;
-        platform:long_name = "Rutgers University Slocum Glider ru29" ; # Change
-        platform:type = "platform" ;
-        platform:wmo_id = " " ; # WMO ID specific to this glider
+int platform ;
+	platform:_FillValue = -999 ;
+	platform:comment = "Spray Glider 028 deployed by (program/institution)" ;
+	platform:id = "sp028" ;
+	platform:long_name = "Platform Identifier" ;
+	platform:type = "platform" ;
+	platform:instrument = "instrument_ctd" ;
+	platform:wmo_id = "4801921" ;
 ```
 
 
@@ -1438,22 +1449,22 @@ The following variables are dimensionless container variables used to store meta
 | **_FillValue** | -999 |
 | **Description** | Variable to store metadata about the CTD. The data provider should make an effort to include values for as many attributes as possible to create a complete metadata record, but are not required. |
 
-
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes and comments on values:
 
-
 ```
- int instrument_ctd ;
-        instrument_ctd:_FillValue = -999 ;
-        instrument_ctd:calibration_date = " " ; # Change to date formatted as YYYY-mm-ddTHH:MM:SSZ
-        instrument_ctd:calibration_report = " " ; # Change to report url/location if available
-        instrument_ctd:comment = "pumped CTD" ; # pumped or unpumped
-        instrument_ctd:factory_calibrated = " " ; # Change to date formatted as YYYY-mm-ddTHH:MM:SSZ
-        instrument_ctd:long_name = "Seabird Glider Payload CTD" ;
-        instrument_ctd:make_model = "Seabird GPCTD" ; # CTD make and model
-        instrument_ctd:platform = "platform" ;
-        instrument_ctd:serial_number = " " ; # Provide serial number if available
-        instrument_ctd:type = "platform" ;
+int instrument_ctd ;
+	instrument_ctd:_FillValue = -999 ;
+	instrument_ctd:comment = "pumped CTD" ;
+	instrument_ctd:long_name = "CTD Metadata" ;
+	instrument_ctd:make_model = "Sea-Bird SBE 41CP CTD" ;
+	instrument_ctd:platform = "platform" ;
+	instrument_ctd:serial_number = "28" ;
+	instrument_ctd:type = "instrument" ;
+	instrument_ctd:calibration_date = "2025-09-11T12:20:31.819208" ;
+	instrument_ctd:calibration_report = "report_here" ;
+	instrument_ctd:factory_calibrated = "info_here" ;
+	instrument_ctd:component = "CTD" ;
+	instrument_ctd:discriminant = "Serial Number 1234" ;
 ```
 
 ## Index of Required Global Attributes and Variables
@@ -1534,4 +1545,3 @@ trajectory (described [here](#dimensions) and [here](#trajectory)) \
 [v_qc](#v_qc) \
 platform (described [here](#variables) and [here](#platform)) \
 instrument_ctd (described [here](#variables) and [here](#instrument_ctd))
-
