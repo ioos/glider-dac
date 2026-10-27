@@ -13,7 +13,7 @@ summary: >-
 All additional questions or feedback should be directed to:
 [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
-A consolidated list of the links referenced below can be found [here](useful-links).
+A consolidated list of the links referenced below can be found in the [Useful Links](useful-links) section of the menu.
 
 A document summarizing the workflow that Registered Data Providers can follow to submit netCDF files to NGDAC is available in [Step-By-Step-File-Submission]({{ site.baseurl }}/step-by-step-file-submission.html)
 
@@ -22,11 +22,11 @@ A document summarizing the workflow that Registered Data Providers can follow to
 You must register as a data provider and receive a user account in order to contribute data sets to the **IOOS Glider Data Assembly Center**.  The following contact information is required:
 
  + Contact name
- + Contact institution (please see [special guidance on how to specify the institution name](ngdac-netcdf-file-format-version-2#institution))
+ + Contact institution (please see [special guidance on how to specify the institution name](ngdac-netcdf-file-format-version-4#institution))
  + Email address
  + Telephone number
 
-and all user account requests should be emailed to: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
+All user account requests should be emailed to: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov?subject=GliderDAC%20Support)
 
 **New user accounts are typically created the same day they are received**.
 
@@ -34,15 +34,23 @@ and all user account requests should be emailed to: [glider.dac.support@noaa.gov
 
 Data providers can register deployments after the user account has been created.
 
-If the deployment is current or in the future and you would like the data to be released on the **Global Telecommunication System (GTS)**, you must [request a WMO ID for the glider](#requesting-a-wmo-id).  This ID must be referenced as a [global attribute](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes) as well as an attribute of the file's [platform](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
-  - **IMPORTANT**:
-To enable NDBC to send a dataset to the GTS, the dataset must include a global attribute **gts_ingest** set to "true". NDBC then uses QARTOD flags as the primary method for determining which variables to exclude from GTS ingestion.
+If the deployment is current or future and you want the data released on the **Global Telecommunication System (GTS)**, you must [request a WMO ID](#requesting-a-wmo-id) for the glider. Include this ID as a [global attribute](ngdac-netcdf-file-format-version-4#description--examples-of-required-global-attributes) and as an attribute of the file’s [platform](ngdac-netcdf-file-format-version-4#platform) variable in every NetCDF file uploaded to NGDAC.
+
+
+**Important**:
+To enable NDBC to transmit the dataset to the GTS, set the global attribute **gts_ingest** to "true". NDBC uses QARTOD flags as the primary method for determining which variables to exclude from GTS ingestion.
+
 
 The next step is to register the deployment with the **NGDAC**.
 
 ## Requesting a WMO ID
 
-A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). Once assigned, a WMO ID remains valid for that glider regardless of its deployment region—if you have already received an ID for a vehicle, you may continue to use it anywhere in the world.
+A WMO ID is required to release real-time glider profiles to the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts). To check whether a glider has an assigned WMO ID, visit the [providers' page](https://gliders.ioos.us/providers/) and enter the glider's name in *Search by Deployment Name* field.
+
+
+**Note**: WMO IDs are permanently associated with individual gliders and remain valid regardless of where the glider is deployed.
+
+![GliderDAC - Deployments page](Search_Bar.png)
 
 **Submit new WMO ID requests to:**
 
@@ -60,37 +68,40 @@ Recommended supplemental details:
 + Glider Name (informal label)
 + Glider Call Sign (informal label)
 
-**IMPORTANT:** always provide the manufacturer’s serial number as the sole authoritative ID for WMO requests to avoid conflicts and speed processing. If the serial number cannot be located, please explain why and provide your best alternative identifier; NGDAC will reach out to confirm before issuing an ID.
+**Important:** always provide the manufacturer’s serial number as the sole authoritative ID for WMO requests to avoid conflicts and speed processing. If the serial number cannot be located, please explain why and provide your best alternative identifier; NGDAC will reach out to confirm before issuing an ID.
 
-**Process & Timeline:**
-
-Upon receipt, the NGDAC Team submits your WMO ID request to the [OceanOPS Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders), and you will typically receive your ID within one business day. Please use the NGDAC’s centralized service (glider.dac.support@noaa.gov) rather than submitting directly via OceanOPS — direct submissions require US Glider DAC registration.
+**Process & Timeline:** Upon receipt, the NGDAC Team submits your WMO ID request to the [OceanOPS Request Identifiers Interface](https://www.ocean-ops.org/board?t=oceangliders), and you will typically receive your ID within one business day. Please use the NGDAC’s centralized service (glider.dac.support@noaa.gov) rather than submitting directly via OceanOPS — direct submissions require US Glider DAC registration.
 
 ## Deployment Creation
 
-Deployments are registered and managed via the [GliderDAC providers page](https://gliders.ioos.us/providers). Each deployment must be registered by the data provider **before** any NetCDF files are uploaded.  The deployment registration process is as follows:
+Deployments are registered and managed through the [GliderDAC providers page](https://gliders.ioos.us/providers). Data providers must register a deployment before uploading NetCDF files.
 
-1. Navigate to the [GliderDAC providers page](https://gliders.ioos.us/providers/) and login with your account credentials.
+1. Go to the [GliderDAC providers page](https://gliders.ioos.us/providers/) page and log in.
 
-2. Click the **Your Deployments** link.  A deployment registration form will be displayed.
+2. Select **Your Deployments** to open the deployment registration form.
 
 ![GliderDAC - Deployments page](DAC_providers_your_deployments.png)
 
-3. Enter the name of the glider and deployment date/time (ISO-8601) using the following convention:
-    **YYYYmmddTHHMM**
+3. Enter the glider name and deployment date/time using the hint shown in the date/time field: YYYY-MM-DDTHH:mmZ. This is the ISO-8601 format for the deployment start time. The system automatically simplifies the deployment folder name to: YYYYMMDDTHHmm. This simplified format ensures interoperability with ERDDAP.
 
-    - where **YYYYmmddTHHMM** is the timestamp specifying  the start of the deployment.  This is also the value that should be assigned to the [trajectory](ngdac-netcdf-file-format-version-2#trajectory) variable in each NetCDF file that is submitted to NGDAC.
-    - **IMPORTANT**: This WMO ID must be included as the [global attribute](ngdac-netcdf-file-format-version-2#description--examples-of-required-global-attributes)  *wmo_id* as well as an attribute (*wmo_id*) of the file's [*platform*](ngdac-netcdf-file-format-version-2#platform) variable in each NetCDF file uploaded to the **NGDAC**.
+    - The deployment folder name: GLIDER_YYYYMMDDTHHmm must also be assigned to the [trajectory](ngdac-netcdf-file-format-version-4#trajectory) variable in each NetCDF file submitted to the NGDAC.
 
-4. An additional field, **attribution**, is also provided as a means for the data provider to acknowledge the funding agencies and/or funding source.
+    - **IMPORTANT**: The WMO ID must be included as both:
+      - The [global attribute](ngdac-netcdf-file-format-version-4#description--examples-of-required-global-attributes) *wmo_id*.
+      - An attribute named (*wmo_id*) in the file's [*platform*](ngdac-netcdf-file-format-version-4#platform) variable.
 
-5. If the deployment is not current, select the **Delayed Mode?** checkbox. This will append "_delayed" to the deployment name, distinguishing **real-time (current)** data from **delayed (historical) data** for the same deployment.
+4. Use the **attribution** field to acknowledge funding agencies or other funding sources.
 
-6. Click **New Deployment** to create the deployment.  This creates a directory on the IOOS Glider DAC FTP server using the specified deployment name.  This is the directory that the NetCDF files must be uploaded to.
+5. Select the **Delayed Mode?** checkbox if the deployment is not current. This adds **_delayed** to the deployment name, distinguishing delayed historical data from real-time data for the same deployment.
 
-    **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
+6. Click **New Deployment** to create the deployment. This creates a directory on the IOOS Glider DAC FTP server using the deployment name. Upload the NetCDF files to this directory.
 
-7. After the deployment has been registered, click on the deployment name to take you to the deployment metadata page and specify the **operator**.  Once the deployment has been completed (i.e.: the glider has been recovered or the deployment has been completed), click the **Completed** check box to denote that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process#dataset-archiving) for more details on the NCEI archival process.
+    - **IMPORTANT: New deployments cannot be created by logging into the ftp server.  All new deployments must be created via the process described above.**
+
+7. After registering the deployment, select its name to open the deployment metadata page and specify the **Operator**.
+
+    - When the deployment is complete—for example, after the glider has been recovered—select the **Completed** checkbox to indicate that the data is ready for archiving by [NCEI](http://www.ncei.noaa.gov). See the [section below](ngdac-netcdf-file-submission-process#dataset-archiving) for more information about the NCEI archival process.
+
 
 ## Submission of NetCDF Files
 
@@ -119,7 +130,7 @@ New NetCDF files should be uploaded to the directory [created above](#deployment
     lftp user@gliders.ioos.us:/user-20240527T0000> mput *.nc
 ```
 
-Please remember to use the [proper](ngdac-netcdf-file-format-version-2#file-naming-conventions) file naming convention.
+Please remember to use the [proper](ngdac-netcdf-file-format-version-4#file-naming-conventions) file naming convention.
 
 The resulting deployment directory structure will look something like this:
 
@@ -153,7 +164,7 @@ The following QC flag variables may be added:
 - qartod_<variable>_primary_flag
 ```
 
-A document giving more details on what happens to your file during the automated QC process is available in [NetCDF-QARTOD-GDAC-What-To-Expect]({{ site.baseurl }}/netcdf-qartod-gdac-what-to-expect.html).
+**Documentation Link**: [NetCDF-QARTOD-GDAC-What-To-Expect]({{ site.baseurl }}/netcdf-qartod-gdac-what-to-expect.html). This document provides more details about what happens to your file during the automated QC process.
 
 ## Dataset Access
 

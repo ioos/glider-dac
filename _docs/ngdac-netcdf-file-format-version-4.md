@@ -1,6 +1,6 @@
 ---
-title: NGDAC NetCDF File Format Version 2
-wikiPageName: NGDAC-NetCDF-File-Format-Version-2
+title: NGDAC NetCDF File Format Version 4
+wikiPageName: NGDAC-NetCDF-File-Format-Version-4
 keywords: IOOS, documentation
 tags: [getting_started, about, overview]
 toc: false
@@ -34,34 +34,37 @@ The NetCDF file specification detailed below serves four primary purposes:
 
 For convenience, an [index of required attributes and variables](#index-of-required-global-attributes-and-variables) (linking to descriptions in the text) is provided at the bottom of this page.
 
-## Examples. IOOS_Glider_Profile_NetCDF_v4.0.cdl
+## Glider Profile NetCDF File Example
 
-Examples of the file specification are available [here](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template) in CDL format. The [**CDL**](https://raw.githubusercontent.com/ioos/glider-dac/document_improvement/_nc/template/IOOS_Glider_Profile_NetCDF_v4.0.cdl) example identifies all REQUIRED attributes. The [NGDAC Metadata Templates](https://github.com/ioos/glider-dac/tree/og1-0-metadata-template) working directory provides modular JSON templates for the required attributes. These templates separate global metadata from variable definitions to improve clarity, reuse, and maintainability, and can be used as a guide when creating or validating NetCDF files. The included Python builder script reads all .json files, applies the metadata definitions, and generates the final output.
+Examples of the file specifications are available in the [CDL format templates](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template).
+
+The [**Glider Profile NetCDF CDL format file example**](https://raw.githubusercontent.com/ioos/glider-dac/document_improvement/_nc/template/IOOS_Glider_Profile_NetCDF_v4.0.cdl) identifies all requires attributes. The [NGDAC Metadata working directory](https://github.com/ioos/glider-dac/tree/og1-0-metadata-template) provides modular JSON templates for the required attributes. These templates separate global metadata from variable definitions to improve clarity, reuse, and maintainability, and can be used as a guide when creating or validating NetCDF files. The included Python builder script reads all .json files, applies the metadata definitions, and generates the final output.
 
 ## File Naming Conventions
 
 The following file types are accepted by the U.S IOOS National Glider Data Assembly Center, along with the required naming conventions for each:
 
 - **Real-time or near-real-time data:**
-  - **glider_yyyymmddTHHMMSSZ.nc**
-  - **glider_yyyymmddTHHMMSSZ_rt.nc**
-  - **glider_yyyymmddTHHMMSSZ_R.nc**
+  - **GLIDER_YYYYMMDDTHHmmssZ.nc**
+  - **GLIDER_YYYYMMDDTHHmmssZ_rt.nc**
+  - **GLIDER_YYYYMMDDTHHmmssZ_R.nc**
 
   These files contain data gathered during deployment and may include a subset of the full-resolution data available in delayed-mode files.
 
 - **Delayed-mode data:**
-  - **glider_yyyymmddTHHMMSSZ_delayed.nc**
+  - **GLIDER_YYYYMMDDTHHmmssZ_delayed.nc**
 
   These files contain data gathered after the glider is recovered. Delayed mode data may include a quality assessment, but this is not required currently.
 
 Where
 
- - _**glider**_ is the identifying name or type abbreviation for the glider.
- - **yyyymmddTHHMMSSZ** is the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date representing the start time of the data acquisition, followed by **Z** to denote UTC time, not a local time zone
+ - _**GLIDER**_ is the identifying name or type abbreviation for the glider.
+ - **YYYYMMDDTHHmmssZ** is the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) formatted date representing the start time of the data acquisition, followed by **Z** to denote UTC time, not a local time zone
  - **rt or R** indicates real-time or near-real-time data. Note: not using **_rt** or **_R** is also acceptable.
  - **delayed** indicates delayed-mode (post-recovery) data acquisition.
 
-Ideally, the **glider_yyyymmddTHHMMSSZ(_rt, _R).nc** files will be provided by the individual operators during the deployment and the **glider_yyyymmddTHHMMSSZ_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. A discussion of these variables and their relationship to the sensor variables is found [below](#variables).
+Ideally, the **GLIDER_YYYYMMDDTHHmmssZ(_rt, _R).nc** files will be provided by the individual operators during the deployment and the **GLIDER_YYYYMMDDTHHmmssZ_delayed.nc** files will be provided after the glider has been recovered and the full data set processed. It is expected, where applicable, that all files will contain the appropriate *VARIABLE_qc* variables to convey some level of quality assurance for the data. The relationship between these variables and the sensor variables is discussed in the [Variables](#variables) section below.
+
 
 ## Global Attributes
 
@@ -176,14 +179,14 @@ Example:
 
 A human readable unique identifier for data set. We recommend using the *trajectory* variable string name, which must have the following format:
 
-  _**glider-YYYYmmddTHHMMZ**_, where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
+  _**GLIDER-YYYYMMDDTHHmm**_, where **`GLIDER`** is the name of the glider and **`YYYYMMDDTHHmm`** is the deployment date/time.
 
 Example:
-: "ru30-20140101T0000Z"
+: "ru30-20140101T0000"
 
 #### _institution_
 
-Institution of the person or group that collected the data. This value should be identical to the "Operator" specified on the [https://gliders.ioos.us/providers](https://gliders.ioos.us/providers/) data providers page.
+Institution of the person or group that collected the data. This value should be identical to the "Operators" specified on the [data providers' page](https://gliders.ioos.us/providers/).
 
 To maximize the findability of glider data submitted by a single institution, data providers should ensure that they consistently use the same spelling of an institution's name in each data submission.
 Before submitting data to NGDAC, data providers can verify that the institution value matches that already associated with NCEI-archived datasets by referring to the NODC COLLECTING INSTITUTION NAMES THESAURUS value list provided on the *Keywords* tab of [NCEI’s landing page for the NGDAC archive collection](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.nodc:IOOS-NGDAC).
@@ -305,14 +308,12 @@ Example:
 
 #### _title_
 
-We recommend using the *trajectory* variable string name, which must have the following format:
+We recommend using the *trajectory* variable string name in the format **GLIDER-YYYYMMDDTHHmm**. This value must exactly match the deployment folder name created during [deployment setup](ngdac-netcdf-file-submission-process#deployment_creation).
 
-   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; **`glider-YYYYmmddTHHMMZ`**
-
-Where **`glider`** is the name of the glider and **`YYYYmmddTHHMMZ`** is the deployment date/time.
+Where **`GLIDER`** is the name of the glider and **`YYYYMMDDTHHmm`** is the deployment date/time.
 
 Example:
-: "ru30-20140101T0000Z"
+: "ru30-20140101T0000"
 
 #### _wmo_id_
 
@@ -330,7 +331,7 @@ The NetCDF file specification contains 3 core variable types which relate to how
  + [profile](#dimensionless-profile-variables): dimensionless variables that provide access to data on a profile-by-profile basis
  + [container](#dimensionless-container-variables): dimensionless variables used to capture metadata regarding the platform and instrumentation on board the glider.
 
-Most of the time-series variables and many of the profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. Each variable has the same dimension as its associated quality control variable. While no CF standard names exist for these quality control variables, [following CF conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch03s03.html), a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) may be appended to the corresponding variable's standard name to create the standard name for the quality control flag.
+Most of the time-series variables and many of the profile variables have corresponding data quality variables, which are referenced via the *ancillary_variables* variable attribute. Each variable has the same dimension as its associated quality control variable. While no CF standard names exist for these quality control variables, following [CF conventions](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/ch03s03.html), a [standard_name modifier](https://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/build/apc.html) may be appended to the corresponding variable's standard name to create the standard name for the quality control flag.
 
 For example, as seen in the CDL example below, the *temperature* variable has a corresponding data quality variable *temperature_qc*. The *standard_name* attribute of that quality control variable contains the CF standard name of the variable it references with "status_flag" appended, i.e. "sea_water_temperature status_flag." Both variables have the same dimension, *time*.
 
@@ -395,7 +396,7 @@ The *trajectory* variable stores a character array that identifies the deploymen
 | **Data Type** | string stored as char array |
 | **Value Type** | array |
 | **_FillValue** | "" |
-| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYmmddTHHMMZ**. |
+| **Description** | String representation of the trajectory specified using the format: **GLIDER-YYYYMMDDTHHmm**. |
 
 [**CDL**](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html) example with **REQUIRED** attributes:
 

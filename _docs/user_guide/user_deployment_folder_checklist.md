@@ -18,12 +18,12 @@ summary: >-
   **Example:**
   ```
   my_provider/
-    |- glider_20230701T120000Z/
-    |- glider_20230701T120000Z-delayed/
-    |- glider_20230815T090000Z/
+    |- glider_20230701T120000/
+    |- glider_20230701T120000-delayed/
+    |- glider_20230815T090000/
   ```
 
----
+
 
 ### 2. **Avoid Hidden or Dot-Folders**
 
@@ -33,7 +33,7 @@ summary: >-
   **Example:**
   Remove `.DS_Store`, `.git`, or similar files.
 
----
+
 
 ### 3. **Each Deployment Folder Must Contain at Least One Data File**
 
@@ -44,14 +44,14 @@ summary: >-
 
   **Example:**
   ```
-  glider_20230701T120000Z/
+  glider_20230701T120000/
     |- glider_20230701T120000Z.nc
 
-  glider_20230701T120000Z-delayed/
+  glider_20230701T120000-delayed/
     |- glider_20230701T120000Z_delayed.nc
   ```
 
----
+
 
 ### 4. **Understand System Files and Correction Files**
 
@@ -64,12 +64,12 @@ summary: >-
 
   **Example:**
   ```
-  glider_20230701T120000Z-delayed/
+  glider_20230701T120000-delayed/
     |- glider_20230701T120000Z_delayed.nc
     |- extra_atts.json   # Only if corrections are needed
   ```
 
----
+
 
 ### 5. **Use Correct File Naming Conventions**
 
@@ -79,14 +79,14 @@ summary: >-
 
   **Example:**
   ```
-  glider_20230701T120000Z/
+  glider_20230701T120000/
     |- glider_20230701T120000Z.nc
 
-  glider_20230701T120000Z-delayed/
+  glider_20230701T120000-delayed/
     |- glider_20230701T120000Z_delayed.nc
   ```
 
----
+
 
 ### 6. **Pair Real-Time and Delayed-Mode Folders**
 
@@ -96,11 +96,11 @@ summary: >-
   **Example:**
   ```
   my_provider/
-    |- glider_20230701T120000Z/
-    |- glider_20230701T120000Z-delayed/
+    |- glider_20230701T120000/
+    |- glider_20230701T120000-delayed/
   ```
 
----
+
 
 ### 7. **Limit Extra Files**
 
@@ -110,18 +110,18 @@ summary: >-
   **Example:**
   Do **not** include files like `notes.txt`, `backup.zip`, or more than three files of the same non-`.nc` extension.
 
----
+
 
 ### 8. **Use Valid Timestamps in Folder Names**
 
 - **Do:**
-  Deployment folder names must include a valid timestamp in the format `yyyymmddTHHMMSSZ`.
+  Deployment folder names must include a valid timestamp in the form `YYYYMMDDTHHmmss`.
 
   **Example:**
-  `glider_20230701T120000Z/`
-  `glider_20230701T120000Z-delayed/`
+  `glider_20230701T120000/`
+  `glider_20230701T120000-delayed/`
 
----
+
 
 ### 9. **Use Years Between 1998 and the Current Year**
 
@@ -129,25 +129,25 @@ summary: >-
   Ensure the year in your folder names is between 1998 and the current year.
 
   **Example:**
-  `glider_20051231T235959Z/` is valid.
-  `glider_19970101T000000Z/` is **not** valid.
+  `glider_20051231T235959/` is valid.
+  `glider_19970101T000000/` is **not** valid.
 
----
+
 
 ### 10. **Review and Fix All Error Messages**
 
 - **Do:**
   Check the system periodic notification email for any errors or warnings and follow the guidelines to correct errors and fix your folder.
 
----
+
 
 ## Directory Structure Example
 
 ```
 my_provider/
-  |- glider_20230701T120000Z/
+  |- glider_20230701T120000/
   |     |- glider_20230701T120000Z.nc
-  |- glider_20230701T120000Z-delayed/
+  |- glider_20230701T120000-delayed/
         |- glider_20230701T120000Z_delayed.nc
         |- extra_atts.json   # Only if corrections are needed
 ```
@@ -159,4 +159,4 @@ _System files (`completed.txt`, `dataset.xml`, `deployment.json`, `wmoid.txt`) w
 **Questions?**
 Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
 
----
+

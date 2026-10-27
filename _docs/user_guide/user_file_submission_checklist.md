@@ -131,7 +131,7 @@ summary: >-
 - [NGDAC NetCDF File Format Version 2 documentation](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template)
 - [NCEI NetCDF Templates](https://www.ncei.noaa.gov/netcdf-templates)
 - [NODC Sea Names Table](http://www.nodc.noaa.gov/General/NODC-Archive/seanamelist.txt)
-- [NGDAC netCDF File-Format v2.0](https://ioos.github.io/glider-dac/ngdac-netcdf-file-format-version-2.html)
+- [NGDAC netCDF File-Format v2.0](https://ioos.github.io/glider-dac/ngdac-netcdf-file-format-version-4.html)
 - [CF Conventions](https://cfconventions.org/)
 - [IOOS Metadata Profile v1.2](https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2)
 - [Ocean Gliders_Format v1.0](https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/OG_Format.adoc)

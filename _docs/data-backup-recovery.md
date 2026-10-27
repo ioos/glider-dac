@@ -5,22 +5,8 @@ keywords:
   - documentation
 toc: false
 summary: >-
-  This page contains checklists to:
-  (1) Organize deployment directories for automated checks and ingestion.
-  (2) Verify the file is ready for NGDAC submission.
-  (3) Confirm the NetCDF file passes NGDAC QARTOD QC.
+  These brief instructions will help you get started quickly with the data backup and recovery processes.
 ---
----
-title:
-wikiPageName: Data-Backup-and-Recovery
-keywords: IOOS, documentation
-tags: [getting_started, about, overview]
-toc: false
-#search: exclude
-#permalink: index.html
-summary:  These brief instructions will help you get started quickly with the data backup and recovery processes.
----
-
 
 ## Data Backup
 
