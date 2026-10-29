@@ -9,7 +9,7 @@ toc: false
 summary: A list of links for Data Providers
 ---
 
-The following is a list of links for data providers and web applications developers that provide the means to create new deployments, upload conforming [DAC NetCDF files](ngdac-netcdf-file-format-version-2), view data set status and programmatically interface with the DAC via a RESTful API.
+The following links are provided for data providers and web application developers. They include tools for creating deployments, uploading compliant [DAC NetCDF files](ngdac-netcdf-file-format-version-4), viewing dataset status, and accessing the DAC programmatically through a RESTful API.
 
 ## Data Provider Utilities
 
@@ -17,7 +17,7 @@ The following is a list of links for data providers and web applications develop
 
   The IOOS Compliance Checker is a python based tool for data providers to check for completeness and community standard compliance of local or remote netCDF files against metadata standards. This web based tool can be used to check your GliderDAC netCDF files for compliance. Be sure to select **GliderDAC** in the list of available tests to run.
 
- 
+
 ## Submitting Data
 
  - [**Deployment Registration**](https://gliders.ioos.us/providers)
@@ -35,7 +35,7 @@ Access to the datasets submitted to the DAC is provided via [ERDDAP](https://coa
 ## Dataset Status
 
 Status page for the GliderDAC
- - [**Dataset Status**](https://gliders.ioos.us/status/)
+ - [**Dataset Status**](https://gliders.ioos.us/status/) page has been deprecated and will be replaced by a new tool.
 
 
 ## API

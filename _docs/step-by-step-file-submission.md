@@ -8,13 +8,13 @@ summary: >-
   This document summarizes the step-by-step workflow Registered Data Providers can follow to submit netCDF files to NGDAC.
 ---
 
-### How to Create a Deployment in the Glider DAC?
+### How to Create a Deployment in the Glider DAC
 Documentation Link: [Deployment creation](https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process#deployment-creation)
 
 > **IMPORTANT:**
 > Do not create a new deployment by logging into the ftp server. You must use the process described here.
 
-1. Request a WMO ID from [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov) if your data needs to be released on the GTS.
+1. Request a WMO ID from [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov) if your data needs to be released on the GTS. Documentation Link: [Request a WMO ID](https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process#request-a-wmo-id)
 2. Navigate to the GliderDAC providers page.
 3. Click **Login** and enter your account credentials.
 
@@ -42,7 +42,7 @@ Documentation Link: [Deployment creation](https://ioos.github.io/glider-dac/ngda
 
 
 
-### How to Add Files to the Deployment Folder?
+### How to Add Files to the Deployment Folder
 Documentation Link: [Submission of NetCDF files](https://ioos.github.io/glider-dac/ngdac-netcdf-file-submission-process#submission-of-netcdf-files)
 
 9.  Login to the ftp website `ftp://gliders.ioos.us`.
@@ -80,9 +80,7 @@ Documentation Link: [Submission of NetCDF files](https://ioos.github.io/glider-d
 >   <img width="632" height="550" alt="step15" src="https://github.com/user-attachments/assets/77ecaf71-8b01-49e1-856e-8646b0154bff" />
 
 
-### How to Check Data Status?
+### How to Check Data Status
 
 > **NOTICE:**
 > The [dataset status](https://gliders.ioos.us/status/) page has been deprecated. In the meantime, the [Providers page](https://gliders.ioos.us/providers/) and the [ERDDAP Status](https://gliders.ioos.us/erddap/status.html) page offer limited but useful information about dataset status. This section will be updated with new material as it becomes available.
-
-

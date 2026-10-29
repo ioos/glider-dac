@@ -34,7 +34,6 @@ summary: >-
   Remove `.DS_Store`, `.git`, or similar files.
 
 
-
 #### 3. **Each Deployment Folder Must Contain at Least One Data File**
 
   Every deployment folder you submit must include at least one NetCDF data file:
@@ -49,7 +48,6 @@ summary: >-
   glider_20230701T120000Z-delayed/
     |- glider_20230701T120000Z_delayed.nc
   ```
-
 
 
 #### 4. **Understand System Files and Correction Files**
@@ -69,7 +67,6 @@ summary: >-
   ```
 
 
-
 #### 5. **Use Correct File Naming Conventions**
 
   - Real-time folders: only real-time `.nc` files (e.g., `glider_20230701T120000Z.nc`)
@@ -85,7 +82,6 @@ summary: >-
   ```
 
 
-
 #### 6. **Pair Real-Time and Delayed-Mode Folders**
 
   For every real-time deployment folder, include a corresponding delayed-mode folder (with `-delayed` suffix), and vice versa.
@@ -98,14 +94,12 @@ summary: >-
   ```
 
 
-
 #### 7. **Limit Extra Files**
 
   Only required data files and, if needed, `extra_atts.json` should be present. Remove unnecessary files.
 
   **Example:**
   Do **not** include files like `notes.txt`, `backup.zip`, or more than three files of the same non-`.nc` extension.
-
 
 
 #### 8. **Use Valid Timestamps in Folder Names**
@@ -117,7 +111,6 @@ summary: >-
   `glider_20230701T120000Z-delayed/`
 
 
-
 #### 9. **Use Years Between 1998 and the Current Year**
 
   Ensure the year in your folder names is between 1998 and the current year.
@@ -125,7 +118,6 @@ summary: >-
   **Example:**
   `glider_20051231T235959Z/` is valid.
   `glider_19970101T000000Z/` is **not** valid.
-
 
 
 #### 10. **Review and Fix All Error Messages**
@@ -145,7 +137,6 @@ my_provider/
 ```
 
 _System files (`completed.txt`, `dataset.xml`, `deployment.json`, `wmoid.txt`) will be added by the system after submission. Do not remove them._
-
 
 
 **Questions?**
@@ -183,7 +174,6 @@ Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
 - [  ] **platform_type**, **platform:id**, **platform:wmo_id** are included and correct
 
 
-
 #### 3. Required Variables & Dimensions
 
 - [  ] **Dimensions:**
@@ -200,14 +190,12 @@ Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
   - `instrument_ctd` (with as many attributes as possible)
 
 
-
 #### 4. Variable Attributes
 
 - [  ] Each variable includes all **required attributes** (e.g., `long_name`, `standard_name`, `units`, `ancillary_variables`, `valid_min`, `valid_max`, `_FillValue`, etc.).
 - [  ] All **_qc variables** have correct flag values and meanings.
 - [  ] No **missing values** in dimension variables (`time`, `traj_strlen`).
 - [  ] All **string attributes** are actually stored as strings.
-
 
 
 #### 5. Data Quality
@@ -244,12 +232,10 @@ Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
     - `time` has valid, No duplicate, ascending timestamps
 
 
-
 #### 6. Metadata Consistency
 
 - [  ] All metadata (institution, project, platform, etc.) is consistent with previous submissions and public records.
 - [  ] URLs (e.g., `creator_url`, `publisher_url`, `metadata_link`) are valid and up to date.
-
 
 
 #### 7. Final Checks
@@ -260,13 +246,12 @@ Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
 - [  ] File matches the [template examples](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template).
 
 
-
 #### 8. References & Resources
 
-- [NGDAC NetCDF File Format Version 2 documentation](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template)
+- [NGDAC NetCDF File Format Version 4 documentation](https://github.com/ioos/glider-dac/tree/gh-pages/_nc/template)
 - [NCEI NetCDF Templates](https://www.ncei.noaa.gov/netcdf-templates)
 - [NODC Sea Names Table](http://www.nodc.noaa.gov/General/NODC-Archive/seanamelist.txt)
-- [NGDAC netCDF File-Format v2.0](https://ioos.github.io/glider-dac/ngdac-netcdf-file-format-version-2.html)
+- [NGDAC netCDF File-Format v2.0](https://ioos.github.io/glider-dac/ngdac-netcdf-file-format-version-4.html)
 - [CF Conventions](https://cfconventions.org/)
 - [IOOS Metadata Profile v1.2](https://ioos.github.io/ioos-metadata/ioos-metadata-profile-v1-2)
 - [Ocean Gliders_Format v1.0](https://github.com/OceanGlidersCommunity/OG-format-user-manual/blob/main/OG_Format.adoc)
@@ -277,7 +262,7 @@ Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
 
 ---
 
-## NGDAC QARTOD QC Checklist
+### NGDAC QARTOD QC Checklist
 How to avoid the common mistakes that prevent the QARTOD QC process to run.
 
 | **What Not To Do**                                                      | **Why It Causes Problems**                    | **Example**                                                                                  |
@@ -301,4 +286,3 @@ If you’re unsure about CF standard names or required metadata, consult the [CF
 Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
 
 ---
-

@@ -19,10 +19,10 @@ The goals of the <b>U.S. IOOS National Glider Data Assembly Center</b> are to:
  + Facilitate the distribution of glider data sets on the [Global Telecommunication System](https://community.wmo.int/en/activity-areas/global-telecommunication-system-gts), and
  + Work with the [National Centers for Environmental Information](https://www.ncei.noaa.gov/) to create a permanent data archive.
 
-The **NGDAC** accepts a [simple NetCDF file](ngdac-netcdf-file-format-version-2) containing water column measurements collected by a glider during a single profile (see glider sampling terminology [here](glider-background-and-sampling-terminology#sampling-pattern-terminology)).  Groups of these NetCDF files, gathered during a deployment (also known as a [**trajectory**](glider-background-and-sampling-terminology#sampling-pattern-terminology)), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**
+The **NGDAC** accepts a [simple NetCDF file](ngdac-netcdf-file-format-version-4) containing water column measurements collected by a glider during a single profile (see glider sampling terminology [here](glider-background-and-sampling-terminology#sampling-pattern-terminology)).  Groups of these NetCDF files, gathered during a deployment (also known as a [**trajectory**](glider-background-and-sampling-terminology#sampling-pattern-terminology)), are uploaded to the **NGDAC** by individual glider operators.  Once they arrive at the **NGDAC**
 
 - the files are validated for compliance,
-- aggregated into a single dataset representing the entire **deployment/trajectory** via  [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html), and 
+- aggregated into a single dataset representing the entire **deployment/trajectory** via  [**ERDDAP**](https://coastwatch.pfeg.noaa.gov/erddap/information.html), and
 - made publicly accessible via [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](https://www.unidata.ucar.edu/software/tds/) end-points.
 
 The data sets served by the **NGDAC** provide access to the **trajectory/deployment** data both as time-series and on a profile-by-profile basis.
