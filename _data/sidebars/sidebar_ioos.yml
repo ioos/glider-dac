@@ -183,20 +183,20 @@ entries:
     output: web
     type: overview
     folderitems:
-      - title: What is QARTOD QC
-        url: /netcdf-qartod-gdac-what-to-expect.html#what-is-qartod-qc
+      - title: QARTOD QC Overview
+        url: /netcdf-qartod-gdac-what-to-expect.html#qartod-qc-overview
         output: web
-      - title: What Happens to My File
-        url: /netcdf-qartod-gdac-what-to-expect.html#what-happens-to-my-file
+      - title: File Processing During QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-processing-during-qc
         output: web
-      - title: What Will I See in My File After QC
-        url: /netcdf-qartod-gdac-what-to-expect.html#what-will-i-see-in-my-file-after-qc
+      - title: File Contents After Application of QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-contents-after-application-of-qc
         output: web
-      - title: What Do I Need in My File for QC to Work
-        url: /netcdf-qartod-gdac-what-to-expect.html#what-do-i-need-in-my-file-for-qc-to-work
+      - title: File Requirements for QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-requirements-for-qc
         output: web
-      - title: What if There Are Issues
-        url: /netcdf-qartod-gdac-what-to-expect.html#what-if-there-are-issues
+      - title: Issue Resolution During QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#issue-resolution-during-qc
         output: web
       - title: Resources
         url: /netcdf-qartod-gdac-what-to-expect.html#resources
