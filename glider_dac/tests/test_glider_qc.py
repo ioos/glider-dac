@@ -3,6 +3,8 @@
 tests/test_glider_qc.py
 """
 
+from datetime import timedelta
+
 from glider_qc.glider_qc import GliderQC
 from unittest import TestCase
 from netCDF4 import Dataset
@@ -233,7 +235,7 @@ class TestGliderQC(TestCase):
         start_dt, with count total timestamps, and step_sec seconds between them.
         """
 
-        times = np.array([np.datetime64(start_dt + i * step_sec, 's') for i in range(count)])
+        times = (np.datetime64(start_dt, "s") + np.arange(count) * np.timedelta64(step_sec, "s"))
         return ma.array(times)
 
     def create_temp_nc(self, deployment_name):
