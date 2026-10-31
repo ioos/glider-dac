@@ -77,7 +77,7 @@ class GliderQC(object):
             ancillary_variables = ancillary_variables.split()
         else:
             log.info(
-                "%s ancillary_variables is not a valid string or is empty",
+                "%s ancillary_variables is missing or not a valid string or is empty",
                 ncvariable.name,
             )
             return []
@@ -378,19 +378,20 @@ class GliderQC(object):
         :param child: netCDF.Variable (Status Flag Variable)
         """
         # Retrieve the current ancillary_variables, defaulting to an empty list if not set
-        ancillary_variables = getattr(parent, "ancillary_variables", None)
+        current = getattr(parent, "ancillary_variables", "")
 
         # If ancillary_variables is a string, convert it into a list
-        if isinstance(ancillary_variables, str):
-            ancillary_variables = ancillary_variables.split()
-        elif ancillary_variables is None:
-            ancillary_variables = []
+        if isinstance(current, str):
+            variables = current.split()
+        else:
+            variables = []
 
         # Add the child's name to the list of ancillary variables
-        ancillary_variables.append(child.name)
+        if child.name not in variables:
+            variables.append(child.name)
 
         # Save the updated list back as a space-separated string
-        parent.ancillary_variables = " ".join(ancillary_variables)
+        parent.ancillary_variables = " ".join(variables)
 
     def update_config(self, varspec, varname, times, values, time_units):
         """
@@ -731,9 +732,6 @@ class GliderQC(object):
     def check_location(self):
         """
         Check the glider track lon and lat coordinates for outliers.
-        If an outlier is detected:
-            - Copy the profile_lat/lon variables onto new variables to preserve the original data.
-            - Replace the profile_lat/lon data with the median of the lat or lon arrays.
 
         :return: report_list: string statement reporting on issues
         """
@@ -967,7 +965,7 @@ class GliderQC(object):
 
         # Check ascending order
         if np.any(np.diff(valid_values) <= np.timedelta64(0, "s")):
-            log.info("Not in Ascending Order")
+            log.info("Time is Not in Ascending Order")
             report_list.append("timestamps out of order")
             return " ".join(report_list)
 
@@ -1048,8 +1046,9 @@ def run_qc(config, ncfile, ncfile_path):
                 var_data = ncfile.variables[var_name]
 
                 # Check the Data Array
-                if xyz.check_geophysical_variables(var_data):
-                    report_list.append(xyz.check_geophysical_variables(var_data))
+                issues = xyz.check_geophysical_variables(var_data)
+                if issues:
+                    report_list.extend(issues)
                     continue
 
                 # Check the mapping of standard names with units
@@ -1139,34 +1138,62 @@ def run_qc(config, ncfile, ncfile_path):
         str(deployment_name) + " (" + str(file_name) + ": " + str(report) + ")"
     )
 
-def qc_task(nc_path, config):
+def deduplicate_ancillary_variables(ncfile):
+    """
+    Remove duplicate names from ancillary_variables attributes.
+    """
+    for variable in ncfile.variables.values():
+        ancillary_variables = getattr(variable, "ancillary_variables", None)
+
+        if not isinstance(ancillary_variables, str):
+            continue
+
+        unique_variables = list(dict.fromkeys(ancillary_variables.split()))
+        variable.ancillary_variables = " ".join(unique_variables)
+
+def qc_task(nc_path, config, force=False):
     """
     Job wrapper around performing QC
-    :param nc_path: string defining path to the netcdf file
-    :param config: string defining path to the configuration file
+    :param nc_path: str Path to the NetCDF file.
+    :param config: str Path to the QC configuration file.
+    :force Bool, optional Rerun QC even if the file has already been processed.
     """
     lock = lock_file(nc_path)
     if not lock.acquire():
         raise ProcessError("File lock already acquired by another process")
+
     # Repeat xattr check.  Consider removing when inotify loop conditions
     # where file is repeatedly picked are addressed.
     try:
-        if os.getxattr(nc_path, "user.qc_run"):
-            return False
-    except OSError:
-        pass
-    try:
+        if not force:
+            try:
+                if os.getxattr(nc_path, "user.qc_run"):
+                    log.info("QC already completed for %s", nc_path)
+                    return False
+            except OSError:
+                pass
+
         with Dataset(nc_path, "r+") as nc:
+            deduplicate_ancillary_variables(nc)
             run_qc(config, nc, nc_path)
+
         os.setxattr(nc_path, "user.qc_run", b"true")
+        log.info("QC completed successfully for %s", nc_path)
+        return True
+
     # set user_qc xattr to error to prevent continuous inotify looping on
     # partially modified netCDF files
-    except OSError:
-        log.exception(f"Exception occurred trying to save QC to file on {nc_path}:")
-        os.setxattr(nc_path, "user.qc_run", b"error")
-    except:
-        log.exception("Other unhandled error occurred during QC:")
-        os.setxattr(nc_path, "user.qc_run", b"error")
+
+    except Exception:
+        log.exception("Unhandled error occurred during QC for %s", nc_path)
+
+        try:
+            os.setxattr(nc_path, "user.qc_run", b"error")
+        except OSError:
+            log.exception("Could not set QC error attribute on %s", nc_path)
+
+        raise
+
     finally:
         lock.release()
 
