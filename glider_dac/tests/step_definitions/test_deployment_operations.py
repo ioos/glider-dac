@@ -1,8 +1,10 @@
 import pytest
-from pytest_bdd import scenarios, given, when, then
+from pytest_bdd import scenarios, given, when, then, parsers
 
+import filecmp
 import os
 import shutil
+from pathlib import Path
 from glob import glob
 import json
 from flask import url_for
@@ -197,6 +199,125 @@ def deployment_model_gone(client):
         deployment["name"] != "testdeployment-20240502T000"
         for deployment in json.loads(response.data)["results"]
     )
+
+
+@given(parsers.parse('I access the deployment as an "{actor}"'))
+def deployment_permission_actor(actor, client, app):
+    deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").one()
+    deployment.completed = True
+    db.session.commit()
+    shutil.copy(STATIC_FILES["murphy"], Path(deployment.full_path) / "existing.nc")
+    if actor == "owner":
+        return
+
+    user = app.security.datastore.create_user(
+        username="otheruser",
+        name="Other User",
+        email="other@example.invalid",
+        password="PermissionTestPassword",
+        admin=actor in ("admin", "inactive admin"),
+    )
+    app.security.datastore.commit()
+    client.get("/logout")
+    response = client.post(
+        "/login",
+        data={"username": user.username, "password": "PermissionTestPassword"},
+    )
+    assert response.status_code == 302
+    if actor == "inactive admin":
+        user.active = False
+        db.session.commit()
+
+
+@then("the deployment controls should use the owner's username")
+def deployment_controls_use_owner(client):
+    response = client.get("/deployment/testdeployment-20240502T0000")
+    assert response.status_code == 200
+    assert (
+        b'action="/users/testuser/deployment/testdeployment-20240502T0000/edit"'
+        in response.data
+    )
+    assert (
+        b'action="/users/testuser/deployment/testdeployment-20240502T0000/delete"'
+        in response.data
+    )
+
+
+@when(
+    parsers.parse(
+        'I post to the deployment "{operation}" endpoint using the "{url_user}" username'
+    ),
+    target_fixture="deployment_request",
+)
+def post_deployment_operation(client, operation, url_user):
+    username = "otheruser" if url_user == "caller" else "testuser"
+    url = f"/users/{username}/deployment/testdeployment-20240502T0000/{operation}"
+    if operation == "files":
+        with open(STATIC_FILES["murphy"], "rb") as netcdf_file:
+            response = client.post(
+                url, data={"file-0": (netcdf_file, "uploaded.nc")}
+            )
+    elif operation == "delete_files":
+        response = client.post(url, json={"files": ["existing.nc"]})
+    else:
+        response = client.post(url, data={"operator": "Changed operator"})
+    return operation, response
+
+
+@then("the deployment request should return 403 without changing the deployment")
+def deployment_permission_denied(deployment_request):
+    _, response = deployment_request
+    assert response.status_code == 403
+    db.session.expire_all()
+    deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").one()
+    assert deployment.operator != "Changed operator"
+    assert filecmp.cmp(
+        STATIC_FILES["murphy"], Path(deployment.full_path) / "existing.nc", shallow=False
+    )
+    assert not (Path(deployment.full_path) / "uploaded.nc").exists()
+    assert Deployment.query.filter_by(
+        name="testdeployment-20240502T0000-delayed"
+    ).first() is None
+
+
+@then("the deployment operation should succeed")
+def deployment_permission_allowed(deployment_request):
+    operation, response = deployment_request
+    expected_status = 200 if operation in ("files", "delete_files") else 302
+    assert response.status_code == expected_status
+    db.session.expire_all()
+    deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").first()
+    if operation == "delete":
+        assert deployment is None
+    elif operation == "edit":
+        assert deployment.operator == "Changed operator"
+    elif operation == "files":
+        assert filecmp.cmp(
+            STATIC_FILES["murphy"],
+            Path(deployment.full_path) / "uploaded.nc",
+            shallow=False,
+        )
+    elif operation == "delete_files":
+        assert not (Path(deployment.full_path) / "existing.nc").exists()
+    else:
+        delayed = Deployment.query.filter_by(
+            name="testdeployment-20240502T0000-delayed"
+        ).one()
+        assert delayed.user == deployment.user
+        assert Path(delayed.full_path).is_dir()
+
+
+@when(
+    parsers.parse('I post to the missing deployment "{operation}" endpoint'),
+    target_fixture="missing_deployment_response",
+)
+def post_missing_deployment(client, operation):
+    return client.post(f"/users/testuser/deployment/missing/{operation}")
+
+
+@then("the deployment request should return 404")
+def missing_deployment_not_found(missing_deployment_response):
+    assert missing_deployment_response.status_code == 404
 
 
 @when("the deployment has been marked as completed and ready for NCEI archival")
