@@ -36,6 +36,25 @@ import os
 deployment_bp = Blueprint("deployment", __name__)
 
 
+def can_manage_deployments(user):
+    return (
+        user is not None
+        and current_user.is_authenticated
+        and current_user.active
+        and (current_user.admin or current_user == user)
+    )
+
+
+def get_editable_deployment(username, deployment_name):
+    deployment = Deployment.query.filter_by(name=deployment_name).first_or_404()
+    if (
+        deployment.user.username != username
+        or not can_manage_deployments(deployment.user)
+    ):
+        abort(403)
+    return deployment
+
+
 def is_date_parseable(form, field):
     try:
         dateparse(field.data)
@@ -87,11 +106,7 @@ def list_user_deployments(username):
     deployments = Deployment.query.filter_by(user=user).all()
 
     kwargs = {}
-    if (
-        current_user
-        and current_user.is_active
-        and (current_user.admin or current_user == user)
-    ):
+    if can_manage_deployments(user):
         # Permission to edit
         form = NewDeploymentForm()
         kwargs["form"] = form
@@ -207,11 +222,7 @@ def show_deployment(deployment_name):
 
     form = DeploymentForm(obj=deployment)
 
-    if (
-        current_user.is_authenticated
-        and current_user.is_active
-        and (current_user.admin or current_user == deployment.user)
-    ):
+    if can_manage_deployments(deployment.user):
         kwargs["editable"] = True
         # For now, give admin on deployment detail page if an admin
         # or the owning user.  This may change if a more sophisticated permissions mode is implemented
@@ -221,7 +232,7 @@ def show_deployment(deployment_name):
         "show_deployment.html",
         form=form,
         deployment=deployment,
-        username=getattr(current_user, "username", None),
+        username=deployment.user.username,
         files=files,
         extra_atts_content=extra_atts_content,
         wmo_id_dups=wmo_id_dups,
@@ -233,12 +244,8 @@ def show_deployment(deployment_name):
 @login_required
 def new_deployment(username):
     user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (
-        user is not None and not current_user.admin and current_user != user
-    ):
-        # No permission
-        flash("Permission denied", "danger")
-        return redirect(url_for("index.index"))
+    if not can_manage_deployments(user):
+        abort(403)
 
     form = NewDeploymentForm()
 
@@ -323,15 +330,8 @@ def new_delayed_mode_deployment(username, deployment_name):
     :param string username: Username
     :param str deployment_name: Name of the existing realtime deployment
     """
-    user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (
-        user is not None and not current_user.admin and current_user != user
-    ):
-        # No permission
-        flash("Permission denied", "danger")
-        return redirect(url_for("index.index"))
-
-    rt_deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    rt_deployment = get_editable_deployment(username, deployment_name)
+    user = rt_deployment.user
     # Need to check if the "real time" deployment is complete yet
     if not rt_deployment.completed:
         url_for(
@@ -372,15 +372,7 @@ def new_delayed_mode_deployment(username, deployment_name):
 )
 @login_required
 def edit_deployment(username, deployment_name):
-    user = User.query.filter_by(username=username).one_or_none()
-    if user is None or (
-        user is not None and not current_user.admin and current_user != user
-    ):
-        # No permission
-        flash("Permission denied", "danger")
-        return redirect(url_for("deployment.list_user_deployments", username=username))
-
-    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
+    deployment = get_editable_deployment(username, deployment_name)
 
     form = DeploymentForm(obj=deployment)
 
@@ -413,16 +405,7 @@ def edit_deployment(username, deployment_name):
 )
 @login_required
 def post_deployment_file(username, deployment_name):
-    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
-    user = User.query.filter_by(username=username).one_or_none()
-
-    if not (
-        deployment
-        and user
-        and deployment.user.username == user.username
-        and (current_user.admin or current_user == user)
-    ):
-        raise Exception("Unauthorized")  # @TODO better response via ajax?
+    deployment = get_editable_deployment(username, deployment_name)
 
     retval = []
     for name, f in request.files.items():
@@ -441,11 +424,7 @@ def post_deployment_file(username, deployment_name):
 
         retval.append((safe_filename, datetime.utcnow()))
 
-    editable = (
-        current_user.is_authenticated
-        and current_user.is_active
-        and (current_user.admin or current_user == deployment.user)
-    )
+    editable = can_manage_deployments(deployment.user)
 
     return render_template("_deployment_files.html", files=retval, editable=editable)
 
@@ -456,27 +435,7 @@ def post_deployment_file(username, deployment_name):
 )
 @login_required
 def delete_deployment_files(username, deployment_name):
-    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
-    user = User.query.filter_by(username=username).one_or_none()
-    if deployment is None:
-        # @TODO better response via ajax?
-        raise Exception("Unauthorized")
-    if user is None:
-        # @TODO better response via ajax?
-        raise Exception("Unauthorized")
-    if not (
-        current_user
-        and current_user.is_active
-        and (current_user.admin or current_user == user)
-    ):
-        # @TODO better response via ajax?
-        raise Exception("Unauthorized")
-
-    if not (
-        deployment and user and (current_user.admin or user.id == deployment.user_id)
-    ):
-        # @TODO better response via ajax?
-        raise Exception("Unauthorized")
+    deployment = get_editable_deployment(username, deployment_name)
 
     for name in request.json["files"]:
         file_name = os.path.join(deployment.full_path, name)
@@ -491,39 +450,7 @@ def delete_deployment_files(username, deployment_name):
 )
 @login_required
 def delete_deployment(username, deployment_name):
-    deployment = Deployment.query.filter_by(name=deployment_name).one_or_none()
-    user = User.query.filter_by(username=username).one_or_none()
-    if deployment is None:
-        flash("Permission denied", "danger")
-        return redirect(
-            url_for(
-                "deployment.show_deployment",
-                username=username,
-                deployment_name=deployment_name,
-            )
-        )
-    if user is None:
-        flash("Permission denied", "danger")
-        return redirect(
-            url_for(
-                "deployment.show_deployment",
-                username=username,
-                deployment_name=deployment_name,
-            )
-        )
-    if not (
-        current_user
-        and current_user.is_active
-        and (current_user.admin or current_user == user)
-    ):
-        flash("Permission denied", "danger")
-        return redirect(
-            url_for(
-                "deployment.show_deployment",
-                username=username,
-                deployment_name=deployment_name,
-            )
-        )
+    deployment = get_editable_deployment(username, deployment_name)
 
     # TODO: consider moving back to task queue?
     deployment.delete_deployment()

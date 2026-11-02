@@ -14,6 +14,70 @@ Feature: Glider Deployment Operations
           Then the requisite folder hierarchy and any folders should be removed from the submission, ERDDAP, and THREDDS locations
           And the deployment should be deleted and no longer visible on any deployment page
 
+    Scenario Outline: Reject unauthorized deployment mutations
+        Given I am a logged in user
+        When I create a new glider deployment
+        Given I access the deployment as an "<actor>"
+        When I post to the deployment "<operation>" endpoint using the "<url_user>" username
+        Then the deployment request should return 403 without changing the deployment
+
+        Examples:
+            | actor          | operation    | url_user |
+            | other user     | edit         | owner    |
+            | other user     | edit         | caller   |
+            | other user     | delete       | owner    |
+            | other user     | delete       | caller   |
+            | other user     | files        | owner    |
+            | other user     | files        | caller   |
+            | other user     | delete_files | owner    |
+            | other user     | delete_files | caller   |
+            | other user     | new          | owner    |
+            | other user     | new          | caller   |
+            | inactive admin | edit         | owner    |
+            | inactive admin | delete       | owner    |
+            | inactive admin | files        | owner    |
+            | inactive admin | delete_files | owner    |
+            | inactive admin | new          | owner    |
+            | admin          | edit         | caller   |
+            | admin          | delete       | caller   |
+            | admin          | files        | caller   |
+            | admin          | delete_files | caller   |
+            | admin          | new          | caller   |
+
+    Scenario Outline: Allow owners and administrators to manage deployments
+        Given I am a logged in user
+        When I create a new glider deployment
+        Given I access the deployment as an "<actor>"
+        Then the deployment controls should use the owner's username
+        When I post to the deployment "<operation>" endpoint using the "owner" username
+        Then the deployment operation should succeed
+
+        Examples:
+            | actor | operation    |
+            | owner | edit         |
+            | owner | delete       |
+            | owner | files        |
+            | owner | delete_files |
+            | owner | new          |
+            | admin | edit         |
+            | admin | delete       |
+            | admin | files        |
+            | admin | delete_files |
+            | admin | new          |
+
+    Scenario Outline: Missing deployments return not found
+        Given I am a logged in user
+        When I post to the missing deployment "<operation>" endpoint
+        Then the deployment request should return 404
+
+        Examples:
+            | operation    |
+            | edit         |
+            | delete       |
+            | files        |
+            | delete_files |
+            | new          |
+
      Scenario: NCEI archival of deployments
           Given I am a logged in user
           When I create a new glider deployment
