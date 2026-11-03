@@ -127,12 +127,7 @@ def build_datasets_xml(data_root, catalog_root, force):
         deps = Deployment.query.all()
     for dep in deps:
         dataset_chunk_path = os.path.join(data_root, dep.deployment_dir, "dataset.xml")
-        # base query to which we may add filtering to see if previously run
-
-        # from De Morgan's Laws - not cond1 or not cond2 = not (cond1 and cond2)
-        # we want to run the "caching" logic only if force flag isn't set and
-        # we are aren't missing the dataset.xml snippet file for this deployment
-        if not (force and os.path.exists(dataset_chunk_path)):
+        if not force and os.path.exists(dataset_chunk_path):
             # Get datasets that have been updated since the last time this script ran
             last_run_ts = _redis.hget(redis_key, dep.name) or 0
             try:
