@@ -234,7 +234,7 @@ The attribute key and value are supplied below
 
 ```
 {
-  "global_attrs": {
+  "_global_attrs": {
      "title": "Glider deployment GX201, southwest of San Diego"
    },
    "temperature": {
