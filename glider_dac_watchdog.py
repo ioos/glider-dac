@@ -33,7 +33,8 @@ class HandleDeploymentDB(FileSystemEventHandler):
         self.flagsdir = flagsdir  # path to ERDDAP flags folder
         # TODO: possibly create multiple priority queues depending on whether
         # or not delayed mode datasets are used.
-        self.queue = Queue("gliderdac", connection=glider_qc.get_redis_connection())
+        self.redis_connection = glider_qc.get_redis_connection()
+        self.queue = Queue("gliderdac", connection=self.redis_connection)
         self.app = app
 
     def file_moved_or_created(self, event):
@@ -114,7 +115,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                             f"{sign_dt_str}{extension}",
                         ),
                     )
-                    app.redis_connection.xadd(
+                    self.redis_connection.xadd(
                         f"deployment:{sign_dt_str}",
                         {"event": str(type(event)), "path": event.src_path},
                     )
@@ -142,7 +143,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                 with open(event.src_path) as wf:
                     deployment.wmo_id = str(wf.readline().strip())
                 deployment.save()
-                app.redis_connection.xadd(
+                self.redis_connection.xadd(
                     f"deployment:{deployment.name}",
                     {"event": "wmo_id_add_file", "path": event.src_path},
                 )
@@ -153,7 +154,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
             elif path_parts[-1] == "extra_atts.json":
                 log.info("extra_atts.json detected in %s", rel_path)
                 deployment.save()
-                app.redis_connection.xadd(
+                self.redis_connection.xadd(
                     f"deployment:{deployment.name}",
                     {"event": "extra_atts_write", "path": event.src_path},
                 )
@@ -175,7 +176,7 @@ class HandleDeploymentDB(FileSystemEventHandler):
                     else:
                         file_path = event.dest_path
                     # TODO: DRY/refactor with batch QARTOD job?
-                    app.redis_connection.xadd(
+                    self.redis_connection.xadd(
                         f"deployment:{deployment.name}",
                         {"event": str(type(event)), "path": event.src_path},
                     )
