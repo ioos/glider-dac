@@ -47,9 +47,8 @@ def can_manage_deployments(user):
 
 def get_editable_deployment(username, deployment_name):
     deployment = Deployment.query.filter_by(name=deployment_name).first_or_404()
-    if (
-        deployment.user.username != username
-        or not can_manage_deployments(deployment.user)
+    if deployment.user.username != username or not can_manage_deployments(
+        deployment.user
     ):
         abort(403)
     return deployment
@@ -140,6 +139,7 @@ def list_operator_deployments(operator):
         if not os.path.exists(m.full_path):
             continue
 
+        # TODO: check against locale etc for timezone
         m.updated = datetime.utcfromtimestamp(os.path.getmtime(m.full_path))
 
     return render_template(
@@ -288,7 +288,7 @@ def new_deployment(username):
             deployment.user = user
             deployment.user.username = username
             deployment.deployment_dir = os.path.join(username, deployment_name)
-            deployment.updated = datetime.utcnow()
+            deployment.updated = datetime.now(tz=timezone.utc)
             deployment.deployment_date = deployment_date
             deployment.glider_name = form.glider_name.data
             deployment.name = deployment_name
@@ -318,6 +318,8 @@ def new_deployment(username):
     return redirect(url_for("deployment.list_user_deployments", username=username))
 
 
+# TODO: Consider moving delayed mode creation logic for existing rt deployment
+#       to `new_deployment` function
 @deployment_bp.route(
     "/users/<string:username>/deployment/<string:deployment_name>/new", methods=["POST"]
 )
@@ -330,29 +332,31 @@ def new_delayed_mode_deployment(username, deployment_name):
     :param string username: Username
     :param str deployment_name: Name of the existing realtime deployment
     """
-    rt_deployment = get_editable_deployment(username, deployment_name)
-    user = rt_deployment.user
+    delayed_user = User.query.filter_by(username=username).first_or_404()
+    if not can_manage_deployments(delayed_user):
+        abort(403)
+    # should not be possible to reach failure state here ordinarily
+    rt_deployment = Deployment.query.filter_by(name=deployment_name).first_or_404()
     # Need to check if the "real time" deployment is complete yet
     if not rt_deployment.completed:
         url_for(
             "deployment.show_deployment",
-            username=username,
+            username=rt_deployment.user.username,
             deployment_name=deployment_name,
         )
         flash(
-            "The real time %s must be marked as complete before adding delayed mode data"
-            % rt_deployment.name,
+            f"The real time {rt_deployment.name} must be marked as complete before adding delayed mode data",
             "danger",
         )
         return redirect(url_for("deployment.list_user_deployments", username=username))
 
     deployment = Deployment()
     deployment.name = f"{rt_deployment.name}-delayed"
-    deployment.user_id = user.id
+    deployment.user_id = delayed_user.id
     deployment.operator = rt_deployment.operator
     deployment.deployment_dir = os.path.join(username, deployment.name)
     deployment.wmo_id = rt_deployment.wmo_id
-    deployment.updated = datetime.utcnow()
+    deployment.updated = datetime.now(tz=timezone.utc)
     deployment.glider_name = rt_deployment.glider_name
     deployment.deployment_date = rt_deployment.deployment_date
     deployment.attribution = rt_deployment.attribution
@@ -378,7 +382,7 @@ def edit_deployment(username, deployment_name):
 
     if form.validate_on_submit():
         form.populate_obj(deployment)
-        deployment.updated = datetime.utcnow()
+        deployment.updated = datetime.now(tz=timezone.utc)
         db.session.commit()
         flash("Deployment updated", "success")
         return redirect(
@@ -422,7 +426,7 @@ def post_deployment_file(username, deployment_name):
         except Exception:
             current_app.logger.exception("Error uploading file: {}".format(out_name))
 
-        retval.append((safe_filename, datetime.utcnow()))
+        retval.append((safe_filename, datetime.now(tz=timezone.utc)))
 
     editable = can_manage_deployments(deployment.user)
 
