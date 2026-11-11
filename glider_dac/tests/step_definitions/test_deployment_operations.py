@@ -167,6 +167,137 @@ def deployment_email_notification(app, create_deployment_and_capture_email):
     assert message.subject == "New Glider Deployment - testdeployment-20240502T0000"
 
 
+@given(
+    "a corresponding real-time deployment belongs to another user",
+    target_fixture="real_time_deployment",
+)
+def real_time_deployment_owned_by_another_user(app):
+    user = app.security.datastore.create_user(
+        username="realtimeowner",
+        name="Real-time Owner",
+        email="realtime@example.invalid",
+        password="RealtimeTestPassword",
+    )
+    app.security.datastore.commit()
+    deployment = Deployment(
+        user=user,
+        name="testdeployment-20240502T0000",
+        glider_name="testdeployment",
+        deployment_date=datetime(2024, 5, 2),
+        updated=datetime.now(tz=timezone.utc),
+        deployment_dir="realtimeowner/testdeployment-20240502T0000",
+        operator="Real-time Operator",
+        attribution="Real-time Attribution",
+        wmo_id="1234567",
+        completed=False,
+        delayed_mode=False,
+    )
+    db.session.add(deployment)
+    deployment.save()
+    shutil.copy(STATIC_FILES["murphy"], Path(deployment.full_path) / "existing.nc")
+    return deployment
+
+
+@given("the real-time deployment is completed")
+def real_time_deployment_completed(real_time_deployment):
+    real_time_deployment.completed = True
+    real_time_deployment.save()
+
+
+@given("the real-time deployment is not completed")
+def real_time_deployment_incomplete(real_time_deployment):
+    assert not real_time_deployment.completed
+
+
+@when(
+    "I create a new delayed mode glider deployment",
+    target_fixture="delayed_creation_result",
+)
+def create_delayed_mode_deployment(client, mail_recorder, real_time_deployment):
+    source_path = Path(real_time_deployment.full_path)
+    snapshot = {
+        column.name: getattr(real_time_deployment, column.name)
+        for column in Deployment.__table__.columns
+    }
+    source_metadata = (source_path / "deployment.json").read_bytes()
+    with mail_recorder() as outbox:
+        response = client.post(
+            f"/users/testuser/deployment/{real_time_deployment.name}/new"
+        )
+    return response, outbox, snapshot, source_metadata
+
+
+@then("the delayed mode deployment should be created successfully")
+def delayed_mode_deployment_created(
+    delayed_creation_result, real_time_deployment, app
+):
+    response, outbox, _, _ = delayed_creation_result
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/users/testuser/deployments")
+    db.session.expire_all()
+    delayed = Deployment.query.filter_by(
+        name=f"{real_time_deployment.name}-delayed"
+    ).one()
+    assert delayed.delayed_mode
+    assert not delayed.completed
+    assert delayed.user.username == "testuser"
+    assert delayed.user_id != real_time_deployment.user_id
+    for attribute in (
+        "glider_name", "deployment_date", "operator", "attribution", "wmo_id"
+    ):
+        assert getattr(delayed, attribute) == getattr(real_time_deployment, attribute)
+    assert delayed.deployment_dir == f"testuser/{delayed.name}"
+    metadata_path = Path(delayed.full_path) / "deployment.json"
+    assert metadata_path.is_file()
+    metadata = json.loads(metadata_path.read_text())
+    assert metadata["name"] == delayed.name
+    assert metadata["delayed_mode"]
+    assert len(outbox) == 1
+    assert outbox[0].subject == f"New Glider Deployment - {delayed.name}"
+    assert outbox[0].send_to == set(app.config["MAIL_DEFAULT_TO"].split(";"))
+
+
+@then("I should receive a completion-required error message")
+def delayed_creation_requires_completed_source(delayed_creation_result, client):
+    response, _, snapshot, _ = delayed_creation_result
+    assert response.status_code == 302
+    assert response.headers["Location"].endswith("/users/testuser/deployments")
+    page = client.get(response.headers["Location"])
+    assert page.status_code == 200
+    message = (
+        f"The real time {snapshot['name']} must be marked as complete "
+        "before adding delayed mode data"
+    )
+    assert message.encode() in page.data
+
+
+@then("no delayed mode deployment should be created")
+def delayed_mode_deployment_not_created(delayed_creation_result, app):
+    _, outbox, snapshot, _ = delayed_creation_result
+    db.session.expire_all()
+    delayed_name = f"{snapshot['name']}-delayed"
+    assert Deployment.query.filter_by(name=delayed_name).first() is None
+    assert not outbox
+    assert not list(Path(app.config["DATA_ROOT"]).glob(f"*/{delayed_name}"))
+
+
+@then("the real-time deployment should remain unchanged")
+def real_time_deployment_unchanged(delayed_creation_result):
+    _, _, snapshot, source_metadata = delayed_creation_result
+    db.session.expire_all()
+    deployment = db.session.get(Deployment, snapshot["id"])
+    assert deployment is not None
+    assert {
+        column.name: getattr(deployment, column.name)
+        for column in Deployment.__table__.columns
+    } == snapshot
+    source_path = Path(deployment.full_path)
+    assert (source_path / "deployment.json").read_bytes() == source_metadata
+    assert filecmp.cmp(
+        STATIC_FILES["murphy"], source_path / "existing.nc", shallow=False
+    )
+
+
 # deletion scenario
 @when("I attempt to delete an existing deployment belonging to my user")
 def delete_deployment_hierarchy(client):

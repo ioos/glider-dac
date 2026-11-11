@@ -96,6 +96,23 @@ Feature: Glider Deployment Operations
             | delete_files |
             | new delayed  |
 
+    Scenario: Creating delayed mode deployment
+        Given I am a logged in user
+        And a corresponding real-time deployment belongs to another user
+        And the real-time deployment is completed
+        When I create a new delayed mode glider deployment
+        Then the delayed mode deployment should be created successfully
+        And the real-time deployment should remain unchanged
+
+    Scenario: Reject delayed creation for incomplete real-time deployment
+        Given I am a logged in user
+        And a corresponding real-time deployment belongs to another user
+        And the real-time deployment is not completed
+        When I create a new delayed mode glider deployment
+        Then I should receive a completion-required error message
+        And no delayed mode deployment should be created
+        And the real-time deployment should remain unchanged
+
      Scenario: NCEI archival of deployments
           Given I am a logged in user
           When I create a new glider deployment
