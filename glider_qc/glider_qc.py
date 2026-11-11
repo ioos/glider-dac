@@ -331,10 +331,16 @@ class GliderQC(object):
         :return converted: numpy array of converted values
         """
         report_list = []
+        # TODO: consider using UDUnits2/cf-units for main physical variable
+        # mappings
         mapping = {
             "sea_water_temperature": "deg_C",
             "sea_water_electrical_conductivity": "S m-1",
             "sea_water_salinity": "1",
+            # verify: CF Standard Name table gives canonical units
+            # for sea_water_practical_salinity as 1e-3, verify
+            # relative unit conversion to default to
+            "sea_water_practical_salinity": "1",
             "sea_water_pressure": "dbar",
             "sea_water_density": "kg m-3",
         }
@@ -354,6 +360,8 @@ class GliderQC(object):
             return None, " ".join(report_list)
 
         # Get the target unit for conversion
+        # FIXME: Target unit mapping will fail if not in mappings dict,
+        # throwing unhandled exception.
         target_unit = mapping[standard_name]
         try:
             # Perform the unit conversion (make sure the `Unit` class and its method are correct)
