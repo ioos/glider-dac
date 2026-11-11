@@ -251,8 +251,18 @@ def deployment_controls_use_owner(client):
 )
 def post_deployment_operation(client, operation, url_user):
     username = "otheruser" if url_user == "caller" else "testuser"
-    url = f"/users/{username}/deployment/testdeployment-20240502T0000/{operation}"
-    if operation == "files":
+    endpoint = "new" if operation == "new delayed" else operation
+    url = f"/users/{username}/deployment/testdeployment-20240502T0000/{endpoint}"
+    if operation == "new real-time":
+        response = client.post(
+            f"/users/{username}/deployment/new",
+            data={
+                "glider_name": "newdeployment",
+                "deployment_date": "2024-05-03T0000",
+                "attribution": "Automated Glider Tests",
+            },
+        )
+    elif operation == "files":
         with open(STATIC_FILES["murphy"], "rb") as netcdf_file:
             response = client.post(
                 url, data={"file-0": (netcdf_file, "uploaded.nc")}
@@ -261,12 +271,12 @@ def post_deployment_operation(client, operation, url_user):
         response = client.post(url, json={"files": ["existing.nc"]})
     else:
         response = client.post(url, data={"operator": "Changed operator"})
-    return operation, response
+    return operation, response, username
 
 
 @then("the deployment request should return 403 without changing the deployment")
 def deployment_permission_denied(deployment_request):
-    _, response = deployment_request
+    _, response, _ = deployment_request
     assert response.status_code == 403
     db.session.expire_all()
     deployment = Deployment.query.filter_by(name="testdeployment-20240502T0000").one()
@@ -278,11 +288,12 @@ def deployment_permission_denied(deployment_request):
     assert Deployment.query.filter_by(
         name="testdeployment-20240502T0000-delayed"
     ).first() is None
+    assert Deployment.query.filter_by(name="newdeployment-20240503T0000").first() is None
 
 
 @then("the deployment operation should succeed")
 def deployment_permission_allowed(deployment_request):
-    operation, response = deployment_request
+    operation, response, username = deployment_request
     expected_status = 200 if operation in ("files", "delete_files") else 302
     assert response.status_code == expected_status
     db.session.expire_all()
@@ -299,12 +310,19 @@ def deployment_permission_allowed(deployment_request):
         )
     elif operation == "delete_files":
         assert not (Path(deployment.full_path) / "existing.nc").exists()
-    else:
+    elif operation == "new delayed":
         delayed = Deployment.query.filter_by(
             name="testdeployment-20240502T0000-delayed"
         ).one()
-        assert delayed.user == deployment.user
+        assert delayed.user.username == username
+        assert delayed.deployment_dir == f"{username}/{delayed.name}"
         assert Path(delayed.full_path).is_dir()
+    elif operation == "new real-time":
+        created = Deployment.query.filter_by(name="newdeployment-20240503T0000").one()
+        assert created.user.username == username
+        assert not created.delayed_mode
+        assert created.deployment_dir == f"{username}/{created.name}"
+        assert Path(created.full_path).is_dir()
 
 
 @when(
@@ -312,7 +330,8 @@ def deployment_permission_allowed(deployment_request):
     target_fixture="missing_deployment_response",
 )
 def post_missing_deployment(client, operation):
-    return client.post(f"/users/testuser/deployment/missing/{operation}")
+    endpoint = "new" if operation == "new delayed" else operation
+    return client.post(f"/users/testuser/deployment/missing/{endpoint}")
 
 
 @then("the deployment request should return 404")
