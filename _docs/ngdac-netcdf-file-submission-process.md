@@ -217,6 +217,8 @@ For eligible deployments, the archival process:
 
 The archival script prepares and stages the dataset; it does not perform the final NCEI archival operation. NCEI automation is responsible for discovering the staged dataset and processing it for inclusion in the national ocean archive.
 
+Users can view the Glider DAC collection on [NOAA OneStop](https://data.noaa.gov/onestop/collections/details/0dd59d4b-d580-4761-bec5-8ede4edbe785). To view archived glider deployment data at NCEI, you can browse [here](https://data.noaa.gov/onestop/collections/granules/0dd59d4b-d580-4761-bec5-8ede4edbe785).
+
 **Note**: Deployments that fail the high-priority CF Standard Names check are not prepared for submission to the NCEI National Ocean Archive. If a deployment is no longer eligible for archival, the archival workflow removes its dataset and checksum from the NCEI staging area and creates a .DO-NOT-ARCHIVE marker for NCEI automation.
 
 The next section, **Modifying Metadata After Submission**, explains how to correct metadata so that the deployment passes the CF Standard Names check and can be prepared for NCEI archival.
