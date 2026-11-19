@@ -15,13 +15,15 @@ QARTOD (Quality Assurance/Quality Control of Real-Time Oceanographic Data) is a 
 
 ## File Processing During QC
 
-When you submit your netCDF file, the following happens automatically:
+When you submit your NetCDF file, the following happens automatically:
 
-1.  **File is checked for required variables and metadata.**
-2.  **QARTOD QC tests are run** on key geophysical variables (like temperature, salinity, pressure, etc.).
-3.  **New variables are added** to your file, showing the results of each QC test.
-4.  **A summary of any issues or errors** is recorded in a global attribute in your file.
-5.  **A file attribute is set** to mark QC as complete, preventing subsequent runs from reprocessing glider profiles.
+1. **The file is checked for required variables and metadata.**
+2. **Four QARTOD QC tests are run on each of five geophysical variables:**
+   - **Geophysical variables:** temperature, conductivity, density, pressure, and salinity.
+   - **QARTOD QC tests:** `gross_range_test`, `flat_line_test`, `rate_of_change_test`, and `spike_test`.
+3. **QC result variables are added** to the file for each test, along with a rollup variable that combines the test results.
+4. **A summary of issues or errors** is recorded in a global attribute in the file.
+5. **A file attribute is set** to mark QC as complete and prevent subsequent runs from reprocessing glider profiles.
 
 
 ## File Contents After Application of QC
