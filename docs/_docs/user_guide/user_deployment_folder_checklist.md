@@ -158,5 +158,3 @@ _System files (`completed.txt`, `dataset.xml`, `deployment.json`, `wmoid.txt`) w
 
 **Questions?**
 Contact: [glider.dac.support@noaa.gov](mailto:glider.dac.support@noaa.gov)
-
-

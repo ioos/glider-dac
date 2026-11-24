@@ -25,4 +25,3 @@ summary: >-
 **Tip:**
 Double-check your file against this checklist and examples before submitting to GDAC!
 If you’re unsure about CF standard names or required metadata, consult the [CF Standard Names Table](https://cfconventions.org/Data/cf-standard-names/current/build/cf-standard-name-table.html) or the GDAC user guide.
-
