@@ -1,0 +1,54 @@
+---
+title: Useful Links
+wikiPageName: Useful Links
+keywords: IOOS, documentation
+tags: [getting_started, about, overview]
+toc: false
+#search: exclude
+#permalink: index.html
+summary: A list of links for Data Providers
+---
+
+The following links are provided for data providers and web application developers. They include tools for creating deployments, uploading compliant [DAC NetCDF files](ngdac-netcdf-file-format-version-4), viewing dataset status, and accessing the DAC programmatically through a RESTful API.
+
+## Data Provider Utilities
+
+ - [**IOOS Compliance Checker**](https://compliance.ioos.us/index.html)
+
+  The IOOS Compliance Checker is a python based tool for data providers to check for completeness and community standard compliance of local or remote netCDF files against metadata standards. This web based tool can be used to check your GliderDAC netCDF files for compliance. Be sure to select **GliderDAC** in the list of available tests to run.
+
+
+## Submitting Data
+
+ - [**Deployment Registration**](https://gliders.ioos.us/providers)
+
+See the section on [New Deployment Registration](ngdac-netcdf-file-submission-process#new-deployment-registration) for more details.
+
+## Data Access Links
+
+Access to the datasets submitted to the DAC is provided via [ERDDAP](https://coastwatch.pfeg.noaa.gov/erddap/information.html) and [THREDDS](https://www.unidata.ucar.edu/software/tds/).  The access points are:
+
+ - [**ERDDAP Catalog**](https://gliders.ioos.us/erddap/tabledap/index.html)
+ - [**THREDDS Catalog**](https://gliders.ioos.us/thredds/catalog.html)
+
+
+## Dataset Status
+
+Status page for the GliderDAC
+ - [**Dataset Status**](https://gliders.ioos.us/status/) page has been deprecated and will be replaced by a new tool.
+
+
+## API
+
+ - [**DAC RESTful API**](https://gliders.ioos.us/providers/api/deployment)
+
+This endpoint provides a list of each of the glider deployments in the DAC.
+
+
+## IOOS Resources
+
+The following is a list of links to [IOOS](https://ioos.us) projects related to the DAC:
+
+ - [**IOOS Gliders and the DAC**](https://gliders.ioos.us/data)
+ - [**IOOS GliderDAC Map**](https://gliders.ioos.us/map)
+ - [**IOOS Catalog**](https://data.ioos.us/)

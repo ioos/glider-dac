@@ -1,0 +1,203 @@
+# this is your sidebar toc. the sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: Menu
+  levels: two
+  version:
+  folders:
+#
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+      - title:
+        url: /titlepage
+        output: pdf
+        type: frontmatter
+      - title:
+        url: /tocpage
+        output: pdf
+        type: frontmatter
+#
+  - title: Wiki Homepage
+    output: web
+    url: /index.html
+    folderitems:
+      - title: Introduction
+        url: /index.html
+        output: web
+#
+  - title: NetCDF File Submission Process
+    output: web
+    folderitems:
+      - title: Data Provider Registration
+        url: /ngdac-netcdf-file-submission-process.html
+        output: web
+      - title: New Deployment Registration
+        url: /ngdac-netcdf-file-submission-process.html#new-deployment-registration
+        output: web
+      - title: Requesting a WMO ID
+        url: /ngdac-netcdf-file-submission-process.html#requesting-a-wmo-id
+        output: web
+      - title: Deployment Creation
+        url: /ngdac-netcdf-file-submission-process.html#deployment-creation
+        output: web
+      - title: Submission of NetCDF Files
+        url: /ngdac-netcdf-file-submission-process.html#submission-of-netcdf-files
+        output: web
+      - title: Datasets QARTOD Additions
+        url: /ngdac-netcdf-file-submission-process.html#datasets-qartod-additions
+        output: web
+      - title: Dataset Access
+        url: /ngdac-netcdf-file-submission-process.html#dataset-access
+        output: web
+      - title: Dataset Status
+        url: /ngdac-netcdf-file-submission-process.html#dataset-status
+        output: web
+      - title: Dataset Archiving
+        url: /ngdac-netcdf-file-submission-process.html#dataset-archiving
+        output: web
+      - title: Dataset Correction
+        url: /ngdac-netcdf-file-submission-process.html#dataset-correction
+        output: web
+      - title: Summary of the NGDAC Data Flow
+        url: /ngdac-netcdf-file-submission-process.html#summary-of-the-ngdac-data-flow
+        output: web
+#
+  - title: NetCDF File Format Description
+    output: web
+    folderitems:
+      - title: Introduction
+        url: /ngdac-netcdf-file-format-version-4.html
+        output: web
+      - title: Glider Profile NetCDF File Example
+        url: /ngdac-netcdf-file-format-version-4.html#glider-profile-netcdf-file-example
+        output: web
+      - title: File Naming Conventions
+        url: /ngdac-netcdf-file-format-version-4.html#file-naming-conventions
+        output: web
+      - title: Global Attributes
+        url: /ngdac-netcdf-file-format-version-4.html#global-attributes
+        output: web
+      - title: Variables
+        url: /ngdac-netcdf-file-format-version-4.html#variables
+        output: web
+      - title: Dimensions
+        url: /ngdac-netcdf-file-format-version-4.html#dimensions
+        output: web
+      - title: Trajectory Variables
+        url: /ngdac-netcdf-file-format-version-4.html#trajectory-variables
+        output: web
+      - title: Time-Series Variables
+        url: /ngdac-netcdf-file-format-version-4.html#time-series-variables
+        output: web
+      - title: Dimensionless Profile Variables
+        url: /ngdac-netcdf-file-format-version-4.html#dimensionless-profile-variables
+        output: web
+      - title: Dimensionless Container Variables
+        url: /ngdac-netcdf-file-format-version-4.html#dimensionless-container-variables
+        output: web
+      - title: Index of Required Attributes and Variables
+        url: /ngdac-netcdf-file-format-version-4.html#index-of-required-global-attributes-and-variables
+        output: web
+#
+  - title: Submission Checklists
+    url: /submission-checklists.html
+    output: web
+    folderitems:
+      - title: Deployment Folder Checklist
+        url: /submission-checklists.html#deployment-folder-checklist
+        output: web
+      - title: File Submission Checklist
+        url: /submission-checklists.html#file-submission-checklist
+        output: web
+      - title: NGDAC QARTOD QC Checklist
+        url: /submission-checklists.html#ngdac-qartod-qc-checklist
+        output: web
+#
+  - title: Useful Links
+    url: /useful-links.html
+    output: web
+    folderitems:
+      - title: Data Provider Utilities
+        url: /useful-links.html
+        output: web
+      - title: Submitting Data
+        url: /useful-links.html#submitting-data
+        output: web
+      - title: Data Access Links
+        url: /useful-links.html#data-access-links
+        output: web
+      - title: Dataset Status
+        url: /useful-links.html#dataset-status
+        output: web
+      - title: API
+        url: /useful-links.html#api
+        output: web
+      - title: IOOS Resources
+        url: /useful-links.html#ioos-resources
+        output: web
+#
+  - title: FAQs
+    output: web
+    folderitems:
+      - title: Frequently Asked Questions
+        url: /faqs.html
+        output: web
+#
+  - title: Glider Background and Sampling Terminology
+    output: web
+    folderitems:
+      - title: Glider Types
+        url: /glider-background-and-sampling-terminology.html
+        output: web
+      - title: Sampling Pattern Terminology
+        url: /glider-background-and-sampling-terminology.html#sampling-pattern-terminology
+        output: web
+#
+  - title: Architecture
+    output: web
+    folderitems:
+      - title: Data Assembly Center Architecture
+        url: /ngdac-architecture.html
+        output: web
+#
+  - title: Step-By-Step File Submission
+    url: /step-by-step-file-submission.html
+    output: web
+    type: overview
+    folderitems:
+      - title: How to Create a Deployment in the Glider DAC
+        url: /step-by-step-file-submission.html
+        output: web
+      - title: How to Add Files to the Deployment Folder
+        url: /step-by-step-file-submission.html#how-to-add-files-to-the-deployment-folder
+        output: web
+      - title: How to Check Data Status
+        url: /step-by-step-file-submission.html#how-to-check-data-status
+        output: web
+#
+  - title: NetCDF QARTOD GDAC What To Expect
+    url: /netcdf-qartod-gdac-what-to-expect.html
+    output: web
+    type: overview
+    folderitems:
+      - title: QARTOD QC Overview
+        url: /netcdf-qartod-gdac-what-to-expect.html#qartod-qc-overview
+        output: web
+      - title: File Processing During QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-processing-during-qc
+        output: web
+      - title: File Contents After Application of QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-contents-after-application-of-qc
+        output: web
+      - title: File Requirements for QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#file-requirements-for-qc
+        output: web
+      - title: Issue Resolution During QC
+        url: /netcdf-qartod-gdac-what-to-expect.html#issue-resolution-during-qc
+        output: web
+      - title: Resources
+        url: /netcdf-qartod-gdac-what-to-expect.html#resources
+        output: web

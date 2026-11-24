@@ -1,0 +1,25 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https?://127.0.0.1:\\d+"
+    },
+    {
+      "pattern": "^https?://localhost:\\d+"
+    }
+  ],
+  "replacementPatterns": [
+      {
+        "pattern": "^/(.*)",
+        "replacement": "https://ioos.github.io/$1"
+      },
+      {
+        "pattern": "^\\s*{{\\s*site.baseurl\\s*}}\\s*/(.*)",
+        "replacement": "https://ioos.github.io/$1"
+      }
+  ],
+  "timeout": "60s",
+  "retryOn429": "true",
+  "retryCount": 5,
+  "fallbackRetryDelay": "300s",
+  "aliveStatusCodes": [200, 206, 0, 400, 403]
+}
