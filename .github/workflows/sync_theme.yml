@@ -5,7 +5,7 @@ permissions: {}
 
 on:
   push:
-    branches: gh-pages
+    branches: main
 
   schedule:
      - cron: "00 14 * * *"
@@ -23,7 +23,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
-        ref: gh-pages
+        ref: main
         fetch-depth: 0
         persist-credentials: false
         submodules: recursive
@@ -32,8 +32,8 @@ jobs:
       id: update_submodules
       run: >
           git submodule update --remote --merge
-          && git diff --quiet origin/main -- "theme" || echo "theme=true" >> $GITHUB_OUTPUT
-          && git diff --quiet origin/main -- "_data/navbars" || echo "navbars=true" >> $GITHUB_OUTPUT
+          && git diff --quiet origin/main -- "docs/theme" || echo "theme=true" >> $GITHUB_OUTPUT
+          && git diff --quiet origin/main -- "docs/_data/navbars" || echo "navbars=true" >> $GITHUB_OUTPUT
 
     - name: Create PR if it changed
       if: ${{ (steps.update_theme_submodule.outputs.theme != 'true') && (steps.update_theme_submodule.outputs.navbars != 'true') }}

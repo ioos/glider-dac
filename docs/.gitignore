@@ -1,0 +1,17 @@
+_site/
+.bundle/
+vendor/
+.sass-cache/
+.jekyll-metadata
+.ipynb_checkpoints
+_pdf
+.idea/
+.DS_Store
+temp
+Gemfile.lock
+.Rproj.user
+.Rhistory
+glider-dac.Rproj
+_docs/ngdac-netcdf-file-format-version-2.html
+_docs/ngdac-netcdf-file-submission-process.html
+_docs/ngdac-netcdf-file-format-version-2-creation-code.md
