@@ -15,7 +15,7 @@ repos:
                 .*\.yaml
             )$
         args:
-          - --ignore-words-list=nd,ot
+          - --ignore-words-list=nd,ot,rouge,ADN
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.11.0.1
